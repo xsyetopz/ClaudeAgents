@@ -2,9 +2,28 @@
 
 This document explains when to use Agent Teams vs Subagents for different types of tasks.
 
-## Overview
+## Decision Flowchart
 
-The Claude Code system supports two agent approaches:
+```mermaid
+flowchart TD
+    START[New Task] --> Q1{Multiple modules<br>affected?}
+    Q1 -->|Yes| Q2{Parallel work<br>possible?}
+    Q1 -->|No| Q3{Design needed<br>before coding?}
+
+    Q2 -->|Yes| TEAM[Use Agent Team]
+    Q2 -->|No| Q3
+
+    Q3 -->|Yes| TEAM
+    Q3 -->|No| Q4{High risk<br>changes?}
+
+    Q4 -->|Yes| TEAM
+    Q4 -->|No| SUB[Use Subagent]
+
+    TEAM --> DONE[Execute]
+    SUB --> DONE
+```
+
+## Overview
 
 | Approach | Best For | Coordination | Token Cost |
 |----------|----------|--------------|------------|

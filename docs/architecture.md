@@ -100,18 +100,24 @@ Nodes:
 
 Agents communicate via **shared files**, not direct messaging:
 
+```mermaid
+flowchart LR
+    subgraph Memory["`.claude/memory/`"]
+        T[tasks.md]
+        L[locks.md]
+        I[project-index.md]
+        A[arch/*.md]
+    end
+
+    AG1[Agent A] -->|write| T
+    AG2[Agent B] -->|read| T
+    AG1 -->|acquire| L
+    AG1 -->|release| L
+```
+
 1. **tasks.md** - Task assignment and status
 2. **locks.md** - File ownership during editing
 3. **Memory files** - Shared context and outputs
-
-Example communication:
-
-```markdown
-## Messages
-- [10:30] indexer -> architect: Index complete. See project-index.md
-- [10:45] architect -> implementer: Design ready. See arch/cache.md
-- [11:30] implementer -> verifier: Implementation done. Ready for tests
-```
 
 ## Design Principles
 
