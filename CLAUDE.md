@@ -119,3 +119,148 @@ A user saying "refactor the auth module" might be simple (rename a few things) o
 - Comments explain "why", never "what"
 - Meaningful names: `parse_primary_expr` not `parse_primary`
 - If a comment is needed to explain code, the code should probably be rewritten
+
+## Code Intelligence
+
+Prefer LSP over Grep/Read for code navigation—faster, precise, avoids reading entire files:
+- `workspaceSymbol` to find where something is defined
+- `findReferences` to see all usages across the codebase
+- `goToDefinition` / `goToImplementation` to jump to source
+- `hover` for type info without reading the file
+
+Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
+After writing or editing code, check LSP diagnostics and fix errors before proceeding.
+
+## Design Principles
+
+### SRP (Single Responsibility Principle)
+
+**Correct understanding**: A module should have one *reason to change*, not one *thing*.
+
+`token.rs` containing `Token`, `TokenKind`, `TokenSpan` does NOT violate SRP—they all change together when token representation changes. That's one responsibility: "token representation".
+
+<violations>
+<subtle>
+```rust
+// BAD: UserService that sends emails
+impl UserService {
+    fn create_user(&self, data: UserData) -> User { ... }
+    fn send_welcome_email(&self, user: &User) { ... }  // Wrong place!
+}
+```
+Two reasons to change: user logic AND email logic. Extract `EmailService`.
+</subtle>
+
+<subtle>
+```rust
+// BAD: Repository that formats output
+impl UserRepository {
+    fn find_by_id(&self, id: &str) -> User { ... }
+    fn to_json(&self, user: &User) -> String { ... }  // Wrong place!
+}
+```
+Serialization is a separate concern. Use `serde` or separate serializer.
+</subtle>
+</violations>
+
+### DRY (Don't Repeat Yourself)
+
+Not just "no duplicate code"—it's about single source of truth for *knowledge*.
+
+<violations>
+<subtle>
+```rust
+// BAD: Magic number in multiple places
+fn validate_password(p: &str) -> bool { p.len() >= 8 }
+fn password_hint() -> &'static str { "Must be at least 8 characters" }
+// If min length changes, must update BOTH
+```
+Extract: `const MIN_PASSWORD_LENGTH: usize = 8;`
+</subtle>
+
+<subtle>
+```rust
+// BAD: Validation logic duplicated
+fn create_user(email: &str) { if !email.contains('@') { panic!() } ... }
+fn update_email(email: &str) { if !email.contains('@') { panic!() } ... }
+```
+Extract: `fn validate_email(email: &str) -> Result<(), ValidationError>`
+</subtle>
+</violations>
+
+### KISS (Keep It Simple, Stupid)
+
+<violations>
+<subtle>
+```rust
+// BAD: Over-abstracted for one use case
+trait Processor<T, U, E> { fn process(&self, input: T) -> Result<U, E>; }
+struct JsonProcessor;
+impl Processor<String, Value, Error> for JsonProcessor { ... }
+// Used exactly once. Just write a function.
+```
+</subtle>
+
+<subtle>
+```rust
+// BAD: Premature optimization
+fn get_user(id: &str) -> User {
+    let cache = GLOBAL_CACHE.read().unwrap();
+    if let Some(u) = cache.get(id) { return u.clone(); }
+    drop(cache);
+    let user = db.find(id);
+    GLOBAL_CACHE.write().unwrap().insert(id, user.clone());
+    user
+}
+// No evidence caching is needed. Measure first.
+```
+</subtle>
+</violations>
+
+## Useful Algorithms
+
+### Incremental Indexing
+```
+1. git diff --name-only HEAD~N > changed_files
+2. If changed_files.len() < threshold: update only those
+3. Else: full reindex
+4. Update timestamp
+```
+
+### Feature Clustering (for indexer)
+```
+1. Group files by directory
+2. Within directory, cluster by naming prefix (auth_*, user_*)
+3. Refine by import graph connectivity
+4. Output: feature -> [files] mapping
+```
+
+### Lock-Free Coordination
+```
+1. Before edit: append to locks.md with timestamp
+2. Check for conflicts (same file, different owner)
+3. If conflict: back off, message in tasks.md
+4. After edit: remove lock entry
+5. Stale locks (>1h): can be cleaned up
+```
+
+## Data Structures
+
+### Project Index Schema
+```
+project-index.md
+├── metadata (timestamp, file count, LOC)
+├── module_map: {module -> (files, loc, entry, exports)}
+├── symbol_index: {symbol -> (kind, file:line, module)}
+├── feature_map: {feature -> [files]}
+├── import_graph: {module -> [dependencies]}
+└── patterns: {pattern -> (example, count)}
+```
+
+### Task Coordination Schema
+```
+tasks.md
+├── active_tasks: [{id, owner, status, description, files, blocked_by}]
+├── completed_tasks: [{id, owner, completed_at, description}]
+└── messages: [{timestamp, from, to, content}]
+```

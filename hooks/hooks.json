@@ -29,6 +29,20 @@
 			"command": "bash $CLAUDE_PROJECT_ROOT/.claude/hooks/scripts/auto-index.sh cleanup-locks",
 			"description": "Clean up any locks held by the current agent on session end",
 			"timeout": 2000
+		},
+		{
+			"event": "PostToolUse",
+			"type": "prompt",
+			"toolNames": ["Write", "Edit"],
+			"prompt": "Check LSP diagnostics for errors in modified files. Fix any errors before proceeding.",
+			"description": "Enforce LSP error checking after code changes"
+		},
+		{
+			"event": "PreToolUse",
+			"type": "prompt",
+			"toolNames": ["Grep", "Read"],
+			"prompt": "Consider LSP: workspaceSymbol (definitions), findReferences (usages), goToDefinition, hover (types). Use Grep only for text/pattern searches.",
+			"description": "Prefer LSP over Grep/Read for code navigation"
 		}
 	]
 }
