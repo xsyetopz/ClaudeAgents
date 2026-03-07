@@ -21,16 +21,19 @@ Prevents edit conflicts when multiple agents work simultaneously.
 ## Example Lock Cycle
 
 ### Acquiring a Lock
+
 ```markdown
 | src/feature/types.rs | implementer | 2024-01-15T10:30:00Z | T3 | 2024-01-15T11:30:00Z |
 ```
 
 ### Releasing a Lock
+
 Simply remove the row from the table above.
 
 ## Stale Lock Cleanup
 
 If a lock has expired (>1 hour old) and the owning agent is not active:
+
 1. Check tasks.md for agent's last message
 2. If no activity, remove the stale lock
 3. Post in tasks.md: `[TIMESTAMP] {your_agent}: Cleared stale lock on {file} (was held by {owner})`

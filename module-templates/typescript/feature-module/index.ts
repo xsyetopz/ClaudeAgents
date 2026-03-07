@@ -1,33 +1,13 @@
-/**
- * # {Feature} Module
- *
- * {Brief description of what this feature does}
- *
- * @example
- * ```typescript
- * import { FeatureService, FeatureConfig } from './feature';
- *
- * const service = new FeatureService({ /* config *\/ });
- * const result = await service.create({ data: 'example' });
- * ```
- *
- * @module feature
- */
+export { ItemService, createItemService } from "./service";
+export type { ItemRepository } from "./service";
 
-// =============================================================================
-// PUBLIC EXPORTS
-// =============================================================================
-
-// Types
 export type {
-  MainType,
-  Config,
-  CreateInput,
-  UpdateInput,
-} from './types';
+    Config,
+    CreateItemInput,
+    Item,
+    PaginatedResponse,
+    PaginationParams,
+    UpdateItemInput,
+} from "./types";
 
-// Errors
-export { FeatureError, NotFoundError, ValidationError } from './types';
-
-// Service
-export { FeatureService } from './service';
+export { FeatureError, InvalidInputError, ItemNotFoundError, isItem } from "./types";

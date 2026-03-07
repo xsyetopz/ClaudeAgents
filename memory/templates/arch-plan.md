@@ -12,20 +12,24 @@
 ## Requirements
 
 ### Functional
+
 - [ ] {Requirement 1}
 - [ ] {Requirement 2}
 
 ### Non-Functional
+
 - [ ] Performance: {constraint}
 - [ ] Security: {constraint}
 
 ## Module Design
 
 ### Location
+
 `src/{feature}/`
 
 ### File Structure
-```
+
+```ignore
 {feature}/
 ├── mod.rs          # Public exports only
 ├── types.rs        # Domain types, no logic
@@ -62,12 +66,14 @@ pub fn {main_function}(args: Args) -> Result<Output, Error>;
 ## Dependencies
 
 ### This Module Depends On
+
 | Module | What We Use |
 |--------|-------------|
 | `common::errors` | Error types |
 | `auth::Session` | User context |
 
 ### Modules That Will Use This
+
 | Module | How They'll Use It |
 |--------|-------------------|
 | `api::routes` | HTTP handlers |
@@ -85,11 +91,14 @@ Ordered list for implementer to follow:
 
 ## Data Flow
 
-```
-Input -> Validation -> Processing -> Storage -> Response
-         |                |
-         v                v
-      Error            Events
+```mermaid
+graph TD
+    Input --> Validation
+    Validation -->|Valid| Processing
+    Validation -->|Invalid| Error
+    Processing --> Storage
+    Processing --> Events
+    Storage --> Response
 ```
 
 ## Error Handling

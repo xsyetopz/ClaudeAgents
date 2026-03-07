@@ -15,7 +15,7 @@ This skill orchestrates the full feature development workflow using the agent te
 
 ## Workflow Overview
 
-```
+```ignore
 1. INDEXER   → Index project (or verify index is fresh)
 2. ARCHITECT → Design feature architecture
 3. IMPLEMENTER → Write code following the design
@@ -38,7 +38,7 @@ stat -f "%m" .claude/memory/project-index.md 2>/dev/null || echo "0"
 
 If the index is missing or >24h old, invoke the indexer:
 
-```
+```ignore
 @indexer Index this project for feature development
 ```
 
@@ -47,13 +47,14 @@ Wait for indexer to complete and verify `.claude/memory/project-index.md` exists
 ### Phase 2: Architecture Design
 
 Ask the user for feature requirements if not provided:
+
 - What is the feature name?
 - What should it do?
 - Any specific requirements or constraints?
 
 Then invoke the architect:
 
-```
+```ignore
 @architect Design the {feature_name} feature.
 
 Requirements:
@@ -69,7 +70,7 @@ Wait for architect to complete and verify `.claude/memory/arch/{feature_name}.md
 
 Invoke the implementer with the architecture plan:
 
-```
+```ignore
 @implementer Implement the {feature_name} feature.
 
 Follow the architecture plan at .claude/memory/arch/{feature_name}.md
@@ -83,7 +84,7 @@ Wait for implementer to complete. Check `.claude/memory/tasks.md` for status.
 
 Invoke the verifier to test the implementation:
 
-```
+```ignore
 @verifier Test the {feature_name} feature.
 
 Implementation is complete per tasks.md.
@@ -97,7 +98,7 @@ Wait for verifier to confirm all tests pass.
 
 Finally, invoke the scribe to document:
 
-```
+```ignore
 @scribe Document the {feature_name} feature.
 
 Implementation is complete and tested.
@@ -120,20 +121,24 @@ Target budget for full workflow:
 
 ## Error Handling
 
-### If indexer fails:
+### If indexer fails
+
 - Check disk space and permissions
 - Try with a smaller scope (specific directory)
 
-### If architect needs clarification:
+### If architect needs clarification
+
 - Pause workflow
 - Ask user for input
 - Resume with clarified requirements
 
-### If implementer is blocked:
+### If implementer is blocked
+
 - Check tasks.md for the blocking issue
 - May need architect input for design decisions
 
-### If tests fail:
+### If tests fail
+
 - Check verifier's analysis in tasks.md
 - Route back to implementer for fixes
 - Re-run verifier after fixes
@@ -141,6 +146,7 @@ Target budget for full workflow:
 ## Completion
 
 When all phases complete:
+
 1. Summarize what was created
 2. List key files added/modified
 3. Provide next steps (e.g., PR creation)

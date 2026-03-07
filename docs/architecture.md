@@ -14,6 +14,7 @@ The system is designed as a **hybrid agent architecture** that combines:
 ### 1. Agent Definitions
 
 Located in `agents/`, these markdown files define each agent's:
+
 - **Model**: Which Claude model to use (sonnet, opus, haiku)
 - **Tools**: Available tools for the agent
 - **System Prompt**: Instructions for the agent
@@ -32,6 +33,7 @@ Located in `agents/`, these markdown files define each agent's:
 ### 2. Project Memory
 
 Located in `.claude/memory/`, this persistent storage enables:
+
 - **Cross-session continuity** - Work persists between Claude sessions
 - **Agent coordination** - Agents share information via memory files
 - **Token efficiency** - Read compact summaries instead of source files
@@ -51,6 +53,7 @@ Located in `.claude/memory/`, this persistent storage enables:
 ### 3. Skills
 
 Located in `skills/`, these are orchestration workflows that:
+
 - **Auto-activate** based on user intent
 - **Coordinate agents** for multi-phase tasks
 - **Provide guidance** for complex workflows
@@ -66,6 +69,7 @@ Located in `skills/`, these are orchestration workflows that:
 ### 4. Hooks
 
 Located in `hooks/`, these automate:
+
 - **Session events** - Index freshness checks on start
 - **Tool events** - Mark index dirty after edits
 - **Conflict prevention** - Check locks before editing
@@ -74,34 +78,23 @@ Located in `hooks/`, these automate:
 
 ### Feature Development Flow
 
+```mermaid
+flowchart TD
+    U[User Request] --> I(Indexer)
+    I -->|project-index.md| A(Architect)
+    A -->|arch/{feature}.md| M(Implementer)
+    M -->|Source files<br>+ locks.md| V(Verifier)
+    V -->|test-coverage.md| S(Scribe)
+    S -->|knowledge.md<br>+ ADRs| S
 ```
-User Request
-     │
-     ▼
-┌─────────┐
-│ Indexer │ ──► project-index.md
-└────┬────┘
-     │
-     ▼
-┌──────────┐
-│ Architect│ ──► arch/{feature}.md
-└────┬─────┘
-     │
-     ▼
-┌─────────────┐
-│ Implementer │ ──► Source files + locks.md
-└─────┬───────┘
-      │
-      ▼
-┌──────────┐
-│ Verifier │ ──► test-coverage.md
-└────┬─────┘
-     │
-     ▼
-┌────────┐
-│ Scribe │ ──► knowledge.md + ADRs
-└────────┘
-```
+
+Nodes:
+
+- Indexer: generates project-index.md
+- Architect: generates arch/{feature}.md
+- Implementer: modifies source files, updates locks.md
+- Verifier: updates test-coverage.md
+- Scribe: updates knowledge.md and ADRs
 
 ### Communication Protocol
 
@@ -112,6 +105,7 @@ Agents communicate via **shared files**, not direct messaging:
 3. **Memory files** - Shared context and outputs
 
 Example communication:
+
 ```markdown
 ## Messages
 - [10:30] indexer -> architect: Index complete. See project-index.md
@@ -124,6 +118,7 @@ Example communication:
 ### 1. Single Responsibility
 
 Each agent has one clear purpose:
+
 - Indexer indexes, doesn't implement
 - Architect designs, doesn't code
 - Implementer codes, doesn't test
@@ -133,6 +128,7 @@ Each agent has one clear purpose:
 ### 2. Token Efficiency
 
 Every agent is optimized for minimal token usage:
+
 - Read memory before source files
 - Use indexes instead of full reads
 - Output compact tables, not prose
@@ -141,6 +137,7 @@ Every agent is optimized for minimal token usage:
 ### 3. Graceful Coordination
 
 Agents coordinate without tight coupling:
+
 - Asynchronous communication via files
 - File locks prevent conflicts
 - Tasks track progress and handoffs
@@ -148,6 +145,7 @@ Agents coordinate without tight coupling:
 ### 4. Progressive Disclosure
 
 Information is layered:
+
 - Index provides overview (read first)
 - Architecture plans provide design
 - Source code is read only when necessary

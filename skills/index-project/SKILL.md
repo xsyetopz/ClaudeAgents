@@ -39,6 +39,7 @@ fi
 ### Step 2: Determine Scope
 
 Ask the user if they want:
+
 1. **Full index** - Entire project (use for new projects)
 2. **Incremental update** - Only changed files (use for maintenance)
 3. **Targeted index** - Specific directory (use for large monorepos)
@@ -46,7 +47,8 @@ Ask the user if they want:
 ### Step 3: Run Indexer
 
 For full index:
-```
+
+```ignore
 @indexer Perform a full index of this project.
 
 Create .claude/memory/project-index.md with:
@@ -58,7 +60,8 @@ Create .claude/memory/project-index.md with:
 ```
 
 For incremental:
-```
+
+```ignore
 @indexer Perform an incremental index update.
 
 Check git diff since last index timestamp.
@@ -66,7 +69,8 @@ Update only changed entries in project-index.md.
 ```
 
 For targeted:
-```
+
+```ignore
 @indexer Index the {directory} directory only.
 
 Create/update .claude/memory/project-index.md with:
@@ -92,6 +96,7 @@ fi
 ### Step 5: Report Summary
 
 Provide a summary:
+
 - Number of files indexed
 - Number of modules found
 - Number of public symbols
@@ -101,6 +106,7 @@ Provide a summary:
 ## Token Efficiency
 
 The indexer is designed to be token-efficient:
+
 - Uses `head` to read only file headers
 - Counts rather than reads when possible
 - Outputs compact tables
@@ -116,16 +122,19 @@ The indexer is designed to be token-efficient:
 ## Troubleshooting
 
 ### Index takes too long
+
 - Try targeted index for specific directory
 - Exclude test files or generated code
 - Check for binary files in the scan
 
 ### Index is incomplete
+
 - Verify file patterns match project language
 - Check for unusual directory structure
 - May need custom file patterns
 
 ### Out of memory
+
 - Use incremental indexing
 - Split into multiple targeted indexes
 - Reduce symbol extraction depth

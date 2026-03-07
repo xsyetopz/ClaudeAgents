@@ -1,205 +1,179 @@
-/**
- * Tests for {Feature} Service
- *
- * Naming convention: describe('{method}') > it('should {behavior} when {condition}')
- */
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { type ItemRepository, ItemService } from "./service";
+import { type Item, ItemNotFoundError, InvalidInputError } from "./types";
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { FeatureService, FeatureRepository } from './service';
-import { MainType, NotFoundError, ValidationError } from './types';
+// -----------------------------------------------------------------------------
+// Test Fixtures
+// -----------------------------------------------------------------------------
 
-// =============================================================================
-// SECTION 1: TEST FIXTURES
-// =============================================================================
+function createMockRepository(): ItemRepository {
+    const store = new Map<string, Item>();
 
-/**
- * Creates a mock repository
- */
-function createMockRepository(): FeatureRepository {
-  const store = new Map<string, MainType>();
-
-  return {
-    findById: vi.fn(async (id: string) => store.get(id) ?? null),
-    findAll: vi.fn(async () => Array.from(store.values())),
-    save: vi.fn(async (item: MainType) => {
-      store.set(item.id, item);
-    }),
-    delete: vi.fn(async (id: string) => {
-      store.delete(id);
-    }),
-  };
+    return {
+        findById: mock(async (id: string) => store.get(id) ?? null),
+        findAll: mock(async () => Array.from(store.values())),
+        save: mock(async (item: Item) => { store.set(item.id, item); }),
+        delete: mock(async (id: string) => { store.delete(id); }),
+    };
 }
 
-/**
- * Creates a test service with default config
- */
-function createTestService(repository?: FeatureRepository): FeatureService {
-  return new FeatureService({ fieldOne: 'test' }, repository);
+function createTestService(repository?: ItemRepository): ItemService {
+    return new ItemService({ fieldOne: "test" }, repository);
 }
 
-// =============================================================================
-// SECTION 2: CREATE TESTS
-// =============================================================================
+// -----------------------------------------------------------------------------
+// ItemService.createItem
+// -----------------------------------------------------------------------------
 
-describe('FeatureService', () => {
-  describe('create', () => {
-    it('should create item with valid data', async () => {
-      const service = createTestService();
+describe("ItemService.createItem", () => {
+    it("creates item with valid payload", async () => {
+        const service = createTestService();
 
-      const result = await service.create({ data: 'test data' });
+        const result = await service.createItem({ payload: "test payload" });
 
-      expect(result).toBeDefined();
-      expect(result.id).toBeDefined();
-      expect(result.data).toBe('test data');
-      expect(result.createdAt).toBeInstanceOf(Date);
+        expect(result.id).toBeDefined();
+        expect(result.payload).toBe("test payload");
+        expect(result.createdAt).toBeInstanceOf(Date);
     });
 
-    it('should persist item when repository provided', async () => {
-      const repository = createMockRepository();
-      const service = createTestService(repository);
+    it("persists item when repository provided", async () => {
+        const repository = createMockRepository();
+        const service = createTestService(repository);
 
-      const result = await service.create({ data: 'test data' });
+        const result = await service.createItem({ payload: "test" });
 
-      expect(repository.save).toHaveBeenCalledWith(result);
+        expect(repository.save).toHaveBeenCalledWith(result);
     });
 
-    it('should throw ValidationError when data is empty', async () => {
-      const service = createTestService();
+    it("throws on empty payload", async () => {
+        const service = createTestService();
 
-      await expect(service.create({ data: '' })).rejects.toThrow(ValidationError);
+        expect(service.createItem({ payload: "" })).rejects.toThrow(InvalidInputError);
     });
 
-    it('should throw ValidationError when data is whitespace only', async () => {
-      const service = createTestService();
+    it("throws on whitespace-only payload", async () => {
+        const service = createTestService();
 
-      await expect(service.create({ data: '   ' })).rejects.toThrow(ValidationError);
+        expect(service.createItem({ payload: "   " })).rejects.toThrow(InvalidInputError);
     });
 
-    it('should throw ValidationError when data exceeds max length', async () => {
-      const service = createTestService();
-      const longData = 'x'.repeat(1001);
+    it("throws when payload exceeds max length", async () => {
+        const service = createTestService();
 
-      await expect(service.create({ data: longData })).rejects.toThrow(ValidationError);
+        expect(service.createItem({ payload: "x".repeat(1001) })).rejects.toThrow(InvalidInputError);
     });
-  });
+});
 
-  // ===========================================================================
-  // SECTION 3: GET TESTS
-  // ===========================================================================
+// -----------------------------------------------------------------------------
+// ItemService.getItem
+// -----------------------------------------------------------------------------
 
-  describe('get', () => {
-    it('should return item when found', async () => {
-      const repository = createMockRepository();
-      const service = createTestService(repository);
+describe("ItemService.getItem", () => {
+    it("returns item when found", async () => {
+        const repository = createMockRepository();
+        const service = createTestService(repository);
+        const created = await service.createItem({ payload: "test" });
 
-      // Create item first
-      const created = await service.create({ data: 'test' });
+        const result = await service.getItem(created.id);
 
-      const result = await service.get(created.id);
-
-      expect(result).toEqual(created);
+        expect(result).toEqual(created);
     });
 
-    it('should throw NotFoundError when item does not exist', async () => {
-      const repository = createMockRepository();
-      const service = createTestService(repository);
+    it("throws when item not found", async () => {
+        const repository = createMockRepository();
+        const service = createTestService(repository);
 
-      await expect(service.get('nonexistent-id')).rejects.toThrow(NotFoundError);
+        expect(service.getItem("nonexistent")).rejects.toThrow(ItemNotFoundError);
     });
 
-    it('should throw NotFoundError when no repository', async () => {
-      const service = createTestService();
+    it("throws when no repository configured", async () => {
+        const service = createTestService();
 
-      await expect(service.get('any-id')).rejects.toThrow(NotFoundError);
+        expect(service.getItem("any-id")).rejects.toThrow(ItemNotFoundError);
     });
-  });
+});
 
-  // ===========================================================================
-  // SECTION 4: UPDATE TESTS
-  // ===========================================================================
+// -----------------------------------------------------------------------------
+// ItemService.updateItem
+// -----------------------------------------------------------------------------
 
-  describe('update', () => {
-    let repository: FeatureRepository;
-    let service: FeatureService;
-    let existingItem: MainType;
+describe("ItemService.updateItem", () => {
+    let repository: ItemRepository;
+    let service: ItemService;
+    let existingItem: Item;
 
     beforeEach(async () => {
-      repository = createMockRepository();
-      service = createTestService(repository);
-      existingItem = await service.create({ data: 'original' });
+        repository = createMockRepository();
+        service = createTestService(repository);
+        existingItem = await service.createItem({ payload: "original" });
     });
 
-    it('should update item data', async () => {
-      const result = await service.update(existingItem.id, { data: 'updated' });
+    it("updates item payload", async () => {
+        const result = await service.updateItem(existingItem.id, { payload: "updated" });
 
-      expect(result.data).toBe('updated');
-      expect(result.updatedAt).toBeDefined();
+        expect(result.payload).toBe("updated");
+        expect(result.updatedAt).toBeDefined();
     });
 
-    it('should preserve original data when not provided in update', async () => {
-      const result = await service.update(existingItem.id, {});
+    it("preserves payload when not provided", async () => {
+        const result = await service.updateItem(existingItem.id, {});
 
-      expect(result.data).toBe('original');
+        expect(result.payload).toBe("original");
     });
 
-    it('should throw NotFoundError when item does not exist', async () => {
-      await expect(service.update('nonexistent', { data: 'new' })).rejects.toThrow(
-        NotFoundError,
-      );
+    it("throws when item not found", async () => {
+        expect(service.updateItem("nonexistent", { payload: "new" })).rejects.toThrow(ItemNotFoundError);
     });
 
-    it('should throw ValidationError when data is empty', async () => {
-      await expect(service.update(existingItem.id, { data: '' })).rejects.toThrow(
-        ValidationError,
-      );
+    it("throws on empty payload", async () => {
+        expect(service.updateItem(existingItem.id, { payload: "" })).rejects.toThrow(InvalidInputError);
     });
-  });
+});
 
-  // ===========================================================================
-  // SECTION 5: DELETE TESTS
-  // ===========================================================================
+// -----------------------------------------------------------------------------
+// ItemService.deleteItem
+// -----------------------------------------------------------------------------
 
-  describe('delete', () => {
-    it('should delete existing item', async () => {
-      const repository = createMockRepository();
-      const service = createTestService(repository);
-      const item = await service.create({ data: 'test' });
+describe("ItemService.deleteItem", () => {
+    it("deletes existing item", async () => {
+        const repository = createMockRepository();
+        const service = createTestService(repository);
+        const item = await service.createItem({ payload: "test" });
 
-      await service.delete(item.id);
+        await service.deleteItem(item.id);
 
-      expect(repository.delete).toHaveBeenCalledWith(item.id);
+        expect(repository.delete).toHaveBeenCalledWith(item.id);
     });
 
-    it('should throw NotFoundError when item does not exist', async () => {
-      const repository = createMockRepository();
-      const service = createTestService(repository);
+    it("throws when item not found", async () => {
+        const repository = createMockRepository();
+        const service = createTestService(repository);
 
-      await expect(service.delete('nonexistent')).rejects.toThrow(NotFoundError);
+        expect(service.deleteItem("nonexistent")).rejects.toThrow(ItemNotFoundError);
     });
-  });
+});
 
-  // ===========================================================================
-  // SECTION 6: LIST TESTS
-  // ===========================================================================
+// -----------------------------------------------------------------------------
+// ItemService.listItems
+// -----------------------------------------------------------------------------
 
-  describe('list', () => {
-    it('should return all items', async () => {
-      const repository = createMockRepository();
-      const service = createTestService(repository);
-      await service.create({ data: 'item1' });
-      await service.create({ data: 'item2' });
+describe("ItemService.listItems", () => {
+    it("returns all items", async () => {
+        const repository = createMockRepository();
+        const service = createTestService(repository);
+        await service.createItem({ payload: "first" });
+        await service.createItem({ payload: "second" });
 
-      const result = await service.list();
+        const result = await service.listItems();
 
-      expect(result).toHaveLength(2);
+        expect(result).toHaveLength(2);
     });
 
-    it('should return empty array when no repository', async () => {
-      const service = createTestService();
+    it("returns empty array when no repository", async () => {
+        const service = createTestService();
 
-      const result = await service.list();
+        const result = await service.listItems();
 
-      expect(result).toEqual([]);
+        expect(result).toEqual([]);
     });
-  });
 });

@@ -24,6 +24,7 @@ This document describes how to use the agent team to debug issues that span mult
 ## Phase 1: Context Gathering
 
 ### Goal
+
 Build a complete picture of the affected code paths.
 
 ### Steps
@@ -35,7 +36,8 @@ Build a complete picture of the affected code paths.
    - Any error messages or stack traces?
 
 2. **Invoke indexer**
-   ```
+
+   ```ignore
    @indexer Gather context for debugging.
 
    Symptoms: {description}
@@ -59,12 +61,14 @@ Build a complete picture of the affected code paths.
 ## Phase 2: Hypothesis Formation
 
 ### Goal
+
 Generate testable hypotheses about the root cause.
 
 ### Steps
 
 1. **Invoke architect**
-   ```
+
+   ```ignore
    @architect Form hypotheses for {issue}.
 
    Context at .claude/memory/debug/{issue}-context.md
@@ -85,6 +89,7 @@ Generate testable hypotheses about the root cause.
    - Do they cover different root causes?
 
 3. **Example hypotheses**
+
    ```markdown
    ## Hypotheses
 
@@ -107,12 +112,14 @@ Generate testable hypotheses about the root cause.
 ## Phase 3: Hypothesis Testing
 
 ### Goal
+
 Systematically test each hypothesis to find root cause.
 
 ### Steps
 
 1. **Invoke verifier for each hypothesis**
-   ```
+
+   ```ignore
    @verifier Test hypothesis H1 for {issue}.
 
    Hypothesis: {description}
@@ -125,6 +132,7 @@ Systematically test each hypothesis to find root cause.
    ```
 
 2. **Track results**
+
    ```markdown
    ## Hypothesis Testing Results
 
@@ -143,12 +151,14 @@ Systematically test each hypothesis to find root cause.
 ## Phase 4: Fix Implementation
 
 ### Goal
+
 Implement a fix for the confirmed root cause.
 
 ### Steps
 
 1. **Invoke architect if fix is non-trivial**
-   ```
+
+   ```ignore
    @architect Design fix for {issue}.
 
    Root cause: {confirmed hypothesis}
@@ -161,7 +171,8 @@ Implement a fix for the confirmed root cause.
    ```
 
 2. **Invoke implementer**
-   ```
+
+   ```ignore
    @implementer Fix {issue}.
 
    Root cause: {description}
@@ -179,12 +190,14 @@ Implement a fix for the confirmed root cause.
 ## Phase 5: Regression Testing
 
 ### Goal
+
 Verify the fix works and doesn't break anything else.
 
 ### Steps
 
 1. **Invoke verifier**
-   ```
+
+   ```ignore
    @verifier Verify fix for {issue}.
 
    Run regression test for the fix.
@@ -198,7 +211,8 @@ Verify the fix works and doesn't break anything else.
    - Regression test passes
 
 3. **Document**
-   ```
+
+   ```ignore
    @scribe Document {issue} resolution.
 
    Add to knowledge.md:
@@ -220,13 +234,14 @@ Verify the fix works and doesn't break anything else.
 ## Example: Debugging Intermittent Auth Failure
 
 ### Symptoms
+
 - Users randomly get "Session expired" error
 - Happens ~5% of the time
 - No pattern in timing or user type
 
 ### Execution
 
-```
+```ignore
 # Phase 1
 @indexer Gather context for auth failure.
 Symptoms: Intermittent "Session expired" error, ~5% of requests

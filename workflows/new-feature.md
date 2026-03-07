@@ -22,17 +22,20 @@ This document describes the step-by-step process for adding a new feature using 
 ## Phase 1: Project Indexing
 
 ### Goal
+
 Ensure project memory is up-to-date so other agents can work efficiently.
 
 ### Steps
 
 1. **Check existing index**
+
    ```bash
    ls -la .claude/memory/project-index.md
    ```
 
 2. **Invoke indexer if needed**
-   ```
+
+   ```ignore
    @indexer Index this project for feature development
    ```
 
@@ -41,12 +44,14 @@ Ensure project memory is up-to-date so other agents can work efficiently.
    - Contains module map, symbol index, patterns
 
 ### Skip Conditions
+
 - Index exists and is <24h old
 - No major changes since last index
 
 ## Phase 2: Architecture Design
 
 ### Goal
+
 Create a detailed implementation blueprint before writing code.
 
 ### Steps
@@ -58,7 +63,8 @@ Create a detailed implementation blueprint before writing code.
    - Any constraints (performance, security, compatibility)?
 
 2. **Invoke architect**
-   ```
+
+   ```ignore
    @architect Design the {feature_name} feature.
 
    Requirements:
@@ -83,17 +89,20 @@ Create a detailed implementation blueprint before writing code.
 ## Phase 3: Implementation
 
 ### Goal
+
 Write code following the architecture plan.
 
 ### Steps
 
 1. **Review the plan**
+
    ```bash
    cat .claude/memory/arch/{feature_name}.md
    ```
 
 2. **Invoke implementer**
-   ```
+
+   ```ignore
    @implementer Implement the {feature_name} feature.
 
    Follow the architecture plan at .claude/memory/arch/{feature_name}.md
@@ -110,12 +119,14 @@ Write code following the architecture plan.
 ## Phase 4: Testing
 
 ### Goal
+
 Verify the implementation works correctly.
 
 ### Steps
 
 1. **Invoke verifier**
-   ```
+
+   ```ignore
    @verifier Test the {feature_name} feature.
 
    Implementation is complete per tasks.md.
@@ -137,12 +148,14 @@ Verify the implementation works correctly.
 ## Phase 5: Documentation
 
 ### Goal
+
 Document the feature for future developers.
 
 ### Steps
 
 1. **Invoke scribe**
-   ```
+
+   ```ignore
    @scribe Document the {feature_name} feature.
 
    Implementation is complete and tested.
@@ -171,13 +184,14 @@ Document the feature for future developers.
 ## Example: Adding a Cache Feature
 
 ### Requirements
+
 - LRU cache with configurable size
 - TTL per entry
 - Thread-safe
 
 ### Execution
 
-```
+```ignore
 # Phase 1
 @indexer Index this project
 
@@ -203,21 +217,26 @@ Follow .claude/memory/arch/cache.md
 ## Troubleshooting
 
 ### Indexer takes too long
+
 - Use targeted index for specific directories
 - Check for large generated files to exclude
 
 ### Architect needs clarification
+
 - Provide more specific requirements
 - Share examples of similar features
 
 ### Implementer blocked
+
 - Check tasks.md for the issue
 - May need architect decision
 
 ### Tests fail
+
 - Check verifier's analysis
 - Route to appropriate agent
 
 ### Documentation incomplete
+
 - Ensure implementation is actually complete
 - Check that public API is defined

@@ -1,32 +1,7 @@
-//! # {Feature} Module
-//!
-//! {Brief description of what this feature does}
-//!
-//! ## Usage
-//!
-//! ```rust
-//! use crate::{feature}::{MainType, {Feature}Service};
-//!
-//! let service = {Feature}Service::new(config);
-//! let result = service.do_something(input)?;
-//! ```
+//! {Feature} module - {brief description}
 
-// =============================================================================
-// PUBLIC EXPORTS
-// =============================================================================
-
-mod types;
 mod service;
+mod types;
 
-pub use types::{MainType, Config, Error};
-pub use service::{Feature}Service;
-
-// Re-export commonly used items
-pub type Result<T> = std::result::Result<T, Error>;
-
-// =============================================================================
-// TESTS (if inline)
-// =============================================================================
-
-#[cfg(test)]
-mod tests;
+pub use service::FeatureService;
+pub use types::{Config, CreateInput, Error, Item, Result, UpdateInput};

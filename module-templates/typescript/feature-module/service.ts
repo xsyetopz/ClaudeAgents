@@ -1,218 +1,119 @@
-/**
- * Business logic for {Feature}
- *
- * This file contains the main service implementation.
- * Keep business logic here, delegate data access to repositories.
- */
-
-import { randomUUID } from 'crypto';
 import {
-  Config,
-  DEFAULT_CONFIG,
-  MainType,
-  CreateInput,
-  UpdateInput,
-  NotFoundError,
-  ValidationError,
-} from './types';
+    type Config,
+    type CreateItemInput,
+    DEFAULT_CONFIG,
+    type Item,
+    ItemNotFoundError,
+    InvalidInputError,
+    type PaginationParams,
+    type UpdateItemInput,
+} from "./types";
 
-// =============================================================================
-// SECTION 1: REPOSITORY INTERFACE (for dependency injection)
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Repository Interface
+// -----------------------------------------------------------------------------
 
-/**
- * Repository interface for data access
- * Implement this interface for different storage backends
- */
-export interface FeatureRepository {
-  findById(id: string): Promise<MainType | null>;
-  findAll(options?: { limit?: number; offset?: number }): Promise<MainType[]>;
-  save(item: MainType): Promise<void>;
-  delete(id: string): Promise<void>;
+export interface ItemRepository {
+    findById(id: string): Promise<Item | null>;
+    findAll(params?: PaginationParams): Promise<Item[]>;
+    save(item: Item): Promise<void>;
+    delete(id: string): Promise<void>;
 }
 
-// =============================================================================
-// SECTION 2: SERVICE CLASS
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Service
+// -----------------------------------------------------------------------------
 
-/**
- * Service for {Feature} operations
- *
- * @example
- * ```typescript
- * const service = new FeatureService({ fieldOne: 'value' });
- * const item = await service.create({ data: 'example' });
- * console.log(item.id);
- * ```
- */
-export class FeatureService {
-  private readonly config: Required<Config>;
-  private readonly repository?: FeatureRepository;
+export class ItemService {
+    private readonly config: Required<Config>;
+    private readonly repository?: ItemRepository;
 
-  /**
-   * Creates a new service instance
-   *
-   * @param config - Service configuration
-   * @param repository - Optional repository for persistence
-   */
-  constructor(config: Config, repository?: FeatureRepository) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
-    this.repository = repository;
-  }
-
-  // ===========================================================================
-  // SECTION 3: CRUD OPERATIONS
-  // ===========================================================================
-
-  /**
-   * Creates a new item
-   *
-   * @param input - The creation input
-   * @returns The created item
-   * @throws {ValidationError} If input is invalid
-   */
-  async create(input: CreateInput): Promise<MainType> {
-    // Validate input
-    this.validateCreateInput(input);
-
-    // Create item
-    const item: MainType = {
-      id: randomUUID(),
-      data: input.data,
-      createdAt: new Date(),
-    };
-
-    // Persist if repository available
-    if (this.repository) {
-      await this.repository.save(item);
+    constructor(config: Config, repository?: ItemRepository) {
+        this.config = { ...DEFAULT_CONFIG, ...config };
+        this.repository = repository;
     }
 
-    return item;
-  }
+    async createItem(input: CreateItemInput): Promise<Item> {
+        this.validatePayload(input.payload);
 
-  /**
-   * Retrieves an item by ID
-   *
-   * @param id - The unique identifier
-   * @returns The item if found
-   * @throws {NotFoundError} If item doesn't exist
-   */
-  async get(id: string): Promise<MainType> {
-    if (!this.repository) {
-      throw new NotFoundError(id);
+        const item: Item = {
+            id: crypto.randomUUID(),
+            payload: input.payload,
+            createdAt: new Date(),
+        };
+
+        if (this.repository) {
+            await this.repository.save(item);
+        }
+
+        return item;
     }
 
-    const item = await this.repository.findById(id);
-    if (!item) {
-      throw new NotFoundError(id);
+    async getItem(id: string): Promise<Item> {
+        if (!this.repository) {
+            throw new ItemNotFoundError(id);
+        }
+
+        const item = await this.repository.findById(id);
+        if (!item) {
+            throw new ItemNotFoundError(id);
+        }
+
+        return item;
     }
 
-    return item;
-  }
+    async updateItem(id: string, input: UpdateItemInput): Promise<Item> {
+        if (input.payload !== undefined) {
+            this.validatePayload(input.payload);
+        }
 
-  /**
-   * Updates an existing item
-   *
-   * @param id - The item ID
-   * @param input - The update input
-   * @returns The updated item
-   * @throws {NotFoundError} If item doesn't exist
-   * @throws {ValidationError} If input is invalid
-   */
-  async update(id: string, input: UpdateInput): Promise<MainType> {
-    // Validate input
-    this.validateUpdateInput(input);
+        const existing = await this.getItem(id);
 
-    // Get existing item
-    const existing = await this.get(id);
+        const updated: Item = {
+            ...existing,
+            payload: input.payload ?? existing.payload,
+            updatedAt: new Date(),
+        };
 
-    // Apply updates
-    const updated: MainType = {
-      ...existing,
-      data: input.data ?? existing.data,
-      updatedAt: new Date(),
-    };
+        if (this.repository) {
+            await this.repository.save(updated);
+        }
 
-    // Persist
-    if (this.repository) {
-      await this.repository.save(updated);
+        return updated;
     }
 
-    return updated;
-  }
+    async deleteItem(id: string): Promise<void> {
+        await this.getItem(id);
 
-  /**
-   * Deletes an item
-   *
-   * @param id - The item ID
-   * @throws {NotFoundError} If item doesn't exist
-   */
-  async delete(id: string): Promise<void> {
-    // Verify exists
-    await this.get(id);
-
-    // Delete
-    if (this.repository) {
-      await this.repository.delete(id);
-    }
-  }
-
-  /**
-   * Lists all items with pagination
-   *
-   * @param options - Pagination options
-   * @returns Array of items
-   */
-  async list(options?: { limit?: number; offset?: number }): Promise<MainType[]> {
-    if (!this.repository) {
-      return [];
+        if (this.repository) {
+            await this.repository.delete(id);
+        }
     }
 
-    return this.repository.findAll(options);
-  }
+    async listItems(params?: PaginationParams): Promise<Item[]> {
+        if (!this.repository) {
+            return [];
+        }
 
-  // ===========================================================================
-  // SECTION 4: VALIDATION
-  // ===========================================================================
-
-  /**
-   * Validates creation input
-   */
-  private validateCreateInput(input: CreateInput): void {
-    if (!input.data || input.data.trim().length === 0) {
-      throw new ValidationError('Data cannot be empty', 'data');
+        return this.repository.findAll(params);
     }
 
-    if (input.data.length > 1000) {
-      throw new ValidationError('Data exceeds maximum length of 1000', 'data');
-    }
-  }
+    private validatePayload(payload: string): void {
+        if (!payload || payload.trim().length === 0) {
+            throw new InvalidInputError("payload cannot be empty", "payload");
+        }
 
-  /**
-   * Validates update input
-   */
-  private validateUpdateInput(input: UpdateInput): void {
-    if (input.data !== undefined) {
-      if (input.data.trim().length === 0) {
-        throw new ValidationError('Data cannot be empty', 'data');
-      }
-
-      if (input.data.length > 1000) {
-        throw new ValidationError('Data exceeds maximum length of 1000', 'data');
-      }
+        const MAX_PAYLOAD_LENGTH = 1000;
+        if (payload.length > MAX_PAYLOAD_LENGTH) {
+            throw new InvalidInputError("payload exceeds maximum length", "payload");
+        }
     }
-  }
 }
 
-// =============================================================================
-// SECTION 5: FACTORY FUNCTIONS
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Factory
+// -----------------------------------------------------------------------------
 
-/**
- * Creates a service with default configuration
- */
-export function createFeatureService(
-  repository?: FeatureRepository,
-): FeatureService {
-  return new FeatureService({}, repository);
+export function createItemService(repository?: ItemRepository): ItemService {
+    return new ItemService({}, repository);
 }

@@ -18,6 +18,7 @@ This document describes strategies for maximizing work done per token within the
 ### Claude Max 5x Plan Context
 
 With 5x the normal token limit per month:
+
 - More room for comprehensive work
 - Still need efficiency for large projects
 - Budget per major feature: ~100-145K tokens
@@ -28,7 +29,7 @@ With 5x the normal token limit per month:
 
 **Principle**: Always read from memory before source files.
 
-```
+```ignore
 GOOD:
 1. Read .claude/memory/project-index.md
 2. Find specific file from index
@@ -161,7 +162,7 @@ git diff --name-only HEAD~1
 
 ### Estimating File Sizes
 
-```
+```ignore
 1KB file ≈ 250-400 tokens
 10KB file ≈ 2,500-4,000 tokens
 100KB file ≈ 25,000-40,000 tokens
@@ -169,7 +170,7 @@ git diff --name-only HEAD~1
 
 ### Budget Calculation Example
 
-```
+```ignore
 Feature: Add caching module
 
 Indexer:
@@ -208,35 +209,35 @@ TOTAL: ~55K tokens (well under 145K budget)
 
 ### 1. Full File Reads for Context
 
-```
+```ignore
 BAD: Reading entire files "to understand"
 GOOD: Read index, then specific symbols
 ```
 
 ### 2. Running Full Test Suites
 
-```
+```ignore
 BAD: `cargo test` (all tests)
 GOOD: `cargo test -p module` (targeted)
 ```
 
 ### 3. Verbose Output Modes
 
-```
+```ignore
 BAD: `--verbose` on every command
 GOOD: Default output, verbose only for debugging
 ```
 
 ### 4. Redundant Reads
 
-```
+```ignore
 BAD: Each agent reads the same files
 GOOD: Agents share via project-index.md
 ```
 
 ### 5. Prose Descriptions
 
-```
+```ignore
 BAD: "The module contains several functions including..."
 GOOD: | Function | Purpose | File |
 ```

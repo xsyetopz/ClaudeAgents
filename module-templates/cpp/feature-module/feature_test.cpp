@@ -1,261 +1,240 @@
-/**
- * @file feature_test.cpp
- * @brief Tests for feature module using Google Test.
- *
- * Naming convention: TEST(TestSuite, test_{method}_{scenario}_{expected})
- */
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "feature.hpp"
-
-#include <gtest/gtest.h>
-#include <memory>
 #include <unordered_map>
 
 namespace features::feature {
 
-// =============================================================================
-// SECTION 1: MOCK REPOSITORY
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Mock Repository
+// -----------------------------------------------------------------------------
 
-class MockRepository : public Repository {
+class InMemoryItemRepository final : public ItemRepository {
 public:
-    std::optional<Item> find_by_id(const std::string& id) override {
-        auto it = store_.find(id);
-        if (it == store_.end()) {
-            return std::nullopt;
+    [[nodiscard]] auto find_by_id(std::string_view id) -> std::optional<Item> override {
+        const auto key = std::string{id};
+        if (const auto it = store_.find(key); it != store_.end()) {
+            return it->second;
         }
-        return it->second;
+        return std::nullopt;
     }
 
-    std::vector<Item> find_all(int limit, int offset) override {
-        std::vector<Item> result;
+    [[nodiscard]] auto find_all(PaginationParams /*params*/) -> std::vector<Item> override {
+        auto result = std::vector<Item>{};
+        result.reserve(store_.size());
         for (const auto& [_, item] : store_) {
             result.push_back(item);
         }
         return result;
     }
 
-    void save(const Item& item) override {
-        store_[item.id()] = item;
+    auto save(const Item& item) -> void override {
+        store_.insert_or_assign(std::string{item.id()}, item);
     }
 
-    void remove(const std::string& id) override {
-        store_.erase(id);
+    auto remove(std::string_view id) -> void override {
+        store_.erase(std::string{id});
     }
 
-    [[nodiscard]] size_t size() const { return store_.size(); }
-    [[nodiscard]] bool contains(const std::string& id) const {
-        return store_.find(id) != store_.end();
+    [[nodiscard]] auto size() const -> std::size_t { return store_.size(); }
+    [[nodiscard]] auto contains(std::string_view id) const -> bool {
+        return store_.contains(std::string{id});
     }
 
 private:
     std::unordered_map<std::string, Item> store_;
 };
 
-// =============================================================================
-// SECTION 2: TEST FIXTURES
-// =============================================================================
+// -----------------------------------------------------------------------------
+// ItemService::create_item
+// -----------------------------------------------------------------------------
 
-class FeatureServiceTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        repository_ = std::make_shared<MockRepository>();
-        service_ = std::make_unique<Service>(Config::defaults(), repository_);
-        service_no_repo_ = std::make_unique<Service>(Config::defaults());
+TEST_SUITE("ItemService::create_item") {
+    TEST_CASE("creates item with valid payload") {
+        auto service = ItemService{Config::defaults()};
+
+        const auto item = service.create_item(CreateItemInput{.payload = "test payload"});
+
+        CHECK_FALSE(item.id().empty());
+        CHECK_EQ(item.payload(), "test payload");
     }
 
-    std::shared_ptr<MockRepository> repository_;
-    std::unique_ptr<Service> service_;
-    std::unique_ptr<Service> service_no_repo_;
-};
+    TEST_CASE("persists item when repository provided") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
 
-// =============================================================================
-// SECTION 3: CREATE TESTS
-// =============================================================================
+        const auto item = service.create_item(CreateItemInput{.payload = "test"});
 
-TEST_F(FeatureServiceTest, test_create_validData_succeeds) {
-    auto result = service_->create(CreateInput{"test data"});
+        CHECK(repository->contains(item.id()));
+    }
 
-    EXPECT_FALSE(result.id().empty());
-    EXPECT_EQ(result.data(), "test data");
+    TEST_CASE("throws on empty payload") {
+        auto service = ItemService{Config::defaults()};
+
+        CHECK_THROWS_AS(
+            service.create_item(CreateItemInput{.payload = ""}),
+            InvalidInputError
+        );
+    }
+
+    TEST_CASE("throws when payload exceeds max length") {
+        auto service = ItemService{Config::defaults()};
+        const auto long_payload = std::string(1001, 'x');
+
+        CHECK_THROWS_AS(
+            service.create_item(CreateItemInput{.payload = long_payload}),
+            InvalidInputError
+        );
+    }
 }
 
-TEST_F(FeatureServiceTest, test_create_persistsToRepository) {
-    auto result = service_->create(CreateInput{"test"});
+// -----------------------------------------------------------------------------
+// ItemService::get_item
+// -----------------------------------------------------------------------------
 
-    EXPECT_TRUE(repository_->contains(result.id()));
+TEST_SUITE("ItemService::get_item") {
+    TEST_CASE("returns item when found") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+        const auto created = service.create_item(CreateItemInput{.payload = "test"});
+
+        const auto retrieved = service.get_item(created.id());
+
+        CHECK_EQ(retrieved.id(), created.id());
+        CHECK_EQ(retrieved.payload(), "test");
+    }
+
+    TEST_CASE("throws when item not found") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+
+        CHECK_THROWS_AS(service.get_item("nonexistent"), ItemNotFoundError);
+    }
+
+    TEST_CASE("throws when no repository configured") {
+        auto service = ItemService{Config::defaults()};
+
+        CHECK_THROWS_AS(service.get_item("any-id"), ItemNotFoundError);
+    }
 }
 
-TEST_F(FeatureServiceTest, test_create_emptyData_throws) {
-    EXPECT_THROW(
-        service_->create(CreateInput{""}),
-        ValidationError
-    );
+// -----------------------------------------------------------------------------
+// ItemService::update_item
+// -----------------------------------------------------------------------------
+
+TEST_SUITE("ItemService::update_item") {
+    TEST_CASE("updates payload successfully") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+        const auto created = service.create_item(CreateItemInput{.payload = "original"});
+
+        const auto updated = service.update_item(created.id(), UpdateItemInput{.payload = "modified"});
+
+        CHECK_EQ(updated.payload(), "modified");
+        CHECK(updated.updated_at().has_value());
+    }
+
+    TEST_CASE("preserves payload when not provided in update") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+        const auto created = service.create_item(CreateItemInput{.payload = "original"});
+
+        const auto updated = service.update_item(created.id(), UpdateItemInput{});
+
+        CHECK_EQ(updated.payload(), "original");
+    }
+
+    TEST_CASE("throws when item not found") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+
+        CHECK_THROWS_AS(
+            service.update_item("nonexistent", UpdateItemInput{.payload = "new"}),
+            ItemNotFoundError
+        );
+    }
+
+    TEST_CASE("throws on empty payload") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+        const auto created = service.create_item(CreateItemInput{.payload = "original"});
+
+        CHECK_THROWS_AS(
+            service.update_item(created.id(), UpdateItemInput{.payload = ""}),
+            InvalidInputError
+        );
+    }
 }
 
-TEST_F(FeatureServiceTest, test_create_dataTooLong_throws) {
-    std::string long_data(1001, 'x');
+// -----------------------------------------------------------------------------
+// ItemService::delete_item
+// -----------------------------------------------------------------------------
 
-    EXPECT_THROW(
-        service_->create(CreateInput{long_data}),
-        ValidationError
-    );
+TEST_SUITE("ItemService::delete_item") {
+    TEST_CASE("removes item from repository") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+        const auto created = service.create_item(CreateItemInput{.payload = "test"});
+
+        service.delete_item(created.id());
+
+        CHECK_FALSE(repository->contains(created.id()));
+    }
+
+    TEST_CASE("throws when item not found") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+
+        CHECK_THROWS_AS(service.delete_item("nonexistent"), ItemNotFoundError);
+    }
 }
 
-// =============================================================================
-// SECTION 4: GET TESTS
-// =============================================================================
+// -----------------------------------------------------------------------------
+// ItemService::list_items
+// -----------------------------------------------------------------------------
 
-TEST_F(FeatureServiceTest, test_get_found_returnsItem) {
-    auto created = service_->create(CreateInput{"test"});
+TEST_SUITE("ItemService::list_items") {
+    TEST_CASE("returns all items") {
+        auto repository = std::make_shared<InMemoryItemRepository>();
+        auto service = ItemService{Config::defaults(), repository};
+        service.create_item(CreateItemInput{.payload = "first"});
+        service.create_item(CreateItemInput{.payload = "second"});
 
-    auto result = service_->get(created.id());
+        const auto items = service.list_items();
 
-    EXPECT_EQ(result.id(), created.id());
-    EXPECT_EQ(result.data(), "test");
+        CHECK_EQ(items.size(), 2);
+    }
+
+    TEST_CASE("returns empty when no repository") {
+        auto service = ItemService{Config::defaults()};
+
+        const auto items = service.list_items();
+
+        CHECK(items.empty());
+    }
 }
 
-TEST_F(FeatureServiceTest, test_get_notFound_throws) {
-    EXPECT_THROW(
-        service_->get("nonexistent-id"),
-        NotFoundError
-    );
-}
+// -----------------------------------------------------------------------------
+// Item
+// -----------------------------------------------------------------------------
 
-TEST_F(FeatureServiceTest, test_get_noRepository_throws) {
-    EXPECT_THROW(
-        service_no_repo_->get("any-id"),
-        NotFoundError
-    );
-}
+TEST_SUITE("Item") {
+    TEST_CASE("generates unique IDs") {
+        const auto id1 = generate_uuid();
+        const auto id2 = generate_uuid();
 
-// =============================================================================
-// SECTION 5: UPDATE TESTS
-// =============================================================================
+        CHECK_NE(id1, id2);
+    }
 
-TEST_F(FeatureServiceTest, test_update_success) {
-    auto created = service_->create(CreateInput{"original"});
+    TEST_CASE("mark_as_updated sets timestamp") {
+        auto item = Item{"test-id", "payload"};
+        CHECK_FALSE(item.updated_at().has_value());
 
-    auto result = service_->update(created.id(), UpdateInput{"updated"});
+        item.mark_as_updated();
 
-    EXPECT_EQ(result.data(), "updated");
-    EXPECT_TRUE(result.updated_at().has_value());
-}
-
-TEST_F(FeatureServiceTest, test_update_notFound_throws) {
-    EXPECT_THROW(
-        service_->update("nonexistent", UpdateInput{"new"}),
-        NotFoundError
-    );
-}
-
-TEST_F(FeatureServiceTest, test_update_emptyData_throws) {
-    auto created = service_->create(CreateInput{"original"});
-
-    EXPECT_THROW(
-        service_->update(created.id(), UpdateInput{""}),
-        ValidationError
-    );
-}
-
-TEST_F(FeatureServiceTest, test_update_noData_preservesOriginal) {
-    auto created = service_->create(CreateInput{"original"});
-
-    auto result = service_->update(created.id(), UpdateInput{});
-
-    EXPECT_EQ(result.data(), "original");
-}
-
-// =============================================================================
-// SECTION 6: DELETE TESTS
-// =============================================================================
-
-TEST_F(FeatureServiceTest, test_remove_success) {
-    auto created = service_->create(CreateInput{"test"});
-
-    service_->remove(created.id());
-
-    EXPECT_FALSE(repository_->contains(created.id()));
-}
-
-TEST_F(FeatureServiceTest, test_remove_notFound_throws) {
-    EXPECT_THROW(
-        service_->remove("nonexistent"),
-        NotFoundError
-    );
-}
-
-// =============================================================================
-// SECTION 7: LIST TESTS
-// =============================================================================
-
-TEST_F(FeatureServiceTest, test_list_returnsAll) {
-    service_->create(CreateInput{"item1"});
-    service_->create(CreateInput{"item2"});
-
-    auto result = service_->list();
-
-    EXPECT_EQ(result.size(), 2);
-}
-
-TEST_F(FeatureServiceTest, test_list_noRepository_returnsEmpty) {
-    auto result = service_no_repo_->list();
-
-    EXPECT_TRUE(result.empty());
-}
-
-// =============================================================================
-// SECTION 8: ITEM TESTS
-// =============================================================================
-
-TEST(ItemTest, test_item_construction) {
-    Item item("test-id", "test-data");
-
-    EXPECT_EQ(item.id(), "test-id");
-    EXPECT_EQ(item.data(), "test-data");
-    EXPECT_FALSE(item.updated_at().has_value());
-}
-
-TEST(ItemTest, test_item_markUpdated) {
-    Item item("test-id", "test-data");
-
-    item.mark_updated();
-
-    EXPECT_TRUE(item.updated_at().has_value());
-}
-
-TEST(ItemTest, test_item_setData) {
-    Item item("test-id", "original");
-
-    item.set_data("modified");
-
-    EXPECT_EQ(item.data(), "modified");
-}
-
-// =============================================================================
-// SECTION 9: UTILITY TESTS
-// =============================================================================
-
-TEST(UtilityTest, test_generateId_unique) {
-    auto id1 = generate_id();
-    auto id2 = generate_id();
-
-    EXPECT_NE(id1, id2);
-}
-
-TEST(UtilityTest, test_generateId_notEmpty) {
-    auto id = generate_id();
-
-    EXPECT_FALSE(id.empty());
+        CHECK(item.updated_at().has_value());
+    }
 }
 
 } // namespace features::feature
-
-// =============================================================================
-// MAIN
-// =============================================================================
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

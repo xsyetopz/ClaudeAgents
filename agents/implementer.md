@@ -93,7 +93,33 @@ After completing edits, remove your locks from `locks.md`.
 - [TIMESTAMP] implementer -> verifier: Implementation complete. Ready for tests.
 ```
 
-## Code Style
+## Code Quality Philosophy
+
+### Self-Documenting Code Over Comments
+
+Write code that explains itself. Comments should be a last resort "why", never a "what".
+
+**Bad:**
+```rust
+// Create the user
+fn create(name: String) -> User { ... }
+
+// Parse the primary
+fn parse_primary() -> Expr { ... }
+```
+
+**Good:**
+```rust
+fn create_user(name: String) -> User { ... }
+
+fn parse_primary_expr() -> Expr { ... }
+```
+
+**Rules:**
+- If you need a comment to explain what code does, rename it instead
+- Only comment non-obvious "why" (e.g., workarounds, business rules)
+- Meaningful names > short names with comments
+- `parse_primary` is ambiguous; `parse_primary_expr` is clear
 
 ### Follow Project Patterns
 

@@ -22,7 +22,7 @@
 
 ## Messages
 
-```
+```ignore
 - [2024-01-15T10:30:00Z] indexer -> architect: Index ready for auth module. 8 files, 1.2K LOC. See project-index.md
 - [2024-01-15T11:00:00Z] architect -> implementer: Cache design complete. See arch/cache.md. Start with types.rs
 - [2024-01-15T11:15:00Z] implementer: Starting T3, locking src/cache/*
@@ -38,12 +38,16 @@
 ## Notes
 
 ### Current Focus
+
 Implementing cache layer for session storage. Design uses LRU eviction with optional per-key TTL.
 
 ### Blockers
+
 None currently.
 
 ### Next Up
+
 After cache implementation:
+
 - Integrate cache with auth module
 - Add cache metrics/observability

@@ -33,12 +33,14 @@ This document describes the step-by-step process for refactoring a tangled or ov
 ## Phase 1: Deep Analysis
 
 ### Goal
+
 Understand the current structure and identify natural boundaries.
 
 ### Steps
 
 1. **Invoke indexer for deep analysis**
-   ```
+
+   ```ignore
    @indexer Deep index the {module} module.
 
    Extract ALL symbols (including private).
@@ -59,12 +61,14 @@ Understand the current structure and identify natural boundaries.
 ## Phase 2: Decomposition Design
 
 ### Goal
+
 Design the new module structure following SRP.
 
 ### Steps
 
 1. **Invoke architect**
-   ```
+
+   ```ignore
    @architect Design decomposition for {module}.
 
    Read analysis at .claude/memory/arch/refactor-{module}-analysis.md
@@ -83,6 +87,7 @@ Design the new module structure following SRP.
    - `.claude/memory/arch/refactor-{module}-plan.md`
 
 ### Design Checklist
+
 - [ ] Each new module has clear purpose
 - [ ] No circular dependencies in new structure
 - [ ] Public API is maintained (or migration path provided)
@@ -91,12 +96,14 @@ Design the new module structure following SRP.
 ## Phase 3: Baseline Tests
 
 ### Goal
+
 Record current test state to detect regressions.
 
 ### Steps
 
 1. **Invoke verifier**
-   ```
+
+   ```ignore
    @verifier Record test baseline for {module} refactoring.
 
    Run all tests that touch {module}.
@@ -115,13 +122,16 @@ Record current test state to detect regressions.
 ## Phase 4: Incremental Migration
 
 ### Goal
+
 Extract sub-modules one at a time, testing after each.
 
 ### Process
+
 Repeat for each sub-module in the plan:
 
 1. **Extract sub-module**
-   ```
+
+   ```ignore
    @implementer Extract {sub_module} from {module}.
 
    Follow .claude/memory/arch/refactor-{module}-plan.md
@@ -130,6 +140,7 @@ Repeat for each sub-module in the plan:
    ```
 
 2. **Verify extraction**
+
    ```
    @verifier Verify {sub_module} extraction.
 
@@ -138,6 +149,7 @@ Repeat for each sub-module in the plan:
    ```
 
 3. **Commit if successful**
+
    ```bash
    git add .
    git commit -m "refactor({module}): extract {sub_module}"
@@ -157,12 +169,14 @@ Repeat for each sub-module in the plan:
 ## Phase 5: Cleanup
 
 ### Goal
+
 Remove dead code and finalize the refactoring.
 
 ### Steps
 
 1. **Invoke implementer**
-   ```
+
+   ```ignore
    @implementer Complete {module} refactoring.
 
    Remove empty/dead code from original module.
@@ -171,7 +185,8 @@ Remove dead code and finalize the refactoring.
    ```
 
 2. **Final verification**
-   ```
+
+   ```ignore
    @verifier Final verification of {module} refactoring.
 
    Run all tests.
@@ -180,6 +195,7 @@ Remove dead code and finalize the refactoring.
    ```
 
 3. **Commit**
+
    ```bash
    git add .
    git commit -m "refactor({module}): cleanup and finalize"
@@ -188,12 +204,14 @@ Remove dead code and finalize the refactoring.
 ## Phase 6: Documentation
 
 ### Goal
+
 Document the new structure for future developers.
 
 ### Steps
 
 1. **Invoke scribe**
-   ```
+
+   ```ignore
    @scribe Document {module} refactoring.
 
    Update knowledge.md with new structure.
@@ -219,13 +237,15 @@ Document the new structure for future developers.
 ## Example: Refactoring a Monolithic Auth Module
 
 ### Before
-```
+
+```ignore
 auth/
 └── mod.rs (800 LOC - handles login, session, token, password)
 ```
 
 ### After
-```
+
+```ignore
 auth/
 ├── mod.rs          # Public exports
 ├── login.rs        # Login flow
@@ -237,7 +257,8 @@ auth/
 ```
 
 ### Execution
-```
+
+```ignore
 # Phase 1
 @indexer Deep index the auth module
 

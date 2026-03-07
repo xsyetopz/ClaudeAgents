@@ -28,7 +28,7 @@ This skill guides the refactoring of tangled or oversized modules into clean, fe
 
 First, invoke the indexer to deeply analyze the target module:
 
-```
+```ignore
 @indexer Deep index the {module} module.
 
 Extract ALL symbols (not just public).
@@ -38,6 +38,7 @@ Output to .claude/memory/arch/refactor-{module}-analysis.md
 ```
 
 Review the analysis to understand:
+
 - Current structure
 - Symbol dependencies
 - Natural boundaries
@@ -46,7 +47,7 @@ Review the analysis to understand:
 
 Invoke the architect to design the decomposition:
 
-```
+```ignore
 @architect Design decomposition for {module}.
 
 Read the analysis at .claude/memory/arch/refactor-{module}-analysis.md
@@ -57,6 +58,7 @@ Output to .claude/memory/arch/refactor-{module}-plan.md
 ```
 
 The plan should include:
+
 - New module structure
 - Symbol migration map
 - Order of operations
@@ -66,7 +68,7 @@ The plan should include:
 
 Before making changes, record the test baseline:
 
-```
+```ignore
 @verifier Record test baseline for {module} refactoring.
 
 Run existing tests for the module.
@@ -78,7 +80,7 @@ Save to .claude/memory/refactor-{module}-baseline.md
 
 For each sub-module in the plan:
 
-```
+```ignore
 @implementer Extract {sub_module} from {module}.
 
 Follow the plan at .claude/memory/arch/refactor-{module}-plan.md
@@ -89,7 +91,7 @@ Lock files during editing.
 
 After each extraction:
 
-```
+```ignore
 @verifier Verify {sub_module} extraction.
 
 Run tests for affected modules.
@@ -103,7 +105,7 @@ Repeat until all extractions complete.
 
 Once all sub-modules are extracted:
 
-```
+```ignore
 @implementer Complete {module} refactoring.
 
 Remove empty/dead code from original module.
@@ -115,7 +117,7 @@ Clean up any temporary compatibility shims.
 
 Document the changes:
 
-```
+```ignore
 @scribe Document {module} refactoring.
 
 Update knowledge.md with new structure.
@@ -126,31 +128,38 @@ Update any affected API documentation.
 ## Refactoring Patterns
 
 ### Extract Module
+
 Move related functions/types to a new module.
 
 ### Extract Trait
+
 Create a trait for polymorphic behavior.
 
 ### Split by Concern
+
 Separate data access, business logic, and presentation.
 
 ### Consolidate Duplicates
+
 Merge similar code into shared utilities.
 
 ## Safety Checklist
 
 Before refactoring:
+
 - [ ] All tests pass
 - [ ] No uncommitted changes
 - [ ] Branch created for refactoring
 - [ ] Baseline recorded
 
 During refactoring:
+
 - [ ] Incremental steps
 - [ ] Tests after each step
 - [ ] No feature changes mixed in
 
 After refactoring:
+
 - [ ] All tests pass
 - [ ] No regressions
 - [ ] Documentation updated
@@ -171,6 +180,7 @@ After refactoring:
 ## Rollback Strategy
 
 If refactoring goes wrong:
+
 1. Check git status for uncommitted changes
 2. Use `git stash` or `git checkout` to revert
 3. Review what went wrong
@@ -180,16 +190,19 @@ If refactoring goes wrong:
 ## Common Pitfalls
 
 ### Changing behavior during refactoring
+
 - Keep refactoring and feature changes separate
 - If you find bugs, note them for later
 - Maintain exact behavior during migration
 
 ### Too many changes at once
+
 - Extract one sub-module at a time
 - Test after each extraction
 - Commit after each successful step
 
 ### Breaking dependent code
+
 - Update imports incrementally
 - Use temporary re-exports if needed
 - Search for all usages before moving symbols

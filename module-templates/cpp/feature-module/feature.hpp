@@ -1,257 +1,159 @@
-/**
- * @file feature.hpp
- * @brief {Brief description of what this feature does}
- *
- * @example
- * @code
- * #include "feature.hpp"
- *
- * features::feature::Config config;
- * features::feature::Service service(config);
- * auto item = service.create("example data");
- * @endcode
- */
-
 #pragma once
 
 #include <chrono>
+#include <concepts>
 #include <memory>
 #include <optional>
+#include <span>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace features::feature {
 
-// =============================================================================
-// SECTION 1: CONFIGURATION
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Configuration
+// -----------------------------------------------------------------------------
 
-/**
- * @brief Configuration for the feature service.
- */
 struct Config {
-    /// {Description of field}
     std::string field_one;
+    int ttl_seconds = 3600;
 
-    /// {Description of field}. Defaults to 3600.
-    int field_two = 3600;
-
-    /// Creates default configuration.
-    static Config defaults() {
-        return Config{};
-    }
+    [[nodiscard]] static auto defaults() -> Config { return {}; }
 };
 
-// =============================================================================
-// SECTION 2: DOMAIN TYPES
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Domain Types
+// -----------------------------------------------------------------------------
 
-/**
- * @brief Main domain type for this feature.
- *
- * @example
- * @code
- * Item item("some-id", "data");
- * std::cout << item.id() << std::endl;
- * @endcode
- */
 class Item {
 public:
-    /**
-     * @brief Constructs a new Item.
-     * @param id Unique identifier
-     * @param data Main payload
-     */
-    Item(std::string id, std::string data);
+    using Clock = std::chrono::system_clock;
+    using TimePoint = Clock::time_point;
 
-    /// Gets the unique identifier.
-    [[nodiscard]] const std::string& id() const noexcept { return id_; }
+    Item(std::string id, std::string payload);
 
-    /// Gets the data payload.
-    [[nodiscard]] const std::string& data() const noexcept { return data_; }
+    // Rule of Five
+    ~Item() = default;
+    Item(const Item&) = default;
+    Item(Item&&) noexcept = default;
+    auto operator=(const Item&) -> Item& = default;
+    auto operator=(Item&&) noexcept -> Item& = default;
 
-    /// Sets the data payload.
-    void set_data(std::string data) { data_ = std::move(data); }
+    [[nodiscard]] auto id() const noexcept -> std::string_view { return id_; }
+    [[nodiscard]] auto payload() const noexcept -> std::string_view { return payload_; }
+    [[nodiscard]] auto created_at() const noexcept -> TimePoint { return created_at_; }
+    [[nodiscard]] auto updated_at() const noexcept -> std::optional<TimePoint> { return updated_at_; }
 
-    /// Gets the creation timestamp.
-    [[nodiscard]] std::chrono::system_clock::time_point created_at() const noexcept {
-        return created_at_;
-    }
-
-    /// Gets the last update timestamp.
-    [[nodiscard]] std::optional<std::chrono::system_clock::time_point> updated_at() const noexcept {
-        return updated_at_;
-    }
-
-    /// Marks the item as updated.
-    void mark_updated();
+    auto set_payload(std::string new_payload) -> void;
+    auto mark_as_updated() -> void;
 
 private:
     std::string id_;
-    std::string data_;
-    std::chrono::system_clock::time_point created_at_;
-    std::optional<std::chrono::system_clock::time_point> updated_at_;
+    std::string payload_;
+    TimePoint created_at_;
+    std::optional<TimePoint> updated_at_;
 };
 
-// =============================================================================
-// SECTION 3: INPUT TYPES
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Input Types
+// -----------------------------------------------------------------------------
 
-/**
- * @brief Input for creating a new item.
- */
-struct CreateInput {
-    std::string data;
+struct CreateItemInput {
+    std::string payload;
 };
 
-/**
- * @brief Input for updating an existing item.
- */
-struct UpdateInput {
-    std::optional<std::string> data;
+struct UpdateItemInput {
+    std::optional<std::string> payload;
 };
 
-// =============================================================================
-// SECTION 4: ERRORS
-// =============================================================================
+struct PaginationParams {
+    int limit = 20;
+    int offset = 0;
+};
 
-/**
- * @brief Base exception for feature errors.
- */
+// -----------------------------------------------------------------------------
+// Errors
+// -----------------------------------------------------------------------------
+
 class FeatureError : public std::runtime_error {
 public:
-    explicit FeatureError(const std::string& message)
-        : std::runtime_error(message) {}
+    using std::runtime_error::runtime_error;
 };
 
-/**
- * @brief Thrown when an item is not found.
- */
-class NotFoundError : public FeatureError {
+class ItemNotFoundError : public FeatureError {
 public:
-    explicit NotFoundError(const std::string& id)
-        : FeatureError("Item not found: " + id), id_(id) {}
+    explicit ItemNotFoundError(std::string_view item_id)
+        : FeatureError(std::string{"Item not found: "} + std::string{item_id})
+        , item_id_{item_id} {}
 
-    [[nodiscard]] const std::string& id() const noexcept { return id_; }
+    [[nodiscard]] auto item_id() const noexcept -> std::string_view { return item_id_; }
 
 private:
-    std::string id_;
+    std::string item_id_;
 };
 
-/**
- * @brief Thrown when input validation fails.
- */
-class ValidationError : public FeatureError {
+class InvalidInputError : public FeatureError {
 public:
-    explicit ValidationError(const std::string& message)
-        : FeatureError("Invalid input: " + message) {}
+    explicit InvalidInputError(std::string_view reason)
+        : FeatureError(std::string{"Invalid input: "} + std::string{reason}) {}
 };
 
-// =============================================================================
-// SECTION 5: REPOSITORY INTERFACE
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Repository Interface
+// -----------------------------------------------------------------------------
 
-/**
- * @brief Interface for data access.
- *
- * Implement this for different storage backends.
- */
-class Repository {
+class ItemRepository {
 public:
-    virtual ~Repository() = default;
+    virtual ~ItemRepository() = default;
+    ItemRepository() = default;
+    ItemRepository(const ItemRepository&) = default;
+    ItemRepository(ItemRepository&&) = default;
+    auto operator=(const ItemRepository&) -> ItemRepository& = default;
+    auto operator=(ItemRepository&&) -> ItemRepository& = default;
 
-    virtual std::optional<Item> find_by_id(const std::string& id) = 0;
-    virtual std::vector<Item> find_all(int limit, int offset) = 0;
-    virtual void save(const Item& item) = 0;
-    virtual void remove(const std::string& id) = 0;
+    [[nodiscard]] virtual auto find_by_id(std::string_view id) -> std::optional<Item> = 0;
+    [[nodiscard]] virtual auto find_all(PaginationParams params) -> std::vector<Item> = 0;
+    virtual auto save(const Item& item) -> void = 0;
+    virtual auto remove(std::string_view id) -> void = 0;
 };
 
-// =============================================================================
-// SECTION 6: SERVICE
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Service
+// -----------------------------------------------------------------------------
 
-/**
- * @brief Service for feature operations.
- *
- * @example
- * @code
- * Service service(Config::defaults());
- * auto item = service.create(CreateInput{"test data"});
- * @endcode
- */
-class Service {
+class ItemService {
 public:
-    /**
-     * @brief Constructs a service with configuration.
-     * @param config Service configuration
-     */
-    explicit Service(Config config);
+    explicit ItemService(Config config);
+    ItemService(Config config, std::shared_ptr<ItemRepository> repository);
 
-    /**
-     * @brief Constructs a service with configuration and repository.
-     * @param config Service configuration
-     * @param repository Data access repository
-     */
-    Service(Config config, std::shared_ptr<Repository> repository);
-
-    /**
-     * @brief Creates a new item.
-     * @param input Creation input
-     * @return The created item
-     * @throws ValidationError If input is invalid
-     */
-    [[nodiscard]] Item create(const CreateInput& input);
-
-    /**
-     * @brief Retrieves an item by ID.
-     * @param id Unique identifier
-     * @return The item if found
-     * @throws NotFoundError If item doesn't exist
-     */
-    [[nodiscard]] Item get(const std::string& id);
-
-    /**
-     * @brief Updates an existing item.
-     * @param id Item ID
-     * @param input Update input
-     * @return The updated item
-     * @throws NotFoundError If item doesn't exist
-     * @throws ValidationError If input is invalid
-     */
-    [[nodiscard]] Item update(const std::string& id, const UpdateInput& input);
-
-    /**
-     * @brief Deletes an item.
-     * @param id Item ID
-     * @throws NotFoundError If item doesn't exist
-     */
-    void remove(const std::string& id);
-
-    /**
-     * @brief Lists all items with pagination.
-     * @param limit Maximum items to return
-     * @param offset Items to skip
-     * @return Vector of items
-     */
-    [[nodiscard]] std::vector<Item> list(int limit = 20, int offset = 0);
+    [[nodiscard]] auto create_item(const CreateItemInput& input) -> Item;
+    [[nodiscard]] auto get_item(std::string_view id) -> Item;
+    [[nodiscard]] auto update_item(std::string_view id, const UpdateItemInput& input) -> Item;
+    auto delete_item(std::string_view id) -> void;
+    [[nodiscard]] auto list_items(PaginationParams params = {}) -> std::vector<Item>;
 
 private:
-    void validate_create_input(const CreateInput& input);
-    void validate_update_input(const UpdateInput& input);
+    auto validate_payload(std::string_view payload) const -> void;
 
     Config config_;
-    std::shared_ptr<Repository> repository_;
+    std::shared_ptr<ItemRepository> repository_;
 };
 
-// =============================================================================
-// SECTION 7: UTILITY FUNCTIONS
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Utilities
+// -----------------------------------------------------------------------------
 
-/**
- * @brief Generates a unique identifier.
- * @return A UUID string
- */
-[[nodiscard]] std::string generate_id();
+[[nodiscard]] auto generate_uuid() -> std::string;
+
+// C++20 concept for repository-like types
+template<typename T>
+concept RepositoryLike = requires(T repo, std::string_view id, Item item, PaginationParams params) {
+    { repo.find_by_id(id) } -> std::same_as<std::optional<Item>>;
+    { repo.find_all(params) } -> std::same_as<std::vector<Item>>;
+    { repo.save(item) } -> std::same_as<void>;
+    { repo.remove(id) } -> std::same_as<void>;
+};
 
 } // namespace features::feature

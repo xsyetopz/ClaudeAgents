@@ -118,7 +118,7 @@ pub fn new(user_id: UserId, config: SessionConfig) -> Result<Session, SessionErr
 
 #### Knowledge Update
 
-```markdown
+````markdown
 # In .claude/memory/knowledge.md
 
 ## {Feature} Module
@@ -147,9 +147,10 @@ if session.is_expired() {
 - Sessions expire after 24h by default
 - Must call `session.refresh()` before expiry
 
-```
+````
 
 ### Step 5: Update Task Status
+
 ```markdown
 ## Messages
 - [TIMESTAMP] scribe: Documentation complete for feature.

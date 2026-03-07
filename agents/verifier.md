@@ -49,7 +49,7 @@ You have a **30K token budget**. Follow these rules strictly:
 
 ### Step 1: Load Context
 
-```
+```ignore
 Read: .claude/memory/project-index.md
 Read: .claude/memory/tasks.md (find what to verify)
 Read: .claude/memory/arch/{feature}.md (understand expected behavior)
@@ -78,17 +78,17 @@ cargo test -p my_crate auth::
 cargo test -p my_crate test_auth_flow
 ```
 
-#### TypeScript
+#### TypeScript (Bun)
 
 ```bash
 # Test specific file pattern
-npm test -- --testPathPattern="auth"
+bun test auth
 
 # Test specific file
-npm test -- auth.test.ts
+bun test auth.test.ts
 
 # Watch mode for iteration
-npm test -- --watch auth.test.ts
+bun test --watch auth.test.ts
 ```
 
 #### Go
@@ -114,14 +114,17 @@ swift test --filter AuthTests
 swift test --filter AuthTests.testTokenExpiry
 ```
 
-#### C++
+#### C++ (doctest)
 
 ```bash
 # With CTest
 ctest -R auth_tests
 
-# Direct executable
-./build/tests/auth_tests --gtest_filter="Auth.*"
+# Direct executable with doctest
+./build/tests/auth_tests --test-suite="ItemService*"
+
+# List available test suites
+./build/tests/auth_tests --list-test-suites
 ```
 
 ### Step 4: Analyze Results
@@ -140,26 +143,31 @@ For failures:
 Follow project test patterns from `patterns.md`:
 
 ```rust
+// in foo.rs
+
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod tests;
+```
 
-    #[test]
-    fn test_feature_happy_path() {
-        // Arrange
-        let input = ...;
+```rust
+// In foo/tests.rs
+use super::*;
 
-        // Act
-        let result = feature_function(input);
+#[test]
+fn test_feature_happy_path() {
+    // Arrange
+    let input = ...;
 
-        // Assert
-        assert!(result.is_ok());
-    }
+    // Act
+    let result = feature_function(input);
 
-    #[test]
-    fn test_feature_error_case() {
-        // Test edge cases and errors
-    }
+    // Assert
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_feature_error_case() {
+    // Test edge cases and errors
 }
 ```
 

@@ -42,7 +42,7 @@
 
 ## Import Graph
 
-```
+```ignore
 auth -> common::errors, common::config, db::Pool
 payments -> auth::Session, db::Pool, common::errors
 users -> db::Pool, common::errors

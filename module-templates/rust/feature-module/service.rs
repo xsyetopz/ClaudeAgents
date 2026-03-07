@@ -1,163 +1,63 @@
-//! Business logic for {Feature}
-//!
-//! This file contains the main service implementation.
-//! Keep business logic here, delegate data access to repositories.
+use crate::types::{Config, CreateInput, Error, Item, Result, UpdateInput};
 
-use super::types::{Config, Error, MainType, Result};
-use std::sync::Arc;
+// -----------------------------------------------------------------------------
+// Service
+// -----------------------------------------------------------------------------
 
-// =============================================================================
-// SECTION 1: SERVICE STRUCT
-// =============================================================================
-
-/// Service for {Feature} operations
-///
-/// # Example
-///
-/// ```rust
-/// let service = {Feature}Service::new(Config::default());
-/// let item = service.create("data")?;
-/// ```
-pub struct {Feature}Service {
+pub struct FeatureService {
     config: Config,
-    // Add dependencies here:
-    // repository: Arc<dyn {Feature}Repository>,
-    // cache: Arc<dyn Cache>,
 }
 
-impl {Feature}Service {
-    /// Creates a new service instance
-    pub fn new(config: Config) -> Self {
+impl FeatureService {
+    #[must_use]
+    pub const fn new(config: Config) -> Self {
         Self { config }
     }
 
-    /// Creates a new service with dependencies
-    pub fn with_dependencies(
-        config: Config,
-        // repository: Arc<dyn {Feature}Repository>,
-    ) -> Self {
-        Self {
-            config,
-            // repository,
-        }
-    }
-}
-
-// =============================================================================
-// SECTION 2: CORE OPERATIONS
-// =============================================================================
-
-impl {Feature}Service {
-    /// Creates a new item
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The data for the new item
-    ///
-    /// # Returns
-    ///
-    /// The created item on success
-    ///
-    /// # Errors
-    ///
-    /// Returns `Error::InvalidInput` if data is empty
-    pub fn create(&self, data: impl Into<String>) -> Result<MainType> {
-        let data = data.into();
-
-        // Validate input
-        if data.is_empty() {
-            return Err(Error::InvalidInput("data cannot be empty".into()));
-        }
-
-        // Create item
-        let item = MainType::new(data);
-
-        // Persist (if using repository)
-        // self.repository.save(&item)?;
-
-        Ok(item)
+    pub fn create_item(&self, input: CreateInput) -> Result<Item> {
+        self.validate_payload(&input.payload)?;
+        Ok(Item::new(input.payload))
     }
 
-    /// Retrieves an item by ID
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - The unique identifier
-    ///
-    /// # Returns
-    ///
-    /// The item if found
-    ///
-    /// # Errors
-    ///
-    /// Returns `Error::NotFound` if item doesn't exist
-    pub fn get(&self, id: &str) -> Result<MainType> {
-        // Retrieve from repository
-        // self.repository.find_by_id(id)?
-        //     .ok_or_else(|| Error::NotFound(id.to_string()))
-
-        // Placeholder
+    pub fn get_item(&self, id: &str) -> Result<Item> {
         Err(Error::NotFound(id.to_string()))
     }
 
-    /// Updates an existing item
-    pub fn update(&self, id: &str, data: impl Into<String>) -> Result<MainType> {
-        let data = data.into();
-
-        // Validate
-        if data.is_empty() {
-            return Err(Error::InvalidInput("data cannot be empty".into()));
+    pub fn update_item(&self, id: &str, input: UpdateInput) -> Result<Item> {
+        if let Some(ref payload) = input.payload {
+            self.validate_payload(payload)?;
         }
 
-        // Get existing
-        let mut item = self.get(id)?;
-
-        // Update
-        item.data = data;
-
-        // Persist
-        // self.repository.save(&item)?;
-
+        let mut item = self.get_item(id)?;
+        if let Some(payload) = input.payload {
+            item.payload = payload;
+        }
         Ok(item)
     }
 
-    /// Deletes an item
-    pub fn delete(&self, id: &str) -> Result<()> {
-        // Verify exists
-        let _ = self.get(id)?;
-
-        // Delete
-        // self.repository.delete(id)?;
-
+    pub fn delete_item(&self, id: &str) -> Result<()> {
+        let _ = self.get_item(id)?;
         Ok(())
     }
-}
 
-// =============================================================================
-// SECTION 3: HELPER METHODS
-// =============================================================================
-
-impl {Feature}Service {
-    /// Validates the input according to business rules
-    fn validate(&self, data: &str) -> Result<()> {
-        if data.is_empty() {
-            return Err(Error::InvalidInput("data cannot be empty".into()));
+    fn validate_payload(&self, payload: &str) -> Result<()> {
+        if payload.is_empty() {
+            return Err(Error::InvalidInput("payload cannot be empty".into()));
         }
 
-        if data.len() > 1000 {
-            return Err(Error::InvalidInput("data too long".into()));
+        const MAX_PAYLOAD_LENGTH: usize = 1000;
+        if payload.len() > MAX_PAYLOAD_LENGTH {
+            return Err(Error::InvalidInput("payload exceeds maximum length".into()));
         }
 
         Ok(())
     }
+
+    #[must_use]
+    pub const fn config(&self) -> &Config {
+        &self.config
+    }
 }
 
-// =============================================================================
-// SECTION 4: PRIVATE HELPERS (module-level)
-// =============================================================================
-
-/// Generates a unique identifier
-#[allow(dead_code)]
-fn generate_id() -> String {
-    uuid::Uuid::new_v4().to_string()
-}
+#[cfg(test)]
+mod tests;

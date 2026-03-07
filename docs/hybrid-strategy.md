@@ -37,7 +37,7 @@ The Claude Code system supports two agent approaches:
 
 ### Agent Team Examples
 
-```
+```ignore
 ✓ "Add a new caching layer"
   → Needs design, implementation, testing, docs
   → Multiple modules affected
@@ -80,7 +80,7 @@ The Claude Code system supports two agent approaches:
 
 ### Subagent Examples
 
-```
+```ignore
 ✓ "Find all usages of this function"
   → Single focused task
   → No coordination needed
@@ -113,7 +113,7 @@ The Claude Code system supports two agent approaches:
 
 ### Pattern 1: Team for Design, Subagent for Execution
 
-```
+```ignore
 TEAM PHASE:
   Indexer → Architect → Design approved
 
@@ -126,7 +126,7 @@ SUBAGENT PHASE:
 
 ### Pattern 2: Subagent for Analysis, Team for Action
 
-```
+```ignore
 SUBAGENT PHASE:
   Quick exploration → Understand the problem
 
@@ -138,7 +138,7 @@ TEAM PHASE:
 
 ### Pattern 3: Team with Subagent Helpers
 
-```
+```ignore
 TEAM PHASE:
   Architect designs feature
 
@@ -154,42 +154,48 @@ TEAM PHASE:
 
 ## Anti-Patterns
 
-### Don't Use Teams For:
+### Don't Use Teams For
 
 1. **Simple Queries**
-   ```
+
+   ```ignore
    BAD: Team to find a function definition
    GOOD: Single Grep/Glob call
    ```
 
 2. **Same-File Heavy Edits**
-   ```
+
+   ```ignore
    BAD: Multiple agents editing same file
    GOOD: Single implementer with locks
    ```
 
 3. **Highly Sequential Work**
-   ```
+
+   ```ignore
    BAD: Team where each agent waits for previous
    GOOD: Single agent doing sequential steps
    ```
 
-### Don't Use Subagents For:
+### Don't Use Subagents For
 
 1. **Cross-Module Refactoring**
-   ```
+
+   ```ignore
    BAD: Subagent trying to coordinate changes
    GOOD: Team with architect coordination
    ```
 
 2. **Design Decisions**
-   ```
+
+   ```ignore
    BAD: Subagent making architectural choices
    GOOD: Architect agent with proper context
    ```
 
 3. **Risky Changes**
-   ```
+
+   ```ignore
    BAD: Subagent making breaking changes
    GOOD: Team with verification steps
    ```
@@ -197,24 +203,28 @@ TEAM PHASE:
 ## Cost-Benefit Analysis
 
 ### Agent Team Costs
+
 - Higher token usage per task
 - More setup overhead
 - Memory file management
 - Coordination complexity
 
 ### Agent Team Benefits
+
 - Better for complex work
 - Parallel execution possible
 - Persistent context sharing
 - Structured handoffs
 
 ### Subagent Costs
+
 - No shared context
 - Must provide full context each time
 - No coordination mechanism
 - Risk of duplicated work
 
 ### Subagent Benefits
+
 - Lower token usage
 - Faster for simple tasks
 - No coordination overhead
@@ -269,18 +279,21 @@ If team is overkill:
 ## Summary
 
 **Use Agent Teams when**:
+
 - Work is complex and multi-phase
 - Design decisions are needed
 - Multiple areas affected
 - Verification is important
 
 **Use Subagents when**:
+
 - Work is simple and focused
 - Single area affected
 - No design needed
 - Speed is priority
 
 **Use Hybrid when**:
+
 - Combine strengths of both
 - Design phase needs team
 - Execution can be subagents

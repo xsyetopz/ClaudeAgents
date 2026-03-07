@@ -23,7 +23,7 @@
 
 ## Import Graph
 
-```
+```ignore
 {module_a} -> {dependency_1}, {dependency_2}
 {module_b} -> {dependency_3}
 ```
