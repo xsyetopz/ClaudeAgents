@@ -57,6 +57,10 @@ A token-efficient, feature-oriented hybrid agent architecture optimized for **Cl
 ├── workflows/                 # Documented workflows
 ├── scripts/                   # Utility scripts
 └── docs/                      # Extended documentation
+    ├── architecture.md        # System architecture overview
+    ├── token-efficiency.md    # Token budget strategies
+    ├── hybrid-strategy.md     # Teams vs subagents guide
+    └── xml-tagging.md         # XML tagging best practices
 ```
 
 ## Usage
