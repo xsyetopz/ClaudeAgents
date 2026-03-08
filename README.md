@@ -1,154 +1,75 @@
-# Claude Code Agent Team Architecture
+# Claude Code Agent Team
 
-A token-efficient, feature-oriented hybrid agent architecture optimized for **Claude Max 5x plan**.
+Lightweight agent definitions, skills, and hooks for Claude Code projects. Designed for efficient Sonnet 4.6 usage on Max 5x/20x plans.
+
+## What This Adds Over Vanilla Claude Code
+
+- **3 focused agents** with clear roles and model assignments
+- **Coding standards skill** — auto-activates on implementation/review tasks, enforces SRP/DRY/KISS
+- **2 working hooks** — LSP diagnostics check + auto-format after edits
+- **Language-scoped rules** — Rust, TypeScript, and test-specific rules
+- **Module templates** — feature-oriented templates for 5 languages
 
 ## Quick Start
 
 ```bash
-# Install to your project
 ./scripts/install.sh /path/to/your/project
-
-# Initialize memory directory
-./scripts/init-memory.sh /path/to/your/project
 ```
 
-## Repository Purpose
+This copies agents, skills, hooks, and rules to your project's `.claude/` directory. Use `--symlink` for development, `--global` for `~/.claude/`.
 
-- Generate agent definitions, memory schemas, skills, hooks
-- Iterate on designs with version control
-- Extend the system over time
-- Copy/symlink components to target projects
+## Agents
 
-## Architecture Overview
+| Agent | Model | Role |
+|-------|-------|------|
+| **Architect** | Opus | Analyzes codebase, designs module boundaries, outputs implementation plans |
+| **Implementer** | Sonnet | Writes production code following plans or direct instructions |
+| **Verifier** | Sonnet | Runs targeted tests, analyzes failures, reports results |
 
-### Hybrid Approach
+## Skills
 
-| Approach | Use Case |
-|----------|----------|
-| **Agent Teams** | Complex collaborative work (architecture, cross-cutting refactors, debugging) |
-| **Subagents** | Routine focused tasks (indexing, testing, documentation) |
+| Skill | Auto-Activates On |
+|-------|--------------------|
+| `coding-standards` | Implementation tasks, code reviews |
+| `refactor` | Refactoring requests |
 
-### Agent Team
+## Hooks
 
-| Agent | Role | Model | Token Budget |
-|-------|------|-------|--------------|
-| **Indexer** | Repository Indexer & Feature Mapper | sonnet | 25K |
-| **Architect** | Feature-Oriented Architect | opus | 32K |
-| **Implementer** | Implementation & Refactoring Engineer | sonnet | 32K |
-| **Verifier** | Testing & Verification Engineer | sonnet | 30K |
-| **Scribe** | Documentation & Knowledge Engineer | sonnet | 20K |
+| Hook | Event | What It Does |
+|------|-------|--------------|
+| LSP diagnostics | PostToolUse (Write/Edit) | Prompts to check and fix type errors |
+| Auto-format | PostToolUse (Write/Edit) | Runs language-appropriate formatter via stdin JSON |
+
+## Rules
+
+Path-scoped rules in `templates/rules/` auto-load based on file type:
+
+- `rust.md` — Rust-specific conventions
+- `typescript.md` — TypeScript-specific conventions
+- `tests.md` — Test file conventions
+
+## Module Templates
+
+Feature-oriented templates for: **Rust**, **TypeScript**, **Go**, **Swift**, **C++**
+
+Each follows the pattern: types → core logic → traits → tests → helpers.
+
+## Teams vs Subagents
+
+Use **subagents** for narrow, well-defined tasks (single module, sequential work). Use **agent teams** for genuinely parallel work (multiple disjoint modules, competing debug hypotheses, cross-layer coordination).
 
 ## Directory Structure
 
-```ignore
-.
-├── agents/                    # Agent definitions (copy to .claude/agents/)
-├── memory/                    # Memory schema templates
-│   ├── templates/             # Blank templates
-│   └── examples/              # Example filled-in memories
-├── skills/                    # Skills (copy to .claude/skills/)
-├── hooks/                     # Hook configurations
-├── module-templates/          # Feature-oriented module templates
-│   ├── rust/
-│   ├── typescript/
-│   ├── go/
-│   ├── swift/
-│   └── cpp/
-├── workflows/                 # Documented workflows
-├── scripts/                   # Utility scripts
-└── docs/                      # Extended documentation
-    ├── architecture.md        # System architecture overview
-    ├── token-efficiency.md    # Token budget strategies
-    ├── hybrid-strategy.md     # Teams vs subagents guide
-    └── xml-tagging.md         # XML tagging best practices
 ```
-
-## Usage
-
-### 1. Install to Project
-
-```bash
-./scripts/install.sh ~/my-project
+├── agents/              # 3 agent definitions
+├── skills/              # 2 auto-activating skills
+│   ├── coding-standards/
+│   └── refactor/
+├── hooks/               # hooks.json + auto-format script
+├── templates/rules/     # Language-scoped rules
+├── module-templates/    # Feature module templates (5 languages)
+└── scripts/             # install.sh
 ```
-
-This copies:
-
-- `agents/` → `.claude/agents/`
-- `skills/` → `.claude/skills/`
-- `hooks/hooks.json` → `.claude/hooks.json`
-
-### 2. Initialize Memory
-
-```bash
-./scripts/init-memory.sh ~/my-project
-```
-
-Creates `.claude/memory/` with empty templates.
-
-### 3. Run Indexer First
-
-Always start by indexing your project:
-
-```ignore
-@indexer Index this project
-```
-
-This creates `.claude/memory/project-index.md` which other agents consume.
-
-### 4. Feature Development Workflow
-
-```ignore
-Phase 1: @indexer   → Creates project index
-Phase 2: @architect → Designs feature (reads index)
-Phase 3: @implementer → Writes code (reads design + index)
-Phase 4: @verifier  → Runs tests
-Phase 5: @scribe    → Documents feature
-```
-
-## Token Efficiency
-
-The system is designed to stay within Claude Max 5x plan budget:
-
-- **Agents read memory first** before source files
-- **Progressive disclosure**: summaries → specific files
-- **No duplicate reads**: indexer reads, others use index
-- **Targeted operations**: test specific modules, not full suites
-- **Compact outputs**: tables and lists, not prose
-
-### Budget Per Major Task
-
-| Phase | Typical | Max |
-|-------|---------|-----|
-| Index | 15K | 25K |
-| Design | 25K | 32K |
-| Implement | 25K | 32K |
-| Verify | 20K | 30K |
-| Document | 15K | 20K |
-| **Total** | **100K** | **145K** |
-
-## When to Use Agent Teams vs Subagents
-
-### Use Agent Teams For
-
-- Research/review in parallel
-- New modules (disjoint files)
-- Debugging competing hypotheses
-- Cross-layer coordination
-
-### Use Subagents For
-
-- Sequential tasks
-- Same-file edits
-- Routine small tasks
-- Work with many dependencies
-
-## Supported Languages
-
-- Rust
-- TypeScript
-- Go
-- Swift
-- C/C++
 
 ## License
 
