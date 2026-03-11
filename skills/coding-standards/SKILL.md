@@ -21,13 +21,13 @@ Apply these standards to all code you write, modify, or review.
 
 ## Naming Rules
 
-| Element | Convention | Anti-Examples |
-|---------|-----------|---------------|
-| Variables | Descriptive nouns: `user_count`, `auth_token` | `n`, `data`, `temp` |
-| Booleans | `is_`/`has_`/`can_`: `is_valid`, `has_permission` | `valid`, `flag` |
-| Functions | Verb phrases: `calculate_total`, `validate_email` | `process`, `handle` |
-| Types | Noun phrases: `TokenStream`, `UserRepository` | `TokenHelper`, `UserManager` |
-| Constants | SCREAMING_SNAKE: `MAX_RETRY_COUNT` | `maxRetries` |
+| Element   | Convention                                        | Anti-Examples                |
+| --------- | ------------------------------------------------- | ---------------------------- |
+| Variables | Descriptive nouns: `user_count`, `auth_token`     | `n`, `data`, `temp`          |
+| Booleans  | `is_`/`has_`/`can_`: `is_valid`, `has_permission` | `valid`, `flag`              |
+| Functions | Verb phrases: `calculate_total`, `validate_email` | `process`, `handle`          |
+| Types     | Noun phrases: `TokenStream`, `UserRepository`     | `TokenHelper`, `UserManager` |
+| Constants | SCREAMING_SNAKE: `MAX_RETRY_COUNT`                | `maxRetries`                 |
 
 **Banned names** (always replace with domain-specific alternatives): `data`, `result`, `temp`, `info`, `handle`, `process`, `manager`, `helper`, `util`, `item`, `value`, `obj`.
 
@@ -70,12 +70,12 @@ Check in this order during reviews:
 
 ## Review Output Format
 
-```
+```markdown
 ## Review Summary
 **Verdict:** PASS | PASS_WITH_NOTES | NEEDS_CHANGES
 
-| # | Severity | File:Line | Issue | Fix |
-|---|----------|-----------|-------|-----|
+| #   | Severity | File:Line | Issue | Fix |
+| --- | -------- | --------- | ----- | --- |
 ```
 
 ## Do NOT

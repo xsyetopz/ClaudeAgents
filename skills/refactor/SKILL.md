@@ -36,6 +36,7 @@ description: >
 ### 4. Migrate Incrementally
 
 For each sub-module:
+
 1. Extract types/functions to new location
 2. Update imports in dependent files
 3. Run targeted tests — compare to baseline

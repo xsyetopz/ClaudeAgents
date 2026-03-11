@@ -8,14 +8,14 @@ A **meta-repository** for creating and iterating on Claude Code agent architectu
 
 ## File Purposes
 
-| Directory | Purpose |
-|-----------|---------|
-| `agents/` | Agent markdown files with YAML frontmatter |
-| `skills/` | Auto-activation skill definitions |
-| `hooks/` | Hook configurations and scripts |
+| Directory           | Purpose                                    |
+| ------------------- | ------------------------------------------ |
+| `agents/`           | Agent markdown files with YAML frontmatter |
+| `skills/`           | 7 auto-activation skill definitions        |
+| `hooks/`            | Hook configurations and scripts            |
 | `module-templates/` | Language-specific feature module templates |
-| `templates/rules/` | Path-scoped rules for `.claude/rules/` |
-| `scripts/` | Installation script |
+| `templates/rules/`  | Path-scoped rules for `.claude/rules/`     |
+| `scripts/`          | Installation script                        |
 
 ## Editing Guidelines
 
@@ -32,6 +32,27 @@ A **meta-repository** for creating and iterating on Claude Code agent architectu
 2. Include placeholder comments explaining each section
 3. Ensure templates compile/parse in their language
 
+## Behavioral Constraints
+
+These apply to all agents and all output. Non-negotiable.
+
+- No praise/narration/filler ("Great question!", "Let me explain", "Absolutely!", "I'll now...")
+- No obvious comments (restating code, narrating structure, "Initialize X")
+- No placeholders/hedging (TODO, FIXME, "for now...", "in a real...", "simplified...")
+- Comments explain "why" only — code that needs a "what" comment needs rewriting
+- Push back on bad ideas with evidence, not agreement
+- Every claim cites file:line
+- Status header on first output: `[agent-name] Action: {scope}`
+
+## Delegation Matrix
+
+| User Intent                             | Route To           |
+| --------------------------------------- | ------------------ |
+| design, architect, plan, "how should I" | @architect         |
+| implement, code, write, build, fix, add | @implement         |
+| test, verify, check, review, run tests  | @verify            |
+| ambiguous                               | Ask — do not guess |
+
 ## Testing Changes
 
 After modifying this repository:
@@ -39,6 +60,9 @@ After modifying this repository:
 1. Run `./scripts/install.sh /tmp/test-project` — verify clean install
 2. Verify hooks.json is valid JSON with correct schema
 3. Grep for deleted references (`tasks.md`, `locks.md`, `project-index.md`)
+4. Check each agent file has: constraint table, behavioral rules, status header requirement
+5. Check all 7 skills have valid YAML frontmatter with trigger descriptions
+6. Grep for banned patterns in agent/skill files: "robust", "seamless", "comprehensive"
 
 ## Common Tasks
 

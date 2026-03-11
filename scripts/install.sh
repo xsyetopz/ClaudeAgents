@@ -13,13 +13,15 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 TARGET_DIR=""
 USE_SYMLINK=false
 INSTALL_SCOPE="project"
+USE_PREMIUM=false
 
 usage() {
     echo -e "${GREEN}Claude Code Agent Installer${NC}"
-    echo -e "Usage: $0 <target-dir>|--global [--symlink]"
+    echo -e "Usage: $0 <target-dir>|--global [--symlink] [--premium]"
     echo -e "  <target-dir>   : Path to your project"
     echo -e "  --global       : Install to global ~/.claude/"
     echo -e "  --symlink      : Use symlinks instead of copies"
+    echo -e "  --premium      : Set architect agent model to opus"
     exit 1
 }
 
@@ -27,6 +29,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --symlink) USE_SYMLINK=true; shift ;;
         --global) INSTALL_SCOPE="global"; shift ;;
+        --premium) USE_PREMIUM=true; shift ;;
         -h|--help) usage ;;
         *)
           if [[ -z "$TARGET_DIR" ]]; then
@@ -76,6 +79,15 @@ echo "Installing agents..."
 for agent in "$REPO_DIR"/agents/*.md; do
     [[ -f "$agent" ]] && install_file "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
 done
+
+if $USE_PREMIUM; then
+    ARCH_FILE="$CLAUDE_DIR/agents/architect.md"
+    if [[ -f "$ARCH_FILE" ]]; then
+        sed -i '' 's/^model: sonnet$/model: opus/' "$ARCH_FILE" 2>/dev/null || \
+        sed -i 's/^model: sonnet$/model: opus/' "$ARCH_FILE"
+        echo -e "  ${YELLOW}Premium${NC}: architect set to opus"
+    fi
+fi
 echo
 
 echo "Installing skills..."
@@ -121,12 +133,18 @@ fi
 
 echo -e "${GREEN}Installation complete!${NC}\n"
 echo "Installed:"
-echo "  - 3 agents:  architect, implementer, verifier"
-echo "  - 2 skills:  coding-standards, refactor"
-echo "  - 2 hooks:   LSP diagnostics, auto-format"
+echo "  - 3 agents:  architect, implement, verify"
+echo "  - 7 skills:  coding-standards, refactor, desloppify, git-workflow,"
+echo "               security-checklist, code-review, performance-guide"
+echo "  - 3 hooks:   LSP diagnostics, auto-format, agent delegation observer"
 echo "  - Rules:     language-specific (.claude/rules/)"
 echo
 echo "Next steps:"
-echo "  1. Start designing: @architect Plan a new feature"
-echo "  2. Or just code:    @implementer Implement X"
+echo "  1. Design:    @architect Plan a new feature"
+echo "  2. Implement: @implement Implement X"
+echo "  3. Verify:    @verify Run tests for X"
 echo
+if ! $USE_PREMIUM; then
+    echo "Tip: Re-run with --premium to set architect model to opus"
+    echo
+fi

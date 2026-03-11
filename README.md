@@ -1,14 +1,15 @@
 # Claude Code Agent Team
 
-Lightweight agent definitions, skills, and hooks for Claude Code projects. Designed for efficient Sonnet 4.6 usage on Max 5x/20x plans.
+Agent definitions, skills, and hooks for Claude Code projects. Agents use constraint tables and behavioral rules to prevent AI slop, enforce scope discipline, and produce observable output.
 
 ## What This Adds Over Vanilla Claude Code
 
-- **3 focused agents** with clear roles and model assignments
-- **Coding standards skill** — auto-activates on implementation/review tasks, enforces SRP/DRY/KISS
-- **2 working hooks** — LSP diagnostics check + auto-format after edits
+- **3 agents** with constraint tables, behavioral rules, and status headers
+- **7 skills** — coding-standards, refactor, desloppify, git-workflow, security-checklist, code-review, performance-guide
+- **3 hooks** — LSP diagnostics, auto-format, agent delegation observer
 - **Language-scoped rules** — Rust, TypeScript, and test-specific rules
 - **Module templates** — feature-oriented templates for 5 languages
+- **Behavioral constraints** in CLAUDE.md — no slop, no placeholders, no filler
 
 ## Quick Start
 
@@ -16,29 +17,37 @@ Lightweight agent definitions, skills, and hooks for Claude Code projects. Desig
 ./scripts/install.sh /path/to/your/project
 ```
 
-This copies agents, skills, hooks, and rules to your project's `.claude/` directory. Use `--symlink` for development, `--global` for `~/.claude/`.
+This copies agents, skills, hooks, and rules to your project's `.claude/` directory. Use `--symlink` for development, `--global` for `~/.claude/`, `--premium` to set architect model to opus.
 
 ## Agents
 
-| Agent | Model | Role |
-|-------|-------|------|
-| **Architect** | Opus | Analyzes codebase, designs module boundaries, outputs implementation plans |
-| **Implementer** | Sonnet | Writes production code following plans or direct instructions |
-| **Verifier** | Sonnet | Runs targeted tests, analyzes failures, reports results |
+| Agent           | Model  | Role                                                                                                       |
+| --------------- | ------ | ---------------------------------------------------------------------------------------------------------- |
+| **Architect**   | Opus   | Analyzes codebase, designs plans with constraint table. READ-ONLY. Ends with `## Next: @implement` handoff |
+| **Implementer** | Sonnet | Writes production code. Follows plans precisely. Anti-drift and anti-slop rules. No narration              |
+| **Verifier**    | Sonnet | Tests and reviews code. Every finding cites file:line with severity (BLOCKING/WARNING/SUGGESTION)          |
+
+All agents output a status header: `[agent-name] Action: {scope}`
 
 ## Skills
 
-| Skill | Auto-Activates On |
-|-------|--------------------|
-| `coding-standards` | Implementation tasks, code reviews |
-| `refactor` | Refactoring requests |
+| Skill                | Auto-Activates On                             |
+| -------------------- | --------------------------------------------- |
+| `coding-standards`   | Implementation tasks, code reviews            |
+| `refactor`           | Refactoring requests                          |
+| `desloppify`         | AI slop detection, "clean up", comment audits |
+| `git-workflow`       | Commits, branches, PRs                        |
+| `security-checklist` | Security audits, vulnerability checks         |
+| `code-review`        | Code reviews, PR reviews                      |
+| `performance-guide`  | Performance optimization, profiling           |
 
 ## Hooks
 
-| Hook | Event | What It Does |
-|------|-------|--------------|
-| LSP diagnostics | PostToolUse (Write/Edit) | Prompts to check and fix type errors |
-| Auto-format | PostToolUse (Write/Edit) | Runs language-appropriate formatter via stdin JSON |
+| Hook            | Event                    | What It Does                                          |
+| --------------- | ------------------------ | ----------------------------------------------------- |
+| LSP diagnostics | PostToolUse (Write/Edit) | Prompts to check and fix type errors                  |
+| Auto-format     | PostToolUse (Write/Edit) | Runs language-appropriate formatter                   |
+| Agent observer  | PostToolUse (Agent)      | Reports what agent ran, what changed, success/failure |
 
 ## Rules
 
@@ -52,19 +61,29 @@ Path-scoped rules in `templates/rules/` auto-load based on file type:
 
 Feature-oriented templates for: **Rust**, **TypeScript**, **Go**, **Swift**, **C++**
 
-Each follows the pattern: types → core logic → traits → tests → helpers.
+Each follows the pattern: types -> core logic -> traits -> tests -> helpers.
 
-## Teams vs Subagents
+## Delegation Matrix
 
-Use **subagents** for narrow, well-defined tasks (single module, sequential work). Use **agent teams** for genuinely parallel work (multiple disjoint modules, competing debug hypotheses, cross-layer coordination).
+| User Intent                             | Route To           |
+| --------------------------------------- | ------------------ |
+| design, architect, plan, "how should I" | @architect         |
+| implement, code, write, build, fix, add | @implement         |
+| test, verify, check, review, run tests  | @verify            |
+| ambiguous                               | Ask — do not guess |
 
 ## Directory Structure
 
-```
-├── agents/              # 3 agent definitions
-├── skills/              # 2 auto-activating skills
+```text
+├── agents/              # 3 agent definitions (constraint tables + behavioral rules)
+├── skills/              # 7 auto-activating skills
 │   ├── coding-standards/
-│   └── refactor/
+│   ├── refactor/
+│   ├── desloppify/
+│   ├── git-workflow/
+│   ├── security-checklist/
+│   ├── code-review/
+│   └── performance-guide/
 ├── hooks/               # hooks.json + auto-format script
 ├── templates/rules/     # Language-scoped rules
 ├── module-templates/    # Feature module templates (5 languages)

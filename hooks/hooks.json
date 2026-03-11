@@ -14,6 +14,15 @@
 						"timeout": 10
 					}
 				]
+			},
+			{
+				"matcher": "Agent",
+				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "After agent delegation completes, verify: what agent ran, what files changed, did it succeed. Report outcome in 1-2 lines."
+					}
+				]
 			}
 		]
 	}
