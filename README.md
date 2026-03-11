@@ -14,7 +14,7 @@ Agent definitions, skills, and hooks for Claude Code projects. Agents use constr
 ## Quick Start
 
 ```bash
-./scripts/install.sh /path/to/your/project
+./install.sh /path/to/your/project
 ```
 
 This copies agents, skills, hooks, and rules to your project's `.claude/` directory. Use `--symlink` for development, `--global` for `~/.claude/`, `--premium` to set architect model to opus.
