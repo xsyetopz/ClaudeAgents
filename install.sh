@@ -8,7 +8,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(dirname "$SCRIPT_DIR")"
+REPO_DIR="$SCRIPT_DIR"
 
 TARGET_DIR=""
 USE_SYMLINK=false
@@ -63,6 +63,11 @@ fi
 
 mkdir -p "$CLAUDE_DIR"/{agents,skills,hooks/scripts}
 
+AGENT_COUNT=0
+SKILL_COUNT=0
+HOOK_COUNT=0
+RULE_COUNT=0
+
 install_file() {
     local src="$1" dest="$2"
     if $USE_SYMLINK; then
@@ -77,7 +82,9 @@ install_file() {
 
 echo "Installing agents..."
 for agent in "$REPO_DIR"/agents/*.md; do
-    [[ -f "$agent" ]] && install_file "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
+    [[ -f "$agent" ]] || continue
+    install_file "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
+    ((AGENT_COUNT++))
 done
 
 if $USE_PREMIUM; then
@@ -96,8 +103,10 @@ for skill_dir in "$REPO_DIR"/skills/*/; do
     skill_name=$(basename "$skill_dir")
     mkdir -p "$CLAUDE_DIR/skills/$skill_name"
     for skill_file in "$skill_dir"*; do
-        [[ -f "$skill_file" ]] && install_file "$skill_file" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
+        [[ -f "$skill_file" ]] || continue
+        install_file "$skill_file" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
     done
+    ((SKILL_COUNT++))
 done
 echo
 
@@ -118,6 +127,7 @@ for script in "$REPO_DIR"/hooks/scripts/*; do
     dest="$CLAUDE_DIR/hooks/scripts/$(basename "$script")"
     install_file "$script" "$dest"
     chmod +x "$dest"
+    ((HOOK_COUNT++))
 done
 echo
 
@@ -127,17 +137,23 @@ if [[ -d "$REPO_DIR/templates/rules" ]]; then
     for rule in "$REPO_DIR"/templates/rules/*.md; do
         [[ -f "$rule" ]] || continue
         install_file "$rule" "$CLAUDE_DIR/rules/$(basename "$rule")"
+        ((RULE_COUNT++))
     done
     echo
 fi
 
+TOTAL=$((AGENT_COUNT + SKILL_COUNT + HOOK_COUNT + RULE_COUNT))
+if [[ $TOTAL -eq 0 ]]; then
+    echo -e "${RED}Nothing was installed. Check that the repository structure is intact.${NC}"
+    exit 1
+fi
+
 echo -e "${GREEN}Installation complete!${NC}\n"
 echo "Installed:"
-echo "  - 3 agents:  architect, implement, verify"
-echo "  - 7 skills:  coding-standards, refactor, desloppify, git-workflow,"
-echo "               security-checklist, code-review, performance-guide"
-echo "  - 3 hooks:   LSP diagnostics, auto-format, agent delegation observer"
-echo "  - Rules:     language-specific (.claude/rules/)"
+echo "  - $AGENT_COUNT agents"
+echo "  - $SKILL_COUNT skills"
+echo "  - $HOOK_COUNT hooks"
+echo "  - $RULE_COUNT rules"
 echo
 echo "Next steps:"
 echo "  1. Design:    @architect Plan a new feature"

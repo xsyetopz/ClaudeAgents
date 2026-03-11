@@ -57,7 +57,7 @@ These apply to all agents and all output. Non-negotiable.
 
 After modifying this repository:
 
-1. Run `./scripts/install.sh /tmp/test-project` — verify clean install
+1. Run `./install.sh /tmp/test-project` — verify clean install
 2. Verify hooks.json is valid JSON with correct schema
 3. Grep for deleted references (`tasks.md`, `locks.md`, `project-index.md`)
 4. Check each agent file has: constraint table, behavioral rules, status header requirement
