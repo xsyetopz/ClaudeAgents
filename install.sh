@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 RED='\033[0;31m'
@@ -11,156 +10,264 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$SCRIPT_DIR"
 
 TARGET_DIR=""
-USE_SYMLINK=false
 INSTALL_SCOPE="project"
-USE_PREMIUM=false
+TIER="pro"
 
 usage() {
-    echo -e "${GREEN}Claude Code Agent Installer${NC}"
-    echo -e "Usage: $0 <target-dir>|--global [--symlink] [--premium]"
-    echo -e "  <target-dir>   : Path to your project"
-    echo -e "  --global       : Install to global ~/.claude/"
-    echo -e "  --symlink      : Use symlinks instead of copies"
-    echo -e "  --premium      : Set architect agent model to opus"
+    echo -e "${GREEN}Claude Code Agent System Installer${NC}"
+    echo "Usage: $0 <target-dir>|--global [--pro|--max]"
+    echo "  <target-dir>  : Path to your project"
+    echo "  --global      : Install to global ~/.claude/"
+    echo "  --pro         : Sonnet/Haiku tier (default)"
+    echo "  --max         : Opus/Sonnet tier"
     exit 1
 }
 
+die() { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
+info() { echo -e "  ${GREEN}✓${NC} $1"; }
+warn() { echo -e "  ${YELLOW}!${NC} $1"; }
+
+# --- Version check ---
+check_version() {
+    if ! command -v claude &>/dev/null; then
+        die "claude CLI not found. Install Claude Code first."
+    fi
+
+    local version
+    version=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [[ -z "$version" ]]; then
+        warn "Could not parse claude version, proceeding anyway"
+        return
+    fi
+
+    local major minor patch
+    IFS='.' read -r major minor patch <<< "$version"
+    local required_major=2 required_minor=1 required_patch=71
+
+    if (( major < required_major )) || \
+       (( major == required_major && minor < required_minor )) || \
+       (( major == required_major && minor == required_minor && patch < required_patch )); then
+        die "Claude Code v${version} is too old. Requires >= 2.1.71"
+    fi
+    info "Claude Code v${version}"
+}
+
+# --- Parse args ---
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --symlink) USE_SYMLINK=true; shift ;;
         --global) INSTALL_SCOPE="global"; shift ;;
-        --premium) USE_PREMIUM=true; shift ;;
+        --pro) TIER="pro"; shift ;;
+        --max) TIER="max"; shift ;;
         -h|--help) usage ;;
         *)
-          if [[ -z "$TARGET_DIR" ]]; then
-              TARGET_DIR="$1"
-          else
-              echo -e "${RED}Error: Too many arguments${NC}"
-              usage
-          fi
-          shift
-          ;;
+            if [[ -z "$TARGET_DIR" ]]; then
+                TARGET_DIR="$1"
+            else
+                die "Too many arguments"
+            fi
+            shift
+            ;;
     esac
 done
+
+check_version
 
 if [[ "$INSTALL_SCOPE" == "global" ]]; then
     TARGET_DIR="$HOME"
     CLAUDE_DIR="$HOME/.claude"
-    echo -e "${GREEN}Installing Claude Code agents to GLOBAL directory: $CLAUDE_DIR${NC}\n"
+    echo -e "\n${GREEN}Installing to global: $CLAUDE_DIR${NC} (tier: $TIER)"
 else
-    if [[ -z "$TARGET_DIR" ]]; then
-        echo -e "${RED}Error: Target directory required, or use --global${NC}\n"
-        usage
-    fi
-    if [[ ! -d "$TARGET_DIR" ]]; then
-        echo -e "${RED}Error: Target directory does not exist: $TARGET_DIR${NC}"
-        exit 1
-    fi
+    [[ -z "$TARGET_DIR" ]] && die "Target directory required, or use --global"
+    [[ ! -d "$TARGET_DIR" ]] && die "Directory does not exist: $TARGET_DIR"
     TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
     CLAUDE_DIR="$TARGET_DIR/.claude"
-    echo -e "${GREEN}Installing Claude Code agents to: $TARGET_DIR${NC}\n"
+    echo -e "\n${GREEN}Installing to: $TARGET_DIR${NC} (tier: $TIER)"
 fi
 
+# --- Model mapping ---
+case "$TIER" in
+    pro)
+        MODEL_PLANNER="sonnet"
+        MODEL_CODER="sonnet"
+        MODEL_REVIEWER="sonnet"
+        ;;
+    max)
+        MODEL_PLANNER="opus"
+        MODEL_CODER="sonnet"
+        MODEL_REVIEWER="sonnet"
+        ;;
+esac
+
 mkdir -p "$CLAUDE_DIR"/{agents,skills,hooks/scripts}
+mkdir -p "$HOME/.claude/hooks"
 
 AGENT_COUNT=0
 SKILL_COUNT=0
-HOOK_COUNT=0
-RULE_COUNT=0
 
-install_file() {
-    local src="$1" dest="$2"
-    if $USE_SYMLINK; then
-        [[ -e "$dest" || -L "$dest" ]] && rm -f "$dest"
-        ln -s "$src" "$dest"
-        echo -e "  ${GREEN}Linked${NC}: $(basename "$dest")"
-    else
-        cp "$src" "$dest"
-        echo -e "  ${GREEN}Copied${NC}: $(basename "$dest")"
-    fi
-}
-
-echo "Installing agents..."
+# --- Install agents with model substitution ---
+echo -e "\nAgents:"
 for agent in "$REPO_DIR"/agents/*.md; do
     [[ -f "$agent" ]] || continue
-    install_file "$agent" "$CLAUDE_DIR/agents/$(basename "$agent")"
-    ((AGENT_COUNT++))
+    dest="$CLAUDE_DIR/agents/$(basename "$agent")"
+    sed -e "s/__MODEL_PLANNER__/$MODEL_PLANNER/g" \
+        -e "s/__MODEL_CODER__/$MODEL_CODER/g" \
+        -e "s/__MODEL_REVIEWER__/$MODEL_REVIEWER/g" \
+        "$agent" > "$dest"
+    info "$(basename "$agent") (model substituted)"
+    AGENT_COUNT=$((AGENT_COUNT + 1))
 done
 
-if $USE_PREMIUM; then
-    ARCH_FILE="$CLAUDE_DIR/agents/architect.md"
-    if [[ -f "$ARCH_FILE" ]]; then
-        sed -i '' 's/^model: sonnet$/model: opus/' "$ARCH_FILE" 2>/dev/null || \
-        sed -i 's/^model: sonnet$/model: opus/' "$ARCH_FILE"
-        echo -e "  ${YELLOW}Premium${NC}: architect set to opus"
-    fi
-fi
-echo
-
-echo "Installing skills..."
+# --- Install skills ---
+echo -e "\nSkills:"
 for skill_dir in "$REPO_DIR"/skills/*/; do
     [[ -d "$skill_dir" ]] || continue
     skill_name=$(basename "$skill_dir")
     mkdir -p "$CLAUDE_DIR/skills/$skill_name"
     for skill_file in "$skill_dir"*; do
         [[ -f "$skill_file" ]] || continue
-        install_file "$skill_file" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
+        cp "$skill_file" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
     done
-    ((SKILL_COUNT++))
+    info "$skill_name"
+    SKILL_COUNT=$((SKILL_COUNT + 1))
 done
-echo
 
-echo "Installing hooks..."
-HOOKS_JSON_SRC="$REPO_DIR/hooks/hooks.json"
-HOOKS_JSON_DEST="$CLAUDE_DIR/hooks.json"
-if [[ -f "$HOOKS_JSON_SRC" ]]; then
-    if [[ -f "$HOOKS_JSON_DEST" ]]; then
-        echo -e "  ${YELLOW}Warning${NC}: hooks.json already exists"
-        echo -e "  ${YELLOW}         ${NC}Please manually merge: $HOOKS_JSON_SRC"
+# --- Install hooks ---
+echo -e "\nHooks:"
+
+# User-level: redact hooks → ~/.claude/hooks/
+for hook in redact-pre.py redact-post.py; do
+    src="$REPO_DIR/hooks/$hook"
+    dest="$HOME/.claude/hooks/$hook"
+    if [[ -f "$src" ]]; then
+        cp "$src" "$dest"
+        chmod +x "$dest"
+        info "$hook → ~/.claude/hooks/ (user-level)"
+    fi
+done
+
+# Project-level: hooks.json + auto-format
+if [[ -f "$REPO_DIR/hooks/hooks.json" ]]; then
+    cp "$REPO_DIR/hooks/hooks.json" "$CLAUDE_DIR/hooks.json"
+    info "hooks.json → project hooks"
+fi
+if [[ -f "$REPO_DIR/hooks/scripts/auto-format.sh" ]]; then
+    cp "$REPO_DIR/hooks/scripts/auto-format.sh" "$CLAUDE_DIR/hooks/scripts/auto-format.sh"
+    chmod +x "$CLAUDE_DIR/hooks/scripts/auto-format.sh"
+    info "auto-format.sh → project hooks"
+fi
+
+# --- Merge settings.json ---
+echo -e "\nSettings:"
+SETTINGS_FILE="$CLAUDE_DIR/settings.json"
+
+if [[ -f "$SETTINGS_FILE" ]]; then
+    cp "$SETTINGS_FILE" "${SETTINGS_FILE}.backup"
+    info "Backed up existing settings.json"
+fi
+
+# Build the hook entries to merge
+REDACT_PRE_ENTRY='{
+    "matcher": "Write|Edit|MultiEdit|NotebookEdit|Read|Bash|WebFetch",
+    "hooks": [{"type": "command", "command": "\"$HOME\"/.claude/hooks/redact-pre.py", "timeout": 5}]
+}'
+
+REDACT_POST_ENTRY='{
+    "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|WebFetch",
+    "hooks": [{"type": "command", "command": "\"$HOME\"/.claude/hooks/redact-post.py", "timeout": 5}]
+}'
+
+if command -v jq &>/dev/null; then
+    if [[ -f "$SETTINGS_FILE" ]]; then
+        # Merge into existing settings
+        jq --argjson pre "$REDACT_PRE_ENTRY" \
+           --argjson post "$REDACT_POST_ENTRY" '
+            .env["CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"] //= "1" |
+            .env["DISABLE_AUTOUPDATER"] //= "1" |
+            .hooks.PreToolUse = ((.hooks.PreToolUse // []) | if any(.hooks[0].command? | test("redact-pre")) then . else . + [$pre] end) |
+            .hooks.PostToolUse = ((.hooks.PostToolUse // []) | if any(.hooks[0].command? | test("redact-post")) then . else . + [$post] end)
+        ' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+        info "Merged into existing settings.json"
     else
-        install_file "$HOOKS_JSON_SRC" "$HOOKS_JSON_DEST"
+        # Create minimal settings
+        jq -n --argjson pre "$REDACT_PRE_ENTRY" \
+              --argjson post "$REDACT_POST_ENTRY" '{
+            env: {
+                CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1",
+                DISABLE_AUTOUPDATER: "1"
+            },
+            hooks: {
+                PreToolUse: [$pre],
+                PostToolUse: [$post]
+            }
+        }' > "$SETTINGS_FILE"
+        info "Created settings.json"
+    fi
+else
+    warn "jq not found — skipping settings.json merge. Install jq and re-run."
+fi
+
+# --- Install CLAUDE.md template ---
+echo -e "\nTemplate:"
+if [[ "$INSTALL_SCOPE" == "project" ]]; then
+    CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+    if [[ -f "$CLAUDE_MD" ]]; then
+        warn "CLAUDE.md already exists at target — skipping (review templates/CLAUDE.md manually)"
+    else
+        cp "$REPO_DIR/templates/CLAUDE.md" "$CLAUDE_MD"
+        info "CLAUDE.md installed"
+    fi
+else
+    warn "Skipping CLAUDE.md for global install (install per-project instead)"
+fi
+
+# --- Validation ---
+echo -e "\nValidation:"
+ERRORS=0
+
+# Check no __MODEL__ remnants
+if grep -r '__MODEL_' "$CLAUDE_DIR/agents/" &>/dev/null; then
+    echo -e "  ${RED}✗${NC} Found unreplaced __MODEL__ placeholders in agents"
+    ERRORS=$((ERRORS + 1))
+else
+    info "No __MODEL__ remnants"
+fi
+
+# Check hooks.json is valid JSON
+if [[ -f "$CLAUDE_DIR/hooks.json" ]]; then
+    if jq empty "$CLAUDE_DIR/hooks.json" 2>/dev/null; then
+        info "hooks.json is valid JSON"
+    else
+        echo -e "  ${RED}✗${NC} hooks.json is invalid JSON"
+        ERRORS=$((ERRORS + 1))
     fi
 fi
 
-for script in "$REPO_DIR"/hooks/scripts/*; do
-    [[ -f "$script" ]] || continue
-    dest="$CLAUDE_DIR/hooks/scripts/$(basename "$script")"
-    install_file "$script" "$dest"
-    chmod +x "$dest"
-    ((HOOK_COUNT++))
-done
-echo
-
-if [[ -d "$REPO_DIR/templates/rules" ]]; then
-    echo "Installing rules..."
-    mkdir -p "$CLAUDE_DIR/rules"
-    for rule in "$REPO_DIR"/templates/rules/*.md; do
-        [[ -f "$rule" ]] || continue
-        install_file "$rule" "$CLAUDE_DIR/rules/$(basename "$rule")"
-        ((RULE_COUNT++))
-    done
-    echo
+# Check settings.json is valid JSON
+if [[ -f "$SETTINGS_FILE" ]]; then
+    if jq empty "$SETTINGS_FILE" 2>/dev/null; then
+        info "settings.json is valid JSON"
+    else
+        echo -e "  ${RED}✗${NC} settings.json is invalid JSON"
+        ERRORS=$((ERRORS + 1))
+    fi
 fi
 
-TOTAL=$((AGENT_COUNT + SKILL_COUNT + HOOK_COUNT + RULE_COUNT))
-if [[ $TOTAL -eq 0 ]]; then
-    echo -e "${RED}Nothing was installed. Check that the repository structure is intact.${NC}"
+# Check for banned patterns in agents
+if grep -riE '(robust|seamless|comprehensive|allowedTools)' "$CLAUDE_DIR/agents/" &>/dev/null; then
+    echo -e "  ${RED}✗${NC} Found banned patterns in agents"
+    ERRORS=$((ERRORS + 1))
+else
+    info "No banned patterns in agents"
+fi
+
+echo -e "\n${GREEN}Done!${NC} Installed $AGENT_COUNT agents, $SKILL_COUNT skills"
+echo ""
+echo "Agents:"
+echo "  @planner  — plan, design, architect (model: $MODEL_PLANNER)"
+echo "  @coder    — implement, write, fix    (model: $MODEL_CODER)"
+echo "  @reviewer — review, test, audit      (model: $MODEL_REVIEWER)"
+
+if [[ $ERRORS -gt 0 ]]; then
+    echo -e "\n${RED}$ERRORS validation error(s) found. Check output above.${NC}"
     exit 1
-fi
-
-echo -e "${GREEN}Installation complete!${NC}\n"
-echo "Installed:"
-echo "  - $AGENT_COUNT agents"
-echo "  - $SKILL_COUNT skills"
-echo "  - $HOOK_COUNT hooks"
-echo "  - $RULE_COUNT rules"
-echo
-echo "Next steps:"
-echo "  1. Design:    @architect Plan a new feature"
-echo "  2. Implement: @implement Implement X"
-echo "  3. Verify:    @verify Run tests for X"
-echo
-if ! $USE_PREMIUM; then
-    echo "Tip: Re-run with --premium to set architect model to opus"
-    echo
 fi
