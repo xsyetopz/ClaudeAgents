@@ -1,115 +1,47 @@
-# Claude Code Instructions for ClaudeAgents Repository
+# Claude Code Agent System
 
-This repository contains agent definitions, skills, hooks, and templates for enhancing Claude Code projects.
+3 agents, 3 skills, split-level hooks. Targets CC v2.1.71+.
 
-## What This Repository Is
+## Agents
 
-A **meta-repository** for creating and iterating on Claude Code agent architectures. Components are copied/symlinked to target projects.
+| Agent    | Placeholder          | Pro    | Max    | Purpose                                |
+| -------- | -------------------- | ------ | ------ | -------------------------------------- |
+| planner  | `__MODEL_PLANNER__`  | sonnet | opus   | Architecture, planning, task breakdown |
+| coder    | `__MODEL_CODER__`    | sonnet | sonnet | Implementation, bug fixes, features    |
+| reviewer | `__MODEL_REVIEWER__` | sonnet | sonnet | Code review, testing, security audit   |
 
-## File Purposes
+## Skills
 
-| Directory           | Purpose                                    |
-| ------------------- | ------------------------------------------ |
-| `agents/`           | Agent markdown files with YAML frontmatter |
-| `skills/`           | 7 auto-activation skill definitions        |
-| `hooks/`            | Hook configurations and scripts            |
-| `module-templates/` | Language-specific feature module templates |
-| `templates/rules/`  | Path-scoped rules for `.claude/rules/`     |
-| `scripts/`          | Installation script                        |
+- `coding-standards` — code quality rules, naming, anti-patterns
+- `desloppify` — AI slop detection and removal
+- `git-workflow` — commit format, branch naming, PR templates
 
-## Editing Guidelines
+## Hooks
 
-### When modifying agent definitions
+**User-level** (`~/.claude/hooks/`):
 
-1. Keep system prompts focused and actionable
-2. Plain markdown — no XML tags, no mermaid diagrams
-3. Define clear "when to use" triggers
-4. Reference coding-standards skill instead of duplicating rules
+- `redact-pre.py` — PreToolUse secret scrubbing
+- `redact-post.py` — PostToolUse output redaction
 
-### When modifying module templates
+**Project-level** (`.claude/hooks.json`):
 
-1. Follow the 5-section pattern: types, core, traits, tests, helpers
-2. Include placeholder comments explaining each section
-3. Ensure templates compile/parse in their language
+- LSP diagnostics prompt on Write/Edit
+- auto-format.sh on Write/Edit
 
-## Behavioral Constraints
+## Install
 
-These apply to all agents and all output. Non-negotiable.
+```bash
+./install.sh /path/to/project --pro   # sonnet
+./install.sh /path/to/project --max   # opus/sonnet
+./install.sh --global --pro           # ~/.claude/
+```
 
-- No praise/narration/filler ("Great question!", "Let me explain", "Absolutely!", "I'll now...")
-- No obvious comments (restating code, narrating structure, "Initialize X")
-- No placeholders/hedging (TODO, FIXME, "for now...", "in a real...", "simplified...")
-- Comments explain "why" only — code that needs a "what" comment needs rewriting
-- Push back on bad ideas with evidence, not agreement
-- Every claim cites file:line
-- Status header on first output: `[agent-name] Action: {scope}`
+## File Structure
 
-## Delegation Matrix
-
-| User Intent                             | Route To           |
-| --------------------------------------- | ------------------ |
-| design, architect, plan, "how should I" | @architect         |
-| implement, code, write, build, fix, add | @implement         |
-| test, verify, check, review, run tests  | @verify            |
-| ambiguous                               | Ask — do not guess |
-
-## Testing Changes
-
-After modifying this repository:
-
-1. Run `./install.sh /tmp/test-project` — verify clean install
-2. Verify hooks.json is valid JSON with correct schema
-3. Grep for deleted references (`tasks.md`, `locks.md`, `project-index.md`)
-4. Check each agent file has: constraint table, behavioral rules, status header requirement
-5. Check all 7 skills have valid YAML frontmatter with trigger descriptions
-6. Grep for banned patterns in agent/skill files: "robust", "seamless", "comprehensive"
-
-## Common Tasks
-
-### Adding a new agent
-
-1. Create `agents/{name}.md`
-2. Define YAML frontmatter with model, tools, triggers
-3. Write system prompt following existing patterns
-4. Update README.md agent table
-
-### Adding a new language template
-
-1. Create `module-templates/{lang}/feature-module/`
-2. Add template files following the 5-section pattern
-3. Update README.md supported languages
-
-## Orchestration: Teams vs Subagents
-
-### Use Subagents When
-
-- Task scope is narrow and well-defined
-- Single module affected
-- Sequential dependencies make parallelism unhelpful
-
-### Use Agent Teams When
-
-- Genuinely parallel work is possible (e.g., research + implementation)
-- Multiple disjoint modules need simultaneous changes
-- Cross-layer coordination (frontend + backend + database)
-
-Do NOT assume complexity based on word count. Assess actual scope before choosing orchestration strategy.
-
-## Code Philosophy
-
-- Self-documenting code over verbose comments
-- Comments explain "why", never "what"
-- Meaningful names: `parse_primary_expr` not `parse_primary`
-- If a comment is needed to explain code, the code should probably be rewritten
-
-## Code Intelligence
-
-Prefer LSP over Grep/Read for code navigation — faster, precise, avoids reading entire files:
-
-- `workspaceSymbol` to find where something is defined
-- `findReferences` to see all usages across the codebase
-- `goToDefinition` / `goToImplementation` to jump to source
-- `hover` for type info without reading the file
-
-Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
-After writing or editing code, check LSP diagnostics and fix errors before proceeding.
+```
+agents/          planner.md, coder.md, reviewer.md
+skills/          coding-standards/, desloppify/, git-workflow/
+hooks/           hooks.json, redact-pre.py, redact-post.py, scripts/auto-format.sh
+templates/       CLAUDE.md (installed to target projects)
+install.sh       Version check, tier flags, jq merge, model substitution
+```
