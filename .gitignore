@@ -55,3 +55,6 @@ nohup.out
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# IDE artifacts
+.serena/
