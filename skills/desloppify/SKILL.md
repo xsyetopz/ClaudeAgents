@@ -1,6 +1,7 @@
 ---
 name: desloppify
 description: Detect and remove AI-generated linguistic slop from code, comments, documentation, READMEs, changelogs, commit messages, and any text artifacts. Use whenever the user mentions "AI slop", "desloppify", "remove AI-isms", "sounds like AI", "too AI", "clean up AI writing", "make it sound human", or asks to review text for AI patterns. Also trigger when reviewing any AI-generated documentation, comments, or prose -- even if the user doesn't explicitly mention AI slop -- if the content exhibits hallmark AI writing patterns like filler adjectives, hedge phrases, or obvious code comments. Trigger for any request to "clean up", "tighten", or "edit" AI-generated text, and when auditing codebases for comment quality.
+user-invocable: true
 ---
 
 # Desloppify
@@ -36,6 +37,16 @@ leverage, utilize, facilitate, implement (when meaning "use"), enhance,
 optimize, ensure, empower, foster, enable, drive, harness, spearhead,
 ecosystem, paradigm
 ```
+
+**Hedge/Placeholder Language:**
+
+```text
+"for now"                        "simplified version"
+"in a real implementation"       "placeholder"
+"temporary"                      "quick and dirty"
+```
+
+These are hard-blocked by the `anti-placeholder` hook. If you see them in code, replace with the complete implementation.
 
 **Weasel Phrases:**
 

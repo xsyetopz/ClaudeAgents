@@ -5,6 +5,7 @@ description: >
   when writing, editing, or reviewing code. The single source of truth for code quality rules.
   Triggers: implement, write code, add function, create module, refactor, edit code, fix bug,
   review code, check quality, review PR, validate implementation, code review.
+user-invocable: true
 ---
 
 # Coding Standards
@@ -59,6 +60,7 @@ Check in this order during reviews:
 8. **Bad naming** — generic names from the banned list above
 9. **Large functions** — 30+ lines without extraction
 10. **Missing error handling** — `unwrap()` in prod, swallowed errors
+11. **Ultimatum decisions** — presenting a single approach as the only option for medium/high-stakes decisions without alternatives
 
 ## Language-Specific
 
@@ -90,3 +92,7 @@ Check in this order during reviews:
 - Refactor during a bug fix; change behavior during a refactoring
 - Skip error handling or use `unwrap()` in non-test code
 - Assume an API/file/function exists without verifying via LSP/grep
+
+## Collaboration Protocol
+
+For any non-trivial design decision during implementation or review, present 2-3 options with tradeoffs. Mark your recommendation. See `/collaboration-protocol` for full protocol.

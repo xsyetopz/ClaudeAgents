@@ -5,6 +5,9 @@ SECRET_PATTERNS = [
     re.compile(r'(?i)\b[A-Z0-9]{20,}[_-]?[A-Z0-9]{10,}\b'),          # generic long tokens
     re.compile(r'(?i)\b(?:api|secret|token|key|passwd|password)\s*[:=]\s*["\']?([^\s"\']+)'),
     re.compile(r'(?i)sk-[a-z0-9]{20,}'),                              # common key prefix
+    re.compile(r'AKIA[0-9A-Z]{16}'),                                   # AWS access key ID
+    re.compile(r'gh[pous]_[A-Za-z0-9_]{36,}'),                        # GitHub token
+    re.compile(r'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'),        # JWT
 ]
 
 REDACT = "★★★REDACTED★★★"
@@ -44,6 +47,14 @@ def main():
         if re.search(r'\b(curl|wget)\b.*\s(-H|--header)\s.*(authorization|api-key)', cmd, re.I):
             print("Blocking Bash call that would echo auth headers", file=sys.stderr)
             sys.exit(2)  # block
+
+    # Block .env file reads
+    if tool_name == "Read":
+        fp = tool_input.get("file_path", "")
+        basename = os.path.basename(fp)
+        if basename == ".env" or basename.startswith(".env."):
+            print("Blocking read of .env file", file=sys.stderr)
+            sys.exit(2)
 
     # Approve benign reads quietly to cut friction
     decision = None

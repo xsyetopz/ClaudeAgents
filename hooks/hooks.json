@@ -1,5 +1,17 @@
 {
 	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/scripts/pre-commit-quality.py\"",
+						"timeout": 10
+					}
+				]
+			}
+		],
 		"PostToolUse": [
 			{
 				"matcher": "Write|Edit",
@@ -12,17 +24,48 @@
 						"type": "command",
 						"command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/scripts/auto-format.sh\"",
 						"timeout": 10
+					},
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/scripts/anti-placeholder.py\"",
+						"timeout": 10
+					},
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/scripts/anti-comment-slop.py\"",
+						"timeout": 10
 					}
 				]
 			}
 		],
 		"SubagentStop": [
 			{
-				"matcher": "planner|coder|reviewer",
+				"matcher": "architect|implement|audit|test|document|investigate|orchestrate",
 				"hooks": [
 					{
 						"type": "prompt",
 						"prompt": "Check for silent scope reduction: did the agent quietly drop, skip, or stub out parts of what the user asked for WITHOUT flagging it? BLOCK if the agent silently reduced scope. PASS if the agent either (a) completed everything requested, or (b) explicitly told the user what was not completed and why."
+					},
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/scripts/completion-check.py\"",
+						"timeout": 15
+					},
+					{
+						"type": "prompt",
+						"prompt": "Review the agent's final response for collaboration protocol compliance:\n1. For medium/high-stakes decisions: did the agent present 2-3 options with tradeoffs?\n2. Did the agent explain rationale for its recommendations?\n3. Did the agent present any decision as the ONLY option when alternatives exist?\nBLOCK if medium/high-stakes decisions were made without presenting alternatives.\nPASS if options were presented, only low-stakes decisions were made, or user input was requested."
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"matcher": "",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/scripts/completion-check.py\"",
+						"timeout": 15
 					}
 				]
 			}

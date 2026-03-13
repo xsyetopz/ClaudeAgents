@@ -1,6 +1,7 @@
 ---
 name: git-workflow
 description: Git workflow conventions for commits, branches, and PRs. Use when the user mentions "commit", "branch", "PR", "pull request", "merge", "rebase", "git workflow", or asks about commit message format, branch naming, or PR templates.
+user-invocable: true
 ---
 
 # Git Workflow
@@ -119,6 +120,26 @@ Names: lowercase, hyphens, no slashes beyond the prefix. Example: `feat/token-re
 
 3. One PR solves one problem — no drive-by fixes
 4. Rebase to main before merge, prefer squash merge for small PRs
+
+## Pre-Commit Quality
+
+The `pre-commit-quality` hook automatically checks staged files before `git commit` for:
+
+- Secrets and credentials (API keys, tokens, AWS keys, GitHub tokens, JWTs)
+- `.env` files (should never be committed)
+- Merge conflict markers
+- TODO/FIXME markers in non-test files
+
+If the hook blocks a commit, fix the issue before retrying.
+
+## Commit Atomicity
+
+Each commit should be one logical change:
+
+- Don't mix refactoring with feature changes
+- Don't mix formatting with behavior changes
+- Don't bundle unrelated fixes into one commit
+- If a change requires multiple steps, each step that leaves the codebase in a working state should be a separate commit
 
 ## Workflow
 

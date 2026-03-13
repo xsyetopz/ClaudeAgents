@@ -3,11 +3,17 @@ import json, sys, re
 
 REDACT = "★★★REDACTED★★★"
 SECRET_TEXT = re.compile(r'(?i)(?:api|secret|token|key|bearer)\s*[:=]\s*["\']?([^\s"\']+)')
+AWS_KEY = re.compile(r'AKIA[0-9A-Z]{16}')
+GITHUB_TOKEN = re.compile(r'gh[pous]_[A-Za-z0-9_]{36,}')
+JWT = re.compile(r'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}')
+
+PATTERNS = [SECRET_TEXT, AWS_KEY, GITHUB_TOKEN, JWT]
 
 def redact_text(s: str) -> str:
-    s = SECRET_TEXT.sub(REDACT, s)
-    if len(s) > 50000:  # safety middle truncate for huge outputs
-        s = s[:25000] + "\n... " + REDACT + " ..." + s[-25000:]
+    for pat in PATTERNS:
+        s = pat.sub(REDACT, s)
+    if len(s) > 30000:  # safety middle truncate for huge outputs
+        s = s[:15000] + "\n... " + REDACT + " ..." + s[-15000:]
     return s
 
 def main():
