@@ -1,0 +1,162 @@
+{
+	"env": {
+		"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+		"CLAUDE_CODE_HIDE_ACCOUNT_INFO": "1",
+		"CLAUDE_CODE_IDLE_TERMINATE_MINUTES": "15",
+		"DISABLE_AUTOUPDATER": "1"
+	},
+	"permissions": {
+		"allow": [
+			"Bash(*)",
+			"Powershell(*)",
+			"Git(*)",
+			"Read(*)",
+			"Edit(*)",
+			"Write(*)",
+			"Copy(*)",
+			"Move(*)",
+			"Delete(*)",
+			"Download(*)",
+			"Upload(*)",
+			"Search(*)",
+			"Plan(*)",
+			"List(*)",
+			"Bash(rm -rf ./*cache*)",
+			"Bash(rm -rf ./dist*)",
+			"Bash(rm -rf ./node_modules*)"
+		],
+		"deny": [
+			"Read(.env)",
+			"Read(.env.*)",
+			"Read(/etc/shadow)",
+			"Read(/etc/passwd)",
+			"Read(*id_rsa*)",
+			"Read(*id_ed25519*)",
+			"Read(**/.ssh/**)",
+			"Read(**/.aws/credentials)",
+			"Read(*/.git/config)",
+			"Read(*/secrets/**)",
+			"Read(*/private/**)",
+			"Read(*/credentials/**)",
+			"Read(C:\\Windows\\System32\\config\\SAM)",
+			"Read(/Users/*/Library/Keychains/**)",
+			"Read(/Library/Keychains/**)",
+			"Read(/Users/*/Library/Application Support/Apple/Developer/*)",
+			"Read(/Users/*/Library/Application Support/Xcode/DerivedData/**)",
+			"Read(/Users/*/Library/Developer/Xcode/DerivedData/**)",
+			"Read(/Users/*/Library/MobileDevice/Provisioning Profiles/**)",
+			"Read(/Users/*/Library/Preferences/com.apple.security*/*)",
+			"Read(/etc/krb5.keytab)",
+			"Read(/private/var/db/dslocal/nodes/Default/users/root.plist)",
+			"Write(/etc/shadow)",
+			"Write(/etc/passwd)",
+			"Write(**/.ssh/**)",
+			"Write(**/.aws/credentials)",
+			"Write(*/.git/config)",
+			"Write(*/secrets/**)",
+			"Write(*/private/**)",
+			"Write(*/credentials/**)",
+			"Write(C:\\Windows\\System32\\config\\SAM)",
+			"Write(/Users/*/Library/Keychains/**)",
+			"Write(/Library/Keychains/**)",
+			"Write(/Users/*/Library/Application Support/Apple/Developer/*)",
+			"Write(/Users/*/Library/Application Support/Xcode/DerivedData/**)",
+			"Write(/Users/*/Library/Developer/Xcode/DerivedData/**)",
+			"Write(/Users/*/Library/MobileDevice/Provisioning Profiles/**)",
+			"Write(/Users/*/Library/Preferences/com.apple.security*/*)",
+			"Write(/etc/krb5.keytab)",
+			"Write(/private/var/db/dslocal/nodes/Default/users/root.plist)",
+			"Delete(/etc/shadow)",
+			"Delete(/etc/passwd)",
+			"Delete(**/.ssh/**)",
+			"Delete(**/.aws/credentials)",
+			"Delete(*/.git/config)",
+			"Delete(*/secrets/**)",
+			"Delete(*/private/**)",
+			"Delete(*/credentials/**)",
+			"Delete(C:\\Windows\\System32\\config\\SAM)",
+			"Delete(/Users/*/Library/Keychains/**)",
+			"Delete(/Library/Keychains/**)",
+			"Delete(/Users/*/Library/Application Support/Apple/Developer/*)",
+			"Delete(/Users/*/Library/Application Support/Xcode/DerivedData/**)",
+			"Delete(/Users/*/Library/Developer/Xcode/DerivedData/**)",
+			"Delete(/Users/*/Library/MobileDevice/Provisioning Profiles/**)",
+			"Delete(/Users/*/Library/Preferences/com.apple.security*/*)",
+			"Delete(/etc/krb5.keytab)",
+			"Delete(/private/var/db/dslocal/nodes/Default/users/root.plist)",
+			"Bash(sudo *)",
+			"Bash(dd*)",
+			"Bash(mkfs*)",
+			"Bash(shutdown*)",
+			"Bash(init 0*)",
+			"Bash(chmod 777*)",
+			"Bash(chown root*)",
+			"Bash(poweroff*)",
+			"Bash(reboot*)",
+			"Bash(format*)",
+			"Bash(diskutil eraseDisk*)",
+			"Bash(diskutil secureErase*)",
+			"Bash(diskutil partitionDisk*)",
+			"Powershell(Remove-Item -Recurse C:\\Windows*)",
+			"Powershell(Format-*)",
+			"Powershell(Stop-Computer*)",
+			"Powershell(Restart-Computer*)",
+			"Git(push --force*)",
+			"Edit(/etc/**)",
+			"Edit(C:\\Windows\\System32\\**)",
+			"Edit(/Users/*/Library/Keychains/**)",
+			"Edit(/Library/Keychains/**)",
+			"Edit(/Users/*/Library/Developer/Xcode/**)",
+			"Delete(/etc/**)",
+			"Delete(C:\\Windows\\System32\\**)",
+			"Delete(/Users/*/Library/Keychains/**)",
+			"Delete(/Library/Keychains/**)",
+			"Delete(/Users/*/Library/Developer/Xcode/**)"
+		],
+		"defaultMode": "plan"
+	},
+	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Write|Edit|MultiEdit|NotebookEdit|Read|Bash|WebFetch",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$HOME\"/.claude/hooks/guard-secrets.py",
+						"timeout": 5
+					}
+				]
+			},
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "__HOME__/.claude/hooks/rtk-rewrite.sh"
+					}
+				]
+			}
+		]
+	},
+	"disableAllHooks": false,
+	"enabledPlugins": {
+		"context-mode@context-mode": true
+	},
+	"extraKnownMarketplaces": {
+		"context-mode": {
+			"source": {
+				"source": "github",
+				"repo": "mksglu/context-mode"
+			}
+		}
+	},
+	"statusLine": {
+		"type": "command",
+		"command": "bash __HOME__/.claude/statusline-command.sh"
+	},
+	"autoUpdatesChannel": "latest",
+	"availableModels": ["opus", "sonnet", "haiku"],
+	"skipWebFetchPreflight": true,
+	"alwaysThinkingEnabled": true,
+	"terminalImageSupport": true
+}

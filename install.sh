@@ -4,6 +4,7 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,6 +12,7 @@ REPO_DIR="$SCRIPT_DIR"
 TARGET_DIR=""
 INSTALL_SCOPE="project"
 TIER="pro"
+INSTALL_MODE="install"
 
 die() { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 info() { echo -e "  ${GREEN}✓${NC} $1"; }
@@ -18,11 +20,12 @@ warn() { echo -e "  ${YELLOW}!${NC} $1"; }
 
 usage() {
     echo -e "${GREEN}Claude Code Agent System Installer${NC}"
-    echo "Usage: $0 <target-dir>|--global [--pro|--max]"
+    echo "Usage: $0 <target-dir>|--global [--pro|--max] [--update]"
     echo "  <target-dir>  : Path to your project"
     echo "  --global      : Install to global ~/.claude/"
     echo "  --pro         : Sonnet tier (default)"
     echo "  --max         : Opus/Sonnet tier"
+    echo "  --update      : Show diffs and selectively update installed files"
     exit 1
 }
 
@@ -69,6 +72,7 @@ parse_args() {
             --global) INSTALL_SCOPE="global"; shift ;;
             --pro) TIER="pro"; shift ;;
             --max) TIER="max"; shift ;;
+            --update) INSTALL_MODE="update"; shift ;;
             -h|--help) usage ;;
             *)
                 [[ -z "$TARGET_DIR" ]] && TARGET_DIR="$1" || die "Too many arguments"
@@ -93,6 +97,97 @@ substitute_and_copy() {
         -e "s/__MODEL_INVESTIGATE__/$MODEL_INVESTIGATE/g" \
         -e "s/__MODEL_ORCHESTRATE__/$MODEL_ORCHESTRATE/g" \
         "$src" > "$dest"
+}
+
+# --- Diff helpers for --update mode ---
+
+diff_file() {
+    local label="$1"
+    local installed="$2"
+    local repo_src="$3"
+    [[ -f "$installed" ]] || return 0
+    [[ -f "$repo_src" ]] || return 0
+    if ! diff -q "$installed" "$repo_src" &>/dev/null; then
+        echo -e "\n${BLUE}--- $label ---${NC}"
+        diff --color=auto -u "$installed" "$repo_src" || true
+        return 1
+    fi
+    return 0
+}
+
+diff_agent() {
+    local label="$1"
+    local installed="$2"
+    local repo_src="$3"
+    [[ -f "$installed" ]] || return 0
+    [[ -f "$repo_src" ]] || return 0
+    local tmp_substituted
+    tmp_substituted=$(mktemp)
+    substitute_and_copy "$repo_src" "$tmp_substituted"
+    if ! diff -q "$installed" "$tmp_substituted" &>/dev/null; then
+        echo -e "\n${BLUE}--- $label ---${NC}"
+        diff --color=auto -u "$installed" "$tmp_substituted" || true
+        rm -f "$tmp_substituted"
+        return 1
+    fi
+    rm -f "$tmp_substituted"
+    return 0
+}
+
+update_interactive() {
+    echo -e "\n${GREEN}Update mode: checking for changes...${NC}"
+    local changes=0
+
+    # Check agents
+    for agent in "$REPO_DIR"/agents/*.md; do
+        [[ -f "$agent" ]] || continue
+        local name=$(basename "$agent")
+        diff_agent "agent: $name" "$CLAUDE_DIR/agents/$name" "$agent" || changes=$((changes + 1))
+    done
+
+    # Check skills
+    for skill_dir in "$REPO_DIR"/skills/ca-*/; do
+        [[ -d "$skill_dir" ]] || continue
+        local skill_name=$(basename "$skill_dir")
+        for skill_file in "$skill_dir"*; do
+            [[ -f "$skill_file" ]] || continue
+            local fname=$(basename "$skill_file")
+            diff_file "skill: $skill_name/$fname" "$CLAUDE_DIR/skills/$skill_name/$fname" "$skill_file" || changes=$((changes + 1))
+        done
+    done
+
+    # Check hook scripts
+    for hook_script in "$REPO_DIR"/hooks/scripts/*.py; do
+        [[ -f "$hook_script" ]] || continue
+        local fname=$(basename "$hook_script")
+        diff_file "hook script: $fname" "$CLAUDE_DIR/hooks/scripts/$fname" "$hook_script" || changes=$((changes + 1))
+    done
+
+    # Check hooks.json
+    diff_file "hooks.json" "$CLAUDE_DIR/hooks.json" "$REPO_DIR/hooks/hooks.json" || changes=$((changes + 1))
+
+    # Check user-level hooks
+    for hook in guard-secrets.py rtk-rewrite.sh; do
+        [[ -f "$REPO_DIR/hooks/$hook" ]] || continue
+        diff_file "user hook: $hook" "$HOME/.claude/hooks/$hook" "$REPO_DIR/hooks/$hook" || changes=$((changes + 1))
+    done
+
+    # Check global extras
+    if [[ "$INSTALL_SCOPE" == "global" ]]; then
+        diff_file "statusline-command.sh" "$HOME/.claude/statusline-command.sh" "$REPO_DIR/templates/statusline-command.sh" || changes=$((changes + 1))
+    fi
+
+    if [[ $changes -eq 0 ]]; then
+        info "All installed files are up to date"
+        echo ""
+        read -rp "Continue with full reinstall anyway? [y/N] " confirm
+        [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
+    else
+        echo -e "\n${YELLOW}$changes file(s) differ from repo source.${NC}"
+        read -rp "Apply updates? [Y/n] " confirm
+        [[ "$confirm" =~ ^[Nn]$ ]] && { echo "Aborted."; exit 0; }
+    fi
+    echo ""
 }
 
 copy_agents() {
@@ -125,7 +220,7 @@ copy_skills() {
 
 copy_hooks_scripts() {
     echo -e "\nHooks:"
-    for hook in guard-secrets.py; do
+    for hook in guard-secrets.py rtk-rewrite.sh; do
         local src="$REPO_DIR/hooks/$hook"
         local dest="$HOME/.claude/hooks/$hook"
         [[ -f "$src" ]] && { cp "$src" "$dest"; chmod +x "$dest"; info "$hook -> ~/.claude/hooks/ (user-level)"; }
@@ -141,8 +236,66 @@ copy_hooks_scripts() {
     fi
 }
 
-settings_json_merge() {
-    echo -e "\nSettings:"
+install_global_extras() {
+    [[ "$INSTALL_SCOPE" != "global" ]] && return
+    echo -e "\nGlobal extras:"
+    if [[ -f "$REPO_DIR/templates/statusline-command.sh" ]]; then
+        cp "$REPO_DIR/templates/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
+        chmod +x "$HOME/.claude/statusline-command.sh"
+        info "statusline-command.sh -> ~/.claude/"
+    fi
+}
+
+settings_json_merge_global() {
+    SETTINGS_FILE="$CLAUDE_DIR/settings.json"
+    local TEMPLATE="$REPO_DIR/templates/settings-global.json"
+    [[ -f "$TEMPLATE" ]] || { warn "templates/settings-global.json not found - skipping global settings"; return; }
+
+    # Substitute __HOME__ placeholder
+    local tmp_template
+    tmp_template=$(mktemp)
+    sed "s|__HOME__|$HOME|g" "$TEMPLATE" > "$tmp_template"
+
+    if ! command -v jq &>/dev/null; then
+        warn "jq not found - copying template as settings.json (no merge)"
+        [[ -f "$SETTINGS_FILE" ]] && cp "$SETTINGS_FILE" "${SETTINGS_FILE}.backup"
+        cp "$tmp_template" "$SETTINGS_FILE"
+        rm -f "$tmp_template"
+        return
+    fi
+
+    if [[ -f "$SETTINGS_FILE" ]]; then
+        cp "$SETTINGS_FILE" "${SETTINGS_FILE}.backup"
+        info "Backed up existing settings.json"
+
+        # Deep merge: template wins for framework keys, user wins for extensible keys
+        jq -s '
+            # $tpl = .[0] (template), $usr = .[1] (existing user)
+            .[0] as $tpl | .[1] as $usr |
+
+            # Start with template as base
+            $tpl *
+
+            # User-extensible keys: merge with user values winning conflicts
+            {
+                env: ($tpl.env * ($usr.env // {})),
+                enabledPlugins: ($tpl.enabledPlugins * ($usr.enabledPlugins // {})),
+                extraKnownMarketplaces: ($tpl.extraKnownMarketplaces * ($usr.extraKnownMarketplaces // {})),
+                mcpServers: (($tpl.mcpServers // {}) * ($usr.mcpServers // {}))
+            } *
+
+            # Preserve user keys not in template
+            ($usr | to_entries | map(select(.key as $k | ($tpl | has($k)) | not)) | from_entries)
+        ' "$tmp_template" "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
+        info "Merged template into existing settings.json (user extensions preserved)"
+    else
+        cp "$tmp_template" "$SETTINGS_FILE"
+        info "Created settings.json from template"
+    fi
+    rm -f "$tmp_template"
+}
+
+settings_json_merge_project() {
     SETTINGS_FILE="$CLAUDE_DIR/settings.json"
     [[ -f "$SETTINGS_FILE" ]] && { cp "$SETTINGS_FILE" "${SETTINGS_FILE}.backup"; info "Backed up existing settings.json"; }
 
@@ -178,6 +331,15 @@ settings_json_merge() {
     fi
 }
 
+settings_json_merge() {
+    echo -e "\nSettings:"
+    if [[ "$INSTALL_SCOPE" == "global" ]]; then
+        settings_json_merge_global
+    else
+        settings_json_merge_project
+    fi
+}
+
 install_template() {
     echo -e "\nTemplate:"
     if [[ "$INSTALL_SCOPE" == "project" ]]; then
@@ -186,6 +348,37 @@ install_template() {
             || { cp "$REPO_DIR/templates/CLAUDE.md" "$CLAUDE_MD"; info "CLAUDE.md installed"; }
     else
         warn "Skipping CLAUDE.md for global install (install per-project instead)"
+    fi
+}
+
+install_rtk() {
+    echo -e "\nRTK (token savings):"
+
+    if command -v rtk &>/dev/null; then
+        local rtk_ver
+        rtk_ver=$(rtk --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        info "RTK already installed (v${rtk_ver})"
+        return
+    fi
+
+    read -rp "  Install RTK for token savings? [Y/n] " confirm
+    [[ "$confirm" =~ ^[Nn]$ ]] && { warn "Skipping RTK install"; return; }
+
+    if command -v brew &>/dev/null; then
+        echo "  Installing via Homebrew..."
+        brew install rtk-ai/tap/rtk || { warn "brew install failed - try manual install: https://github.com/rtk-ai/rtk#installation"; return; }
+    else
+        echo "  Installing via curl..."
+        curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh || { warn "curl install failed - try manual install: https://github.com/rtk-ai/rtk#installation"; return; }
+    fi
+
+    # Verify installation (may need PATH refresh)
+    if command -v rtk &>/dev/null; then
+        info "RTK installed successfully"
+        echo "  Running rtk init --global..."
+        rtk init --global || warn "rtk init --global failed - run manually after install"
+    else
+        warn "RTK binary not found in PATH after install. You may need to restart your shell, then run: rtk init --global"
     fi
 }
 
@@ -291,10 +484,15 @@ main() {
     fi
 
     agent_models "$TIER"
+
+    # Update mode: show diffs first, then proceed with normal install
+    [[ "$INSTALL_MODE" == "update" ]] && update_interactive
+
     make_dirs
     copy_agents
     copy_skills
     copy_hooks_scripts
+    install_global_extras
     settings_json_merge
     install_template
 
@@ -321,6 +519,9 @@ main() {
     report_summary
 
     [[ $ERRORS -gt 0 ]] && { echo -e "\n${RED}$ERRORS validation error(s) found. Check output above.${NC}"; exit 1; }
+
+    # RTK install prompt — always last
+    install_rtk
 }
 
 main "$@"
