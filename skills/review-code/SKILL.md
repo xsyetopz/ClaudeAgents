@@ -194,4 +194,4 @@ def get_rate(user):
 
 ## Collaboration Protocol
 
-For any non-trivial design decision during implementation or review, see `/ca:decide` for the full protocol.
+For any non-trivial design decision during implementation or review, see `/cca:decide` for the full protocol.
