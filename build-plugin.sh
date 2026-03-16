@@ -8,36 +8,49 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIST_DIR="$SCRIPT_DIR/dist/claude-agents-plugin"
-TIER="${1:-max}"
+PERSONA="${1:-consumer}"
 
 die()   { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 info()  { echo -e "  ${GREEN}✓${NC} $1"; }
 
-set_tier() {
-    # Source files default to --max tier (opus/sonnet/haiku).
-    # --pro downgrades opus → sonnet; all other models stay the same.
+set_persona() {
     case "$1" in
-        pro) MODEL_DOWNGRADE="yes" ;;
-        max) MODEL_DOWNGRADE="" ;;
-        *) die "Unknown tier: $1. Use 'pro' or 'max'." ;;
+        enterprise|consumer|zen) PERSONA="$1" ;;
+        pro) PERSONA="consumer" ;;
+        max) PERSONA="enterprise" ;;
+        *) die "Unknown persona: $1. Use 'enterprise', 'consumer', or 'zen'." ;;
     esac
 }
 
-downgrade_models_in_file() {
+apply_persona_models_in_file() {
     local src="$1" dest="$2"
-    if [[ -n "$MODEL_DOWNGRADE" ]]; then
-        sed -e 's/^model: opus$/model: sonnet/' "$src" > "$dest"
-    else
-        cp "$src" "$dest"
-    fi
+    local agent_name
+    agent_name=$(grep -m1 '^name:' "$src" 2>/dev/null | sed 's/^name: *//')
+    case "$PERSONA" in
+        enterprise)
+            case "$agent_name" in
+                athena|nemesis|odysseus) cp "$src" "$dest" ;;
+                *) sed -e 's/^model: opus$/model: sonnet/' "$src" > "$dest" ;;
+            esac
+            ;;
+        consumer|zen)
+            sed -e 's/^model: opus$/model: sonnet/' "$src" > "$dest"
+            ;;
+    esac
 }
 
 inject_constraints_in_file() {
     local file="$1"
-    local constraints_file="$SCRIPT_DIR/templates/shared-constraints.md"
-    if [[ -f "$constraints_file" ]] && grep -q '__SHARED_CONSTRAINTS__' "$file" 2>/dev/null; then
+    local shared_file="$SCRIPT_DIR/templates/shared-constraints.md"
+    local persona_file="$SCRIPT_DIR/templates/personas/$PERSONA.md"
+    if [[ -f "$shared_file" ]] && grep -q '__SHARED_CONSTRAINTS__' "$file" 2>/dev/null; then
         local tmp=$(mktemp)
-        awk -v constraints="$(cat "$constraints_file")" '{gsub(/__SHARED_CONSTRAINTS__/, constraints); print}' "$file" > "$tmp"
+        awk -v constraints="$(cat "$shared_file")" '{gsub(/__SHARED_CONSTRAINTS__/, constraints); print}' "$file" > "$tmp"
+        mv "$tmp" "$file"
+    fi
+    if [[ -f "$persona_file" ]] && grep -q '__PERSONA_CONSTRAINTS__' "$file" 2>/dev/null; then
+        local tmp=$(mktemp)
+        awk -v constraints="$(cat "$persona_file")" '{gsub(/__PERSONA_CONSTRAINTS__/, constraints); print}' "$file" > "$tmp"
         mv "$tmp" "$file"
     fi
 }
@@ -59,7 +72,7 @@ prepare_dir() {
 
 stage_agent() {
     local src="$1" dst="$2"
-    downgrade_models_in_file "$src" "$dst"
+    apply_persona_models_in_file "$src" "$dst"
     inject_constraints_in_file "$dst"
     remove_skill_prefix_in_file "$dst"
 }
@@ -115,9 +128,9 @@ validate_dist() {
     [[ $ERRORS -gt 0 ]] && { echo -e "${RED}Build failed with $ERRORS error(s).${NC}"; exit 1; } || true
 }
 
-echo -e "${GREEN}Building ClaudeAgents plugin (tier: $TIER)${NC}\n"
+echo -e "${GREEN}Building ClaudeAgents plugin (persona: $PERSONA)${NC}\n"
 
-set_tier "$TIER"
+set_persona "$PERSONA"
 prepare_dir "$DIST_DIR"
 prepare_dir "$DIST_DIR/.claude-plugin"
 cp "$SCRIPT_DIR/.claude-plugin/plugin.json" "$DIST_DIR/.claude-plugin/"
