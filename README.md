@@ -2,36 +2,83 @@
 
 **7 AI agents that specialise so you don't have to.** One plans, one codes, one reviews, one tests — you just talk.
 
-```bash
-claude plugin install ca
-```
-
 ---
 
-## Get It
+## Install
 
-### Plugin (recommended)
+This is a self-hosted plugin. The GitHub repo **is** the marketplace — you register it in your settings, then enable the plugin.
 
-```bash
-claude plugin install ca
-```
+### Step 1: Register the marketplace
 
-**What just happened?** Claude Code downloaded 7 agents, 11 slash commands, and 6 safety hooks. They're ready to use immediately.
-
-### One more thing
-
-Plugins can't set permissions for you. **Paste this into your project's** `.claude/settings.json`:
+Open `~/.claude/settings.json` (global) or `.claude/settings.json` (project-level) and add:
 
 ```json
-{
-  "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" },
-  "permissions": { "deny": ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"] }
+"extraKnownMarketplaces": {
+    "claude-agents": {
+        "source": {
+            "source": "github",
+            "repo": "xsyetopz/ClaudeAgents"
+        }
+    }
 }
 ```
 
-**Why?** The first line enables agent teams. The deny list routes work to the specialised agents instead of generic built-ins.
+### Step 2: Enable the plugin
 
-The SessionStart hook will warn you if these are missing.
+In the same settings file, add:
+
+```json
+"enabledPlugins": {
+    "ca@claude-agents": true
+}
+```
+
+The format is `pluginName@marketplaceName` — `ca` from `plugin.json`, `claude-agents` from `marketplace.json`.
+
+### Step 3: Configure permissions
+
+Plugins can't set permissions for you. Add these to the same settings file:
+
+```json
+"env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" },
+"permissions": { "deny": ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"] }
+```
+
+The env flag enables agent teams. The deny list routes work to the specialised agents instead of generic built-ins.
+
+### Step 4: Restart Claude Code
+
+Run `claude` again. The SessionStart hook will confirm everything is wired up.
+
+### Complete minimal settings.json
+
+Copy-paste this as a working starting point:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "deny": [
+      "Agent(Explore)",
+      "Agent(Plan)",
+      "Agent(general-purpose)"
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "claude-agents": {
+      "source": {
+        "source": "github",
+        "repo": "xsyetopz/ClaudeAgents"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "ca@claude-agents": true
+  }
+}
+```
 
 ---
 
@@ -76,8 +123,6 @@ The SessionStart hook will warn you if these are missing.
 - **Scope stays honest** — detects when an agent silently drops part of what you asked for
 - **Types get checked** — prompts to fix LSP errors after every file change
 
----
-
 ### Manual install
 
 ```bash
@@ -120,8 +165,6 @@ claude plugin uninstall ca
 ```
 
 For manual installs, delete the `.claude/agents/`, `.claude/skills/ca/`, and `.claude/hooks/` directories.
-
-</details>
 
 ---
 
