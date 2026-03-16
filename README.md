@@ -1,106 +1,130 @@
 # ClaudeAgents
 
-**7 AI agents that specialise so you don't have to.** One plans, one codes, one reviews, one tests - you just talk.
+**7 agents, 13 skills, 12 hooks.** One plans, one codes, one reviews, one tests — you talk.
 
 ---
 
-## Install
-
-### Plugin (recommended)
+## Quick Start
 
 ```bash
+# Plugin (recommended)
 claude plugin install cca
-```
 
-After install, skills get the `cca:` prefix (e.g., `/cca:review-code`).
-
-### Manual
-
-```bash
+# Manual
 git clone https://github.com/xsyetopz/ClaudeAgents.git
 cd ClaudeAgents
 ./install.sh --global --max
 ```
 
-Copies agents, skills, and hooks into your `.claude/` directory. Skills use bare names (e.g., `/review-code`).
-
-**`--pro`** uses Sonnet for all agents (Haiku for tests/docs). **`--max`** upgrades @athena and @odysseus to Opus.
-
-```bash
-./install.sh /path/to/project --pro   # per-project
-./install.sh --global --pro            # global
-```
-
-Requires: Claude Code >= 2.1.75, Python 3, jq.
+**Plugin** → skills get the `cca:` prefix (`/cca:review-code`).
+**Manual** → bare names (`/review-code`).
 
 ---
 
-## Meet Your Agents
+## Agents
 
-- **@athena** - designs architecture, breaks down tasks, plans before code gets written
-- **@hephaestus** - writes code, fixes bugs, builds features (follows plans when given one)
-- **@nemesis** - reviews code, audits security, checks performance (reports problems, never fixes them)
-- **@atalanta** - runs tests, parses failures, finds root causes (read-only, diagnosis only)
-- **@calliope** - writes and edits documentation (markdown only, no source code)
-- **@hermes** - explores codebases, traces data flows, cites file:line for every claim
-- **@odysseus** - coordinates multi-step tasks by delegating to the right agent
+| Who             | What                             | Pro    | Max    |
+| --------------- | -------------------------------- | ------ | ------ |
+| **@athena**     | Plans, designs, architects       | sonnet | opus   |
+| **@hephaestus** | Writes code, fixes bugs          | sonnet | sonnet |
+| **@nemesis**    | Reviews code, audits security    | sonnet | sonnet |
+| **@atalanta**   | Runs tests, finds root causes    | haiku  | haiku  |
+| **@calliope**   | Writes docs (markdown only)      | haiku  | haiku  |
+| **@hermes**     | Explores codebases, traces flows | sonnet | sonnet |
+| **@odysseus**   | Coordinates multi-step tasks     | sonnet | opus   |
+
+**`--pro`** = Sonnet everywhere (Haiku for tests/docs). **`--max`** = Opus for @athena and @odysseus.
 
 ---
 
 ## Skills
 
-**Type any of these as slash commands.** Plugin installs use the `cca:` prefix; manual installs use bare names.
+**Slash commands.** Type them directly.
 
-| Skill | Plugin | Manual |
-| --- | --- | --- |
-| Structured code review | `/cca:review-code` | `/review-code` |
-| Find and fix AI slop | `/cca:desloppify` | `/desloppify` |
-| Commits, branches, PRs | `/cca:ship` | `/ship` |
-| Present options with tradeoffs | `/cca:decide` | `/decide` |
-| OWASP-style security audit | `/cca:audit-security` | `/audit-security` |
-| Test strategy and coverage | `/cca:test-patterns` | `/test-patterns` |
-| READMEs, changelogs, ADRs | `/cca:document` | `/document` |
-| Performance optimization | `/cca:optimize` | `/optimize` |
-| Error handling patterns | `/cca:handle-errors` | `/handle-errors` |
-| Session handoff file | `/cca:session-export` | `/session-export` |
-| Quick commits with checks | `/cca:commit` | `/commit` |
+| What it does                    | Plugin                | Manual            |
+| ------------------------------- | --------------------- | ----------------- |
+| Code review                     | `/cca:review-code`    | `/review-code`    |
+| Remove AI slop                  | `/cca:desloppify`     | `/desloppify`     |
+| Commits, branches, PRs          | `/cca:ship`           | `/ship`           |
+| Quick commit                    | `/cca:commit`         | `/commit`         |
+| Present options + tradeoffs     | `/cca:decide`         | `/decide`         |
+| Security audit (OWASP)          | `/cca:audit-security` | `/audit-security` |
+| Test strategy + coverage        | `/cca:test-patterns`  | `/test-patterns`  |
+| Docs: READMEs, ADRs, changelogs | `/cca:document`       | `/document`       |
+| Performance optimization        | `/cca:optimize`       | `/optimize`       |
+| Error handling patterns         | `/cca:handle-errors`  | `/handle-errors`  |
+| Session handoff                 | `/cca:session-export` | `/session-export` |
+
+**Internal skills** (agents use these automatically, you don't invoke them):
+
+- **escalate** — stops agents from making decisions they should ask you about
+- **scope-guard** — stops agents from touching files outside their task
 
 ---
 
 ## Safety Rails
 
-**These run automatically. You don't need to do anything.**
+**All automatic. You configure nothing.**
 
-- **Secrets stay secret** - blocks reading .env files, echoing auth headers, force-pushing to main
-- **No giant outputs** - stops commands that would dump thousands of lines into context
-- **Code gets formatted** - auto-formats files after every write/edit
-- **Placeholders get caught** - scans for TODO, FIXME, stub code, and "simplified version" patterns
-- **Scope stays honest** - detects when an agent silently drops part of what you asked for
-- **Types get checked** - prompts to fix LSP errors after every file change
+| Hook                    | When                     | What it does                                              |
+| ----------------------- | ------------------------ | --------------------------------------------------------- |
+| `guard-secrets`         | Before any tool          | Blocks .env reads, auth header leaks, force-push to main  |
+| `guard-commands`        | Before shell             | Blocks commands that dump thousands of lines into context |
+| `validate-tool-input`   | Before any tool          | Validates file paths and content before writes            |
+| `validate-write`        | After write/edit         | Auto-formats, catches placeholders and comment slop       |
+| `redact-output`         | After shell              | Scrubs secrets and PII from command output                |
+| `scan-completion`       | Agent stop + session end | Catches incomplete work, stubs, silent scope reduction    |
+| `check-scope-reduction` | Agent stop               | Blocks agents that quietly drop requirements              |
+| `check-collaboration`   | Agent stop               | Catches sycophancy and single-option decisions            |
+| `detect-workaround`     | Before tool              | Flags workaround patterns (--no-verify, force flags)      |
+| `check-budget`          | Session start            | Warns when config files exceed line budgets               |
+| `http-hook-proxy`       | Before + after tools     | Forwards events to enterprise DLP server (opt-in)         |
 
----
-
-## Model Tiers
-
-| Agent | Pro | Max |
-| --- | --- | --- |
-| @athena | sonnet | opus |
-| @hephaestus | sonnet | sonnet |
-| @nemesis | sonnet | sonnet |
-| @atalanta | haiku | haiku |
-| @calliope | haiku | haiku |
-| @hermes | sonnet | sonnet |
-| @odysseus | sonnet | opus |
+Plus: LSP error check prompt after every file change, scope reduction prompt and collaboration protocol prompt on every agent stop.
 
 ---
 
-## Build Plugin from Source
+## Personas
+
+Three constraint profiles. Set at install or build time.
+
+| Persona        | Flag    | Vibe                                                                        |
+| -------------- | ------- | --------------------------------------------------------------------------- |
+| **consumer**   | `--pro` | Balanced. Acts on low stakes, asks on medium+. KISS over SOLID.             |
+| **enterprise** | `--max` | Fail-closed. No changes without approval. Security findings block all work. |
+| **zen**        | `zen`   | Plan-first. Smallest change that works. Ask over assume.                    |
 
 ```bash
-./build-plugin.sh pro
+./install.sh --global --pro         # consumer persona
+./install.sh --global --max         # enterprise persona
+./build-plugin.sh zen               # zen persona (build only)
 ```
 
-Outputs to `dist/claude-agents-plugin/`. Test with `claude --plugin-dir ./dist/claude-agents-plugin`.
+---
+
+## Enterprise HTTP Hooks
+
+Forward all hook events to a central DLP/audit server.
+
+```bash
+export CCA_HTTP_HOOK_URL="https://dlp.internal/hooks"   # POST endpoint (unset = disabled)
+export CCA_HTTP_HOOK_TOKEN="Bearer ..."                  # auth token (optional)
+export CCA_HTTP_HOOK_FAIL_CLOSED=1                       # block on server unreachable (default: fail-open)
+```
+
+---
+
+## Build from Source
+
+```bash
+./build-plugin.sh consumer    # or: enterprise, zen
+```
+
+Outputs to `dist/claude-agents-plugin/`. Test with:
+
+```bash
+claude --plugin-dir ./dist/claude-agents-plugin
+```
 
 ---
 
@@ -113,6 +137,12 @@ claude plugin uninstall cca
 # Manual
 ./uninstall.sh --global          # or: ./uninstall.sh /path/to/project
 ```
+
+---
+
+## Requirements
+
+Claude Code >= 2.1.75, Python 3, jq.
 
 ---
 
