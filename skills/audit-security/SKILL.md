@@ -64,6 +64,18 @@ Apply this checklist when reviewing code for security, auditing systems, or impl
 - No catch-all error handlers that swallow exceptions silently
 - 500 errors return generic message to client, log full details server-side
 
+## API-Specific Attacks
+
+| Vector                         | Severity | Check                                                                                  | Fix                                                                           |
+| ------------------------------ | -------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| SSRF                           | CRITICAL | User-controlled URLs never passed to internal HTTP clients                             | Allowlist target domains, block 169.254.169.254 and RFC-1918 ranges           |
+| Mass Assignment / Over-posting | HIGH     | Request bodies not bound directly to model objects without filter                      | Explicit allowlist of accepted fields; never `Object.assign(req.body)`        |
+| Insecure Deserialization       | CRITICAL | No untrusted data deserialized via pickle, yaml.load, ObjectInputStream, JSON revivers | Use safe loaders (yaml.safe_load), validate schema before deserializing       |
+| BOLA / IDOR                    | HIGH     | Resource ownership verified server-side before returning or mutating                   | Check `resource.owner_id == current_user.id` at service layer, not just route |
+| GraphQL - unbounded depth      | HIGH     | Query depth and complexity limits enforced                                             | Set max depth (≤10), complexity budget, disable introspection in production   |
+| GraphQL - batching abuse       | MEDIUM   | Batch query count capped per request                                                   | Limit batch size, apply per-operation rate limits                             |
+| Rate Limiting Bypass           | HIGH     | Auth, password reset, and API key endpoints have rate limits                           | Enforce limits by IP + account; use token bucket or leaky bucket              |
+
 ## Review Output Format
 
 ```markdown
