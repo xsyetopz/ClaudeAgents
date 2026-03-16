@@ -1,0 +1,80 @@
+{
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/check-budget.py",
+						"timeout": 5
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/guard-commands.py",
+						"timeout": 10
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Write|Edit",
+				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "Check LSP diagnostics for the file you just modified. If there are errors, fix them before continuing."
+					},
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/validate-write.py",
+						"timeout": 15
+					}
+				]
+			},
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/redact-output.py",
+						"timeout": 10
+					}
+				]
+			}
+		],
+		"SubagentStop": [
+			{
+				"matcher": "athena|hephaestus|nemesis|atalanta|calliope|hermes|odysseus",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py",
+						"timeout": 15
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py",
+						"timeout": 15
+					},
+					{
+						"type": "prompt",
+						"prompt": "Before ending: check if significant work was done this session (files modified, decisions made, multi-step tasks in progress). If so, and if .claude/session-handoff.md does not exist or is stale (older than today), suggest: 'Run /cca:session-export to save a handoff for your next session.' Do NOT auto-export \u2014 only remind if significant work happened."
+					}
+				]
+			}
+		]
+	}
+}
