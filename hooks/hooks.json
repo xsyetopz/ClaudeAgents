@@ -5,7 +5,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/check-budget.py",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/check-budget.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
 						"timeout": 5
 					}
 				]
@@ -13,12 +13,30 @@
 		],
 		"PreToolUse": [
 			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/validate-tool-input.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
+						"timeout": 5
+					}
+				]
+			},
+			{
 				"matcher": "Bash",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/guard-commands.py",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/guard-commands.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
 						"timeout": 10
+					}
+				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/http-hook-proxy.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
+						"timeout": 8
 					}
 				]
 			}
@@ -33,8 +51,28 @@
 					},
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/validate-write.py",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/validate-write.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
 						"timeout": 15
+					}
+				]
+			},
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/redact-output.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
+						"timeout": 10
+					}
+				]
+			},
+			{
+				"matcher": "Bash|Write|Edit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/http-hook-proxy.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
+						"timeout": 8
 					}
 				]
 			}
@@ -45,11 +83,11 @@
 				"hooks": [
 					{
 						"type": "prompt",
-						"prompt": "Check for silent scope reduction: did the agent quietly drop, skip, or stub out parts of what was asked WITHOUT flagging it? Look for: 'simplified version', 'for now', 'can be added later', TODO/FIXME markers, placeholder implementations, or deferred work. Return {\"decision\": \"block\", \"reason\": \"...\"} if the agent silently reduced scope. Exit 0 (no output) if the agent either completed everything or explicitly told the user what it couldn't do and why."
+						"prompt": "Check for silent scope reduction: did the agent quietly drop, skip, or stub out parts of what was asked WITHOUT flagging it? Look for: 'simplified version', 'for now', 'can be added later', unfinished-work markers, placeholder implementations, or deferred work. Return {\"decision\": \"block\", \"reason\": \"...\"} if the agent silently reduced scope. Exit 0 (no output) if the agent either completed everything or explicitly told the user what it couldn't do and why."
 					},
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
 						"timeout": 15
 					},
 					{
@@ -64,12 +102,8 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py; [ -f \"$H\" ] && python3 \"$H\" || exit 0",
 						"timeout": 15
-					},
-					{
-						"type": "prompt",
-						"prompt": "Before ending: check if significant work was done this session (files modified, decisions made, multi-step tasks in progress). If so, and if .claude/session-handoff.md does not exist or is stale (older than today), suggest: 'Run /cca:session-export to save a handoff for your next session.' Do NOT auto-export \u2014 only remind if significant work happened."
 					}
 				]
 			}

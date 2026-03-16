@@ -17,6 +17,11 @@ BROAD_RM_RF = re.compile(
     r'\brm\s+-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*\s+(?:/\s|~/|"\$HOME"|\.\.?\s|/\*)',
     re.IGNORECASE,
 )
+CURL_UPLOAD = re.compile(
+    r'\bcurl\b.*\s(?:-d\b|-F\b|-T\b|--data\b|--upload-file\b|--form\b)'
+    r'(?!.*(?:localhost|127\.0\.0\.1|0\.0\.0\.0))',
+    re.IGNORECASE,
+)
 DOC_EXTENSIONS = ('.md', '.mdx', '.txt', '.json', '.yaml', '.yml', '.toml')
 
 def respond(decision: str, reason: str) -> None:
@@ -29,9 +34,18 @@ def respond(decision: str, reason: str) -> None:
     }))
     sys.exit(0)
 
-def is_env_file(filepath: str) -> bool:
+SENSITIVE_EXTENSIONS = ('.pem', '.p12', '.pfx', '.key', '.keystore', '.jks')
+SENSITIVE_DIRS = ('/.ssh/', '/.gnupg/', '/.aws/', '/.azure/', '/.gcloud/', '/.config/gcloud/')
+
+def is_sensitive_file(filepath: str) -> bool:
     basename = os.path.basename(filepath)
-    return basename == ".env" or basename.startswith(".env.")
+    if basename == ".env" or basename.startswith(".env."):
+        return True
+    if filepath.endswith(SENSITIVE_EXTENSIONS):
+        return True
+    if any(d in filepath for d in SENSITIVE_DIRS):
+        return True
+    return False
 
 def bash_guard(cmd: str):
     if AUTH_HEADER_ECHO.search(cmd):
@@ -40,16 +54,18 @@ def bash_guard(cmd: str):
         respond("deny", "Blocked: force-push to main/master is never allowed. Use a feature branch.")
     if BROAD_RM_RF.search(cmd):
         respond("deny", "Blocked: rm -rf on broad path. Be more specific about what to delete.")
+    if CURL_UPLOAD.search(cmd):
+        respond("deny", "Blocked: curl with data upload to external host. Use localhost or ask user.")
 
 def read_guard(fp: str):
-    if is_env_file(fp):
-        respond("deny", "Blocked: .env file reads are not permitted.")
+    if is_sensitive_file(fp):
+        respond("deny", "Blocked: sensitive file reads are not permitted.")
     if fp.endswith(DOC_EXTENSIONS):
         respond("allow", "Documentation/config read auto-approved")
 
 def write_edit_guard(fp: str):
-    if is_env_file(fp):
-        respond("deny", "Blocked: .env file writes are not permitted.")
+    if is_sensitive_file(fp):
+        respond("deny", "Blocked: sensitive file writes are not permitted.")
 
 def webfetch_guard(url: str):
     if re.search(r'(?:localhost|127\.0\.0\.1|0\.0\.0\.0):\d+', url):

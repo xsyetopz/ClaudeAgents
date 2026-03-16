@@ -34,6 +34,7 @@ LARGE_OUTPUT_RULES: list[tuple[re.Pattern, str]] = [
     ),
 ]
 
+DNS_EXFIL = re.compile(r"\b(ping|nslookup|dig|traceroute|host|drill)\b")
 BLANKET_STAGE = re.compile(r"\bgit\s+add\s+(?:\.\s*$|-A\b)", re.MULTILINE)
 BROAD_RM = re.compile(
     r'\brm\s+-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*\s+(?:/\s|~/|"\$HOME"|\.\.?\s|/\*)',
@@ -112,6 +113,8 @@ def main() -> None:
             + "\n".join(f"  - {b}" for b in blockers[:10])
             + "\nFix these issues before committing."
         )
+    if DNS_EXFIL.search(cmd):
+        deny("[guard] DNS/ICMP tools can exfiltrate data (CVE-2025-55284). Use curl for connectivity checks.")
     passthrough()
 
 if __name__ == "__main__":

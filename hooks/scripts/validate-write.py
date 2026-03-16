@@ -46,20 +46,25 @@ def get_tool_file_and_content(data: dict) -> tuple[str, str]:
         content = ""
     return file_path, content
 
-def run_formatter(file_path: str) -> None:
+def run_formatter(file_path: str) -> str | None:
     ext = os.path.splitext(file_path)[1].lstrip(".")
     if not ext or not os.path.isfile(file_path):
-        return
+        return None
     for cmd_parts in FORMATTERS.get(ext, []):
         if shutil.which(cmd_parts[0]):
             try:
+                before = open(file_path, "rb").read()
                 subprocess.run(
                     cmd_parts + [file_path],
                     capture_output=True, timeout=30,
                 )
+                after = open(file_path, "rb").read()
+                if after != before:
+                    return cmd_parts[0]
             except (subprocess.TimeoutExpired, OSError):
                 pass
-            return
+            return None
+    return None
 
 def placeholder_patterns(content: str, file_path: str) -> list[str]:
     if is_test_file(file_path):
@@ -85,23 +90,31 @@ def main() -> None:
     file_path, content = get_tool_file_and_content(data)
     if not file_path:
         passthrough()
-    run_formatter(file_path)
+    formatter_used = run_formatter(file_path)
+    format_note = (
+        f" [format] File was auto-formatted by {formatter_used}. Your output was adjusted."
+        if formatter_used else ""
+    )
     if not content:
+        if format_note:
+            warn(format_note.strip())
         passthrough()
     placeholders = placeholder_patterns(content, file_path)
     if placeholders:
         block(
             f"Placeholder code in {os.path.basename(file_path)}: "
             f"{', '.join(placeholders[:3])}. "
-            "Finish the implementation."
+            f"Finish the implementation.{format_note}"
         )
     slop = slop_patterns(content, file_path)
     if slop:
         warn(
             f"Comment/prose slop in {os.path.basename(file_path)} "
             f"({', '.join(slop[:3])}). "
-            "Remove narrating comments and AI filler."
+            f"Remove narrating comments and AI filler.{format_note}"
         )
+    if format_note:
+        warn(format_note.strip())
     passthrough()
 
 if __name__ == "__main__":

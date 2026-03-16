@@ -120,6 +120,15 @@ SECRET_PATTERNS = [
     re.compile(r'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'),
 ]
 
+PII_PATTERNS = [
+    re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}\b', re.IGNORECASE),
+    re.compile(r'\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b'),
+    re.compile(r'\b\d{3}-\d{2}-\d{4}\b'),
+    re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b'),
+    re.compile(r'\b(?:10\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])|192\.168)\.\d{1,3}\.\d{1,3}\b'),
+    re.compile(r'169\.254\.169\.254'),
+]
+
 MERGE_CONFLICT = re.compile(r'^(?:<{7}|={7}|>{7})\s', re.MULTILINE)
 
 TEST_FILE_RE = re.compile(
@@ -135,6 +144,29 @@ def is_test_file(filepath: str) -> bool:
 def is_prose_file(filepath: str) -> bool:
     ext = os.path.splitext(filepath)[1].lower()
     return ext in PROSE_EXTENSIONS
+
+META_FILE_RE = re.compile(
+    r'(?:hooks/scripts/|hooks/hooks\.json|agents/.*\.md|templates/.*\.md|'
+    r'skills/.*/SKILL\.md|install\.sh|CLAUDE\.md)',
+    re.IGNORECASE,
+)
+
+def is_meta_file(filepath: str) -> bool:
+    return bool(META_FILE_RE.search(filepath))
+
+WORKAROUND_HARD = [
+    re.compile(r"(?:Actually|Better|Instead),?\s+(?:let'?s|I'?ll|we(?:'ll)?)\s+(?:just|simply)", re.IGNORECASE),
+    re.compile(r"(?:we|I)\s+(?:could|can)\s+(?:also|instead|alternatively)\s+(?:just\s+)?(?:use|do|make|change|switch|create|add)", re.IGNORECASE),
+    re.compile(r"(?:make|change|switch)\s+\w+\s+(?:to\s+)?(?:public|private|protected|pub\b|pub\(crate\))", re.IGNORECASE),
+    re.compile(r"Since\s+\w+\s+is\s+(?:private|internal|protected),\s+(?:I'?ll|we'?ll|let'?s)", re.IGNORECASE),
+]
+
+WORKAROUND_SOFT = [
+    re.compile(r"(?:quick|simple|easy)\s+(?:fix|workaround|hack)", re.IGNORECASE),
+    re.compile(r"(?:for now|temporarily|as a stopgap)", re.IGNORECASE),
+    re.compile(r"while\s+(?:I'?m|we'?re)\s+here", re.IGNORECASE),
+    re.compile(r"(?:might as well|may as well)\s+(?:also|just)", re.IGNORECASE),
+]
 
 def read_stdin() -> dict:
     try:
@@ -176,6 +208,9 @@ def warn(message: str, event: str = "PostToolUse") -> None:
             "additionalContext": message,
         }
     })
+
+def stop_message(message: str) -> None:
+    _print_and_exit({"systemMessage": message})
 
 def passthrough() -> None:
     sys.exit(0)
