@@ -12,9 +12,9 @@ tools:
   - WebFetch
   - AskUserQuestion
 skills:
-  - cca/decide
-  - cca/desloppify
-  - cca/document
+  - cca:decide
+  - cca:desloppify
+  - cca:document
 permissionMode: default
 maxTurns: 30
 effort: low

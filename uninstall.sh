@@ -33,38 +33,47 @@ parse_args() {
     done
 }
 
-remove_framework_files() {
-    echo -e "\nRemoving framework files:"
-
-    # Agents
+remove_agents() {
     if [[ -d "$CLAUDE_DIR/agents" ]]; then
         rm -rf "$CLAUDE_DIR/agents"
         info "Removed agents/"
     fi
+}
 
-    # Skills: remove skills/cca/ directory (current layout)
-    if [[ -d "$CLAUDE_DIR/skills/cca" ]]; then
-        rm -rf "$CLAUDE_DIR/skills/cca"
-        info "Removed skills/cca/"
+remove_skills() {
+    if [[ -d "$CLAUDE_DIR/skills/" ]]; then
+        rm -rf "$CLAUDE_DIR/skills/"
+        info "Removed skills/"
     fi
-
     # Remove skills/ if empty
     [[ -d "$CLAUDE_DIR/skills" ]] && rmdir "$CLAUDE_DIR/skills" 2>/dev/null && info "Removed empty skills/" || true
+}
 
-    # Hook scripts
+remove_hook_scripts() {
     if [[ -d "$CLAUDE_DIR/hooks/scripts" ]]; then
         rm -rf "$CLAUDE_DIR/hooks/scripts"
         info "Removed hooks/scripts/"
     fi
+}
 
-    # hooks.json
+remove_hooks_json() {
     if [[ -f "$CLAUDE_DIR/hooks.json" ]]; then
         rm -f "$CLAUDE_DIR/hooks.json"
         info "Removed hooks.json"
     fi
+}
 
-    # Remove hooks/ if empty
+remove_empty_hooks_dir() {
     [[ -d "$CLAUDE_DIR/hooks" ]] && rmdir "$CLAUDE_DIR/hooks" 2>/dev/null && info "Removed empty hooks/" || true
+}
+
+remove_framework_files() {
+    echo -e "\nRemoving framework files:"
+    remove_agents
+    remove_skills
+    remove_hook_scripts
+    remove_hooks_json
+    remove_empty_hooks_dir
 }
 
 remove_user_level_hooks() {
@@ -147,7 +156,7 @@ clean_settings_json() {
 confirm_uninstall() {
     echo -e "\n${YELLOW}This will remove the following from $CLAUDE_DIR:${NC}"
     echo "  - agents/ directory"
-    echo "  - skills/cca/ directory"
+    echo "  - skills/ directory"
     echo "  - hooks/scripts/ directory"
     echo "  - hooks.json"
     echo ""

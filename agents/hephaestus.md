@@ -11,10 +11,10 @@ tools:
   - Glob
   - AskUserQuestion
 skills:
-  - cca/decide
-  - cca/review-code
-  - cca/handle-errors
-  - cca/ship
+  - cca:decide
+  - cca:review-code
+  - cca:handle-errors
+  - cca:ship
 permissionMode: default
 maxTurns: 100
 effort: medium

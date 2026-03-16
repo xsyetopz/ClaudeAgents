@@ -82,7 +82,7 @@ parse_args() {
 }
 
 make_dirs() {
-    mkdir -p "$CLAUDE_DIR"/{agents,skills/cca,hooks/scripts}
+    mkdir -p "$CLAUDE_DIR"/{agents,skills,hooks/scripts}
     mkdir -p "$HOME/.claude/hooks"
 }
 
@@ -157,14 +157,14 @@ update_interactive() {
         diff_agent "agent: $name" "$CLAUDE_DIR/agents/$name" "$agent" || changes=$((changes + 1))
     done
 
-    # Check skills (repo: skills/<name>/, installed: skills/cca/<name>/)
+    # Check skills (repo: skills/<name>/, installed: skills/<name>/)
     for skill_dir in "$REPO_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         local skill_name=$(basename "$skill_dir")
         for skill_file in "$skill_dir"*; do
             [[ -f "$skill_file" ]] || continue
             local fname=$(basename "$skill_file")
-            diff_file "skill: cca:$skill_name/$fname" "$CLAUDE_DIR/skills/cca/$skill_name/$fname" "$skill_file" || changes=$((changes + 1))
+            diff_file "skill: $skill_name/$fname" "$CLAUDE_DIR/skills/$skill_name/$fname" "$skill_file" || changes=$((changes + 1))
         done
     done
 
@@ -217,16 +217,16 @@ copy_agents() {
 copy_skills() {
     SKILL_COUNT=0
     echo -e "\nSkills:"
-    # Skills live at skills/<name>/ in repo, install to skills/cca/<name>/ for manual installs
+    # Skills live at skills/<name>/ in repo, install to skills/<name>/ for manual installs
     for skill_dir in "$REPO_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         local skill_name=$(basename "$skill_dir")
-        mkdir -p "$CLAUDE_DIR/skills/cca/$skill_name"
+        mkdir -p "$CLAUDE_DIR/skills/$skill_name"
         for skill_file in "$skill_dir"*; do
             [[ -f "$skill_file" ]] || continue
-            cp "$skill_file" "$CLAUDE_DIR/skills/cca/$skill_name/$(basename "$skill_file")"
+            cp "$skill_file" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
         done
-        info "cca:$skill_name"
+        info "$skill_name"
         SKILL_COUNT=$((SKILL_COUNT + 1))
     done
 }
@@ -428,14 +428,14 @@ validate_python_hooks() {
 
 validate_cca_skills() {
     SKILL_ERRORS=0
-    for skill_dir in "$CLAUDE_DIR"/skills/cca/*/; do
+    for skill_dir in "$CLAUDE_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         [[ -f "$skill_dir/SKILL.md" ]] || {
-            echo -e "  ${RED}✗${NC} Missing SKILL.md in cca/$(basename "$skill_dir")"
+            echo -e "  ${RED}✗${NC} Missing SKILL.md$(basename "$skill_dir")"
             SKILL_ERRORS=$((SKILL_ERRORS + 1))
         }
     done
-    [[ $SKILL_ERRORS -eq 0 ]] && info "All cca:* skills have SKILL.md"
+    [[ $SKILL_ERRORS -eq 0 ]] && info "All skills have SKILL.md"
     return $SKILL_ERRORS
 }
 
@@ -464,11 +464,13 @@ report_summary() {
     echo "  @hermes      - research, explore codebase    (model: $MODEL_INVESTIGATE)"
     echo "  @odysseus    - coordinate multi-step tasks   (model: $MODEL_ORCHESTRATE)"
     echo ""
-    echo "Skills (cca: prefix):"
-    for skill_dir in "$CLAUDE_DIR"/skills/cca/*/; do
+    echo "Skills:"
+    for skill_dir in "$CLAUDE_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
-        echo "  /cca:$(basename "$skill_dir")"
+        echo "  /$(basename "$skill_dir")"
     done
+    echo ""
+    echo "Tip: install as plugin for cca: prefix: claude plugin install cca"
 }
 
 main() {

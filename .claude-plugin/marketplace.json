@@ -4,7 +4,7 @@
 	"plugins": [
 		{
 			"name": "cca",
-			"source": ".",
+			"source": "./",
 			"description": "7 specialised agents, 11 skills, and quality hooks for Claude Code",
 			"version": "0.1.0",
 			"keywords": ["agents", "skills", "hooks", "code-quality", "desloppify"]

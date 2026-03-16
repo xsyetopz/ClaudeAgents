@@ -10,8 +10,8 @@ tools:
   - WebFetch
   - AskUserQuestion
 skills:
-  - cca/decide
-  - cca/review-code
+  - cca:decide
+  - cca:review-code
 permissionMode: plan
 maxTurns: 50
 effort: high

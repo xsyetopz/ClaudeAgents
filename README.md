@@ -6,13 +6,32 @@
 
 ## Install
 
+### Plugin (recommended)
+
+```bash
+claude plugin install cca
+```
+
+After install, skills get the `cca:` prefix (e.g., `/cca:review-code`).
+
+### Manual
+
 ```bash
 git clone https://github.com/xsyetopz/ClaudeAgents.git
 cd ClaudeAgents
 ./install.sh --global --max
 ```
 
-This registers the marketplace, enables the plugin, installs agents/skills/hooks, and configures permissions. After install, `claude plugin install cca` works for future updates.
+Copies agents, skills, and hooks into your `.claude/` directory. Skills use bare names (e.g., `/review-code`).
+
+**`--pro`** uses Sonnet for all agents (Haiku for tests/docs). **`--max`** upgrades @athena and @odysseus to Opus.
+
+```bash
+./install.sh /path/to/project --pro   # per-project
+./install.sh --global --pro            # global
+```
+
+Requires: Claude Code >= 2.1.75, Python 3, jq.
 
 ---
 
@@ -30,19 +49,21 @@ This registers the marketplace, enables the plugin, installs agents/skills/hooks
 
 ## Skills
 
-**Type any of these as slash commands:**
+**Type any of these as slash commands.** Plugin installs use the `cca:` prefix; manual installs use bare names.
 
-- **/cca:review-code** - structured code review with severity ratings
-- **/cca:desloppify** - find and fix AI-generated slop (filler words, obvious comments, placeholder code)
-- **/cca:ship** - commits, branches, PRs with Conventional Commits
-- **/cca:decide** - present 2-3 options with tradeoffs for any decision
-- **/cca:audit-security** - OWASP-style security audit with file:line citations
-- **/cca:test-patterns** - test strategy, coverage analysis, test writing guidance
-- **/cca:document** - READMEs, changelogs, ADRs, API docs
-- **/cca:optimize** - performance profiling and optimization recommendations
-- **/cca:handle-errors** - error handling patterns (Result types, exceptions, retries)
-- **/cca:session-export** - save a handoff file so your next session picks up where you left off
-- **/cca:commit** - quick commits with quality checks
+| Skill | Plugin | Manual |
+| --- | --- | --- |
+| Structured code review | `/cca:review-code` | `/review-code` |
+| Find and fix AI slop | `/cca:desloppify` | `/desloppify` |
+| Commits, branches, PRs | `/cca:ship` | `/ship` |
+| Present options with tradeoffs | `/cca:decide` | `/decide` |
+| OWASP-style security audit | `/cca:audit-security` | `/audit-security` |
+| Test strategy and coverage | `/cca:test-patterns` | `/test-patterns` |
+| READMEs, changelogs, ADRs | `/cca:document` | `/document` |
+| Performance optimization | `/cca:optimize` | `/optimize` |
+| Error handling patterns | `/cca:handle-errors` | `/handle-errors` |
+| Session handoff file | `/cca:session-export` | `/session-export` |
+| Quick commits with checks | `/cca:commit` | `/commit` |
 
 ---
 
@@ -57,22 +78,23 @@ This registers the marketplace, enables the plugin, installs agents/skills/hooks
 - **Scope stays honest** - detects when an agent silently drops part of what you asked for
 - **Types get checked** - prompts to fix LSP errors after every file change
 
-### Manual install
+---
 
-```bash
-./install.sh /path/to/project --pro
-```
+## Model Tiers
 
-**`--pro`** uses Sonnet for all agents (Haiku for tests/docs). **`--max`** upgrades @athena and @odysseus to Opus.
+| Agent | Pro | Max |
+| --- | --- | --- |
+| @athena | sonnet | opus |
+| @hephaestus | sonnet | sonnet |
+| @nemesis | sonnet | sonnet |
+| @atalanta | haiku | haiku |
+| @calliope | haiku | haiku |
+| @hermes | sonnet | sonnet |
+| @odysseus | sonnet | opus |
 
-```bash
-./install.sh /path/to/project --max
-./install.sh --global --pro
-```
+---
 
-Requires: Claude Code >= 2.1.75, Python 3, jq.
-
-### Build plugin from source
+## Build Plugin from Source
 
 ```bash
 ./build-plugin.sh pro
@@ -80,25 +102,17 @@ Requires: Claude Code >= 2.1.75, Python 3, jq.
 
 Outputs to `dist/claude-agents-plugin/`. Test with `claude --plugin-dir ./dist/claude-agents-plugin`.
 
-### Model tiers
+---
 
-| Agent         | Pro    | Max    |
-| ------------- | ------ | ------ |
-| @athena       | sonnet | opus   |
-| @hephaestus   | sonnet | sonnet |
-| @nemesis      | sonnet | sonnet |
-| @atalanta     | haiku  | haiku  |
-| @calliope     | haiku  | haiku  |
-| @hermes       | sonnet | sonnet |
-| @odysseus     | sonnet | opus   |
-
-### Uninstall
+## Uninstall
 
 ```bash
+# Plugin
 claude plugin uninstall cca
-```
 
-For manual installs, delete the `.claude/agents/`, `.claude/skills/cca/`, and `.claude/hooks/` directories.
+# Manual
+./uninstall.sh --global          # or: ./uninstall.sh /path/to/project
+```
 
 ---
 

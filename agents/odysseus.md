@@ -10,7 +10,7 @@ tools:
   - WebFetch
   - AskUserQuestion
 skills:
-  - cca/decide
+  - cca:decide
 permissionMode: default
 maxTurns: 100
 effort: high

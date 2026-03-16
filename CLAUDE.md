@@ -18,19 +18,21 @@
 
 ## Skills
 
-| Skill            | Slash Command        | Status |
-| ---------------- | -------------------- | ------ |
-| `review-code`    | `/cca:review-code`   | Active |
-| `desloppify`     | `/cca:desloppify`    | Active |
-| `ship`           | `/cca:ship`          | Active |
-| `decide`         | `/cca:decide`        | Active |
-| `audit-security` | `/cca:audit-security`| Active |
-| `test-patterns`  | `/cca:test-patterns` | Active |
-| `document`       | `/cca:document`      | Active |
-| `optimize`       | `/cca:optimize`      | Active |
-| `handle-errors`  | `/cca:handle-errors` | Active |
-| `session-export` | `/cca:session-export`| Active |
-| `commit`         | `/cca:commit`        | Active |
+Plugin install (`claude plugin install cca`) gives the `cca:` prefix. Manual install (`install.sh`) uses bare names.
+
+| Skill            | Plugin               | Manual           | Status |
+| ---------------- | -------------------- | ---------------- | ------ |
+| `review-code`    | `/cca:review-code`   | `/review-code`   | Active |
+| `desloppify`     | `/cca:desloppify`    | `/desloppify`    | Active |
+| `ship`           | `/cca:ship`          | `/ship`          | Active |
+| `decide`         | `/cca:decide`        | `/decide`        | Active |
+| `audit-security` | `/cca:audit-security`| `/audit-security`| Active |
+| `test-patterns`  | `/cca:test-patterns` | `/test-patterns` | Active |
+| `document`       | `/cca:document`      | `/document`      | Active |
+| `optimize`       | `/cca:optimize`      | `/optimize`      | Active |
+| `handle-errors`  | `/cca:handle-errors` | `/handle-errors` | Active |
+| `session-export` | `/cca:session-export`| `/session-export`| Active |
+| `commit`         | `/cca:commit`        | `/commit`        | Active |
 
 ## Hooks
 

@@ -9,8 +9,8 @@ tools:
   - Glob
   - AskUserQuestion
 skills:
-  - cca/decide
-  - cca/test-patterns
+  - cca:decide
+  - cca:test-patterns
 permissionMode: default
 maxTurns: 30
 effort: low

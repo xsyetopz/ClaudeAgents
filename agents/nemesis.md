@@ -11,10 +11,10 @@ tools:
   - WebFetch
   - AskUserQuestion
 skills:
-  - cca/decide
-  - cca/review-code
-  - cca/audit-security
-  - cca/optimize
+  - cca:decide
+  - cca:review-code
+  - cca:audit-security
+  - cca:optimize
 permissionMode: default
 maxTurns: 50
 effort: medium
