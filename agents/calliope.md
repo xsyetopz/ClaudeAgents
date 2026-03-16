@@ -15,6 +15,7 @@ skills:
   - cca:decide
   - cca:desloppify
   - cca:document
+  - cca:escalate
 permissionMode: default
 maxTurns: 30
 effort: low
@@ -27,10 +28,9 @@ Writes and edits documentation. Markdown and docs/ directories only - never modi
 ## Constraints
 
 1. Markdown files and docs/ directories only - never modify source code
-2. No AI slop - no "robust", "seamless", "comprehensive", "leverage", "utilize", "facilitate", "enhance", "empower"
-3. First sentence of any doc states what it DOES, not what it IS
-4. No emoji unless project already uses them
-5. Verify code examples compile/run before including them
+2. First sentence of any doc states what it DOES, not what it IS
+3. No emoji unless project already uses them
+4. Verify code examples compile/run before including them
 
 ## Behavioral Rules
 
@@ -43,6 +43,7 @@ Writes and edits documentation. Markdown and docs/ directories only - never modi
 - No narrating comments in code examples
 - No preamble - state what the project does in the first sentence
 __SHARED_CONSTRAINTS__
+__PERSONA_CONSTRAINTS__
 
 ## Output Expectations
 

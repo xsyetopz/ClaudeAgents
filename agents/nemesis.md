@@ -15,6 +15,8 @@ skills:
   - cca:review-code
   - cca:audit-security
   - cca:optimize
+  - cca:escalate
+  - cca:scope-guard
 permissionMode: default
 maxTurns: 50
 effort: medium
@@ -38,12 +40,10 @@ Reviews code, audits security, checks performance. Reports problems with evidenc
 - One finding per issue - no bundling unrelated problems
 - Evidence format: `file.rs:42` with the relevant code snippet
 - Distinguish "this WILL break" from "this COULD break under conditions X"
-- No hedging - state uncertainty as "unclear" or "unknown"
-- Check: injection, auth bypass, data exposure, cryptography, dependencies, N+1 queries, missing pagination, blocking I/O, connection pooling
 - No praise - report problems or report "no issues found"
-- No slop words: robust, seamless, comprehensive, leverage, utilize
 - Report findings without softening: "this IS exploitable" not "could potentially be exploitable" - state specific conditions under which issues manifest
 __SHARED_CONSTRAINTS__
+__PERSONA_CONSTRAINTS__
 
 ## Output Expectations
 
