@@ -1,15 +1,14 @@
 # ClaudeAgents
 
-Agent definitions, skills, and hooks for Claude Code. Targets CC v2.1.75+.
+**7 AI agents that specialise so you don't have to.** One plans, one codes, one reviews, one tests — you just talk.
 
-## What's Included
+```bash
+claude plugin install ca
+```
 
-- **7 agents** - athena, hephaestus, nemesis, atalanta, calliope, hermes, odysseus
-- **11 skills** (ca: prefix) - review-code, desloppify, ship, decide, audit-security, test-patterns, document, optimize, handle-errors, session-export, commit
-- **6 hook scripts** - guard-secrets, guard-commands, check-budget, validate-write, scan-completion, _lib
-- **Template CLAUDE.md** - collaboration protocol and behavioral constraints for target projects
+---
 
-## Install
+## Get It
 
 ### Plugin (recommended)
 
@@ -17,107 +16,114 @@ Agent definitions, skills, and hooks for Claude Code. Targets CC v2.1.75+.
 claude plugin install ca
 ```
 
-Plugins auto-discover agents, skills, and hooks. No file copying needed.
+**What just happened?** Claude Code downloaded 7 agents, 11 slash commands, and 6 safety hooks. They're ready to use immediately.
 
-**Note**: Plugins don't support `permissions.deny` or `env` vars. After installing, add to your project's `.claude/settings.json`:
+### One more thing
+
+Plugins can't set permissions for you. **Paste this into your project's** `.claude/settings.json`:
 
 ```json
 {
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "permissions": {
-    "deny": ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"]
-  }
+  "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" },
+  "permissions": { "deny": ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"] }
 }
 ```
 
-The SessionStart hook will warn if these are missing.
+**Why?** The first line enables agent teams. The deny list routes work to the specialised agents instead of generic built-ins.
+
+The SessionStart hook will warn you if these are missing.
+
+---
+
+## Meet Your Agents
+
+- **@athena** — designs architecture, breaks down tasks, plans before code gets written
+- **@hephaestus** — writes code, fixes bugs, builds features (follows plans when given one)
+- **@nemesis** — reviews code, audits security, checks performance (reports problems, never fixes them)
+- **@atalanta** — runs tests, parses failures, finds root causes (read-only, diagnosis only)
+- **@calliope** — writes and edits documentation (markdown only, no source code)
+- **@hermes** — explores codebases, traces data flows, cites file:line for every claim
+- **@odysseus** — coordinates multi-step tasks by delegating to the right agent
+
+---
+
+## Skills
+
+**Type any of these as slash commands:**
+
+- **/ca:review-code** — structured code review with severity ratings
+- **/ca:desloppify** — find and fix AI-generated slop (filler words, obvious comments, placeholder code)
+- **/ca:ship** — commits, branches, PRs with Conventional Commits
+- **/ca:decide** — present 2-3 options with tradeoffs for any decision
+- **/ca:audit-security** — OWASP-style security audit with file:line citations
+- **/ca:test-patterns** — test strategy, coverage analysis, test writing guidance
+- **/ca:document** — READMEs, changelogs, ADRs, API docs
+- **/ca:optimize** — performance profiling and optimization recommendations
+- **/ca:handle-errors** — error handling patterns (Result types, exceptions, retries)
+- **/ca:session-export** — save a handoff file so your next session picks up where you left off
+- **/ca:commit** — quick commits with quality checks
+
+---
+
+## Safety Rails
+
+**These run automatically. You don't need to do anything.**
+
+- **Secrets stay secret** — blocks reading .env files, echoing auth headers, force-pushing to main
+- **No giant outputs** — stops commands that would dump thousands of lines into context
+- **Code gets formatted** — auto-formats files after every write/edit
+- **Placeholders get caught** — scans for TODO, FIXME, stub code, and "simplified version" patterns
+- **Scope stays honest** — detects when an agent silently drops part of what you asked for
+- **Types get checked** — prompts to fix LSP errors after every file change
+
+---
 
 ### Manual install
 
 ```bash
-# To a project (Pro tier - all sonnet, haiku for test/docs)
 ./install.sh /path/to/project --pro
+```
 
-# To a project (Max tier - opus for athena/odysseus, sonnet for rest)
+**`--pro`** uses Sonnet for all agents (Haiku for tests/docs). **`--max`** upgrades @athena and @odysseus to Opus.
+
+```bash
 ./install.sh /path/to/project --max
-
-# Global install
 ./install.sh --global --pro
 ```
 
 Requires: Claude Code >= 2.1.75, Python 3, jq.
 
-The installer:
-
-- Checks Claude Code version >= 2.1.75
-- Validates Python 3 is available (required by hook scripts)
-- Detects and warns about plugin/manual install conflicts
-- Removes old agent and skill files from previous versions
-- Copies agents with model substitution based on tier
-- Copies all 11 skills to `.claude/skills/ca/`
-- Installs guard-secrets hook to `~/.claude/hooks/` (user-level)
-- Bulk copies hook scripts to `.claude/hooks/scripts/` (project-level)
-- Merges `settings.json` via `jq` (appends, never replaces)
-- Copies `CLAUDE.md` template to project root (skips if exists)
-- Validates: JSON, Python syntax, skill structure, model placeholders, shared-constraints injection
-
 ### Build plugin from source
 
 ```bash
-./build-plugin.sh          # Default: max tier
-./build-plugin.sh pro      # Pro tier
+./build-plugin.sh pro
 ```
 
-Outputs to `dist/claude-agents-plugin/`. Test locally with `claude --plugin-dir ./dist/claude-agents-plugin`.
+Outputs to `dist/claude-agents-plugin/`. Test with `claude --plugin-dir ./dist/claude-agents-plugin`.
 
-## Agents
+### Model tiers
 
-| Agent         | Pro Model | Max Model | Purpose                                  |
-| ------------- | --------- | --------- | ---------------------------------------- |
-| `@athena`     | sonnet    | opus      | Design, plan, architect                  |
-| `@hephaestus` | sonnet    | sonnet    | Write code, fix bugs, build features     |
-| `@nemesis`    | sonnet    | sonnet    | Review code, security audit              |
-| `@atalanta`   | haiku     | haiku     | Run tests, parse failures, root causes   |
-| `@calliope`   | haiku     | haiku     | Write/edit documentation (markdown only) |
-| `@hermes`     | sonnet    | sonnet    | Research, explore codebase, cite sources |
-| `@odysseus`   | sonnet    | opus      | Multi-step delegation, progress tracking |
+| Agent         | Pro    | Max    |
+| ------------- | ------ | ------ |
+| @athena       | sonnet | opus   |
+| @hephaestus   | sonnet | sonnet |
+| @nemesis      | sonnet | sonnet |
+| @atalanta     | haiku  | haiku  |
+| @calliope     | haiku  | haiku  |
+| @hermes       | sonnet | sonnet |
+| @odysseus     | sonnet | opus   |
 
-## Skills
+### Uninstall
 
-| Skill            | Slash Command        | Triggers                                     |
-| ---------------- | -------------------- | -------------------------------------------- |
-| `review-code`    | `/ca:review-code`    | Writing, editing, or reviewing code          |
-| `desloppify`     | `/ca:desloppify`     | AI slop detection, "clean up", comment audit |
-| `ship`           | `/ca:ship`           | Commits, branches, PRs, git workflow         |
-| `decide`         | `/ca:decide`         | Decision making, tradeoffs, options          |
-| `audit-security` | `/ca:audit-security` | Security audit, OWASP, vulnerabilities       |
-| `test-patterns`  | `/ca:test-patterns`  | Writing tests, test strategy, coverage       |
-| `document`       | `/ca:document`       | READMEs, changelogs, ADRs, API docs          |
-| `optimize`       | `/ca:optimize`       | Performance, optimization, profiling         |
-| `handle-errors`  | `/ca:handle-errors`  | Error handling, Result types, exceptions     |
-| `session-export` | `/ca:session-export` | Session handoff, context preservation        |
-| `commit`         | `/ca:commit`         | Quick commits with Conventional Commits      |
+```bash
+claude plugin uninstall ca
+```
 
-## Hooks
+For manual installs, delete the `.claude/agents/`, `.claude/skills/ca/`, and `.claude/hooks/` directories.
 
-**User-level** (`~/.claude/hooks/`):
+</details>
 
-| Hook             | Event      | What It Does                                                  |
-| ---------------- | ---------- | ------------------------------------------------------------- |
-| guard-secrets.py | PreToolUse | Blocks .env reads/writes, auth-header echoes, force-push main |
-
-**Project-level** (`.claude/hooks.json`):
-
-| Hook / Prompt      | Event                    | What It Does                                        |
-| ------------------ | ------------------------ | --------------------------------------------------- |
-| check-budget.py    | SessionStart             | Warns when CLAUDE.md/MEMORY.md exceeds line budget  |
-| guard-commands.py  | PreToolUse (Bash)        | Blocks large-output commands, commit quality checks |
-| validate-write.py  | PostToolUse (Write/Edit) | Auto-format, placeholder detection, comment slop    |
-| scan-completion.py | SubagentStop, Stop       | Scans modified files for placeholder patterns       |
-| LSP diagnostics    | PostToolUse (prompt)     | Prompts to check and fix type errors                |
-| scope-check        | SubagentStop (prompt)    | Detects silent scope reduction by agents            |
+---
 
 ## License
 
