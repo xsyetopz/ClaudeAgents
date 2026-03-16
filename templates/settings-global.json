@@ -143,13 +143,20 @@
 	},
 	"disableAllHooks": false,
 	"enabledPlugins": {
-		"context-mode@context-mode": true
+		"context-mode@context-mode": true,
+		"cca@claude-agents": true
 	},
 	"extraKnownMarketplaces": {
 		"context-mode": {
 			"source": {
 				"source": "github",
 				"repo": "mksglu/context-mode"
+			}
+		},
+		"claude-agents": {
+			"source": {
+				"source": "github",
+				"repo": "xsyetopz/ClaudeAgents"
 			}
 		}
 	},
