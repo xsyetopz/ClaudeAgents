@@ -1,7 +1,7 @@
 ---
 name: commit
 description: >
-  Focused commit workflow with Conventional Commits format. Subset of ca:ship for
+  Focused commit workflow with Conventional Commits format. Subset of cca:ship for
   quick commits. Triggers: commit, git commit, save changes, commit message, stage and commit.
 user-invocable: true
 ---
