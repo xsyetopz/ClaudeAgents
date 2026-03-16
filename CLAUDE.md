@@ -18,19 +18,19 @@
 
 ## Skills
 
-| Skill            | Slash Command       | Status |
-| ---------------- | ------------------- | ------ |
-| `review-code`    | `/ca:review-code`   | Active |
-| `desloppify`     | `/ca:desloppify`    | Active |
-| `ship`           | `/ca:ship`          | Active |
-| `decide`         | `/ca:decide`        | Active |
-| `audit-security` | `/ca:audit-security`| Active |
-| `test-patterns`  | `/ca:test-patterns` | Active |
-| `document`       | `/ca:document`      | Active |
-| `optimize`       | `/ca:optimize`      | Active |
-| `handle-errors`  | `/ca:handle-errors` | Active |
-| `session-export` | `/ca:session-export`| Active |
-| `commit`         | `/ca:commit`        | Active |
+| Skill            | Slash Command        | Status |
+| ---------------- | -------------------- | ------ |
+| `review-code`    | `/cca:review-code`   | Active |
+| `desloppify`     | `/cca:desloppify`    | Active |
+| `ship`           | `/cca:ship`          | Active |
+| `decide`         | `/cca:decide`        | Active |
+| `audit-security` | `/cca:audit-security`| Active |
+| `test-patterns`  | `/cca:test-patterns` | Active |
+| `document`       | `/cca:document`      | Active |
+| `optimize`       | `/cca:optimize`      | Active |
+| `handle-errors`  | `/cca:handle-errors` | Active |
+| `session-export` | `/cca:session-export`| Active |
+| `commit`         | `/cca:commit`        | Active |
 
 ## Hooks
 
@@ -50,7 +50,7 @@
 
 ```bash
 # Plugin (marketplace)
-claude plugin install ca
+claude plugin install cca
 
 # Manual (to a project)
 ./install.sh /path/to/project --pro   # sonnet (haiku for atalanta/calliope)
@@ -74,5 +74,7 @@ hooks/           hooks.json, guard-secrets.py,
                  scripts/scan-completion.py
 templates/       CLAUDE.md, shared-constraints.md
 build-plugin.sh  Builds marketplace-ready dist from source
-install.sh       Version check, Python check, tier flags, model substitution, migration, validation
+install.sh       Version check, Python check, tier flags, model substitution, validation
 ```
+
+@RTK.md
