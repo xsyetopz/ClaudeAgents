@@ -1,4 +1,4 @@
-.PHONY: lint format test validate build clean install-global install-dev
+.PHONY: lint format test validate build clean install-global install-dev install-plugin
 
 lint:
 	shellcheck install.sh build-plugin.sh uninstall.sh hooks/scripts/_run.sh templates/statusline.sh
@@ -29,6 +29,20 @@ install-global:
 install-dev:
 	@read -p "Install target directory: " dir && ./install.sh "$$dir" --max
 	@echo "Done."
+
+install-plugin:
+	@echo "Clearing cached cca plugin..."
+	@rm -rf ~/.claude/plugins/cache/temp_local_*
+	@if [ -d ~/.claude/plugins/marketplaces/claude-agents ]; then \
+		echo "Updating marketplace copy..."; \
+		rsync -a --delete --exclude='.git' ./ ~/.claude/plugins/marketplaces/claude-agents/; \
+	else \
+		echo "No marketplace copy found — installing fresh..."; \
+		mkdir -p ~/.claude/plugins/marketplaces/claude-agents; \
+		rsync -a --exclude='.git' ./ ~/.claude/plugins/marketplaces/claude-agents/; \
+	fi
+	claude plugin install cca
+	@echo "Plugin installed from working tree."
 
 clean:
 	rm -rf dist/ __pycache__ .pytest_cache .ruff_cache
