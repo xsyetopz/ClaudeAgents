@@ -237,12 +237,7 @@ export function genericBlock(message) {
 }
 
 export function stopWarn(message) {
-	_printAndExit({
-		hookSpecificOutput: {
-			hookEventName: "Stop",
-			additionalContext: message,
-		},
-	});
+	_printAndExit({ reason: message });
 }
 
 export function stopBlock(message) {

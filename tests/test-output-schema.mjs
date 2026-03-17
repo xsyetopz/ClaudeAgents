@@ -168,17 +168,14 @@ describe("Allow", () => {
 describe("StopWarn", () => {
 	it("should have correct output structure", () => {
 		const output = captureExit(stopWarn, "stale session");
-		assert.equal(output.hookSpecificOutput.hookEventName, "Stop");
-		assert.equal(output.hookSpecificOutput.additionalContext, "stale session");
+		assert.equal(output.reason, "stale session");
+		assert.ok(!("hookSpecificOutput" in output));
 	});
 
 	it("should have no extra fields", () => {
 		const output = captureExit(stopWarn, "msg");
-		const keys = Object.keys(output.hookSpecificOutput);
-		assert.deepEqual(
-			new Set(keys),
-			new Set(["hookEventName", "additionalContext"]),
-		);
+		const keys = Object.keys(output);
+		assert.deepEqual(new Set(keys), new Set(["reason"]));
 	});
 
 	it("should validate against schema", { skip: !Ajv }, () => {
