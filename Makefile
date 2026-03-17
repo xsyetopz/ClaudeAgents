@@ -45,7 +45,7 @@ update: ## Show diffs and selectively update installed files
 
 .PHONY: uninstall
 uninstall: ## Uninstall from ~/.claude/
-	./uninstall.sh
+	./uninstall.sh --global
 
 .PHONY: diagnose
 diagnose: ## Run hook diagnostics (no install)
@@ -112,8 +112,7 @@ hooks-json: ## Regenerate hooks/hooks.json from configs/base.json
 
 .PHONY: clean
 clean: ## Remove build artifacts and caches
-	rm -rf dist/ build/ node_modules/ htmlcov/ .coverage
-	find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+	rm -rf dist/ build/ node_modules/
 
 # ──────────────────────────────────────────────
 # Test targets

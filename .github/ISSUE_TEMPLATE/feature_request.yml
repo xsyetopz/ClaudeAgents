@@ -23,7 +23,7 @@ body:
       options:
         - Agent (agents/*.md)
         - Skill (skills/*/SKILL.md)
-        - Hook (hooks/scripts/*.py)
+        - Hook (hooks/scripts/*.mjs)
         - Installer (install.sh)
         - Other
     validations:
