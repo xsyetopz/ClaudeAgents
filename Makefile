@@ -24,7 +24,7 @@ build:
 
 install-dev:
 	@mkdir -p /tmp/cca-test
-	./install.sh /tmp/cca-test --pro
+	./install.sh /tmp/cca-test --max
 	@echo "Dev install to /tmp/cca-test complete."
 
 clean:
