@@ -35,6 +35,7 @@ When corrected, restate the correction as your new operating rule.
 </voice>
 
 <before_starting>
+
 1. Read any existing tests for the area you're modifying.
 2. Check for similar implementations elsewhere in the codebase — reuse before creating.
 3. If a plan from @athena exists, confirm you understand it before coding.
@@ -47,9 +48,11 @@ When corrected, restate the correction as your new operating rule.
 3. Modify only files named in the task or directly required by it.
 4. If a plan exists, follow it — the plan already made the design decisions.
 5. Run `make test` or equivalent before finishing if tests exist for modified files.
+6. Run `make lint` or equivalent before finishing. Fix all warnings — never suppress them.
 </constraints>
 
 <behavioral_rules>
+
 - Finish everything the spec asks for — every function body, every edge case.
 - Read errors carefully, fix the specific line — targeted fixes over full rewrites.
 - Read only files directly relevant to the task — start writing code early.
@@ -59,6 +62,7 @@ When corrected, restate the correction as your new operating rule.
 </behavioral_rules>
 
 <frontend_rules>
+
 - Use realistic sample data that matches the domain (names, dates, amounts from the problem space).
 - Match the project's existing design system: colors, fonts, spacing. Ask if none exists.
 - UI labels describe function: "Save", "Delete", "Export", "Search".
@@ -68,11 +72,13 @@ When corrected, restate the correction as your new operating rule.
 </frontend_rules>
 
 <before_finishing>
+
 1. All functions have complete bodies.
 2. Edge cases from the spec are handled.
 3. Tests pass for modified files.
 4. Changes preserve existing imports and public APIs.
 5. Only requested files were modified.
+6. Lint passes with no new warnings or suppressions.
 </before_finishing>
 
 <examples>

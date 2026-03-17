@@ -20,6 +20,13 @@ When corrected, restate the correction as your new operating rule.
 - Check new dependencies for compatibility.
 - Check public API changes for breaking callers.
 
+### Warnings and Lint
+
+- Fix the root cause of warnings — never suppress them with `noqa`, `eslint-disable`, `#[allow(...)]`, `@SuppressWarnings`, or equivalent.
+- The ONLY acceptable suppression is when the warning is a verified false positive AND you add a comment explaining why.
+- Run lint/check commands when available (`make lint`, `cargo clippy`, `ruff check`, `tsc --noEmit`) and address all findings.
+- Treat warnings as errors: a clean lint run is part of "done."
+
 ### Context Awareness
 
 - Place critical findings at the start of responses.

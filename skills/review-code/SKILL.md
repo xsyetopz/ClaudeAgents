@@ -61,6 +61,7 @@ Check in this order during reviews:
 9. **Large functions** - 30+ lines without extraction
 10. **Missing error handling** - `unwrap()` in prod, swallowed errors
 11. **Ultimatum decisions** - presenting a single approach as the only option for medium/high-stakes decisions without alternatives
+12. **Lint suppression** - `noqa`, `eslint-disable`, `#[allow(...)]`, `@SuppressWarnings` added to silence warnings rather than fix root causes. Only acceptable for verified false positives with an explanatory comment.
 
 ## Frontend Review
 

@@ -4,12 +4,16 @@ description: >
   "commit", "git commit", "stage and commit", "branch", "PR", "pull request", "merge",
   "rebase", "git workflow", or asks about commit message format, branch naming, or PR templates.
 user-invocable: true
-context:
-  - command: "git diff --cached --stat 2>/dev/null || echo 'nothing staged'"
-    label: "Staged changes"
-  - command: "git log --oneline -5 2>/dev/null || echo 'no commits'"
-    label: "Recent commits"
 ---
+
+## Before Proceeding
+
+Run these commands to understand the current git state:
+
+```bash
+git diff --cached --stat 2>/dev/null || echo 'nothing staged'
+git log --oneline -5 2>/dev/null || echo 'no commits'
+```
 
 # Git Workflow
 

@@ -10,6 +10,7 @@ from _lib import (
     PLACEHOLDER_HARD,
     COMMENT_SLOP_PATTERNS,
     AI_PROSE_SLOP,
+    SUPPRESSION_PATTERNS,
     SYCOPHANCY_PATTERNS,
     is_test_file,
     is_prose_file,
@@ -85,6 +86,12 @@ def slop_patterns(content: str, file_path: str) -> list[str]:
     return hits[:5]
 
 
+def suppression_patterns(content: str, file_path: str) -> list[str]:
+    if is_test_file(file_path):
+        return []
+    return [pat.pattern for pat in SUPPRESSION_PATTERNS if pat.search(content)]
+
+
 def sycophancy_patterns(content: str) -> list[str]:
     hits: list[str] = []
     for pat in SYCOPHANCY_PATTERNS:
@@ -115,6 +122,14 @@ def main() -> None:
             f"{', '.join(placeholders[:3])}. "
             f"Finish the implementation.{format_note}",
             event="PostToolUse",
+        )
+    suppressions = suppression_patterns(content, file_path)
+    if suppressions:
+        warn(
+            f"Lint suppression in {os.path.basename(file_path)}: "
+            f"{', '.join(suppressions[:3])}. "
+            f"Fix the root cause instead of suppressing. "
+            f"If this is a verified false positive, add a comment explaining why.{format_note}"
         )
     prose = is_prose_file(file_path)
     slop = slop_patterns(content, file_path)

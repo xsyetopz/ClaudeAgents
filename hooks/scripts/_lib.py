@@ -85,6 +85,19 @@ UNICODE_SLOP = [
     re.compile(r'\ufeff'),  # BOM / ZWNBSP
 ]
 
+SUPPRESSION_PATTERNS = [
+    re.compile(r'#\s*noqa\b'),
+    re.compile(r'#\s*type:\s*ignore\b'),
+    re.compile(r'//\s*eslint-disable'),
+    re.compile(r'//\s*@ts-ignore'),
+    re.compile(r'//\s*@ts-expect-error'),
+    re.compile(r'//\s*nolint'),
+    re.compile(r'#\[allow\('),
+    re.compile(r'#\[cfg_attr\(.*clippy::'),
+    re.compile(r'@SuppressWarnings'),
+    re.compile(r'//\s*SAFETY:.*(?:allow|ignore|suppress)', re.IGNORECASE),
+]
+
 SECTION_NARRATORS = re.compile(
     r'^\s*(?://|#|/\*)\s*(?:Constants?|Helper functions?|Imports?|Main function|'
     r'Define\s|Initialize|Setup|Configuration|Variables?|Types?|Interfaces?|'
