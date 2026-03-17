@@ -17,13 +17,17 @@ export function register(server: McpServer): void {
 			},
 		},
 		async ({ agent, action, rationale, files }) => {
-			const entry = {
+			const teamId = process.env["CCA_TEAM_ID"];
+			const entry: Record<string, unknown> = {
 				ts: new Date().toISOString(),
 				agent,
 				action,
 				rationale,
 				files: files ?? [],
 			};
+			if (teamId) {
+				entry.team_id = teamId;
+			}
 			try {
 				appendFileSync(AUDIT_LOG_PATH, `${JSON.stringify(entry)}\n`);
 			} catch {

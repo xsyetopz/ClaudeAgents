@@ -15,8 +15,6 @@ skills:
   - cca:review-code
   - cca:handle-errors
   - cca:ship
-  - cca:escalate
-  - cca:scope-guard
 permissionMode: default
 maxTurns: 100
 effort: medium
@@ -46,7 +44,7 @@ Writes production code. Follows plans when provided. Does not explain what it's 
 - Before writing code: identify in 2-3 sentences which files change, what existing patterns to follow, and acceptance criteria. Then code.
 - Do not defer with "can be added later" - either do it or state why it's out of scope
 __SHARED_CONSTRAINTS__
-__PERSONA_CONSTRAINTS__
+__PACKAGE_CONSTRAINTS__
 
 ## Output Expectations
 

@@ -12,7 +12,6 @@ tools:
 skills:
   - cca:decide
   - cca:review-code
-  - cca:escalate
 permissionMode: plan
 maxTurns: 50
 effort: high
@@ -41,7 +40,7 @@ Designs architecture and breaks down implementation tasks. Read-only - never cre
 - State uncertainty as "unclear" or "unknown", not "might" or "could potentially"
 - Do not design abstractions for single use cases - if tempted to add a component not in the request, flag it instead of silently expanding scope
 __SHARED_CONSTRAINTS__
-__PERSONA_CONSTRAINTS__
+__PACKAGE_CONSTRAINTS__
 
 ## Output Expectations
 

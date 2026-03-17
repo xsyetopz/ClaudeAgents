@@ -1,6 +1,6 @@
 # ClaudeAgents
 
-**7 agents, 13 skills, 12 hooks.** One plans, one codes, one reviews, one tests — you talk.
+**7 agents, 10 skills, 12 hooks.** One plans, one codes, one reviews, one tests — you talk.
 
 ---
 
@@ -23,17 +23,17 @@ cd ClaudeAgents
 
 ## Agents
 
-| Who             | What                             | Pro    | Max    |
-| --------------- | -------------------------------- | ------ | ------ |
-| **@athena**     | Plans, designs, architects       | sonnet | opus   |
-| **@hephaestus** | Writes code, fixes bugs          | sonnet | sonnet |
-| **@nemesis**    | Reviews code, audits security    | sonnet | sonnet |
-| **@atalanta**   | Runs tests, finds root causes    | haiku  | haiku  |
-| **@calliope**   | Writes docs (markdown only)      | haiku  | haiku  |
-| **@hermes**     | Explores codebases, traces flows | sonnet | sonnet |
-| **@odysseus**   | Coordinates multi-step tasks     | sonnet | opus   |
+| Who             | What                             | pro    | max    | enterprise |
+| --------------- | -------------------------------- | ------ | ------ | ---------- |
+| **@athena**     | Plans, designs, architects       | sonnet | opus   | opus       |
+| **@hephaestus** | Writes code, fixes bugs          | sonnet | sonnet | sonnet     |
+| **@nemesis**    | Reviews code, audits security    | sonnet | opus   | opus       |
+| **@atalanta**   | Runs tests, finds root causes    | haiku  | haiku  | haiku      |
+| **@calliope**   | Writes docs (markdown only)      | haiku  | haiku  | haiku      |
+| **@hermes**     | Explores codebases, traces flows | sonnet | sonnet | sonnet     |
+| **@odysseus**   | Coordinates multi-step tasks     | sonnet | opus   | opus       |
 
-**`--pro`** = Sonnet everywhere (Haiku for tests/docs). **`--max`** = Opus for @athena and @odysseus.
+**`--pro`** = Sonnet everywhere (Haiku for tests/docs). **`--max`** = Opus for @athena, @nemesis, @odysseus. **`--enterprise`** = max + audit logs, DLP, compliance.
 
 ---
 
@@ -46,7 +46,6 @@ cd ClaudeAgents
 | Code review                     | `/cca:review-code`    | `/review-code`    |
 | Remove AI slop                  | `/cca:desloppify`     | `/desloppify`     |
 | Commits, branches, PRs          | `/cca:ship`           | `/ship`           |
-| Quick commit                    | `/cca:commit`         | `/commit`         |
 | Present options + tradeoffs     | `/cca:decide`         | `/decide`         |
 | Security audit (OWASP)          | `/cca:audit-security` | `/audit-security` |
 | Test strategy + coverage        | `/cca:test-patterns`  | `/test-patterns`  |
@@ -55,49 +54,47 @@ cd ClaudeAgents
 | Error handling patterns         | `/cca:handle-errors`  | `/handle-errors`  |
 | Session handoff                 | `/cca:session-export` | `/session-export` |
 
-**Internal skills** (agents use these automatically, you don't invoke them):
-
-- **escalate** — stops agents from making decisions they should ask you about
-- **scope-guard** — stops agents from touching files outside their task
-
 ---
 
 ## Safety Rails
 
 **All automatic. You configure nothing.**
 
-| Hook                    | When                     | What it does                                              |
-| ----------------------- | ------------------------ | --------------------------------------------------------- |
-| `guard-secrets`         | Before any tool          | Blocks .env reads, auth header leaks, force-push to main  |
-| `guard-commands`        | Before shell             | Blocks commands that dump thousands of lines into context |
-| `validate-tool-input`   | Before any tool          | Validates file paths and content before writes            |
-| `validate-write`        | After write/edit         | Auto-formats, catches placeholders and comment slop       |
-| `redact-output`         | After shell              | Scrubs secrets and PII from command output                |
-| `scan-completion`       | Agent stop + session end | Catches incomplete work, stubs, silent scope reduction    |
-| `check-scope-reduction` | Agent stop               | Blocks agents that quietly drop requirements              |
-| `check-collaboration`   | Agent stop               | Catches sycophancy and single-option decisions            |
-| `detect-workaround`     | Before tool              | Flags workaround patterns (--no-verify, force flags)      |
-| `check-budget`          | Session start            | Warns when config files exceed line budgets               |
-| `http-hook-proxy`       | Before + after tools     | Forwards events to enterprise DLP server (opt-in)         |
+| Hook                    | When                 | What it does                                              |
+| ----------------------- | -------------------- | --------------------------------------------------------- |
+| `pre-secrets`           | Before any tool      | Blocks .env reads, auth header leaks, force-push to main  |
+| `pre-bash`              | Before shell         | Blocks commands that dump thousands of lines into context |
+| `pre-schema`            | Before any tool      | Validates file paths and content before writes            |
+| `post-write`            | After write/edit     | Auto-formats, catches placeholders and comment slop       |
+| `post-bash`             | After shell          | Scrubs secrets and PII from command output                |
+| `subagent-scan`         | Agent stop           | Catches incomplete work, stubs, silent scope reduction    |
+| `stop-scan`             | Session end          | Catches incomplete work, stubs, silent scope reduction    |
+| `check-scope-reduction` | Agent stop           | Blocks agents that quietly drop requirements              |
+| `check-collaboration`   | Agent stop           | Catches sycophancy and single-option decisions            |
+| `detect-workaround`     | Before tool          | Flags workaround patterns (--no-verify, force flags)      |
+| `session-budget`        | Session start        | Warns when config files exceed line budgets               |
+| `pre-post-proxy`        | Before + after tools | Forwards events to enterprise DLP server (opt-in)         |
 
 Plus: LSP error check prompt after every file change, scope reduction prompt and collaboration protocol prompt on every agent stop.
 
 ---
 
-## Personas
+## Install
 
-Three constraint profiles. Set at install or build time.
+Three tiers. Set at install time.
 
-| Persona        | Flag    | Vibe                                                                        |
-| -------------- | ------- | --------------------------------------------------------------------------- |
-| **consumer**   | `--pro` | Balanced. Acts on low stakes, asks on medium+. KISS over SOLID.             |
-| **enterprise** | `--max` | Fail-closed. No changes without approval. Security findings block all work. |
-| **zen**        | `zen`   | Plan-first. Smallest change that works. Ask over assume.                    |
+| Flag           | Models                                    | Use case                             |
+| -------------- | ----------------------------------------- | ------------------------------------ |
+| `--pro`        | Sonnet (Haiku for tests/docs)             | Everyday development                 |
+| `--max`        | Opus for @athena, @nemesis, @odysseus     | Higher-stakes design and review work |
+| `--enterprise` | Same as max + audit logs, DLP, compliance | Regulated environments               |
 
 ```bash
-./install.sh --global --pro         # consumer persona
-./install.sh --global --max         # enterprise persona
-./build-plugin.sh zen               # zen persona (build only)
+./install.sh /path/to/project --pro        # sonnet (haiku for atalanta/calliope)
+./install.sh /path/to/project --max        # opus for athena/nemesis/odysseus
+./install.sh /path/to/project --enterprise # max + audit logs, DLP, compliance
+./install.sh /path/to/project --max --zen-mode  # composable zen constraints
+./install.sh --global --pro                # ~/.claude/
 ```
 
 ---

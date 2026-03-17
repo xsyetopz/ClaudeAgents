@@ -11,7 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$SCRIPT_DIR"
 TARGET_DIR=""
 INSTALL_SCOPE="project"
-PERSONA="consumer"
+PACKAGE="pro"
+ZEN_MODE="false"
 INSTALL_MODE="install"
 
 die() { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
@@ -20,13 +21,15 @@ warn() { echo -e "  ${YELLOW}!${NC} $1"; }
 
 usage() {
     echo -e "${GREEN}Claude Code Agent System Installer${NC}"
-    echo "Usage: $0 <target-dir>|--global [--enterprise|--consumer|--zen] [--update]"
+    echo "Usage: $0 <target-dir>|--global [--pro|--max|--enterprise] [--zen-mode] [--update] [--diagnose]"
     echo "  <target-dir>    : Path to your project"
     echo "  --global        : Install to global ~/.claude/"
-    echo "  --enterprise    : Fail-closed, audit logs, HTTP DLP, Opus safety anchor"
-    echo "  --consumer      : Balanced safety, PII-aware, streaming-safe (default)"
-    echo "  --zen           : Full safety, zero config, quiet output, minimal noise"
+    echo "  --pro           : Sonnet default, balanced safety, PII-aware (default)"
+    echo "  --max           : Opus for planning/review/coordination, higher context budget"
+    echo "  --enterprise    : Max + audit logs, HTTP DLP, fail-closed, compliance"
+    echo "  --zen-mode      : Composable flag: plan-first, quiet, ask-on-ambiguity"
     echo "  --update        : Show diffs and selectively update installed files"
+    echo "  --diagnose      : Run hook diagnostics without installing"
     exit 1
 }
 
@@ -44,20 +47,18 @@ check_python() {
     info "python3 found: $(python3 --version 2>&1)"
 }
 
-apply_persona_models() {
-    # Source agent files default to opus for athena/nemesis/odysseus, sonnet for rest.
-    # Personas control which agents keep opus vs downgrade to sonnet.
+apply_package_models() {
     local src="$1" tmp="$2" agent_name
     agent_name=$(grep -m1 '^name:' "$src" 2>/dev/null | sed 's/^name: *//')
-    case "$PERSONA" in
-        enterprise)
-            # opus for athena, nemesis, odysseus (safety anchor); sonnet for rest
+    case "$PACKAGE" in
+        enterprise|max)
+            # opus for athena, nemesis, odysseus; sonnet for rest
             case "$agent_name" in
                 athena|nemesis|odysseus) cp "$src" "$tmp" ;;
                 *) sed -e 's/^model: opus$/model: sonnet/' "$src" > "$tmp" ;;
             esac
             ;;
-        consumer|zen)
+        pro)
             # sonnet for all (downgrade opus → sonnet); haiku stays haiku
             sed -e 's/^model: opus$/model: sonnet/' "$src" > "$tmp"
             ;;
@@ -67,13 +68,15 @@ apply_persona_models() {
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --global) INSTALL_SCOPE="global"; shift ;;
-            --enterprise) PERSONA="enterprise"; shift ;;
-            --consumer) PERSONA="consumer"; shift ;;
-            --zen) PERSONA="zen"; shift ;;
-            --pro) PERSONA="consumer"; warn "--pro is deprecated, use --consumer"; shift ;;
-            --max) PERSONA="enterprise"; warn "--max is deprecated, use --enterprise"; shift ;;
-            --update) INSTALL_MODE="update"; shift ;;
+            --global)     INSTALL_SCOPE="global"; shift ;;
+            --pro)        PACKAGE="pro"; shift ;;
+            --max)        PACKAGE="max"; shift ;;
+            --enterprise) PACKAGE="enterprise"; shift ;;
+            --consumer)   PACKAGE="pro"; warn "--consumer is deprecated, use --pro"; shift ;;
+            --zen)        warn "--zen is deprecated, use --zen-mode"; ZEN_MODE="true"; shift ;;
+            --zen-mode)   ZEN_MODE="true"; shift ;;
+            --update)     INSTALL_MODE="update"; shift ;;
+            --diagnose)   INSTALL_MODE="diagnose"; shift ;;
             -h|--help) usage ;;
             *)
                 [[ -z "$TARGET_DIR" ]] && TARGET_DIR="$1" || die "Too many arguments"
@@ -91,28 +94,33 @@ substitute_and_copy() {
     local src="$1"
     local dest="$2"
     local shared_constraints="" persona_constraints=""
-    if [[ -f "$REPO_DIR/templates/shared-constraints.md" ]]; then
-        shared_constraints=$(cat "$REPO_DIR/templates/shared-constraints.md")
+    if [[ -f "$REPO_DIR/constraints/shared.md" ]]; then
+        shared_constraints=$(cat "$REPO_DIR/constraints/shared.md")
     fi
-    if [[ -f "$REPO_DIR/templates/personas/$PERSONA.md" ]]; then
-        persona_constraints=$(cat "$REPO_DIR/templates/personas/$PERSONA.md")
+    if [[ -f "$REPO_DIR/constraints/$PACKAGE.md" ]]; then
+        persona_constraints=$(cat "$REPO_DIR/constraints/$PACKAGE.md")
     fi
     local tmp tmp2
     tmp=$(mktemp)
     tmp2=$(mktemp)
-    # Apply persona-specific model assignments
-    apply_persona_models "$src" "$tmp"
-    # Inject shared constraints
+    apply_package_models "$src" "$tmp"
     if grep -q '__SHARED_CONSTRAINTS__' "$tmp" 2>/dev/null && [[ -n "$shared_constraints" ]]; then
         awk -v constraints="$shared_constraints" '{gsub(/__SHARED_CONSTRAINTS__/, constraints); print}' "$tmp" > "$tmp2"
     else
         cp "$tmp" "$tmp2"
     fi
-    # Inject persona constraints
-    if grep -q '__PERSONA_CONSTRAINTS__' "$tmp2" 2>/dev/null && [[ -n "$persona_constraints" ]]; then
-        awk -v constraints="$persona_constraints" '{gsub(/__PERSONA_CONSTRAINTS__/, constraints); print}' "$tmp2" > "$dest"
+    if grep -q '__PACKAGE_CONSTRAINTS__' "$tmp2" 2>/dev/null && [[ -n "$persona_constraints" ]]; then
+        awk -v constraints="$persona_constraints" '{gsub(/__PACKAGE_CONSTRAINTS__/, constraints); print}' "$tmp2" > "$dest"
     else
         cp "$tmp2" "$dest"
+    fi
+    # Rewrite skill refs from plugin format (cca:skill) to manual format (cca-skill)
+    sed -i '' 's|  - cca:|  - cca-|g' "$dest"
+    if [[ "$ZEN_MODE" == "true" && -f "$REPO_DIR/constraints/zen.md" ]]; then
+        local zen_constraints
+        zen_constraints=$(cat "$REPO_DIR/constraints/zen.md")
+        echo "" >> "$dest"
+        echo "$zen_constraints" >> "$dest"
     fi
     rm -f "$tmp" "$tmp2"
 }
@@ -170,7 +178,7 @@ update_interactive() {
         for skill_file in "$skill_dir"*; do
             [[ -f "$skill_file" ]] || continue
             local fname=$(basename "$skill_file")
-            diff_file "skill: $skill_name/$fname" "$CLAUDE_DIR/skills/$skill_name/$fname" "$skill_file" || changes=$((changes + 1))
+            diff_file "skill: cca-$skill_name/$fname" "$CLAUDE_DIR/skills/cca-$skill_name/$fname" "$skill_file" || changes=$((changes + 1))
         done
     done
 
@@ -182,12 +190,12 @@ update_interactive() {
     done
 
     # Check hooks.json
-    diff_file "hooks.json" "$CLAUDE_DIR/hooks.json" "$REPO_DIR/hooks/hooks.json" || changes=$((changes + 1))
+    diff_file "hooks.json" "$CLAUDE_DIR/hooks.json" "$REPO_DIR/hooks/configs/base.json" || changes=$((changes + 1))
 
     # Check user-level hooks
-    for hook in guard-secrets.py rtk-rewrite.sh; do
-        [[ -f "$REPO_DIR/hooks/$hook" ]] || continue
-        diff_file "user hook: $hook" "$HOME/.claude/hooks/$hook" "$REPO_DIR/hooks/$hook" || changes=$((changes + 1))
+    for hook in pre-secrets.py rtk-rewrite.sh; do
+        [[ -f "$REPO_DIR/hooks/user/$hook" ]] || continue
+        diff_file "user hook: $hook" "$HOME/.claude/hooks/$hook" "$REPO_DIR/hooks/user/$hook" || changes=$((changes + 1))
     done
 
     # Check global extras
@@ -223,33 +231,33 @@ copy_agents() {
 copy_skills() {
     SKILL_COUNT=0
     echo -e "\nSkills:"
-    # Skills live at skills/<name>/ in repo, install to skills/<name>/ for manual installs
     for skill_dir in "$REPO_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         local skill_name=$(basename "$skill_dir")
-        mkdir -p "$CLAUDE_DIR/skills/$skill_name"
+        local dest_name="cca-${skill_name}"
+        mkdir -p "$CLAUDE_DIR/skills/$dest_name"
         for skill_file in "$skill_dir"*; do
             [[ -f "$skill_file" ]] || continue
-            cp "$skill_file" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
+            cp "$skill_file" "$CLAUDE_DIR/skills/$dest_name/$(basename "$skill_file")"
         done
-        info "$skill_name"
+        info "$dest_name"
         SKILL_COUNT=$((SKILL_COUNT + 1))
     done
 }
 
 copy_hooks_scripts() {
     echo -e "\nHooks:"
-    for hook in guard-secrets.py rtk-rewrite.sh; do
-        local src="$REPO_DIR/hooks/$hook"
+    for hook in pre-secrets.py rtk-rewrite.sh; do
+        local src="$REPO_DIR/hooks/user/$hook"
         local dest="$HOME/.claude/hooks/$hook"
         [[ -f "$src" ]] && { cp "$src" "$dest"; chmod +x "$dest"; info "$hook -> ~/.claude/hooks/ (user-level)"; }
     done
 
-    # Install persona-specific hooks.json (fall back to base hooks.json)
-    local hooks_src="$REPO_DIR/hooks/personas/$PERSONA.json"
-    [[ -f "$hooks_src" ]] || hooks_src="$REPO_DIR/hooks/hooks.json"
+    # Install package-specific hooks.json (fall back to base hooks.json)
+    local hooks_src="$REPO_DIR/hooks/configs/$PACKAGE.json"
+    [[ -f "$hooks_src" ]] || hooks_src="$REPO_DIR/hooks/configs/base.json"
     cp "$hooks_src" "$CLAUDE_DIR/hooks.json"
-    info "hooks.json -> project hooks (persona: $PERSONA)"
+    info "hooks.json -> project hooks (package: $PACKAGE)"
 
     if [[ -d "$REPO_DIR/hooks/scripts" ]]; then
         # Self-install: symlink instead of copy to avoid duplication
@@ -335,7 +343,7 @@ settings_json_merge_project() {
 
     local GUARD_SECRETS_ENTRY='{
         "matcher": "Write|Edit|MultiEdit|NotebookEdit|Read|Bash|WebFetch",
-        "hooks": [{"type": "command", "command": "python3 \"$HOME\"/.claude/hooks/guard-secrets.py", "timeout": 5}]
+        "hooks": [{"type": "command", "command": "python3 \"$HOME\"/.claude/hooks/pre-secrets.py", "timeout": 5}]
     }'
 
     if command -v jq &>/dev/null; then
@@ -344,7 +352,7 @@ settings_json_merge_project() {
                 .env["CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"] //= "1" |
                 .env["DISABLE_AUTOUPDATER"] //= "1" |
                 (if .autoUpdatesChannel then .autoUpdatesChannel = "latest" else . end) |
-                .hooks.PreToolUse = ((.hooks.PreToolUse // []) | if any(.hooks[0].command? | test("guard-secrets")) then . else . + [$pre] end) |
+                .hooks.PreToolUse = ((.hooks.PreToolUse // []) | if any(.hooks[0].command? | test("pre-secrets")) then . else . + [$pre] end) |
                 .permissions.deny = ((.permissions.deny // []) + ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"] | unique)
             ' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
             info "Merged into existing settings.json"
@@ -382,11 +390,11 @@ install_template() {
     echo -e "\nTemplate:"
     if [[ "$INSTALL_SCOPE" == "project" ]]; then
         CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-        # Use persona-specific CLAUDE.md (fall back to base)
-        local template_src="$REPO_DIR/templates/CLAUDE-$PERSONA.md"
+        # Use package-specific CLAUDE.md (fall back to base)
+        local template_src="$REPO_DIR/templates/CLAUDE-$PACKAGE.md"
         [[ -f "$template_src" ]] || template_src="$REPO_DIR/templates/CLAUDE.md"
         [[ -f "$CLAUDE_MD" ]] && warn "CLAUDE.md already exists at target - skipping (review $template_src manually)" \
-            || { cp "$template_src" "$CLAUDE_MD"; info "CLAUDE.md installed (persona: $PERSONA)"; }
+            || { cp "$template_src" "$CLAUDE_MD"; info "CLAUDE.md installed (package: $PACKAGE)"; }
     else
         warn "Skipping CLAUDE.md for global install (install per-project instead)"
     fi
@@ -398,14 +406,14 @@ install_mcp_harness() {
         warn "Bun not found — MCP harness not installed. Install bun: https://bun.sh"
         return
     fi
-    if [[ ! -f "$REPO_DIR/mcp-harness/package.json" ]]; then
-        warn "mcp-harness/package.json not found — skipping"
+    if [[ ! -f "$REPO_DIR/mcp/package.json" ]]; then
+        warn "mcp/package.json not found — skipping"
         return
     fi
-    (cd "$REPO_DIR/mcp-harness" && bun install --production 2>/dev/null) || { warn "bun install failed for MCP harness"; return; }
+    (cd "$REPO_DIR/mcp" && bun install --production 2>/dev/null) || { warn "bun install failed for MCP harness"; return; }
     # Generate .mcp.json at target
     local mcp_json="$TARGET_DIR/.mcp.json"
-    local harness_path="$REPO_DIR/mcp-harness/src/index.ts"
+    local harness_path="$REPO_DIR/mcp/src/index.ts"
     if [[ "$INSTALL_SCOPE" == "global" ]]; then
         mcp_json="$HOME/.mcp.json"
     fi
@@ -416,12 +424,12 @@ install_mcp_harness() {
       "type": "stdio",
       "command": "bun",
       "args": ["run", "$harness_path"],
-      "env": { "CCA_PERSONA": "$PERSONA" }
+      "env": { "CCA_PACKAGE": "$PACKAGE" }
     }
   }
 }
 MCPEOF
-    info "MCP harness configured (persona: $PERSONA)"
+    info "MCP harness configured (package: $PACKAGE)"
     info ".mcp.json written to $mcp_json"
 }
 
@@ -510,14 +518,15 @@ validate_agents() {
 }
 
 report_summary() {
-    echo -e "\n${GREEN}Done!${NC} Installed $AGENT_COUNT agents, $SKILL_COUNT skills (persona: $PERSONA)"
+    echo -e "\n${GREEN}Done!${NC} Installed $AGENT_COUNT agents, $SKILL_COUNT skills (package: $PACKAGE)"
     echo ""
-    echo "Persona: $PERSONA"
-    case "$PERSONA" in
-        enterprise) echo "  Fail-closed | Opus safety anchor | Audit logs | HTTP DLP" ;;
-        consumer)   echo "  Balanced | PII-aware | Streaming-safe | Sonnet default" ;;
-        zen)        echo "  Full safety | Zero config | Quiet output | Minimal noise" ;;
+    echo "Package: $PACKAGE$([ "$ZEN_MODE" = "true" ] && echo " + zen-mode")"
+    case "$PACKAGE" in
+        enterprise) echo "  Opus: athena, nemesis, odysseus | Fail-closed | Audit logs | HTTP DLP | Compliance" ;;
+        max)        echo "  Opus: athena, nemesis, odysseus | Higher context budget | Same guardrails as pro" ;;
+        pro)        echo "  Sonnet all | Balanced | PII-aware | Streaming-safe" ;;
     esac
+    [[ "$ZEN_MODE" == "true" ]] && echo "  Zen: plan-first, quiet output, ask-on-ambiguity"
     echo ""
     echo "Agents:"
     for agent in "$CLAUDE_DIR"/agents/*.md; do
@@ -536,6 +545,60 @@ report_summary() {
     echo "Tip: install as plugin for cca: prefix: claude plugin install cca"
 }
 
+diagnose_hooks() {
+    echo -e "\n${GREEN}Hook Diagnostics:${NC}"
+    local total=0 passed=0 failed=0
+
+    for script in "$CLAUDE_DIR/hooks/scripts/"*.py; do
+        [[ -f "$script" ]] || continue
+        local name=$(basename "$script")
+        [[ "$name" == "_lib.py" ]] && continue
+        total=$((total + 1))
+
+        local result
+        result=$(echo '{"tool_name":"Bash","tool_input":{"command":"echo test"},"hook_event_name":"PreToolUse"}' | \
+            python3 "$script" 2>&1)
+        local exit_code=$?
+
+        if [[ $exit_code -eq 0 ]]; then
+            info "$name: OK"
+            passed=$((passed + 1))
+        else
+            echo -e "  ${RED}✗${NC} $name: exit code $exit_code"
+            [[ -n "$result" ]] && echo "    $result" | head -3
+            failed=$((failed + 1))
+        fi
+    done
+
+    for hook in "$HOME/.claude/hooks/"*.py "$HOME/.claude/hooks/"*.sh; do
+        [[ -f "$hook" ]] || continue
+        local name=$(basename "$hook")
+        total=$((total + 1))
+
+        local result
+        if [[ "$hook" == *.py ]]; then
+            result=$(echo '{"tool_name":"Bash","tool_input":{"command":"echo test"}}' | \
+                python3 "$hook" 2>&1)
+        else
+            result=$(echo '{"tool_name":"Bash","tool_input":{"command":"echo test"}}' | \
+                bash "$hook" 2>&1)
+        fi
+        local exit_code=$?
+
+        if [[ $exit_code -eq 0 ]]; then
+            info "$name (user-level): OK"
+            passed=$((passed + 1))
+        else
+            echo -e "  ${RED}✗${NC} $name (user-level): exit code $exit_code"
+            [[ -n "$result" ]] && echo "    $result" | head -3
+            failed=$((failed + 1))
+        fi
+    done
+
+    echo -e "\n${GREEN}Results:${NC} $passed/$total passed"
+    [[ $failed -gt 0 ]] && echo -e "${RED}$failed hook(s) failed.${NC}"
+}
+
 main() {
     parse_args "$@"
     check_version
@@ -544,13 +607,18 @@ main() {
     if [[ "$INSTALL_SCOPE" == "global" ]]; then
         TARGET_DIR="$HOME"
         CLAUDE_DIR="$HOME/.claude"
-        echo -e "\n${GREEN}Installing to global: $CLAUDE_DIR${NC} (persona: $PERSONA)"
+        echo -e "\n${GREEN}Installing to global: $CLAUDE_DIR${NC} (package: $PACKAGE)"
     else
         [[ -z "$TARGET_DIR" ]] && die "Target directory required, or use --global"
         [[ ! -d "$TARGET_DIR" ]] && die "Directory does not exist: $TARGET_DIR"
         TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
         CLAUDE_DIR="$TARGET_DIR/.claude"
-        echo -e "\n${GREEN}Installing to: $TARGET_DIR${NC} (persona: $PERSONA)"
+        echo -e "\n${GREEN}Installing to: $TARGET_DIR${NC} (package: $PACKAGE)"
+    fi
+
+    if [[ "$INSTALL_MODE" == "diagnose" ]]; then
+        diagnose_hooks
+        exit 0
     fi
 
     # Update mode: show diffs first, then proceed with normal install
@@ -571,8 +639,8 @@ main() {
     grep -r '__SHARED_CONSTRAINTS__' "$CLAUDE_DIR/agents/" &>/dev/null && { echo -e "  ${RED}✗${NC} Found unreplaced __SHARED_CONSTRAINTS__ in agents"; ERRORS=$((ERRORS+1)); } \
         || info "No __SHARED_CONSTRAINTS__ remnants"
 
-    grep -r '__PERSONA_CONSTRAINTS__' "$CLAUDE_DIR/agents/" &>/dev/null && { echo -e "  ${RED}✗${NC} Found unreplaced __PERSONA_CONSTRAINTS__ in agents"; ERRORS=$((ERRORS+1)); } \
-        || info "No __PERSONA_CONSTRAINTS__ remnants"
+    grep -r '__PACKAGE_CONSTRAINTS__' "$CLAUDE_DIR/agents/" &>/dev/null && { echo -e "  ${RED}✗${NC} Found unreplaced __PACKAGE_CONSTRAINTS__ in agents"; ERRORS=$((ERRORS+1)); } \
+        || info "No __PACKAGE_CONSTRAINTS__ remnants"
 
     check_json "$CLAUDE_DIR/hooks.json" "hooks.json" || ERRORS=$((ERRORS+1))
     check_json "$CLAUDE_DIR/settings.json" "settings.json" || ERRORS=$((ERRORS+1))

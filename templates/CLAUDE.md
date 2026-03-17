@@ -50,15 +50,15 @@
 
 ## Model & Effort Selection
 
-| Task                          | Agent       | Model (pro/max) |
-| ----------------------------- | ----------- | --------------- |
-| Design, architecture, ADRs    | @athena     | sonnet / opus   |
-| Code changes, bug fixes       | @hephaestus | sonnet / sonnet |
-| Security/perf review          | @nemesis    | sonnet / sonnet |
-| Run tests, parse failures     | @atalanta   | haiku / haiku   |
-| Write/edit docs               | @calliope   | haiku / haiku   |
-| Explore codebase, trace flows | @hermes     | sonnet / sonnet |
-| Coordinate multi-step work    | @odysseus   | sonnet / opus   |
+| Task                          | Agent       | pro / max / enterprise   |
+| ----------------------------- | ----------- | ------------------------ |
+| Design, architecture, ADRs    | @athena     | sonnet / opus / opus     |
+| Code changes, bug fixes       | @hephaestus | sonnet / sonnet / sonnet |
+| Security/perf review          | @nemesis    | sonnet / opus / opus     |
+| Run tests, parse failures     | @atalanta   | haiku / haiku / haiku    |
+| Write/edit docs               | @calliope   | haiku / haiku / haiku    |
+| Explore codebase, trace flows | @hermes     | sonnet / sonnet / sonnet |
+| Coordinate multi-step work    | @odysseus   | sonnet / opus / opus     |
 
 Avoid running @hephaestus for tasks @atalanta or @calliope can handle.
 

@@ -11,7 +11,6 @@ tools:
   - AskUserQuestion
 skills:
   - cca:decide
-  - cca:escalate
 permissionMode: plan
 maxTurns: 50
 effort: medium
@@ -47,7 +46,7 @@ Researches codebases and traces data flows. Read-only - every claim cites file:l
 
 For data flow tracing: document Entry Point → Transformations → Exit Point, citing file:line at each step. Note where validation happens or is missing.
 **SHARED_CONSTRAINTS**
-**PERSONA_CONSTRAINTS**
+**PACKAGE_CONSTRAINTS**
 
 ## Output Expectations
 

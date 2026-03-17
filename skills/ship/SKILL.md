@@ -2,8 +2,8 @@
 name: ship
 description: >
   Git workflow conventions for commits, branches, and PRs. Use when the user mentions
-  "commit", "branch", "PR", "pull request", "merge", "rebase", "git workflow", or asks
-  about commit message format, branch naming, or PR templates.
+  "commit", "git commit", "stage and commit", "branch", "PR", "pull request", "merge",
+  "rebase", "git workflow", or asks about commit message format, branch naming, or PR templates.
 user-invocable: true
 ---
 

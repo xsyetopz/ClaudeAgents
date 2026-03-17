@@ -5,7 +5,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/check-budget.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/session-budget.py",
 						"timeout": 5
 					}
 				]
@@ -16,7 +16,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/validate-tool-input.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-schema.py",
 						"timeout": 5
 					}
 				]
@@ -26,7 +26,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/guard-commands.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-bash.py",
 						"timeout": 10
 					}
 				]
@@ -35,7 +35,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/http-hook-proxy.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-post-proxy.py",
 						"timeout": 8
 					}
 				]
@@ -47,11 +47,11 @@
 				"hooks": [
 					{
 						"type": "prompt",
-						"prompt": "Check LSP diagnostics for the file you just modified. If there are errors, fix them before continuing."
+						"prompt": "After modifying a file, note any LSP diagnostics (errors or warnings) in your response but do not stop your current task. Continue with your work."
 					},
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/validate-write.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/post-write.py",
 						"timeout": 15
 					}
 				]
@@ -61,7 +61,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/redact-output.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/post-bash.py",
 						"timeout": 10
 					}
 				]
@@ -71,7 +71,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/http-hook-proxy.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-post-proxy.py",
 						"timeout": 8
 					}
 				]
@@ -87,7 +87,7 @@
 					},
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/subagent-scan.py",
 						"timeout": 15
 					},
 					{
@@ -102,7 +102,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/scan-completion.py",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/stop-scan.py",
 						"timeout": 15
 					},
 					{

@@ -178,19 +178,19 @@ def _print_and_exit(data):
     print(json.dumps(data))
     sys.exit(0)
 
-def deny(reason: str) -> None:
+def deny(reason: str, event: str = "PreToolUse") -> None:
     _print_and_exit({
         "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
+            "hookEventName": event,
             "permissionDecision": "deny",
             "permissionDecisionReason": reason,
         }
     })
 
-def allow(reason: str = "") -> None:
+def allow(reason: str = "", event: str = "PreToolUse") -> None:
     result = {
         "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
+            "hookEventName": event,
             "permissionDecision": "allow"
         }
     }

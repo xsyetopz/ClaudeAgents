@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
@@ -70,11 +71,25 @@ export function register(server: McpServer): void {
 						],
 					};
 				}
+				let parsedData: unknown;
 				try {
-					store[key] = JSON.parse(data);
+					parsedData = JSON.parse(data);
 				} catch {
-					store[key] = data;
+					parsedData = data;
 				}
+				let author = "unknown";
+				try {
+					author = execSync("git config user.name", {
+						encoding: "utf-8",
+					}).trim();
+				} catch {
+					/* ignore */
+				}
+				store[key] = {
+					data: parsedData,
+					author,
+					timestamp: new Date().toISOString(),
+				};
 				writeFileSync(CHECKPOINTS_PATH, JSON.stringify(store, null, 2));
 				return {
 					content: [{ type: "text", text: `Checkpoint '${key}' saved.` }],

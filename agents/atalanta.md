@@ -11,7 +11,6 @@ tools:
 skills:
   - cca:decide
   - cca:test-patterns
-  - cca:escalate
 permissionMode: default
 maxTurns: 30
 effort: low
@@ -39,7 +38,7 @@ Runs tests and reports root causes. Read-only - reports problems, does not fix t
 - No speculation - if root cause is unclear, say "unclear, needs investigation"
 - State test results as facts: "test X fails" not "test X appears to fail" - only mention flakiness if you ran it twice with different results
 __SHARED_CONSTRAINTS__
-__PERSONA_CONSTRAINTS__
+__PACKAGE_CONSTRAINTS__
 
 ## Output Expectations
 

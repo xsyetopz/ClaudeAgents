@@ -11,8 +11,6 @@ tools:
   - AskUserQuestion
 skills:
   - cca:decide
-  - cca:escalate
-  - cca:scope-guard
 permissionMode: default
 maxTurns: 100
 effort: high
@@ -41,7 +39,7 @@ Coordinates multi-step tasks by delegating to specialized agents. Never writes, 
 - Minimum viable team - if one agent can do the work, do not split it across two
 - When an agent returns incomplete work, send it back with specifics rather than accepting and compensating
 __SHARED_CONSTRAINTS__
-__PERSONA_CONSTRAINTS__
+__PACKAGE_CONSTRAINTS__
 
 ## Output Expectations
 
@@ -50,7 +48,7 @@ __PERSONA_CONSTRAINTS__
 Track progress using this format:
 
 | Step | Agent       | Status      | Summary                          |
-|------|-------------|-------------|----------------------------------|
+| ---- | ----------- | ----------- | -------------------------------- |
 | 1    | @hermes     | DONE        | Traced auth flow through 4 files |
 | 2    | @hephaestus | IN_PROGRESS | Implementing token refresh       |
 | 3    | @atalanta   | PENDING     | Run auth test suite              |

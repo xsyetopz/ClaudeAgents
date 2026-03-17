@@ -12,7 +12,7 @@ from _lib import (
     is_test_file,
     is_prose_file,
     read_stdin,
-    block,
+    deny,
     warn,
     passthrough,
 )
@@ -61,9 +61,9 @@ def run_formatter(file_path: str) -> str | None:
                 after = open(file_path, "rb").read()
                 if after != before:
                     return cmd_parts[0]
+                return None
             except (subprocess.TimeoutExpired, OSError):
                 pass
-            return None
     return None
 
 def placeholder_patterns(content: str, file_path: str) -> list[str]:
@@ -101,10 +101,11 @@ def main() -> None:
         passthrough()
     placeholders = placeholder_patterns(content, file_path)
     if placeholders:
-        block(
+        deny(
             f"Placeholder code in {os.path.basename(file_path)}: "
             f"{', '.join(placeholders[:3])}. "
-            f"Finish the implementation.{format_note}"
+            f"Finish the implementation.{format_note}",
+            event="PostToolUse",
         )
     slop = slop_patterns(content, file_path)
     if slop:

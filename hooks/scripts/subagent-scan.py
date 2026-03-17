@@ -13,7 +13,6 @@ from _lib import (
     read_stdin,
     block,
     warn,
-    stop_message,
     passthrough,
 )
 
@@ -58,24 +57,11 @@ def scan_files(files: list[str]) -> tuple[list[str], list[str]]:
         all_soft.extend(soft)
     return all_hard, all_soft
 
-def session_export_stale() -> bool:
-    handoff = os.path.join(os.getcwd(), ".claude", "session-handoff.md")
-    if not os.path.isfile(handoff):
-        return True
-    try:
-        from datetime import date
-        mtime = os.path.getmtime(handoff)
-        from datetime import datetime
-        return datetime.fromtimestamp(mtime).date() < date.today()
-    except Exception:
-        return True
-
 def main() -> None:
     data = read_stdin()
     if not data or data.get("stop_hook_active"):
         passthrough()
 
-    event = data.get("hook_event_name", "Stop")
     files = modified_files()
     if not files:
         passthrough()
@@ -89,14 +75,12 @@ def main() -> None:
             + "\n".join((all_hard + all_soft)[:15])
         )
         block(output + "\n\nFix all placeholder code before finishing.")
-    elif all_soft and event != "Stop":
+    elif all_soft:
         output = (
             f"Completion check: {len(all_soft)} hedge(s) in modified files:\n"
             + "\n".join(all_soft[:15])
         )
-        warn(output, event=event)
-    elif event == "Stop" and session_export_stale():
-        stop_message("Consider running /cca:session-export to save a handoff for your next session.")
+        warn(output, event="SubagentStop")
     else:
         passthrough()
 

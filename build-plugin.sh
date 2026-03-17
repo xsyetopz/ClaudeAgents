@@ -8,32 +8,31 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIST_DIR="$SCRIPT_DIR/dist/claude-agents-plugin"
-PERSONA="${1:-consumer}"
+PACKAGE="${1:-pro}"
 
 die()   { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 info()  { echo -e "  ${GREEN}✓${NC} $1"; }
 
-set_persona() {
+set_package() {
     case "$1" in
-        enterprise|consumer|zen) PERSONA="$1" ;;
-        pro) PERSONA="consumer" ;;
-        max) PERSONA="enterprise" ;;
-        *) die "Unknown persona: $1. Use 'enterprise', 'consumer', or 'zen'." ;;
+        enterprise|pro|max) PACKAGE="$1" ;;
+        consumer) PACKAGE="pro" ;;
+        *) die "Unknown package: $1. Use 'pro', 'max', or 'enterprise'." ;;
     esac
 }
 
-apply_persona_models_in_file() {
+apply_package_models_in_file() {
     local src="$1" dest="$2"
     local agent_name
     agent_name=$(grep -m1 '^name:' "$src" 2>/dev/null | sed 's/^name: *//')
-    case "$PERSONA" in
-        enterprise)
+    case "$PACKAGE" in
+        enterprise|max)
             case "$agent_name" in
                 athena|nemesis|odysseus) cp "$src" "$dest" ;;
                 *) sed -e 's/^model: opus$/model: sonnet/' "$src" > "$dest" ;;
             esac
             ;;
-        consumer|zen)
+        pro)
             sed -e 's/^model: opus$/model: sonnet/' "$src" > "$dest"
             ;;
     esac
@@ -41,16 +40,16 @@ apply_persona_models_in_file() {
 
 inject_constraints_in_file() {
     local file="$1"
-    local shared_file="$SCRIPT_DIR/templates/shared-constraints.md"
-    local persona_file="$SCRIPT_DIR/templates/personas/$PERSONA.md"
+    local shared_file="$SCRIPT_DIR/constraints/shared.md"
+    local package_file="$SCRIPT_DIR/constraints/$PACKAGE.md"
     if [[ -f "$shared_file" ]] && grep -q '__SHARED_CONSTRAINTS__' "$file" 2>/dev/null; then
         local tmp=$(mktemp)
         awk -v constraints="$(cat "$shared_file")" '{gsub(/__SHARED_CONSTRAINTS__/, constraints); print}' "$file" > "$tmp"
         mv "$tmp" "$file"
     fi
-    if [[ -f "$persona_file" ]] && grep -q '__PERSONA_CONSTRAINTS__' "$file" 2>/dev/null; then
+    if [[ -f "$package_file" ]] && grep -q '__PACKAGE_CONSTRAINTS__' "$file" 2>/dev/null; then
         local tmp=$(mktemp)
-        awk -v constraints="$(cat "$persona_file")" '{gsub(/__PERSONA_CONSTRAINTS__/, constraints); print}' "$file" > "$tmp"
+        awk -v constraints="$(cat "$package_file")" '{gsub(/__PACKAGE_CONSTRAINTS__/, constraints); print}' "$file" > "$tmp"
         mv "$tmp" "$file"
     fi
 }
@@ -72,7 +71,7 @@ prepare_dir() {
 
 stage_agent() {
     local src="$1" dst="$2"
-    apply_persona_models_in_file "$src" "$dst"
+    apply_package_models_in_file "$src" "$dst"
     inject_constraints_in_file "$dst"
     remove_skill_prefix_in_file "$dst"
 }
@@ -101,7 +100,7 @@ copy_skills() {
 stage_hooks() {
     mkdir -p "$DIST_DIR/hooks/scripts"
     sed 's|\\\"$CLAUDE_PROJECT_DIR\\\"/.claude/hooks/scripts/|\\\"${CLAUDE_PLUGIN_ROOT}\\\"/hooks/scripts/|g' \
-        "$SCRIPT_DIR/hooks/hooks.json" > "$DIST_DIR/hooks/hooks.json"
+        "$SCRIPT_DIR/hooks/configs/base.json" > "$DIST_DIR/hooks/hooks.json"
     info "hooks.json (paths transformed to \${CLAUDE_PLUGIN_ROOT})"
     for script in "$SCRIPT_DIR"/hooks/scripts/*.py; do
         [[ -f "$script" ]] || continue
@@ -128,9 +127,9 @@ validate_dist() {
     [[ $ERRORS -gt 0 ]] && { echo -e "${RED}Build failed with $ERRORS error(s).${NC}"; exit 1; } || true
 }
 
-echo -e "${GREEN}Building ClaudeAgents plugin (persona: $PERSONA)${NC}\n"
+echo -e "${GREEN}Building ClaudeAgents plugin (package: $PACKAGE)${NC}\n"
 
-set_persona "$PERSONA"
+set_package "$PACKAGE"
 prepare_dir "$DIST_DIR"
 prepare_dir "$DIST_DIR/.claude-plugin"
 cp "$SCRIPT_DIR/.claude-plugin/plugin.json" "$DIST_DIR/.claude-plugin/"

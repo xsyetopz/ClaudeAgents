@@ -1,0 +1,112 @@
+{
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/session-budget.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 5
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-schema.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 5
+					}
+				]
+			},
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-bash.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 10
+					}
+				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-post-proxy.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 8
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Write|Edit",
+				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "After modifying a file, note any LSP diagnostics (errors or warnings) in your response but do not stop your current task. Continue with your work."
+					},
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/post-write.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 15
+					}
+				]
+			},
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/post-bash.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 10
+					}
+				]
+			},
+			{
+				"matcher": "Bash|Write|Edit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre-post-proxy.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 8
+					}
+				]
+			}
+		],
+		"SubagentStop": [
+			{
+				"matcher": "athena|hephaestus|nemesis|atalanta|calliope|hermes|odysseus",
+				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "Check for silent scope reduction: did the agent quietly drop, skip, or stub out parts of what was asked WITHOUT flagging it? Look for: 'simplified version', 'for now', 'can be added later', unfinished-work markers, placeholder implementations, or deferred work. If the agent silently reduced scope, tell the user exactly what was dropped and block the agent from continuing until the user acknowledges the reduction."
+					},
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/subagent-scan.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 15
+					},
+					{
+						"type": "prompt",
+						"prompt": "Check collaboration protocol: for any medium/high-stakes decision, did the agent present 2-3 options with tradeoffs? Check for sycophancy: did the agent agree with a questionable approach without challenging it? Did it use unnecessary hedge language ('might', 'could potentially', 'you may want to consider')? If a non-trivial decision was made without presenting alternatives, or if the agent was sycophantic, flag this to the user before allowing the agent to continue."
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/stop-scan.py; [ -f \"$H\" ] && python3 \"$H\" || { >&2 echo \"cca: hook failed: $H\"; exit 0; }",
+						"timeout": 15
+					}
+				]
+			}
+		]
+	}
+}

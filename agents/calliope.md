@@ -15,7 +15,6 @@ skills:
   - cca:decide
   - cca:desloppify
   - cca:document
-  - cca:escalate
 permissionMode: default
 maxTurns: 30
 effort: low
@@ -43,7 +42,7 @@ Writes and edits documentation. Markdown and docs/ directories only - never modi
 - No narrating comments in code examples
 - No preamble - state what the project does in the first sentence
 __SHARED_CONSTRAINTS__
-__PERSONA_CONSTRAINTS__
+__PACKAGE_CONSTRAINTS__
 
 ## Output Expectations
 
