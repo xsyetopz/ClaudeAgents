@@ -176,7 +176,7 @@
 	},
 	"statusLine": {
 		"type": "command",
-		"command": "bash __HOME__/.claude/cca-statusline.sh"
+		"command": "bash __HOME__/.claude/statusline-command.sh"
 	},
 	"autoUpdatesChannel": "latest",
 	"availableModels": ["opus", "sonnet", "haiku"],

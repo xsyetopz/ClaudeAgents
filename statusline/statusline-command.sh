@@ -36,4 +36,4 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     [ "$MODIFIED" -gt 0 ] && GIT_INFO="${GIT_INFO} ${YELLOW}~${MODIFIED}${RESET}"
 fi
 
-echo -e "[${MODEL}] | Ctx: ${COLOR}${BAR}${RESET} ${PCT}% | ${DIM}${COST_FMT}${RESET}${GIT_INFO}"
+echo -e "[${MODEL}] | ${COLOR}${BAR}${RESET} ${PCT}% | ${DIM}${COST_FMT}${RESET}${GIT_INFO}"

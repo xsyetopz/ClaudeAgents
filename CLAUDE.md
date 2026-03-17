@@ -90,7 +90,7 @@ hooks/           configs/ (base.json, pro.json, max.json)
 constraints/     shared.md, pro.md, max.md, zen.md
 templates/       CLAUDE.md, settings-global.json
 output-styles/   cca.md (custom output style)
-statusline/      cca-statusline.sh (context/cost/git statusline)
+statusline/      statusline-command.sh (context/cost/git statusline)
 tests/           pytest tests for all hooks
 install.sh       Package flags, model substitution, validation
 build-plugin.sh  Builds marketplace-ready dist from source
