@@ -22,21 +22,22 @@ from _lib import (
 )
 
 FORMATTERS: dict[str, list[list[str]]] = {
-    "py":    [["ruff", "format", "--quiet"], ["black", "--quiet"]],
-    "go":    [["gofmt", "-w"]],
-    "rs":    [["rustfmt", "--edition", "2021"]],
-    "ts":    [["prettier", "--write"], ["deno", "fmt"]],
-    "tsx":   [["prettier", "--write"], ["deno", "fmt"]],
-    "js":    [["prettier", "--write"], ["deno", "fmt"]],
-    "jsx":   [["prettier", "--write"], ["deno", "fmt"]],
+    "py": [["ruff", "format", "--quiet"], ["black", "--quiet"]],
+    "go": [["gofmt", "-w"]],
+    "rs": [["rustfmt", "--edition", "2021"]],
+    "ts": [["prettier", "--write"], ["deno", "fmt"]],
+    "tsx": [["prettier", "--write"], ["deno", "fmt"]],
+    "js": [["prettier", "--write"], ["deno", "fmt"]],
+    "jsx": [["prettier", "--write"], ["deno", "fmt"]],
     "swift": [["swift-format", "format", "--in-place"]],
-    "cpp":   [["clang-format", "-i"]],
-    "cc":    [["clang-format", "-i"]],
-    "cxx":   [["clang-format", "-i"]],
-    "c":     [["clang-format", "-i"]],
-    "h":     [["clang-format", "-i"]],
-    "hpp":   [["clang-format", "-i"]],
+    "cpp": [["clang-format", "-i"]],
+    "cc": [["clang-format", "-i"]],
+    "cxx": [["clang-format", "-i"]],
+    "c": [["clang-format", "-i"]],
+    "h": [["clang-format", "-i"]],
+    "hpp": [["clang-format", "-i"]],
 }
+
 
 def get_tool_file_and_content(data: dict[str, Any]) -> tuple[str, str]:
     tool_name = data.get("tool_name", "")
@@ -50,6 +51,7 @@ def get_tool_file_and_content(data: dict[str, Any]) -> tuple[str, str]:
         content = ""
     return file_path, content
 
+
 def run_formatter(file_path: str) -> str | None:
     ext = os.path.splitext(file_path)[1].lstrip(".")
     if not ext or not os.path.isfile(file_path):
@@ -61,7 +63,8 @@ def run_formatter(file_path: str) -> str | None:
                     before = f.read()
                 subprocess.run(
                     [*cmd_parts, file_path],
-                    capture_output=True, timeout=30,
+                    capture_output=True,
+                    timeout=30,
                 )
                 with open(file_path, "rb") as f:
                     after = f.read()
@@ -72,10 +75,12 @@ def run_formatter(file_path: str) -> str | None:
                 pass
     return None
 
+
 def placeholder_patterns(content: str, file_path: str) -> list[str]:
     if is_test_file(file_path):
         return []
     return [pat.pattern for pat in PLACEHOLDER_HARD if pat.findall(content)]
+
 
 def slop_patterns(content: str, file_path: str) -> list[str]:
     hits: list[str] = []
@@ -96,6 +101,7 @@ def sycophancy_patterns(content: str) -> list[str]:
             hits.append(pat.pattern)
     return hits[:5]
 
+
 def main() -> None:
     data = read_stdin()
     if not data:
@@ -105,8 +111,7 @@ def main() -> None:
         passthrough()
     formatter_used = run_formatter(file_path)
     format_note = (
-        f" [format] File was auto-formatted by {formatter_used}. Your output was adjusted."
-        if formatter_used else ""
+        f" [format] File was auto-formatted by {formatter_used}. Your output was adjusted." if formatter_used else ""
     )
     if not content:
         if format_note:
@@ -143,6 +148,7 @@ def main() -> None:
     if format_note:
         warn(format_note.strip())
     passthrough()
+
 
 if __name__ == "__main__":
     main()

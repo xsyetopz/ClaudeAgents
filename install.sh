@@ -33,6 +33,10 @@ usage() {
 }
 
 check_version() {
+    if [[ "${CI:-}" == "true" ]]; then
+        info "CI mode — skipping claude CLI version check"
+        return
+    fi
     command -v claude &>/dev/null || die "claude CLI not found. Install Claude Code first."
     version=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
     [[ -z "$version" ]] && { warn "Could not parse claude version, proceeding anyway"; return; }
@@ -951,7 +955,10 @@ main() {
 
     report_summary
 
-    [[ $ERRORS -gt 0 ]] && { echo -e "\n${RED}$ERRORS validation error(s) found. Check output above.${NC}"; exit 1; } || true
+    if [[ $ERRORS -gt 0 ]]; then
+        echo -e "\n${RED}$ERRORS validation error(s) found. Check output above.${NC}"
+        exit 1
+    fi
 
     # RTK install prompt - always last
     install_rtk

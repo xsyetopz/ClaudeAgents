@@ -68,7 +68,9 @@ prepare_dir() {
     shift
     rm -rf "$dst"
     mkdir -p "$dst"
-    [[ $# -gt 0 ]] && cp "$@" "$dst"/ || true
+    if [[ $# -gt 0 ]]; then
+        cp "$@" "$dst"/
+    fi
 }
 
 stage_agent() {
@@ -144,7 +146,10 @@ validate_dist() {
         fi
     fi
     echo ""
-    [[ $ERRORS -gt 0 ]] && { echo -e "${RED}Build failed with $ERRORS error(s).${NC}"; exit 1; } || true
+    if [[ $ERRORS -gt 0 ]]; then
+        echo -e "${RED}Build failed with $ERRORS error(s).${NC}"
+        exit 1
+    fi
 }
 
 echo -e "${GREEN}Building ClaudeAgents plugin (package: $PACKAGE)${NC}\n"
