@@ -470,7 +470,7 @@ update_interactive() {
 
     # Check global extras
     if [[ "$INSTALL_SCOPE" == "global" ]]; then
-        diff_file "cca-statusline.sh" "$HOME/.claude/cca-statusline.sh" "$REPO_DIR/statusline/cca-statusline.sh" || changes=$((changes + 1))
+        diff_file "statusline-command.sh" "$HOME/.claude/statusline-command.sh" "$REPO_DIR/statusline/statusline-command.sh" || changes=$((changes + 1))
         diff_file "output-style: cca.md" "$HOME/.claude/output-styles/cca.md" "$REPO_DIR/output-styles/cca.md" || changes=$((changes + 1))
     fi
 
@@ -509,7 +509,6 @@ copy_agents() {
 copy_skills() {
     SKILL_COUNT=0
     echo -e "\nSkills:"
-    # Clean up old bare-name skills from previous installs
     for skill_dir in "$CLAUDE_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         local dir_name
@@ -522,11 +521,10 @@ copy_skills() {
         [[ -d "$skill_dir" ]] || continue
         local skill_name
         skill_name=$(basename "$skill_dir")
-        # Skip if interactive mode selected specific skills
         if [[ -n "$SELECTED_SKILLS" ]] && ! echo "$SELECTED_SKILLS" | grep -qw "$skill_name"; then
             continue
         fi
-        local dest_name="cca-${skill_name}"
+        local dest_name="${skill_name}"
         mkdir -p "$CLAUDE_DIR/skills/$dest_name"
         for skill_file in "$skill_dir"*; do
             [[ -f "$skill_file" ]] || continue
@@ -545,14 +543,12 @@ copy_hooks_scripts() {
         [[ -f "$src" ]] && { cp "$src" "$dest"; chmod +x "$dest"; info "$hook -> ~/.claude/hooks/ (user-level)"; }
     done
 
-    # Install package-specific hooks.json (fall back to base hooks.json)
     local hooks_src="$REPO_DIR/hooks/configs/$PACKAGE.json"
     [[ -f "$hooks_src" ]] || hooks_src="$REPO_DIR/hooks/configs/base.json"
     cp "$hooks_src" "$CLAUDE_DIR/hooks.json"
     info "hooks.json -> project hooks (package: $PACKAGE)"
 
     if [[ -d "$REPO_DIR/hooks/scripts" ]]; then
-        # Self-install: symlink instead of copy to avoid duplication
         local resolved_repo resolved_target
         resolved_repo=$(cd "$REPO_DIR" && pwd -P)
         resolved_target=$(cd "$TARGET_DIR" && pwd -P 2>/dev/null || echo "")
@@ -574,18 +570,16 @@ install_global_extras() {
     [[ "$INSTALL_SCOPE" != "global" ]] && return
     echo -e "\nGlobal extras:"
 
-    # Statusline
-    if [[ -f "$REPO_DIR/statusline/cca-statusline.sh" ]]; then
-        cp "$REPO_DIR/statusline/cca-statusline.sh" "$HOME/.claude/cca-statusline.sh"
-        chmod +x "$HOME/.claude/cca-statusline.sh"
-        info "cca-statusline.sh -> ~/.claude/"
+    if [[ -f "$REPO_DIR/statusline/statusline-command.sh" ]]; then
+        cp "$REPO_DIR/statusline/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
+        chmod +x "$HOME/.claude/statusline-command.sh"
+        info "statusline-command.sh -> ~/.claude/"
     elif [[ -f "$REPO_DIR/templates/statusline-command.sh" ]]; then
         cp "$REPO_DIR/templates/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
         chmod +x "$HOME/.claude/statusline-command.sh"
         info "statusline-command.sh -> ~/.claude/ (legacy)"
     fi
 
-    # Output style
     if [[ -f "$REPO_DIR/output-styles/cca.md" ]]; then
         mkdir -p "$HOME/.claude/output-styles"
         cp "$REPO_DIR/output-styles/cca.md" "$HOME/.claude/output-styles/cca.md"
@@ -607,14 +601,12 @@ settings_json_merge_global() {
     local TEMPLATE="$REPO_DIR/templates/settings-global.json"
     [[ -f "$TEMPLATE" ]] || { warn "templates/settings-global.json not found - skipping global settings"; return; }
 
-    # Determine model setting based on package tier
     local cca_model="opusplan"
     case "$PACKAGE" in
         max|enterprise) cca_model="opus[1m]" ;;
         pro)            cca_model="opusplan" ;;
     esac
 
-    # Substitute __HOME__ and __CCA_MODEL__ placeholders
     local tmp_template
     tmp_template=$(mktemp)
     sed -e "s|__HOME__|$HOME|g" -e "s|__CCA_MODEL__|$cca_model|g" "$TEMPLATE" > "$tmp_template"
@@ -723,39 +715,6 @@ install_template() {
     else
         warn "Skipping CLAUDE.md for global install (install per-project instead)"
     fi
-}
-
-install_mcp_harness() {
-    echo -e "\nMCP Harness:"
-    if ! command -v bun &>/dev/null; then
-        warn "Bun not found — MCP harness not installed. Install bun: https://bun.sh"
-        return
-    fi
-    if [[ ! -f "$REPO_DIR/mcp/package.json" ]]; then
-        warn "mcp/package.json not found — skipping"
-        return
-    fi
-    (cd "$REPO_DIR/mcp" && bun install --production 2>/dev/null) || { warn "bun install failed for MCP harness"; return; }
-    # Generate .mcp.json at target
-    local mcp_json="$TARGET_DIR/.mcp.json"
-    local harness_path="$REPO_DIR/mcp/src/index.ts"
-    if [[ "$INSTALL_SCOPE" == "global" ]]; then
-        mcp_json="$HOME/.mcp.json"
-    fi
-    cat > "$mcp_json" <<MCPEOF
-{
-  "mcpServers": {
-    "cca-harness": {
-      "type": "stdio",
-      "command": "bun",
-      "args": ["run", "$harness_path"],
-      "env": { "CCA_PACKAGE": "$PACKAGE" }
-    }
-  }
-}
-MCPEOF
-    info "MCP harness configured (package: $PACKAGE)"
-    info ".mcp.json written to $mcp_json"
 }
 
 install_rtk() {
