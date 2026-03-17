@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  shellcheck:
+    name: Shell Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Lint shell scripts
+        run: shellcheck install.sh build-plugin.sh uninstall.sh hooks/scripts/_run.sh templates/statusline.sh
+
+  ruff:
+    name: Python Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Lint
+        run: ruff check hooks/scripts/ hooks/user/
+      - name: Format check
+        run: ruff format --check hooks/scripts/ hooks/user/
+
+  jsonlint:
+    name: JSON Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JSON files
+        run: |
+          find . -name '*.json' -not -path './node_modules/*' -not -path './dist/*' -not -path './mcp/node_modules/*' | while read f; do
+            python3 -c "import json; json.load(open('$f'))" 2>&1 || { echo "Invalid JSON: $f"; exit 1; }
+          done
+
+  hook-tests:
+    name: Hook Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install pytest
+      - name: Run tests
+        run: pytest tests/ -v
+
+  install-test:
+    name: Install Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Test --pro install
+        run: |
+          mkdir -p /tmp/test-pro
+          ./install.sh /tmp/test-pro --pro 2>&1
+          # Verify key files exist
+          test -d /tmp/test-pro/.claude/agents
+          test -d /tmp/test-pro/.claude/skills
+          test -f /tmp/test-pro/.claude/hooks/hooks.json
+          # Verify no placeholder remnants
+          ! grep -r '__SHARED_CONSTRAINTS__' /tmp/test-pro/.claude/agents/ || exit 1
+          ! grep -r '__PACKAGE_CONSTRAINTS__' /tmp/test-pro/.claude/agents/ || exit 1
+          # Verify hooks.json is valid JSON
+          python3 -c "import json; json.load(open('/tmp/test-pro/.claude/hooks/hooks.json'))"
+          echo "Pro install validated"
+      - name: Test --max install
+        run: |
+          mkdir -p /tmp/test-max
+          ./install.sh /tmp/test-max --max 2>&1
+          # Verify opus models for athena/nemesis/odysseus
+          grep -q 'model: opus' /tmp/test-max/.claude/agents/athena.md
+          grep -q 'model: opus' /tmp/test-max/.claude/agents/nemesis.md
+          grep -q 'model: opus' /tmp/test-max/.claude/agents/odysseus.md
+          # Verify sonnet for hephaestus
+          grep -q 'model: sonnet' /tmp/test-max/.claude/agents/hephaestus.md
+          echo "Max install validated"
+
+  plugin-build:
+    name: Plugin Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Build plugin
+        run: ./build-plugin.sh pro
+      - name: Validate build output
+        run: |
+          test -d dist/claude-agents-plugin
+          test -f dist/claude-agents-plugin/plugin.json
+          python3 -c "import json; json.load(open('dist/claude-agents-plugin/plugin.json'))"
+          # No placeholder remnants
+          ! grep -r '__SHARED_CONSTRAINTS__' dist/claude-agents-plugin/ || exit 1
+          ! grep -r '__PACKAGE_CONSTRAINTS__' dist/claude-agents-plugin/ || exit 1
+          echo "Plugin build validated"

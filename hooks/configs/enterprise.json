@@ -1,5 +1,16 @@
 {
 	"hooks": {
+		"UserPromptSubmit": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/user-prompt-submit.py",
+						"timeout": 5
+					}
+				]
+			}
+		],
 		"SessionStart": [
 			{
 				"hooks": [
@@ -77,6 +88,17 @@
 				]
 			}
 		],
+		"PostToolUseFailure": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/post-failure.py",
+						"timeout": 5
+					}
+				]
+			}
+		],
 		"SubagentStop": [
 			{
 				"matcher": "athena|hephaestus|nemesis|atalanta|calliope|hermes|odysseus",
@@ -97,9 +119,46 @@
 				]
 			}
 		],
+		"TeammateIdle": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/teammate-idle.py",
+						"timeout": 5
+					}
+				]
+			}
+		],
+		"Notification": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/notification.py",
+						"timeout": 3
+					}
+				]
+			}
+		],
+		"PermissionRequest": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/permission-request.py",
+						"timeout": 3
+					}
+				]
+			}
+		],
 		"Stop": [
 			{
 				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "Before stopping: Did you complete ALL parts of the original request? If you're about to stop with work remaining, explicitly list what was NOT done and why. Do not rationalize partial completion as 'sufficient' or 'the rest can be done later' — either complete it or flag it clearly."
+					},
 					{
 						"type": "command",
 						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/stop-scan.py",
@@ -107,7 +166,18 @@
 					},
 					{
 						"type": "prompt",
-						"prompt": "Before ending: check if significant work was done this session (files modified, decisions made, multi-step tasks in progress). If so, and if .claude/session-handoff.md does not exist or is stale (older than today), suggest: 'Run /cca:session-export to save a handoff for your next session.' Do NOT auto-export \u2014 only remind if significant work happened."
+						"prompt": "Before ending: check if significant work was done this session (files modified, decisions made, multi-step tasks in progress). If so, and if .claude/session-handoff.md does not exist or is stale (older than today), suggest: 'Run /cca:session-export to save a handoff for your next session.' Do NOT auto-export — only remind if significant work happened."
+					}
+				]
+			}
+		],
+		"SessionEnd": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/session-end.py",
+						"timeout": 5
 					}
 				]
 			}

@@ -1,0 +1,43 @@
+name: New Agent Submission
+description: Submit a community agent
+labels: ["agent-submission"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Agent name
+      placeholder: "e.g., Prometheus"
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: What does this agent do? When should it be used?
+    validations:
+      required: true
+  - type: dropdown
+    id: model
+    attributes:
+      label: Recommended model
+      options:
+        - haiku
+        - sonnet
+        - opus
+    validations:
+      required: true
+  - type: textarea
+    id: definition
+    attributes:
+      label: Agent definition
+      description: Paste the full agent markdown file content.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: testing
+    attributes:
+      label: How did you test it?
+      description: Describe test scenarios and results.
+    validations:
+      required: true

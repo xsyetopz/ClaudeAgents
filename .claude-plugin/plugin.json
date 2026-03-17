@@ -1,13 +1,16 @@
 {
 	"name": "cca",
-	"version": "0.3.1",
-	"description": "7 specialised agents, 10 skills, and quality hooks for Claude Code",
+	"version": "0.4.0",
+	"description": "7 specialised agents, 10 skills, 13 safety hooks for Claude Code",
 	"author": {
 		"name": "xsyetopz",
 		"url": "https://github.com/xsyetopz"
 	},
 	"repository": "https://github.com/xsyetopz/ClaudeAgents",
 	"license": "MIT",
-	"keywords": ["agents", "skills", "hooks", "code-quality", "desloppify"],
-	"skills": "./skills/"
+	"keywords": ["agents", "skills", "hooks", "code-quality", "safety", "orchestration", "desloppify"],
+	"agents": "./agents/",
+	"skills": "./skills/",
+	"hooks": "./hooks/hooks.json",
+	"commands": "./commands/"
 }

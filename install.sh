@@ -65,6 +65,283 @@ apply_package_models() {
     esac
 }
 
+# --- TUI primitives (pure bash, no external dependencies) ---
+
+INTERACTIVE="false"
+SELECTED_AGENTS=""
+SELECTED_SKILLS=""
+
+# Repeat a character N times without seq (pure bash)
+_repeat_char() {
+    local char="$1" count="$2" result=""
+    for ((i = 0; i < count; i++)); do result+="$char"; done
+    printf '%s' "$result"
+}
+
+tui_clear_screen() {
+    printf '\033[2J\033[H'
+}
+
+tui_hide_cursor() {
+    printf '\033[?25l'
+}
+
+tui_show_cursor() {
+    printf '\033[?25h'
+}
+
+tui_move_to() {
+    printf '\033[%d;%dH' "$1" "$2"
+}
+
+tui_box() {
+    local title="$1" width="$2" start_row="$3"
+    local border_top border_bottom
+    local inner=$((width - 4))
+    border_top=$(_repeat_char '─' $((inner + 2)))
+    border_bottom="$border_top"
+    tui_move_to "$start_row" 2
+    printf "${GREEN}╭─ %s %s╮${NC}" "$title" "${border_top:$((${#title} + 1))}"
+    tui_move_to $((start_row + 1)) 2
+    printf "${GREEN}│${NC}%*s${GREEN}│${NC}" "$((inner + 2))" ""
+}
+
+tui_box_bottom() {
+    local width="$1" row="$2" hint="$3"
+    local inner=$((width - 4))
+    local border
+    border=$(_repeat_char '─' $((inner + 2)))
+    tui_move_to "$row" 2
+    if [[ -n "$hint" ]]; then
+        local pad=$((inner + 2 - ${#hint}))
+        printf "${GREEN}╰%s %s╯${NC}" "${border:$((${#hint} + 1))}" "$hint"
+    else
+        printf "${GREEN}╰%s╯${NC}" "$border"
+    fi
+}
+
+tui_box_line() {
+    local width="$1" row="$2" content="$3"
+    local inner=$((width - 4))
+    tui_move_to "$row" 2
+    printf "${GREEN}│${NC}  %-${inner}s${GREEN}│${NC}" "$content"
+}
+
+tui_read_key() {
+    local key
+    IFS= read -rsn1 key 2>/dev/null
+    if [[ "$key" == $'\x1b' ]]; then
+        read -rsn2 -t 0.1 key 2>/dev/null
+        case "$key" in
+            '[A') echo "up" ;;
+            '[B') echo "down" ;;
+            *) echo "escape" ;;
+        esac
+    elif [[ "$key" == "" ]]; then
+        echo "enter"
+    elif [[ "$key" == " " ]]; then
+        echo "space"
+    elif [[ "$key" == "q" ]]; then
+        echo "quit"
+    else
+        echo "$key"
+    fi
+}
+
+# Single-select: returns index (0-based)
+tui_select_one() {
+    local title="$1"
+    shift
+    local options=("$@")
+    local selected=0
+    local count=${#options[@]}
+    local width=54
+    local header_rows=4
+
+    while true; do
+        tui_clear_screen
+        tui_box "$title" "$width" 2
+        tui_box_line "$width" 3 ""
+        local row=4
+        for i in "${!options[@]}"; do
+            local marker="  "
+            local prefix="○"
+            if [[ $i -eq $selected ]]; then
+                marker="${GREEN}›${NC} "
+                prefix="${GREEN}●${NC}"
+            fi
+            tui_box_line "$width" "$row" ""
+            tui_move_to "$row" 4
+            printf "%b %b %s" "$marker" "$prefix" "${options[$i]}"
+            row=$((row + 1))
+        done
+        tui_box_line "$width" "$row" ""
+        tui_box_bottom "$width" $((row + 1)) "↑↓ navigate · ⏎ select"
+
+        local key
+        key=$(tui_read_key)
+        case "$key" in
+            up)    selected=$(( (selected - 1 + count) % count )) ;;
+            down)  selected=$(( (selected + 1) % count )) ;;
+            enter) break ;;
+            quit)  tui_show_cursor; exit 0 ;;
+        esac
+    done
+    echo "$selected"
+}
+
+# Multi-select: returns space-separated indices
+tui_select_many() {
+    local title="$1"
+    shift
+    local labels=("$@")
+    local count=${#labels[@]}
+    local width=56
+    local cursor=0
+    # Initialize all selected
+    local -a checked
+    for i in "${!labels[@]}"; do
+        checked[$i]=1
+    done
+
+    while true; do
+        tui_clear_screen
+        tui_box "$title" "$width" 2
+        tui_box_line "$width" 3 ""
+        local row=4
+        for i in "${!labels[@]}"; do
+            local marker="  "
+            local check="[ ]"
+            if [[ $i -eq $cursor ]]; then
+                marker="${GREEN}›${NC} "
+            fi
+            if [[ ${checked[$i]} -eq 1 ]]; then
+                check="${GREEN}[✓]${NC}"
+            fi
+            tui_box_line "$width" "$row" ""
+            tui_move_to "$row" 4
+            printf "%b %b %s" "$marker" "$check" "${labels[$i]}"
+            row=$((row + 1))
+        done
+        tui_box_line "$width" "$row" ""
+        row=$((row + 1))
+        tui_box_line "$width" "$row" ""
+        tui_move_to "$row" 5
+        printf "[a] all  [n] none"
+        row=$((row + 1))
+        tui_box_line "$width" "$row" ""
+        tui_box_bottom "$width" $((row + 1)) "↑↓ navigate · ␣ toggle · ⏎ done"
+
+        local key
+        key=$(tui_read_key)
+        case "$key" in
+            up)    cursor=$(( (cursor - 1 + count) % count )) ;;
+            down)  cursor=$(( (cursor + 1) % count )) ;;
+            space) checked[$cursor]=$(( 1 - ${checked[$cursor]} )) ;;
+            enter) break ;;
+            a)     for i in "${!labels[@]}"; do checked[$i]=1; done ;;
+            n)     for i in "${!labels[@]}"; do checked[$i]=0; done ;;
+            quit)  tui_show_cursor; exit 0 ;;
+        esac
+    done
+    local result=""
+    for i in "${!labels[@]}"; do
+        [[ ${checked[$i]} -eq 1 ]] && result="$result $i"
+    done
+    echo "$result"
+}
+
+interactive_mode() {
+    tui_hide_cursor
+    trap 'tui_show_cursor' EXIT
+
+    # Screen 1: Install scope
+    local scope_result
+    scope_result=$(tui_select_one "Install Location" \
+        "This directory  ($(pwd))" \
+        "Global          (~/.claude/)" \
+    )
+    case "$scope_result" in
+        0) INSTALL_SCOPE="project"; TARGET_DIR="$(pwd)" ;;
+        1) INSTALL_SCOPE="global" ;;
+    esac
+
+    # Screen 2: Package tier
+    local tier_result
+    tier_result=$(tui_select_one "Package Tier" \
+        "Pro         Sonnet everywhere (Haiku for tests)" \
+        "Max         + Opus for planning/review" \
+        "Enterprise  + audit logs, DLP, compliance" \
+    )
+    case "$tier_result" in
+        0) PACKAGE="pro" ;;
+        1) PACKAGE="max" ;;
+        2) PACKAGE="enterprise" ;;
+    esac
+
+    # Screen 3: Agent selection
+    local agent_indices
+    agent_indices=$(tui_select_many "Agents" \
+        "@athena      Plans, designs, architects" \
+        "@hephaestus  Writes code, fixes bugs" \
+        "@nemesis     Reviews code, audits security" \
+        "@atalanta    Runs tests, finds root causes" \
+        "@calliope    Writes docs (markdown only)" \
+        "@hermes      Explores codebases, traces flows" \
+        "@odysseus    Coordinates multi-step tasks" \
+    )
+    local agent_names=(athena hephaestus nemesis atalanta calliope hermes odysseus)
+    SELECTED_AGENTS=""
+    for idx in $agent_indices; do
+        SELECTED_AGENTS="$SELECTED_AGENTS ${agent_names[$idx]}"
+    done
+
+    # Screen 4: Skill selection
+    local skill_indices
+    skill_indices=$(tui_select_many "Skills" \
+        "review-code     Code review" \
+        "desloppify      Remove AI slop" \
+        "ship            Commits, branches, PRs" \
+        "decide          Present options + tradeoffs" \
+        "audit-security  Security audit (OWASP)" \
+        "test-patterns   Test strategy + coverage" \
+        "document        Docs: READMEs, ADRs" \
+        "optimize        Performance optimization" \
+        "handle-errors   Error handling patterns" \
+        "session-export  Session handoff" \
+    )
+    local skill_names=(review-code desloppify ship decide audit-security test-patterns document optimize handle-errors session-export)
+    SELECTED_SKILLS=""
+    for idx in $skill_indices; do
+        SELECTED_SKILLS="$SELECTED_SKILLS ${skill_names[$idx]}"
+    done
+
+    # Screen 5: Options
+    local option_result
+    option_result=$(tui_select_many "Options" \
+        "Zen mode     (plan-first, quiet, ask-first)" \
+        "Agent Teams  (experimental multi-agent)" \
+    )
+    for idx in $option_result; do
+        case "$idx" in
+            0) ZEN_MODE="true" ;;
+        esac
+    done
+
+    tui_show_cursor
+    tui_clear_screen
+    echo -e "${GREEN}ClaudeAgents Installer${NC}"
+    echo ""
+    echo "  Scope:    $INSTALL_SCOPE"
+    echo "  Tier:     $PACKAGE"
+    echo "  Agents:   $(echo $SELECTED_AGENTS | xargs)"
+    echo "  Skills:   $(echo $SELECTED_SKILLS | xargs)"
+    echo "  Zen mode: $ZEN_MODE"
+    echo ""
+    echo -e "Installing..."
+    echo ""
+}
+
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -86,45 +363,36 @@ parse_args() {
 }
 
 make_dirs() {
-    mkdir -p "$CLAUDE_DIR"/{agents,skills,hooks/scripts}
+    mkdir -p "$CLAUDE_DIR"/{agents,skills,hooks/scripts,commands}
     mkdir -p "$HOME/.claude/hooks"
 }
 
 substitute_and_copy() {
     local src="$1"
     local dest="$2"
-    local shared_constraints="" package_constraints=""
-    if [[ -f "$REPO_DIR/constraints/shared.md" ]]; then
-        shared_constraints=$(cat "$REPO_DIR/constraints/shared.md")
-    fi
-    if [[ -f "$REPO_DIR/constraints/$PACKAGE.md" ]]; then
-        package_constraints=$(cat "$REPO_DIR/constraints/$PACKAGE.md")
-    fi
-    local tmp tmp2
+    local tmp
     tmp=$(mktemp)
-    tmp2=$(mktemp)
     apply_package_models "$src" "$tmp"
-    if grep -q '__SHARED_CONSTRAINTS__' "$tmp" 2>/dev/null && [[ -n "$shared_constraints" ]]; then
-        awk -v constraints="$shared_constraints" '{gsub(/__SHARED_CONSTRAINTS__/, constraints); print}' "$tmp" > "$tmp2"
-    else
-        cp "$tmp" "$tmp2"
-    fi
-    if grep -q '__PACKAGE_CONSTRAINTS__' "$tmp2" 2>/dev/null && [[ -n "$package_constraints" ]]; then
-        awk -v constraints="$package_constraints" '{gsub(/__PACKAGE_CONSTRAINTS__/, constraints); print}' "$tmp2" > "$dest"
-    else
-        cp "$tmp2" "$dest"
-    fi
+    # Use Python for multiline-safe substitution (awk breaks on newlines in -v)
+    local pkg_file=""
+    [[ -f "$REPO_DIR/constraints/$PACKAGE.md" ]] && pkg_file="$REPO_DIR/constraints/$PACKAGE.md"
+    python3 -c "
+import sys
+text = open(sys.argv[1]).read()
+shared = open(sys.argv[2]).read() if sys.argv[2] != '' else ''
+pkg = open(sys.argv[3]).read() if sys.argv[3] != '' else ''
+text = text.replace('__SHARED_CONSTRAINTS__', shared)
+text = text.replace('__PACKAGE_CONSTRAINTS__', pkg)
+open(sys.argv[4], 'w').write(text)
+" "$tmp" "${REPO_DIR}/constraints/shared.md" "$pkg_file" "$dest"
     # Rewrite skill refs from plugin format (cca:skill) to manual format (cca-skill)
-    local tmp3
-    tmp3=$(mktemp)
-    sed 's|  - cca:|  - cca-|g' "$dest" > "$tmp3" && mv "$tmp3" "$dest"
+    local tmp2
+    tmp2=$(mktemp)
+    sed 's|  - cca:|  - cca-|g' "$dest" > "$tmp2" && mv "$tmp2" "$dest"
     if [[ "$ZEN_MODE" == "true" && -f "$REPO_DIR/constraints/zen.md" ]]; then
-        local zen_constraints
-        zen_constraints=$(cat "$REPO_DIR/constraints/zen.md")
-        echo "" >> "$dest"
-        echo "$zen_constraints" >> "$dest"
+        cat "$REPO_DIR/constraints/zen.md" >> "$dest"
     fi
-    rm -f "$tmp" "$tmp2"
+    rm -f "$tmp"
 }
 
 # --- Diff helpers for --update mode ---
@@ -223,6 +491,12 @@ copy_agents() {
     echo -e "\nAgents:"
     for agent in "$REPO_DIR"/agents/*.md; do
         [[ -f "$agent" ]] || continue
+        local name
+        name=$(basename "$agent" .md)
+        # Skip if interactive mode selected specific agents
+        if [[ -n "$SELECTED_AGENTS" ]] && ! echo "$SELECTED_AGENTS" | grep -qw "$name"; then
+            continue
+        fi
         local dest="$CLAUDE_DIR/agents/$(basename "$agent")"
         substitute_and_copy "$agent" "$dest"
         info "$(basename "$agent") (model substituted)"
@@ -244,6 +518,10 @@ copy_skills() {
     for skill_dir in "$REPO_DIR"/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         local skill_name=$(basename "$skill_dir")
+        # Skip if interactive mode selected specific skills
+        if [[ -n "$SELECTED_SKILLS" ]] && ! echo "$SELECTED_SKILLS" | grep -qw "$skill_name"; then
+            continue
+        fi
         local dest_name="cca-${skill_name}"
         mkdir -p "$CLAUDE_DIR/skills/$dest_name"
         for skill_file in "$skill_dir"*; do
@@ -253,6 +531,21 @@ copy_skills() {
         info "$dest_name"
         SKILL_COUNT=$((SKILL_COUNT + 1))
     done
+}
+
+copy_commands() {
+    local cmd_src="$REPO_DIR/commands"
+    [[ -d "$cmd_src" ]] || return 0
+    local cmd_count=0
+    echo -e "\nCommands:"
+    mkdir -p "$CLAUDE_DIR/commands"
+    for cmd in "$cmd_src"/*.md; do
+        [[ -f "$cmd" ]] || continue
+        cp "$cmd" "$CLAUDE_DIR/commands/$(basename "$cmd")"
+        info "$(basename "$cmd")"
+        cmd_count=$((cmd_count + 1))
+    done
+    [[ $cmd_count -eq 0 ]] && info "no commands to install" || true
 }
 
 copy_hooks_scripts() {
@@ -610,7 +903,14 @@ diagnose_hooks() {
 }
 
 main() {
-    parse_args "$@"
+    # Interactive mode: when no args and stdin is a TTY
+    if [[ $# -eq 0 && -t 0 && -t 1 ]]; then
+        INTERACTIVE="true"
+        interactive_mode
+    else
+        parse_args "$@"
+    fi
+
     check_version
     check_python
 
@@ -637,6 +937,7 @@ main() {
     make_dirs
     copy_agents
     copy_skills
+    copy_commands
     copy_hooks_scripts
     install_global_extras
     settings_json_merge
