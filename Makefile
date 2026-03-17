@@ -1,4 +1,4 @@
-.PHONY: lint format test validate build clean install-dev
+.PHONY: lint format test validate build clean install-global install-dev
 
 lint:
 	shellcheck install.sh build-plugin.sh uninstall.sh hooks/scripts/_run.sh templates/statusline.sh
@@ -22,10 +22,13 @@ build:
 	./build-plugin.sh pro
 	@echo "Plugin built to dist/claude-agents-plugin/"
 
+install-global:
+	./install.sh --global --max
+	@echo "Installed to ~/.claude/"
+
 install-dev:
-	@mkdir -p /tmp/cca-test
-	./install.sh /tmp/cca-test --max
-	@echo "Dev install to /tmp/cca-test complete."
+	@read -p "Install target directory: " dir && ./install.sh "$$dir" --max
+	@echo "Done."
 
 clean:
 	rm -rf dist/ __pycache__ .pytest_cache .ruff_cache
