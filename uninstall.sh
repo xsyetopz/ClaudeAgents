@@ -27,7 +27,11 @@ parse_args() {
             --global) INSTALL_SCOPE="global"; shift ;;
             -h|--help) usage ;;
             *)
-                [[ -z "$TARGET_DIR" ]] && TARGET_DIR="$1" || die "Too many arguments"
+                if [[ -z "$TARGET_DIR" ]]; then
+                    TARGET_DIR="$1"
+                else
+                    die "Too many arguments"
+                fi
                 shift ;;
         esac
     done
