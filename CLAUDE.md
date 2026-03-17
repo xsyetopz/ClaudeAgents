@@ -1,6 +1,6 @@
 # ClaudeAgents
 
-7 agents, 10 skills, split-level hooks. Targets CC v2.1.75+.
+7 agents, 10 skills, 13 hooks (all 13 lifecycle events). Targets CC v2.1.75+.
 
 ## Agents
 
@@ -33,51 +33,59 @@ Plugin install (`claude plugin install cca`) gives the `cca:` prefix. Manual ins
 | `handle-errors`  | `/cca:handle-errors`  | `/cca-handle-errors`  | Active |
 | `session-export` | `/cca:session-export` | `/cca-session-export` | Active |
 
+## Team Commands
+
+| Command         | Pipeline                                                     |
+| --------------- | ------------------------------------------------------------ |
+| `/team-review`  | @hermes -> @nemesis -> @atalanta                              |
+| `/team-feature` | @athena -> @hephaestus -> @nemesis -> @atalanta               |
+| `/team-debug`   | @hermes -> @hephaestus -> @atalanta                           |
+| `/team-refactor`| @athena -> @hephaestus -> @nemesis                            |
+| `/team-ship`    | @nemesis -> @atalanta -> /cca:ship                            |
+
 ## Hooks
 
+13/13 lifecycle events covered. User-level + project-level.
+
 **User-level** (`~/.claude/hooks/`):
+- `pre-secrets.py` - PreToolUse: blocks .env reads/writes, auth-header echoes, force-push to main
 
-- `pre-secrets.py` - PreToolUse: blocks .env reads/writes, auth-header echoes, force-push to main, broad rm -rf
+**Project-level** (`hooks.json`):
+- UserPromptSubmit -> `user-prompt-submit.py` (git context injection)
+- SessionStart -> `session-budget.py` (line budget warnings)
+- PreToolUse -> `pre-schema.py` + `pre-bash.py` + `pre-post-proxy.py`
+- PostToolUse -> LSP prompt + `post-write.py` + `post-bash.py` + `pre-post-proxy.py`
+- PostToolUseFailure -> `post-failure.py` (retry loop detection)
+- SubagentStop -> scope-reduction prompt + `subagent-scan.py` + collaboration prompt
+- TeammateIdle -> `teammate-idle.py` (force continuation)
+- Stop -> anti-rationalization prompt + `stop-scan.py`
+- SessionEnd -> `session-end.py` (cleanup + audit summary)
+- Notification -> `notification.py` (audit logging)
+- PermissionRequest -> `permission-request.py` (audit trail)
 
-**Project-level** (`.claude/settings.json` -> `hooks.json`):
-
-- SessionStart -> `session-budget.py` - warns when CLAUDE.md/MEMORY.md exceeds line budget
-- PreToolUse[Bash] -> `pre-bash.py` - blocks large-output commands + commit quality checks
-- PostToolUse[Write|Edit] -> LSP prompt + `post-write.py` (auto-format + placeholder + comment-slop)
-- SubagentStop[agents] -> scope-reduction prompt + `subagent-scan.py` + collaboration-protocol prompt
-- Stop -> `stop-scan.py` + session-export reminder prompt
-
-## Install
+## Development
 
 ```bash
-# Plugin (marketplace)
-claude plugin install cca
-
-# Manual (to a project)
-./install.sh /path/to/project --pro        # sonnet (haiku for atalanta/calliope)
-./install.sh /path/to/project --max        # opus for athena/nemesis/odysseus
-./install.sh /path/to/project --enterprise # max + audit logs, DLP, compliance
-./install.sh /path/to/project --max --zen-mode  # composable zen constraints
-./install.sh --global --pro                # ~/.claude/
+make lint      # shellcheck + ruff + jsonlint
+make test      # pytest (65 tests)
+make build     # build plugin
+make validate  # lint + test + build
 ```
 
 ## File Structure
 
 ```text
 .claude-plugin/  plugin.json (marketplace manifest)
-agents/          athena.md, hephaestus.md, nemesis.md, atalanta.md,
-                 calliope.md, hermes.md, odysseus.md
-skills/          review-code/, desloppify/, ship/,
-                 decide/, audit-security/, test-patterns/,
-                 document/, optimize/, handle-errors/,
-                 session-export/
+.github/         workflows/ (ci.yml, release.yml), ISSUE_TEMPLATE/, CONTRIBUTING.md
+agents/          7 agent definitions (athena, hephaestus, nemesis, atalanta, calliope, hermes, odysseus)
+commands/        team-review, team-feature, team-debug, team-refactor, team-ship
+skills/          10 skill directories (review-code, desloppify, ship, decide, audit-security, etc.)
 hooks/           configs/ (base.json, pro.json, max.json, enterprise.json)
                  user/ (pre-secrets.py, rtk-rewrite.sh)
-                 scripts/ (_lib.py, session-budget.py, pre-schema.py,
-                 pre-bash.py, post-write.py, post-bash.py,
-                 pre-post-proxy.py, subagent-scan.py, stop-scan.py)
+                 scripts/ (_lib.py, _run.sh, 14 hook scripts)
 constraints/     shared.md, pro.md, max.md, enterprise.md, zen.md
 templates/       CLAUDE.md, settings-global.json
+tests/           pytest tests for all hooks
 mcp/             MCP server (cca-harness)
 install.sh       Package flags, model substitution, validation
 build-plugin.sh  Builds marketplace-ready dist from source

@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install ruff pytest
+          sudo apt-get install -y jq shellcheck
+      - name: Lint
+        run: |
+          shellcheck install.sh build-plugin.sh uninstall.sh hooks/scripts/_run.sh templates/statusline.sh
+          ruff check hooks/scripts/ hooks/user/
+      - name: Test
+        run: pytest tests/ -v
+      - name: Build all tiers
+        run: |
+          ./build-plugin.sh pro
+          mv dist/claude-agents-plugin dist/cca-pro
+          ./build-plugin.sh max
+          mv dist/claude-agents-plugin dist/cca-max
+          ./build-plugin.sh enterprise
+          mv dist/claude-agents-plugin dist/cca-enterprise
+      - name: Create release archives
+        run: |
+          cd dist
+          tar -czf cca-pro.tar.gz cca-pro/
+          tar -czf cca-max.tar.gz cca-max/
+          tar -czf cca-enterprise.tar.gz cca-enterprise/
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/cca-pro.tar.gz
+            dist/cca-max.tar.gz
+            dist/cca-enterprise.tar.gz

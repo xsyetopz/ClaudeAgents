@@ -1,0 +1,51 @@
+name: Bug Report
+description: Report a bug in ClaudeAgents
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this?
+    validations:
+      required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package tier
+      options:
+        - pro
+        - max
+        - enterprise
+    validations:
+      required: true
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Code version
+      placeholder: "e.g., 2.1.80"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation method
+      options:
+        - Plugin (claude plugin install cca)
+        - Manual (install.sh)
+    validations:
+      required: true

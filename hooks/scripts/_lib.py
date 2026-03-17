@@ -214,3 +214,30 @@ def stop_message(message: str) -> None:
 
 def passthrough() -> None:
     sys.exit(0)
+
+
+def audit_log(event: str, hook: str, action: str, reason: str = "", tool: str = "", extra=None) -> None:
+    """Write a JSONL audit entry if CCA_HOOK_LOG_DIR is set."""
+    log_dir = os.environ.get("CCA_HOOK_LOG_DIR")
+    if not log_dir:
+        return
+    from datetime import datetime, timezone
+    entry = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "event": event,
+        "hook": hook,
+        "action": action,
+    }
+    if reason:
+        entry["reason"] = reason
+    if tool:
+        entry["tool"] = tool
+    if extra:
+        entry.update(extra)
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, "cca-hooks.jsonl")
+        with open(log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass  # Best-effort logging, never block on write failure
