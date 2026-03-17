@@ -1,23 +1,27 @@
 """Tests that _lib output helpers produce valid CC hook JSON schema."""
+# pyright: reportUnknownArgumentType=false, reportUnknownMemberType=false
 
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest  # type: ignore[import-untyped]
+
+if TYPE_CHECKING:
+    import jsonschema  # type: ignore[import-untyped]
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "hooks" / "scripts"))
 
 SCHEMA_PATH = Path(__file__).parent.parent / "hooks" / "schema" / "hook-output.json"
 
-HAS_JSONSCHEMA: bool = False
+_has_jsonschema: bool = False
 try:
     import jsonschema  # type: ignore[import-untyped]
 
-    HAS_JSONSCHEMA = True
+    _has_jsonschema = True
 except ImportError:
     pass
 
@@ -27,32 +31,32 @@ def load_schema() -> dict[str, Any]:
 
 
 def run_and_capture(
-    func: Callable[..., Any], *args: Any, capsys: pytest.CaptureFixture[str]
+    func: Callable[..., Any], *args: Any, capsys: Any
 ) -> dict[str, Any]:
     """Call a _lib output function, capture stdout, parse JSON."""
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit):  # type: ignore[attr-defined]
         func(*args)
     captured = capsys.readouterr()
     return json.loads(captured.out)  # type: ignore[no-any-return]
 
 
 class TestPostWarn:
-    def test_output_structure(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_output_structure(self, capsys: Any) -> None:
         from _lib import post_warn  # type: ignore[import-not-found]
 
         output = run_and_capture(post_warn, "test message", capsys=capsys)
         assert output["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
         assert output["hookSpecificOutput"]["additionalContext"] == "test message"
 
-    def test_no_extra_fields(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_no_extra_fields(self, capsys: Any) -> None:
         from _lib import post_warn  # type: ignore[import-not-found]
 
         output = run_and_capture(post_warn, "msg", capsys=capsys)
         hso: dict[str, Any] = output["hookSpecificOutput"]
         assert set(hso.keys()) == {"hookEventName", "additionalContext"}
 
-    @pytest.mark.skipif(not HAS_JSONSCHEMA, reason="jsonschema not installed")  # type: ignore[misc]
-    def test_validates_against_schema(self, capsys: pytest.CaptureFixture[str]) -> None:
+    @pytest.mark.skipif(not _has_jsonschema, reason="jsonschema not installed")  # type: ignore[misc]
+    def test_validates_against_schema(self, capsys: Any) -> None:
         from _lib import post_warn  # type: ignore[import-not-found]
 
         output = run_and_capture(post_warn, "test", capsys=capsys)
@@ -60,15 +64,15 @@ class TestPostWarn:
 
 
 class TestGenericWarn:
-    def test_output_structure(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_output_structure(self, capsys: Any) -> None:
         from _lib import generic_warn  # type: ignore[import-not-found]
 
         output = run_and_capture(generic_warn, "warning text", capsys=capsys)
         assert output["reason"] == "warning text"
         assert "hookSpecificOutput" not in output
 
-    @pytest.mark.skipif(not HAS_JSONSCHEMA, reason="jsonschema not installed")  # type: ignore[misc]
-    def test_validates_against_schema(self, capsys: pytest.CaptureFixture[str]) -> None:
+    @pytest.mark.skipif(not _has_jsonschema, reason="jsonschema not installed")  # type: ignore[misc]
+    def test_validates_against_schema(self, capsys: Any) -> None:
         from _lib import generic_warn  # type: ignore[import-not-found]
 
         output = run_and_capture(generic_warn, "test", capsys=capsys)
@@ -76,7 +80,7 @@ class TestGenericWarn:
 
 
 class TestGenericBlock:
-    def test_output_structure(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_output_structure(self, capsys: Any) -> None:
         from _lib import generic_block  # type: ignore[import-not-found]
 
         output = run_and_capture(generic_block, "blocked", capsys=capsys)
@@ -84,8 +88,8 @@ class TestGenericBlock:
         assert output["reason"] == "blocked"
         assert "hookSpecificOutput" not in output
 
-    @pytest.mark.skipif(not HAS_JSONSCHEMA, reason="jsonschema not installed")  # type: ignore[misc]
-    def test_validates_against_schema(self, capsys: pytest.CaptureFixture[str]) -> None:
+    @pytest.mark.skipif(not _has_jsonschema, reason="jsonschema not installed")  # type: ignore[misc]
+    def test_validates_against_schema(self, capsys: Any) -> None:
         from _lib import generic_block  # type: ignore[import-not-found]
 
         output = run_and_capture(generic_block, "test", capsys=capsys)
@@ -95,7 +99,7 @@ class TestGenericBlock:
 class TestDeny:
     """Verify deny() is only valid for PreToolUse context."""
 
-    def test_pretooluse_output(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_pretooluse_output(self, capsys: Any) -> None:
         from _lib import deny  # type: ignore[import-not-found]
 
         output = run_and_capture(deny, "reason", capsys=capsys)
@@ -104,8 +108,8 @@ class TestDeny:
         assert hso["permissionDecision"] == "deny"
         assert hso["permissionDecisionReason"] == "reason"
 
-    @pytest.mark.skipif(not HAS_JSONSCHEMA, reason="jsonschema not installed")  # type: ignore[misc]
-    def test_validates_against_schema(self, capsys: pytest.CaptureFixture[str]) -> None:
+    @pytest.mark.skipif(not _has_jsonschema, reason="jsonschema not installed")  # type: ignore[misc]
+    def test_validates_against_schema(self, capsys: Any) -> None:
         from _lib import deny  # type: ignore[import-not-found]
 
         output = run_and_capture(deny, "reason", capsys=capsys)
@@ -115,14 +119,14 @@ class TestDeny:
 class TestWarn:
     """Verify warn() default event is PostToolUse."""
 
-    def test_default_event(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_default_event(self, capsys: Any) -> None:
         from _lib import warn  # type: ignore[import-not-found]
 
         output = run_and_capture(warn, "msg", capsys=capsys)
         assert output["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
 
-    @pytest.mark.skipif(not HAS_JSONSCHEMA, reason="jsonschema not installed")  # type: ignore[misc]
-    def test_validates_against_schema(self, capsys: pytest.CaptureFixture[str]) -> None:
+    @pytest.mark.skipif(not _has_jsonschema, reason="jsonschema not installed")  # type: ignore[misc]
+    def test_validates_against_schema(self, capsys: Any) -> None:
         from _lib import warn  # type: ignore[import-not-found]
 
         output = run_and_capture(warn, "msg", capsys=capsys)
@@ -130,7 +134,7 @@ class TestWarn:
 
 
 class TestAllow:
-    def test_output_structure(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_output_structure(self, capsys: Any) -> None:
         from _lib import allow  # type: ignore[import-not-found]
 
         output = run_and_capture(allow, "allowed", capsys=capsys)
@@ -138,8 +142,8 @@ class TestAllow:
         assert hso["hookEventName"] == "PreToolUse"
         assert hso["permissionDecision"] == "allow"
 
-    @pytest.mark.skipif(not HAS_JSONSCHEMA, reason="jsonschema not installed")  # type: ignore[misc]
-    def test_validates_against_schema(self, capsys: pytest.CaptureFixture[str]) -> None:
+    @pytest.mark.skipif(not _has_jsonschema, reason="jsonschema not installed")  # type: ignore[misc]
+    def test_validates_against_schema(self, capsys: Any) -> None:
         from _lib import allow  # type: ignore[import-not-found]
 
         output = run_and_capture(allow, "allowed", capsys=capsys)
