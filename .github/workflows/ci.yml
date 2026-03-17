@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate JSON files
         run: |
-          find . -name '*.json' -not -path './node_modules/*' -not -path './dist/*' -not -path './mcp/node_modules/*' | while read f; do
+          find . -name '*.json' -not -path './node_modules/*' -not -path './dist/*' | while read f; do
             python3 -c "import json; json.load(open('$f'))" 2>&1 || { echo "Invalid JSON: $f"; exit 1; }
           done
 

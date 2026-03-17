@@ -66,4 +66,3 @@ All notable changes to ClaudeAgents are documented here. Format follows [Keep a 
 ### Added
 
 - Initial release: 7 agents, 10 skills, hook system
-- MCP test harness for hook development

@@ -69,7 +69,7 @@ lint-python: ## Lint Python with ruff
 .PHONY: lint-json
 lint-json: ## Validate all JSON files parse correctly
 	@echo "Validating JSON files..."
-	@find . -name '*.json' -not -path './node_modules/*' -not -path './dist/*' -not -path './mcp/node_modules/*' -not -path './.git/*' | while read f; do \
+	@find . -name '*.json' -not -path './node_modules/*' -not -path './dist/*' -not -path './.git/*' | while read f; do \
 		python3 -c "import json; json.load(open('$$f'))" 2>&1 || { echo "FAILED: $$f"; exit 1; }; \
 	done
 	@echo "All JSON valid."

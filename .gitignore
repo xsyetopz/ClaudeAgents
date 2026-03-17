@@ -13,7 +13,7 @@ htmlcov/
 .venv/
 venv/
 
-# Node (MCP server)
+# Node
 node_modules/
 *.tsbuildinfo
 

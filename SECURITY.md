@@ -20,7 +20,6 @@ ClaudeAgents hooks are **guardrails, not walls**. They catch common mistakes and
 ### What hooks do NOT protect against
 
 - Sophisticated prompt injection attacks
-- Malicious MCP servers or skills
 - Adversarial code in untrusted repositories
 - Supply chain attacks via dependencies
 
