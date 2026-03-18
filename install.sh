@@ -754,6 +754,10 @@ install_rtk() {
         local rtk_ver
         rtk_ver=$(rtk --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
         info "RTK already installed (v${rtk_ver})"
+        if [[ ! -f "$HOME/.claude/RTK.md" ]]; then
+            info "RTK.md missing — re-running rtk init --global"
+            rtk init --global || warn "rtk init --global failed - run manually"
+        fi
         return
     fi
 
