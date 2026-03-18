@@ -93,8 +93,8 @@ jobs:
       - name: Validate build output
         run: |
           test -d dist/claude-agents-plugin
-          test -f dist/claude-agents-plugin/plugin.json
-          node -e "JSON.parse(require('fs').readFileSync('dist/claude-agents-plugin/plugin.json','utf8'))"
+          test -f dist/claude-agents-plugin/.claude-plugin/plugin.json
+          node -e "JSON.parse(require('fs').readFileSync('dist/claude-agents-plugin/.claude-plugin/plugin.json','utf8'))"
           # No placeholder remnants
           ! grep -r '__SHARED_CONSTRAINTS__' dist/claude-agents-plugin/ || exit 1
           ! grep -r '__PACKAGE_CONSTRAINTS__' dist/claude-agents-plugin/ || exit 1

@@ -256,22 +256,13 @@ export function genericBlock(message, event = "PreToolUse") {
 }
 
 export function stopWarn(message) {
-	_printAndExit({
-		hookSpecificOutput: {
-			hookEventName: "Stop",
-			additionalContext: message,
-		},
-	});
+	process.stderr.write(`[cca:stop] ${message}\n`);
+	_printAndExit({});
 }
 
 export function stopBlock(message) {
-	_printAndExit({
-		hookSpecificOutput: {
-			hookEventName: "Stop",
-			permissionDecision: "deny",
-			permissionDecisionReason: message,
-		},
-	});
+	process.stderr.write(`[cca:stop] BLOCKED: ${message}\n`);
+	process.exit(1);
 }
 
 export function passthrough() {

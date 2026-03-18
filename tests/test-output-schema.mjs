@@ -166,44 +166,46 @@ describe("Allow", () => {
 });
 
 describe("StopWarn", () => {
-	it("should have correct output structure", () => {
-		const output = captureExit(stopWarn, "stale session");
-		assert.equal(output.hookSpecificOutput.hookEventName, "Stop");
-		assert.equal(output.hookSpecificOutput.additionalContext, "stale session");
-	});
-
-	it("should have no extra fields", () => {
-		const output = captureExit(stopWarn, "msg");
-		const keys = Object.keys(output.hookSpecificOutput);
-		assert.deepEqual(
-			new Set(keys),
-			new Set(["hookEventName", "additionalContext"]),
-		);
-	});
-
-	it("should validate against schema", { skip: !Ajv }, () => {
-		const ajv = new Ajv();
-		const validate = ajv.compile(loadSchema());
-		const output = captureExit(stopWarn, "test");
-		assert.ok(validate(output), JSON.stringify(validate.errors));
+	it("should output empty JSON and write message to stderr", () => {
+		let stderrMsg = "";
+		const origStderr = process.stderr.write.bind(process.stderr);
+		process.stderr.write = (chunk) => {
+			stderrMsg += chunk;
+			return true;
+		};
+		try {
+			const output = captureExit(stopWarn, "stale session");
+			assert.deepEqual(output, {});
+			assert.ok(stderrMsg.includes("stale session"));
+		} finally {
+			process.stderr.write = origStderr;
+		}
 	});
 });
 
 describe("StopBlock", () => {
-	it("should have correct output structure", () => {
-		const output = captureExit(stopBlock, "placeholders found");
-		assert.equal(output.hookSpecificOutput.hookEventName, "Stop");
-		assert.equal(output.hookSpecificOutput.permissionDecision, "deny");
-		assert.equal(
-			output.hookSpecificOutput.permissionDecisionReason,
-			"placeholders found",
-		);
-	});
-
-	it("should validate against schema", { skip: !Ajv }, () => {
-		const ajv = new Ajv();
-		const validate = ajv.compile(loadSchema());
-		const output = captureExit(stopBlock, "test");
-		assert.ok(validate(output), JSON.stringify(validate.errors));
+	it("should exit with code 1 and write message to stderr", () => {
+		let stderrMsg = "";
+		let exitCode = null;
+		const origStderr = process.stderr.write.bind(process.stderr);
+		const origExit = process.exit.bind(process);
+		process.stderr.write = (chunk) => {
+			stderrMsg += chunk;
+			return true;
+		};
+		process.exit = (code) => {
+			exitCode = code;
+			throw new Error("__exit__");
+		};
+		try {
+			stopBlock("placeholders found");
+		} catch (err) {
+			if (!err.message.includes("__exit__")) throw err;
+		} finally {
+			process.stderr.write = origStderr;
+			process.exit = origExit;
+		}
+		assert.equal(exitCode, 1);
+		assert.ok(stderrMsg.includes("placeholders found"));
 	});
 });

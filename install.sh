@@ -84,19 +84,19 @@ _repeat_char() {
 }
 
 tui_clear_screen() {
-    printf '\033[2J\033[H'
+    printf '\033[2J\033[H' >/dev/tty
 }
 
 tui_hide_cursor() {
-    printf '\033[?25l'
+    printf '\033[?25l' >/dev/tty
 }
 
 tui_show_cursor() {
-    printf '\033[?25h'
+    printf '\033[?25h' >/dev/tty
 }
 
 tui_move_to() {
-    printf '\033[%d;%dH' "$1" "$2"
+    printf '\033[%d;%dH' "$1" "$2" >/dev/tty
 }
 
 tui_box() {
@@ -105,9 +105,9 @@ tui_box() {
     local inner=$((width - 4))
     border_top=$(_repeat_char '─' $((inner + 2)))
     tui_move_to "$start_row" 2
-    printf "${GREEN}╭─ %s %s╮${NC}" "$title" "${border_top:$((${#title} + 1))}"
+    printf "${GREEN}╭─ %s %s╮${NC}" "$title" "${border_top:$((${#title} + 1))}" >/dev/tty
     tui_move_to $((start_row + 1)) 2
-    printf "${GREEN}│${NC}%*s${GREEN}│${NC}" "$((inner + 2))" ""
+    printf "${GREEN}│${NC}%*s${GREEN}│${NC}" "$((inner + 2))" "" >/dev/tty
 }
 
 tui_box_bottom() {
@@ -117,9 +117,9 @@ tui_box_bottom() {
     border=$(_repeat_char '─' $((inner + 2)))
     tui_move_to "$row" 2
     if [[ -n "$hint" ]]; then
-        printf "${GREEN}╰%s %s╯${NC}" "${border:$((${#hint} + 1))}" "$hint"
+        printf "${GREEN}╰%s %s╯${NC}" "${border:$((${#hint} + 1))}" "$hint" >/dev/tty
     else
-        printf "${GREEN}╰%s╯${NC}" "$border"
+        printf "${GREEN}╰%s╯${NC}" "$border" >/dev/tty
     fi
 }
 
@@ -127,14 +127,14 @@ tui_box_line() {
     local width="$1" row="$2" content="$3"
     local inner=$((width - 4))
     tui_move_to "$row" 2
-    printf "${GREEN}│${NC}  %-${inner}s${GREEN}│${NC}" "$content"
+    printf "${GREEN}│${NC}  %-${inner}s${GREEN}│${NC}" "$content" >/dev/tty
 }
 
 tui_read_key() {
     local key
-    IFS= read -rsn1 key 2>/dev/null
+    IFS= read -rsn1 key </dev/tty 2>/dev/null
     if [[ "$key" == $'\x1b' ]]; then
-        read -rsn2 -t 0.1 key 2>/dev/null
+        read -rsn2 -t 0.1 key </dev/tty 2>/dev/null
         case "$key" in
             '[A') echo "up" ;;
             '[B') echo "down" ;;
@@ -173,7 +173,7 @@ tui_select_one() {
             fi
             tui_box_line "$width" "$row" ""
             tui_move_to "$row" 4
-            printf "%b %b %s" "$marker" "$prefix" "${options[$i]}"
+            printf "%b %b %s" "$marker" "$prefix" "${options[$i]}" >/dev/tty
             row=$((row + 1))
         done
         tui_box_line "$width" "$row" ""
@@ -221,14 +221,14 @@ tui_select_many() {
             fi
             tui_box_line "$width" "$row" ""
             tui_move_to "$row" 4
-            printf "%b %b %s" "$marker" "$check" "${labels[$i]}"
+            printf "%b %b %s" "$marker" "$check" "${labels[$i]}" >/dev/tty
             row=$((row + 1))
         done
         tui_box_line "$width" "$row" ""
         row=$((row + 1))
         tui_box_line "$width" "$row" ""
         tui_move_to "$row" 5
-        printf "[a] all  [n] none"
+        printf "[a] all  [n] none" >/dev/tty
         row=$((row + 1))
         tui_box_line "$width" "$row" ""
         tui_box_bottom "$width" $((row + 1)) "↑↓ navigate · ␣ toggle · ⏎ done"
@@ -674,7 +674,8 @@ settings_json_merge_project() {
                 .env["DISABLE_AUTOUPDATER"] //= "1" |
                 (if .autoUpdatesChannel then .autoUpdatesChannel = "latest" else . end) |
                 .hooks.PreToolUse = ((.hooks.PreToolUse // []) | if any(.hooks[0].command? | test("pre-secrets")) then . else . + [$pre] end) |
-                .permissions.deny = ((.permissions.deny // []) + ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"] | unique)
+                .permissions.deny = ((.permissions.deny // []) + ["Agent(Explore)", "Agent(Plan)", "Agent(general-purpose)"] | unique) |
+                .extraKnownMarketplaces["claude-agents"] = {"source": {"source": "github", "repo": "xsyetopz/ClaudeAgents"}}
             ' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
             info "Merged into existing settings.json"
         else
@@ -689,6 +690,11 @@ settings_json_merge_project() {
                 },
                 hooks: {
                     PreToolUse: [$pre]
+                },
+                extraKnownMarketplaces: {
+                    "claude-agents": {
+                        "source": {"source": "github", "repo": "xsyetopz/ClaudeAgents"}
+                    }
                 }
             }' > "$SETTINGS_FILE"
             info "Created settings.json"
@@ -726,6 +732,11 @@ install_template() {
 
 install_rtk() {
     echo -e "\nRTK (token savings):"
+
+    if [[ "${CI:-}" == "true" ]]; then
+        info "CI mode — skipping RTK install"
+        return
+    fi
 
     if command -v rtk &>/dev/null; then
         local rtk_ver
@@ -834,7 +845,7 @@ report_summary() {
         echo "  /$(basename "$skill_dir")"
     done
     echo ""
-    echo "Tip: install as plugin for cca: prefix: claude plugin install cca"
+    echo "Tip: install as plugin for cca: prefix: claude plugin install cca@claude-agents"
 }
 
 diagnose_hooks() {
