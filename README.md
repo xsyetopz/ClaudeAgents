@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/ClaudeAgents/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/ClaudeAgents/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**7 agents, 11 skills, 8 hooks.** One plans, one codes, one reviews, one tests -- you talk.
+**7 agents, 11 skills, 10 hooks.** One plans, one codes, one reviews, one tests -- you talk.
 
 ```bash
 # Bootstrap (registers marketplace, installs user-level extras, then installs plugin)
@@ -41,7 +41,7 @@ graph TD
 
     Odysseus -- delegates to --> Agents
 
-    Odysseus --> Hooks["Safety Hooks (8 lifecycle events)"]
+    Odysseus --> Hooks["Safety Hooks (10 lifecycle hooks)"]
 
     subgraph Events [Lifecycle Hooks]
         direction TB
@@ -104,12 +104,13 @@ claude plugin list                        # list installed
 
 ## Safety Rails
 
-**8/8 hook lifecycle events covered.** All automatic.
+**All hook lifecycle events covered.** All automatic.
 
 | Hook                 | When              | What it does                                             |
 | -------------------- | ----------------- | -------------------------------------------------------- |
 | `pre-secrets`        | Before any tool   | Blocks .env reads, auth header leaks, force-push to main |
 | `pre-bash`           | Before shell      | Blocks dangerous commands, DNS exfil, blanket git add    |
+| `pre-stream-guard`   | Before tool use   | Blocks secret-exposing commands during livestreams       |
 | `pre-schema`         | Before any tool   | Validates file paths and content                         |
 | `post-write`         | After write/edit  | Auto-formats, catches placeholders and comment slop      |
 | `post-bash`          | After shell       | Scrubs secrets and PII from output                       |
@@ -118,6 +119,7 @@ claude plugin list                        # list installed
 | `subagent-scan`      | Agent stop        | Catches stubs, silent scope reduction                    |
 | `stop-scan`          | Session end       | Anti-rationalization gate, completion check              |
 | `session-budget`     | Session start     | Warns when config files exceed line budgets              |
+| `session-stream`     | Session start     | Injects streaming safety instructions into LLM context   |
 
 Plus: LSP error check prompt after every file change, scope reduction and collaboration protocol prompts on every agent stop.
 
@@ -164,7 +166,7 @@ Writes to `$CCA_HOOK_LOG_DIR/cca-hooks.jsonl`:
 
 ```bash
 make lint      # shellcheck + jsonlint
-make test      # node --test (72 tests)
+make test      # node --test (121 tests)
 make build     # build plugin
 make validate  # lint + test + build
 ```

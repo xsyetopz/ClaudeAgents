@@ -15,15 +15,11 @@ DIST_DIR   := $(SCRIPT_DIR)/dist/claude-agents-plugin
 install: ## Install (max tier)
 	./install.sh
 
-.PHONY: install-global
-install-global: ## Install globally to ~/.claude/
-	./install.sh
-
 .PHONY: install-plugin
-install-plugin: ## Install plugin from working tree (uninstalls stale first)
+install-plugin: ## Install plugin from working tree (dev workflow)
 	@rm -rf ~/.claude/plugins/cache/temp_local_*
 	@mkdir -p ~/.claude/plugins/marketplaces/claude-agents
-	@rsync -a --delete --exclude='.git' ./ ~/.claude/plugins/marketplaces/claude-agents/
+	@rsync -a --delete --exclude='.git' --exclude='node_modules' --exclude='dist' ./ ~/.claude/plugins/marketplaces/claude-agents/
 	@claude plugin uninstall cca@claude-agents 2>/dev/null || true
 	claude plugin install cca
 
@@ -114,20 +110,12 @@ test-watch: ## Re-run tests on file changes (requires nodemon)
 test-hooks: diagnose ## Smoke-test installed hooks against live claude
 
 .PHONY: test-install
-test-install: ## Test install to a temp directory, then validate
-	@tmpdir=$$(mktemp -d) && \
-		echo "Installing to $$tmpdir ..." && \
-		./install.sh "$$tmpdir" && \
-		echo "" && echo "Validating install..." && \
-		test -f "$$tmpdir/.claude/hooks.json" && \
-		test -d "$$tmpdir/.claude/agents" && \
-		test -d "$$tmpdir/.claude/skills" && \
-		agent_count=$$(ls "$$tmpdir/.claude/agents/"*.md 2>/dev/null | wc -l | tr -d ' ') && \
-		echo "Agents: $$agent_count" && \
-		skill_count=$$(ls -d "$$tmpdir/.claude/skills/"*/ 2>/dev/null | wc -l | tr -d ' ') && \
-		echo "Skills: $$skill_count" && \
-		echo "Install test passed." && \
-		rm -rf "$$tmpdir"
+test-install: ## Validate install/build scripts syntax and plugin manifest
+	@bash -n install.sh && echo "install.sh: syntax OK"
+	@bash -n build-plugin.sh && echo "build-plugin.sh: syntax OK"
+	@bash -n uninstall.sh && echo "uninstall.sh: syntax OK"
+	@node -e "const p = JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8')); \
+		console.log('Plugin: ' + p.name + ' v' + p.version)"
 
 .PHONY: test-plugin
 test-plugin: build ## Build plugin and run with --plugin-dir

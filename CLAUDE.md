@@ -1,6 +1,6 @@
 # ClaudeAgents
 
-7 agents, 11 skills, 8 hooks, custom output style + statusline. Targets CC v2.1.76+.
+7 agents, 11 skills, 10 hooks, custom output style + statusline. Targets CC v2.1.76+.
 
 ## Agents
 
@@ -52,7 +52,9 @@ Lifecycle-organized in `hooks/scripts/{pre,post,session}/`.
 - `post/subagent-scan.mjs` — placeholder scan on subagent stop
 - `post/stop-scan.mjs` — placeholder scan on session stop
 - `session/start-budget.mjs` — line budget warnings
+- `session/stream-context.mjs` — streaming safety context injection
 - `session/prompt-git-context.mjs` — git context injection
+- `pre/stream-guard.mjs` — blocks secret-exposing commands during livestreams
 
 ## Model Strategy
 

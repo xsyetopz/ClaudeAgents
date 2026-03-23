@@ -81,30 +81,34 @@ register_marketplace() {
     info "Enabled cca@claude-agents plugin"
 }
 
+load_model_config() {
+    local -n models=$1
+    models["cca"]="opusplan"
+    models["opus"]="claude-opus-4-6[1m]"
+    models["sonnet"]="claude-sonnet-4-6"
+    models["haiku"]="claude-haiku-4-5"
+}
+
+substitute_template_vars() {
+    local template=$1
+    local tmp_template=$2
+    declare -A models
+    load_model_config models
+
+    sed -e "s|__HOME__|$HOME|g" \
+        -e "s|__CCA_MODEL__|${models[cca]}|g" \
+        -e "s|__OPUS_MODEL__|${models[opus]}|g" \
+        -e "s|__SONNET_MODEL__|${models[sonnet]}|g" \
+        -e "s|__HAIKU_MODEL__|${models[haiku]}|g" \
+        "$template" > "$tmp_template"
+}
+
 # --- Global settings merge ---
 
-merge_global_settings() {
-    echo -e "\n${GREEN}Merging global settings...${NC}"
-    local SETTINGS_FILE="$HOME/.claude/settings.json"
-    local TEMPLATE="$REPO_DIR/templates/settings-global.json"
-    [[ -f "$TEMPLATE" ]] || { warn "templates/settings-global.json not found — skipping"; return; }
+deep_merge_settings() {
+    local tmp_template=$1
+    local settings_file=$2
 
-    local cca_model="opusplan"
-    local opus_model="claude-opus-4-6[1m]"
-    local sonnet_model="claude-sonnet-4-6"
-    local haiku_model="claude-haiku-4-5"
-
-    # Substitute placeholders in template
-    local tmp_template
-    tmp_template=$(mktemp)
-    sed -e "s|__HOME__|$HOME|g" \
-        -e "s|__CCA_MODEL__|$cca_model|g" \
-        -e "s|__OPUS_MODEL__|$opus_model|g" \
-        -e "s|__SONNET_MODEL__|$sonnet_model|g" \
-        -e "s|__HAIKU_MODEL__|$haiku_model|g" \
-        "$TEMPLATE" > "$tmp_template"
-
-    # Deep merge: template wins for framework keys, user wins for extensible keys
     jq -s '
         .[0] as $tpl | .[1] as $usr |
         $tpl *
@@ -115,23 +119,39 @@ merge_global_settings() {
             mcpServers: (($tpl.mcpServers // {}) * ($usr.mcpServers // {}))
         } *
         ($usr | to_entries | map(select(.key as $k | ($tpl | has($k)) | not)) | from_entries)
-    ' "$tmp_template" "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
-    rm -f "$tmp_template"
+    ' "$tmp_template" "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
+}
 
-    info "Model pins: opus=$opus_model sonnet=$sonnet_model haiku=$haiku_model"
-    info "Orchestrator: $cca_model"
+log_merge_results() {
+    declare -A models
+    load_model_config models
+
+    info "Model pins: opus=${models[opus]} sonnet=${models[sonnet]} haiku=${models[haiku]}"
+    info "Orchestrator: ${models[cca]}"
     info "Output style: CCA"
     info "Permissions and deny list merged"
 }
 
+merge_global_settings() {
+    echo -e "\n${GREEN}Merging global settings...${NC}"
+    local SETTINGS_FILE="$HOME/.claude/settings.json"
+    local TEMPLATE="$REPO_DIR/templates/settings-global.json"
+    [[ -f "$TEMPLATE" ]] || { warn "templates/settings-global.json not found — skipping"; return; }
+
+    local tmp_template
+    tmp_template=$(mktemp)
+
+    substitute_template_vars "$TEMPLATE" "$tmp_template"
+    deep_merge_settings "$tmp_template" "$SETTINGS_FILE"
+    rm -f "$tmp_template"
+
+    log_merge_results
+}
+
 # --- User-level file installation ---
 
-install_user_files() {
-    echo -e "\n${GREEN}Installing user-level files...${NC}"
+install_hooks() {
     mkdir -p "$HOME/.claude/hooks"
-    mkdir -p "$HOME/.claude/output-styles"
-
-    # User-level hooks
     for hook in pre-secrets.mjs rtk-rewrite.sh; do
         local src="$REPO_DIR/hooks/user/$hook"
         if [[ -f "$src" ]]; then
@@ -140,14 +160,17 @@ install_user_files() {
             info "$hook -> ~/.claude/hooks/"
         fi
     done
+}
 
-    # Output style
+install_output_style() {
+    mkdir -p "$HOME/.claude/output-styles"
     if [[ -f "$REPO_DIR/output-styles/cca.md" ]]; then
         cp "$REPO_DIR/output-styles/cca.md" "$HOME/.claude/output-styles/cca.md"
         info "cca.md -> ~/.claude/output-styles/"
     fi
+}
 
-    # Statusline
+install_statusline() {
     if [[ -f "$REPO_DIR/statusline/statusline-command.sh" ]]; then
         cp "$REPO_DIR/statusline/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
         chmod +x "$HOME/.claude/statusline-command.sh"
@@ -155,7 +178,48 @@ install_user_files() {
     fi
 }
 
+install_user_files() {
+    echo -e "\n${GREEN}Installing user-level files...${NC}"
+    install_hooks
+    install_output_style
+    install_statusline
+}
+
 # --- RTK installation ---
+
+check_rtk_installed() {
+    if command -v rtk &>/dev/null; then
+        local rtk_ver
+        rtk_ver=$(rtk --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        info "RTK already installed (v${rtk_ver})"
+        if [[ ! -f "$HOME/.claude/RTK.md" ]]; then
+            info "RTK.md missing — re-running rtk init --global"
+            rtk init --global || warn "rtk init --global failed — run manually"
+        fi
+        return 0
+    fi
+    return 1
+}
+
+install_rtk_binary() {
+    if command -v brew &>/dev/null; then
+        echo "  Installing via Homebrew..."
+        brew install rtk-ai/tap/rtk || { warn "brew install failed"; return 1; }
+    else
+        echo "  Installing via curl..."
+        curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh || { warn "curl install failed"; return 1; }
+    fi
+    return 0
+}
+
+finalize_rtk_install() {
+    if command -v rtk &>/dev/null; then
+        info "RTK installed successfully"
+        rtk init --global || warn "rtk init --global failed — run manually"
+    else
+        warn "RTK binary not found in PATH. Restart your shell, then run: rtk init --global"
+    fi
+}
 
 install_rtk() {
     [[ "$SKIP_RTK" == "true" ]] && return
@@ -166,37 +230,36 @@ install_rtk() {
         return
     fi
 
-    if command -v rtk &>/dev/null; then
-        local rtk_ver
-        rtk_ver=$(rtk --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-        info "RTK already installed (v${rtk_ver})"
-        if [[ ! -f "$HOME/.claude/RTK.md" ]]; then
-            info "RTK.md missing — re-running rtk init --global"
-            rtk init --global || warn "rtk init --global failed — run manually"
-        fi
-        return
-    fi
+    check_rtk_installed && return
 
     read -rp "  Install RTK for token savings? [Y/n] " confirm
     [[ "$confirm" =~ ^[Nn]$ ]] && { warn "Skipping RTK install"; return; }
 
-    if command -v brew &>/dev/null; then
-        echo "  Installing via Homebrew..."
-        brew install rtk-ai/tap/rtk || { warn "brew install failed"; return; }
-    else
-        echo "  Installing via curl..."
-        curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh || { warn "curl install failed"; return; }
-    fi
-
-    if command -v rtk &>/dev/null; then
-        info "RTK installed successfully"
-        rtk init --global || warn "rtk init --global failed — run manually"
-    else
-        warn "RTK binary not found in PATH. Restart your shell, then run: rtk init --global"
-    fi
+    install_rtk_binary || return
+    finalize_rtk_install
 }
 
 # --- Plugin installation ---
+
+install_plugin_from_repo() {
+    rm -rf ~/.claude/plugins/cache/temp_local_*
+    mkdir -p ~/.claude/plugins/marketplaces/claude-agents
+    rsync -a --delete --exclude='.git' --exclude='node_modules' --exclude='dist' \
+        "$REPO_DIR/" ~/.claude/plugins/marketplaces/claude-agents/
+    if claude plugin install cca; then
+        info "Plugin installed (from working tree)"
+    else
+        warn "Plugin install failed — run manually: make install-plugin"
+    fi
+}
+
+install_plugin_from_marketplace() {
+    if claude plugin install cca@claude-agents; then
+        info "Plugin installed (from marketplace)"
+    else
+        warn "Plugin install failed — run manually: claude plugin install cca@claude-agents"
+    fi
+}
 
 install_plugin() {
     echo -e "\n${GREEN}Installing plugin...${NC}"
@@ -207,10 +270,11 @@ install_plugin() {
     fi
 
     claude plugin uninstall cca@claude-agents 2>/dev/null || true
-    if claude plugin install cca@claude-agents; then
-        info "Plugin installed (latest)"
+
+    if [[ -f "$REPO_DIR/.claude-plugin/plugin.json" ]]; then
+        install_plugin_from_repo
     else
-        warn "Plugin install failed — run manually: claude plugin install cca@claude-agents"
+        install_plugin_from_marketplace
     fi
 }
 
@@ -243,19 +307,18 @@ install_ctx7() {
 
 # --- Validation ---
 
-validate() {
-    echo -e "\n${GREEN}Validation:${NC}"
-    local errors=0
-
-    # Check settings.json is valid
+validate_settings_json() {
     if jq empty "$HOME/.claude/settings.json" 2>/dev/null; then
         info "settings.json is valid JSON"
+        return 0
     else
         echo -e "  ${RED}✗${NC} settings.json is invalid JSON"
-        errors=$((errors + 1))
+        return 1
     fi
+}
 
-    # Check user-level hooks parse
+validate_hooks() {
+    local errors=0
     for hook in "$HOME/.claude/hooks/"*.mjs; do
         [[ -f "$hook" ]] || continue
         if node --check "$hook" 2>/dev/null; then
@@ -265,8 +328,11 @@ validate() {
             errors=$((errors + 1))
         fi
     done
+    return $errors
+}
 
-    # Check key files exist
+validate_key_files() {
+    local errors=0
     for f in output-styles/cca.md statusline-command.sh; do
         if [[ -f "$HOME/.claude/$f" ]]; then
             info "$f installed"
@@ -275,11 +341,21 @@ validate() {
             errors=$((errors + 1))
         fi
     done
+    return $errors
+}
+
+validate() {
+    echo -e "\n${GREEN}Validation:${NC}"
+    local errors=0
+
+    validate_settings_json || errors=$((errors + 1))
+    validate_hooks || errors=$((errors + $?))
+    validate_key_files || errors=$((errors + $?))
 
     return $errors
 }
 
-# --- Summary ---
+# --- Entrypoint ---
 
 report_summary() {
     echo -e "\n${GREEN}CCA Bootstrap complete!${NC}"
@@ -287,13 +363,11 @@ report_summary() {
     echo "  Plugin:      cca@claude-agents"
     echo "  Output style: CCA"
     echo ""
-    echo "  The plugin provides: 7 agents, 11 skills, 8 project-level hooks"
+    echo "  The plugin provides: 7 agents, 11 skills, 10 project-level hooks"
     echo "  Bootstrap installed: user-level hooks, output style, statusline, global settings"
     echo ""
     echo "  Next: open Claude Code in any project directory"
 }
-
-# --- Main ---
 
 main() {
     parse_args "$@"
