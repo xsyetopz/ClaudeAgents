@@ -18,7 +18,7 @@ install: ## Interactive install (TUI picker)
 
 .PHONY: install-global
 install-global: ## Install globally to ~/.claude/ (max tier)
-	./install.sh --global --max
+	./install.sh --max
 
 .PHONY: install-project
 install-project: ## Install to current project directory
