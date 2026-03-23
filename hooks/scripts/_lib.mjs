@@ -139,6 +139,18 @@ export const SECRET_PATTERNS = [
 	/\bAIza[0-9A-Za-z_-]{35}\b/,
 	/\bxox[bpras]-[0-9a-zA-Z-]{10,}\b/,
 	/-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/,
+	// Stream-guard expanded patterns
+	/sk-ant-[a-z0-9-]{20,}/i,
+	/sk_live_[a-zA-Z0-9]{24,}/,
+	/rk_live_[a-zA-Z0-9]{24,}/,
+	/npm_[a-zA-Z0-9]{36,}/,
+	/github_pat_[A-Za-z0-9_]{22,}/,
+	/SG\.[a-zA-Z0-9_-]{22}\.[a-zA-Z0-9_-]{43}/,
+	/SK[a-f0-9]{32}/,
+	/(?:postgres|mysql|mongodb(?:\+srv)?):\/\/[^:]+:[^@]+@/i,
+	/\bsk-proj-[a-zA-Z0-9-]{20,}\b/,
+	/\bvercel_[a-zA-Z0-9_-]{24,}\b/i,
+	/\bsbp_[a-f0-9]{40,}\b/,
 ];
 
 export const PII_PATTERNS = [

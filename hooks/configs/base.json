@@ -18,6 +18,11 @@
 						"type": "command",
 						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/session/start-budget.mjs; [ -f \"$H\" ] && node \"$H\" || exit 0",
 						"timeout": 5
+					},
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/session/stream-context.mjs; [ -f \"$H\" ] && node \"$H\" || exit 0",
+						"timeout": 5
 					}
 				]
 			}
@@ -38,6 +43,16 @@
 					{
 						"type": "command",
 						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre/bash-guard.mjs; [ -f \"$H\" ] && node \"$H\" || exit 0",
+						"timeout": 10
+					}
+				]
+			},
+			{
+				"matcher": "Bash|Read|Write|Edit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "H=\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/pre/stream-guard.mjs; [ -f \"$H\" ] && node \"$H\" || exit 0",
 						"timeout": 10
 					}
 				]

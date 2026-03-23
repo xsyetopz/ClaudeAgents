@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 import "../suppress-stderr.mjs";
 import {
+	isStreamMode,
+	loadSecrets,
+	loadStreamGuardConfig,
+} from "../_env-loader.mjs";
+import {
 	PII_PATTERNS,
 	passthrough,
 	postWarn,
@@ -24,8 +29,16 @@ function categorizePii(pattern) {
 	return "";
 }
 
-function detectSensitive(text) {
+function detectSensitive(text, envValues, envValueToName) {
 	const hits = [];
+
+	for (const secret of envValues) {
+		if (text.includes(secret)) {
+			const name = envValueToName.get(secret) || "ENV_VALUE";
+			hits.push(`env:${name}`);
+		}
+	}
+
 	for (const pat of SECRET_PATTERNS) {
 		if (pat.test(text)) {
 			hits.push("secret/credential");
@@ -49,15 +62,27 @@ function detectSensitive(text) {
 		const toolResponse = data.tool_response || "";
 		if (!toolResponse || typeof toolResponse !== "string") passthrough();
 
-		const hits = detectSensitive(toolResponse);
+		const config = loadStreamGuardConfig();
+		const { values, valueToName } = loadSecrets({
+			envFiles: config.envFiles,
+			minSecretLength: config.minSecretLength,
+			safeEnvPrefixes: config.safeEnvPrefixes,
+		});
+
+		const hits = detectSensitive(toolResponse, values, valueToName);
 		if (!hits.length) passthrough();
 
+		const streaming = isStreamMode();
 		const summary = hits.slice(0, 5).join(", ");
-		postWarn(
-			`[redact] Sensitive data detected in command output: ${summary}. ` +
-				"Do not repeat, log, or reference these values. " +
-				"Replace with [REDACTED] in any output.",
-		);
+		const base = `[redact] Sensitive data detected in command output: ${summary}.`;
+		const instruction = streaming
+			? " STREAMING MODE: This output is visible on a livestream. " +
+				"You MUST NOT repeat, quote, or reference ANY of these values under any circumstances. " +
+				"Use [REDACTED] for all secret values. Reference env vars by name only."
+			: " Do not repeat, log, or reference these values. " +
+				"Replace with [REDACTED] in any output.";
+
+		postWarn(base + instruction);
 	} catch {
 		passthrough();
 	}
