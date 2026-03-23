@@ -136,6 +136,44 @@ git clone https://github.com/xsyetopz/ClaudeAgents && cd ClaudeAgents
 
 ---
 
+## Stream Guard (Livestream Protection)
+
+Activate 4-layer secret redaction when streaming on Twitch/YouTube:
+
+```bash
+# ~/.zshrc or ~/.bashrc
+export CCA_STREAM_MODE=1
+alias claude-stream='CCA_STREAM_MODE=1 /path/to/ClaudeAgents/bin/stream-guard claude'
+```
+
+| Layer | What | How |
+|-------|------|-----|
+| 1 | Block secret-exposing commands | PreToolUse denies `env`, `cat .env`, `echo $SECRET`, etc. |
+| 2 | Flag secrets in tool output | PostToolUse scans for .env values + secret patterns |
+| 3 | Safety context injection | SessionStart instructs model to never output secrets |
+| 4 | Real-time stdout redaction | PTY proxy rewrites secrets before they reach terminal/OBS |
+
+Layers 1-3 run as Claude Code hooks. Layer 4 wraps the `claude` process externally.
+
+```bash
+CCA_STREAM_MODE=1 bin/stream-guard claude
+claude-stream
+```
+
+All stream-guard hooks are no-ops when `CCA_STREAM_MODE` is unset.
+
+Configure via `.streamguardrc.json` in your project or home directory:
+
+```json
+{
+  "envFiles": [".env", ".env.local"],
+  "customPatterns": [{ "regex": "my-corp-token-[a-z0-9]+", "name": "CorpToken" }],
+  "safeEnvPrefixes": ["PUBLIC_", "NEXT_PUBLIC_", "VITE_"]
+}
+```
+
+---
+
 ## Enterprise HTTP Hooks
 
 Forward all hook events to a central DLP/audit server.
