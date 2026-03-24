@@ -96,7 +96,6 @@ merge_global_settings() {
     tmp_template=$(mktemp)
 
     sed -e "s|__HOME__|$HOME|g" \
-        -e "s|__CCA_MODEL__|$CCA_MODEL|g" \
         -e "s|__OPUS_MODEL__|$OPUS_MODEL|g" \
         -e "s|__SONNET_MODEL__|$SONNET_MODEL|g" \
         -e "s|__HAIKU_MODEL__|$HAIKU_MODEL|g" \
@@ -114,6 +113,10 @@ merge_global_settings() {
         ($usr | to_entries | map(select(.key as $k | ($tpl | has($k)) | not)) | from_entries)
     ' "$tmp_template" "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
     rm -f "$tmp_template"
+
+    # Force model — always set to opusplan regardless of existing value
+    jq --arg m "$CCA_MODEL" '.model = $m' \
+        "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
 
     info "Model pins: opus=$OPUS_MODEL sonnet=$SONNET_MODEL haiku=$HAIKU_MODEL"
     info "Orchestrator: $CCA_MODEL"
@@ -151,11 +154,50 @@ install_statusline() {
     fi
 }
 
+install_streamguardrc() {
+    local target="$HOME/.streamguardrc.json"
+    if [[ -f "$target" ]]; then
+        info ".streamguardrc.json already exists — skipping"
+        return
+    fi
+    cat > "$target" <<'EOF'
+{
+	"enabled": true,
+	"envFiles": [
+		".env",
+		".env.local",
+		".env.development",
+		".env.staging",
+		".env.test",
+		".env.production"
+	],
+	"customPatterns": [],
+	"minSecretLength": 8,
+	"safeEnvPrefixes": [
+		"PUBLIC_",
+		"NEXT_PUBLIC_",
+		"VITE_",
+		"REACT_APP_",
+		"EXPO_PUBLIC_",
+		"NUXT_PUBLIC_",
+		"GATSBY_",
+		"STORYBOOK_",
+		"PLASMO_PUBLIC_",
+		"WXT_PUBLIC_",
+		"TAURI_"
+	],
+	"verbose": false
+}
+EOF
+    info ".streamguardrc.json -> ~/ (stream guard enabled by default)"
+}
+
 install_user_files() {
     echo -e "\n${GREEN}Installing user-level files...${NC}"
     install_hooks
     install_output_style
     install_statusline
+    install_streamguardrc
 }
 
 # --- RTK installation ---
