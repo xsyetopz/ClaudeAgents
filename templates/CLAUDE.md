@@ -20,3 +20,5 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 - Code is truth. Do not restate how code works in docs — link to file:line.
 - `/clear` between unrelated tasks. Start fresh at 40-50% context utilization.
 - `git diff --stat` before `git diff` — raw diff can dump 50k tokens.
+
+@RTK.md
