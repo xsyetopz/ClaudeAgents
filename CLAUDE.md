@@ -4,15 +4,15 @@
 
 ## Agents
 
-| Agent       | File          | Model      | Purpose                                  |
-| ----------- | ------------- | ---------- | ---------------------------------------- |
-| @athena     | athena.md     | `opus[1m]` | Design, plan, architect                  |
-| @hephaestus | hephaestus.md | `opus[1m]` | Write code, fix bugs, build features     |
-| @nemesis    | nemesis.md    | `opus[1m]` | Review code, security audit              |
-| @atalanta   | atalanta.md   | `opus[1m]` | Run tests, parse failures, root causes   |
-| @calliope   | calliope.md   | `opus[1m]` | Write/edit documentation (markdown only) |
-| @hermes     | hermes.md     | `opus[1m]` | Research, explore codebase, cite sources |
-| @odysseus   | odysseus.md   | `opusplan` | Multi-step delegation, progress tracking |
+| Agent       | File          | Model      | Context | maxTurns | Purpose                                  |
+| ----------- | ------------- | ---------- | ------- | -------- | ---------------------------------------- |
+| @odysseus   | odysseus.md   | `opusplan` | 1M      | 100      | Multi-step delegation, progress tracking |
+| @athena     | athena.md     | `opus`     | 1M      | 50       | Design, plan, architect                  |
+| @hephaestus | hephaestus.md | `sonnet`   | 200K    | 100      | Write code, fix bugs, build features     |
+| @nemesis    | nemesis.md    | `sonnet`   | 200K    | 50       | Review code, security audit              |
+| @hermes     | hermes.md     | `sonnet`   | 200K    | 50       | Research, explore codebase, cite sources |
+| @atalanta   | atalanta.md   | `haiku`    | 200K    | 30       | Run tests, parse failures, root causes   |
+| @calliope   | calliope.md   | `haiku`    | 200K    | 30       | Write/edit documentation (markdown only) |
 
 **Built-in subagents disabled**: `Explore`, `Plan`, and `general-purpose` are denied via `permissions.deny`. Use `@hermes` (explore), `@athena` (plan), `@odysseus` (general-purpose) instead.
 
@@ -60,14 +60,13 @@ Lifecycle-organized in `hooks/scripts/{pre,post,session}/`.
 
 Two tiers, set at install time via `./install.sh --tier <5x|20x>`:
 
-| Role                       | 5X (default)        | 20X                   |
-| -------------------------- | ------------------- | --------------------- |
-| Orchestrator (`CCA_MODEL`) | `opusplan`          | `opus[1m]`            |
-| Sonnet slot                | `claude-sonnet-4-6` | `claude-opus-4-6[1m]` |
-| Haiku slot                 | `claude-haiku-4-5`  | `claude-sonnet-4-6`   |
-| All subagents              | `opus[1m]`          | `opus[1m]`            |
+| Role                       | 5X (default)        | 20X                 |
+| -------------------------- | ------------------- | ------------------- |
+| Orchestrator (`CCA_MODEL`) | `opusplan`          | `opus[1m]`          |
+| Sonnet slot                | `claude-sonnet-4-6` | `claude-sonnet-4-6` |
+| Haiku slot                 | `claude-haiku-4-5`  | `claude-sonnet-4-6` |
 
-Env vars pin model versions in `~/.claude/settings.json`. Output style: CCA. Statusline: model, context %, cost, git branch.
+Agent models use logical names (`opus`, `sonnet`, `haiku`) that resolve via env vars. Sonnet/haiku agents have 200K context windows and capped maxTurns — keep delegated payloads focused. Env vars pin model versions in `~/.claude/settings.json`. Output style: CCA. Statusline: model, context %, cost, git branch.
 
 ## Development
 
