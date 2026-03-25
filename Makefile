@@ -12,8 +12,12 @@ DIST_DIR   := $(SCRIPT_DIR)/dist/claude-agents-plugin
 # ──────────────────────────────────────────────
 
 .PHONY: install
-install: ## Install (max tier)
+install: ## Install (max 5x tier)
 	./install.sh
+
+.PHONY: install-20x
+install-20x: ## Install (max 20x tier)
+	./install.sh --tier 20x
 
 .PHONY: install-plugin
 install-plugin: ## Install plugin from working tree (dev workflow)
