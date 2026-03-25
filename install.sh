@@ -390,7 +390,7 @@ main() {
         20x)
             CCA_MODEL="opus[1m]"
             OPUS_MODEL="claude-opus-4-6[1m]"
-            SONNET_MODEL="claude-opus-4-6[1m]"
+            SONNET_MODEL="claude-sonnet-4-6"
             HAIKU_MODEL="claude-sonnet-4-6"
             ;;
         5x|*)
