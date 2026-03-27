@@ -1,6 +1,6 @@
 # openagentsbtw Codex
 
-This package ports openagentsbtw onto Codex’s native extension surfaces: custom agents, plugins, hooks, `AGENTS.md`, and a Codex profile. The Codex-facing agent files, skill files, and hook manifest are generated from the shared root `source/` tree.
+This package ports openagentsbtw onto Codex’s native extension surfaces: custom agents, plugins, hooks, `AGENTS.md`, config, and wrapper commands. The Codex-facing agent files, skill files, and hook manifest are generated from the shared root `source/` tree.
 
 ## Layout
 
@@ -35,6 +35,8 @@ The installer:
 - appends managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, and selected `openagentsbtw` profiles to `~/.codex/config.toml`
 - optionally runs `rtk init -g --codex`
 
+The plugin package gives Codex the skills and install surface. Default behavior comes from `AGENTS.md`, the managed profiles, enabled hooks, and the `openagentsbtw-codex` wrapper.
+
 ## Model Presets
 
 - `plus`
@@ -46,10 +48,20 @@ The installer:
 
 ## Behavior Policy
 
-- Responses should read like a peer developer, not a therapist or support agent.
+- Responses should read like the old CCA style: direct, terse, and evidence-first.
+- Start with the answer, decision, or action. Do not restate the prompt or narrate intent.
 - No praise, apology loops, or trailing `if you want...` boilerplate.
+- If the user's premise is wrong, say so directly and explain why.
+- If something is uncertain, say `UNKNOWN` and state what would resolve it.
 - No placeholders, "for now", "future PR", or deferred core work unless the user explicitly narrows scope.
 - Internal code comments explain non-obvious why only. Narrating or educational comments are rejected by the Codex completion scan.
+
+## Routing
+
+- `openagentsbtw-codex plan|implement|review|orchestrate` is the supported CLI routing layer.
+- Wrapper modes select the managed profile and reinforce the intended specialist path.
+- Native `/plan` still helps with reasoning depth, but it does not guarantee `athena` selection.
+- Specialist model pinning lives in the installed custom agent TOMLs, not in the plugin manifest.
 
 ## Notes
 

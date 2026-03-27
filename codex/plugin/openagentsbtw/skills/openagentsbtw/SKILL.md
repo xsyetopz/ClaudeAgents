@@ -24,29 +24,32 @@ Use this skill when the task benefits from the openagentsbtw role split while op
 - Use custom agents by name when the work is clearly specialized.
 - Use the built-in `explorer` and `worker` agents only when the custom role split is not important for the task.
 - Prefer repo `AGENTS.md` files for project-specific constraints; use this skill for the openagentsbtw operating model.
+- Plugin install makes the skills discoverable; `AGENTS.md`, config, hooks, and wrapper commands are what shape default behavior.
 
 ## Routing Matrix
 
-Use these wrappers when you want consistent profile and role routing:
+Use these wrappers when you want consistent profile selection plus explicit role-shaped prompting:
 
 - `openagentsbtw-codex triage`
-  `hermes`-leaning routing on `openagentsbtw-codex-mini` for bounded search, classification, and evidence gathering.
+  `hermes`-shaped routing on `openagentsbtw-codex-mini` for bounded search, classification, and evidence gathering.
 - `openagentsbtw-codex docs`
-  `calliope`-leaning routing on `openagentsbtw-codex-mini` for documentation-only edits.
+  `calliope`-shaped routing on `openagentsbtw-codex-mini` for documentation-only edits.
 - `openagentsbtw-codex desloppify`
-  `calliope`-leaning routing on `openagentsbtw-codex-mini` for prose cleanup, comment cleanup, and anti-slop passes.
+  `calliope`-shaped routing on `openagentsbtw-codex-mini` for prose cleanup, comment cleanup, and anti-slop passes.
 - `openagentsbtw-codex handoff`
   compact handoff writing on `openagentsbtw-codex-mini`.
 - `openagentsbtw-codex test`
-  `atalanta`-leaning routing on `openagentsbtw-codex-mini` for targeted validation.
+  `atalanta`-shaped routing on `openagentsbtw-codex-mini` for targeted validation.
 - `openagentsbtw-codex plan`
-  `athena`-leaning routing on `openagentsbtw`.
+  `athena`-shaped routing on `openagentsbtw`.
 - `openagentsbtw-codex implement`
-  `hephaestus`-leaning routing on `openagentsbtw`.
+  `hephaestus`-shaped routing on `openagentsbtw`.
 - `openagentsbtw-codex review`
-  `nemesis`-leaning routing on `openagentsbtw`.
+  `nemesis`-shaped routing on `openagentsbtw`.
 - `openagentsbtw-codex orchestrate`
-  `odysseus`-leaning routing on `openagentsbtw`.
+  `odysseus`-shaped routing on `openagentsbtw`.
+
+These wrappers do not hard-bind a native Codex mode like `/plan` to a custom agent. The reliable contract is profile selection plus a strong system prompt, while the custom agent TOMLs hold the actual model pinning for each specialist.
 
 ## Default Flow
 
@@ -71,5 +74,7 @@ Use these wrappers when you want consistent profile and role routing:
 - Testing agents report exact failures, reproduction steps, and likely root cause.
 - Documentation agents keep prose factual and close to the code.
 - No praise, apology, therapist tone, or trailing "if you want..." boilerplate.
+- Do not narrate intent or restate the request. Start with the answer, decision, or action.
+- If something is uncertain, say `UNKNOWN` and state what would resolve it.
 - No placeholders, "for now", "future PR", or deferred core work unless the user explicitly narrowed scope.
 - Internal comments explain non-obvious why only. Do not add narrating or educational comments.

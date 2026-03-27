@@ -1,6 +1,6 @@
 # OpenAI / Codex Research
 
-This directory documents the Codex-specific port of openagentsbtw. It was researched against OpenAI’s official Codex docs on 2026-03-27.
+This directory documents the Codex-specific port of openagentsbtw. It was re-verified against OpenAI’s official Codex docs on 2026-03-28.
 
 ## What Lives Here
 
@@ -35,6 +35,7 @@ This directory documents the Codex-specific port of openagentsbtw. It was resear
 ## openagentsbtw Decisions
 
 - Codex is treated as a first-class system, not as a placeholder skill.
-- We use native Codex surfaces: plugin manifest, local marketplace entry, custom agents, hooks, and real `AGENTS.md` files.
+- We use native Codex surfaces for the jobs they actually do: plugin packaging, skill discovery, custom agent model pinning, hooks, config, wrapper routing, and real `AGENTS.md` files.
 - We keep Fast mode off in the openagentsbtw Codex profile.
 - We do not symlink `CLAUDE.md` for Codex. The project guidance lives in actual `AGENTS.md` files.
+- Native `/plan` is treated as reasoning mode, not as a guaranteed custom-agent selector.

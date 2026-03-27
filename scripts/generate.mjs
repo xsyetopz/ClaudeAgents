@@ -108,24 +108,23 @@ async function cleanGeneratedDirs() {
 async function generateSkills(skills) {
 	const skillBodyTokens = {
 		claude: {
-			SHIP_COAUTHOR_TRAILER:
-				"Co-Authored-By: Claude via openagentsbtw <claude@openagentsbtw.local>",
+			SHIP_COMMIT_FOOTER_BLOCK:
+				"Co-Authored-By: Claude <claude@users.noreply.github.com>",
 		},
 		codex: {
-			SHIP_COAUTHOR_TRAILER:
-				"Co-Authored-By: Codex via openagentsbtw <codex@openagentsbtw.local>",
+			SHIP_COMMIT_FOOTER_BLOCK: "",
 		},
 		opencode: {
-			SHIP_COAUTHOR_TRAILER:
-				"Co-Authored-By: OpenCode via openagentsbtw <opencode@openagentsbtw.local>",
+			SHIP_COMMIT_FOOTER_BLOCK: "",
 		},
 	};
 
 	function renderSkillBody(body, platform) {
-		return body.replaceAll(
-			"__SHIP_COAUTHOR_TRAILER__",
-			skillBodyTokens[platform].SHIP_COAUTHOR_TRAILER,
-		);
+		let rendered = body;
+		for (const [token, value] of Object.entries(skillBodyTokens[platform])) {
+			rendered = rendered.replaceAll(`__${token}__`, value);
+		}
+		return rendered;
 	}
 
 	for (const skill of skills) {
@@ -197,6 +196,23 @@ async function generateSkills(skills) {
 				skill.name,
 			);
 			await writeFile(path.join(codexSkillDir, "SKILL.md"), codexContent);
+			const codexMetadataPath = path.join(
+				SOURCE_DIR,
+				"skills",
+				skill.name,
+				"openai.yaml",
+			);
+			if (
+				await fs
+					.stat(codexMetadataPath)
+					.then((stat) => stat.isFile())
+					.catch(() => false)
+			) {
+				await fs.copyFile(
+					codexMetadataPath,
+					path.join(ROOT, codexSkillDir, "openai.yaml"),
+				);
+			}
 			if (
 				await fs
 					.stat(sourceReferenceDir)

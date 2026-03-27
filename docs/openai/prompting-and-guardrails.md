@@ -21,7 +21,7 @@ openagentsbtw’s Codex prompts were rewritten around GPT/Codex guidance rather 
 
 ## Guardrail Strategy
 
-openagentsbtw keeps guardrails at three layers:
+openagentsbtw keeps guardrails at three native layers:
 
 1. Agent prompts
    Role-specific boundaries like read-only planning or review-first output.
@@ -30,9 +30,9 @@ openagentsbtw keeps guardrails at three layers:
 3. Project docs
    `AGENTS.md` keeps the system visible to Codex at the project layer.
 
-The Codex port now also adds a fourth practical layer:
+The Codex port also adds a practical routing layer:
 
 1. Wrapper commands
-   `openagentsbtw-codex <mode> ...` routes lightweight flows like docs cleanup, handoff generation, and bounded validation onto the lightweight Codex profile while keeping heavy plan/implement/review work on the main preset.
+   `openagentsbtw-codex <mode> ...` routes lightweight flows like docs cleanup, handoff generation, and bounded validation onto the lightweight Codex profile while keeping heavy plan/implement/review work on the main preset. The wrapper selects the profile and reinforces the intended specialist path, but it does not magically rebind native `/plan` to a custom agent.
 
 This is a better fit for Codex than trying to emulate the exact Claude plugin contract.

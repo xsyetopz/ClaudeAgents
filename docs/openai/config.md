@@ -19,7 +19,8 @@ All four profiles set the same operational defaults:
 
 - `plan_mode_reasoning_effort = "high"` except the codex-mini profile, which stays low
 - `model_verbosity = "medium"` except the codex-mini profile, which stays low
-- `personality = "pragmatic"`
+- `personality = "none"`
+- `commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"`
 - `approval_policy = "on-request"`
 - `sandbox_mode = "workspace-write"`
 - `service_tier = "flex"`
@@ -28,6 +29,16 @@ All four profiles set the same operational defaults:
 - `fast_mode = false`
 
 The matching repo sample is in `codex/templates/config.toml`.
+
+## Attribution And Style
+
+Codex exposes native `commit_attribution` in `config.toml`. openagentsbtw uses that for Codex instead of teaching the shared ship skill to emit a Codex-specific trailer, because the config surface is the documented source of truth and it avoids duplicate attribution when the user commits from Codex.
+
+We also set `personality = "none"` in the managed Codex profiles. The response style is intentionally driven by `AGENTS.md`, the custom agent TOMLs, and wrapper prompts so the Codex output stays close to the old CCA contract instead of mixing in a separate personality overlay.
+
+## Plan Mode Limit
+
+`plan_mode_reasoning_effort` only changes reasoning depth inside native plan mode. It does not bind `/plan` to a specific custom agent or model family. openagentsbtw therefore uses wrapper commands plus custom agent TOMLs for role-shaped routing, and documents native `/plan` as reasoning mode rather than role selection.
 
 ## Fast Mode
 

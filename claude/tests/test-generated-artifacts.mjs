@@ -30,21 +30,54 @@ describe("generated skills", () => {
 	it("renders platform-specific ship co-author trailers", () => {
 		const claudeShip = read("claude/skills/ship/SKILL.md");
 		const codexShip = read("codex/plugin/openagentsbtw/skills/ship/SKILL.md");
+		const opencodeShip = read("opencode/templates/skills/ship/SKILL.md");
 		assert.match(
 			claudeShip,
-			/Co-Authored-By: Claude via openagentsbtw <claude@openagentsbtw\.local>/,
-		);
-		assert.match(
-			codexShip,
-			/Co-Authored-By: Codex via openagentsbtw <codex@openagentsbtw\.local>/,
+			/Co-Authored-By: Claude <claude@users\.noreply\.github\.com>/,
 		);
 		assert.equal(
 			claudeShip.includes("Co-Authored-By: Codex via openagentsbtw"),
 			false,
 		);
+		assert.equal(codexShip.includes("Co-Authored-By:"), false);
+		assert.equal(opencodeShip.includes("Co-Authored-By:"), false);
+	});
+});
+
+describe("generated Codex defaults", () => {
+	it("uses native commit attribution and disables personality overlays", () => {
+		const config = read("codex/templates/config.toml");
+		assert.match(
+			config,
+			/commit_attribution = "Co-Authored-By: Codex <codex@users\.noreply\.github\.com>"/,
+		);
+		assert.match(config, /personality = "none"/);
+		assert.equal(config.includes('personality = "pragmatic"'), false);
+	});
+
+	it("ports the CCA-style response contract into Codex guidance", () => {
+		const guidance = read("codex/templates/AGENTS.md");
+		assert.match(guidance, /Start with the answer, decision, or action\./);
+		assert.match(guidance, /If something is uncertain, say `UNKNOWN`/);
 		assert.equal(
-			codexShip.includes("Co-Authored-By: Claude via openagentsbtw"),
+			guidance.includes("Keep responses terse and peer-like."),
 			false,
+		);
+	});
+
+	it("ships wrapper prompts that route through explicit specialist paths", () => {
+		const wrapper = read("bin/openagentsbtw-codex");
+		assert.match(
+			wrapper,
+			/Route planning through athena-style architecture analysis/,
+		);
+		assert.match(
+			wrapper,
+			/Treat native \/plan as reasoning mode only, not role selection\./,
+		);
+		assert.match(
+			wrapper,
+			/Route implementation through hephaestus-style execution/,
 		);
 	});
 });
@@ -57,7 +90,9 @@ describe("generated OpenCode assets", () => {
 	});
 
 	it("ships a managed OpenCode instruction file", () => {
-		const instructions = read("opencode/templates/instructions/openagentsbtw.md");
+		const instructions = read(
+			"opencode/templates/instructions/openagentsbtw.md",
+		);
 		assert.match(instructions, /## Working Rules/);
 		assert.match(instructions, /## Guardrails/);
 	});
@@ -79,10 +114,30 @@ describe("generated hook manifests", () => {
 
 	it("emits machine-readable policy maps per platform", () => {
 		const codex = JSON.parse(read("codex/hooks/policy-map.json"));
-		const opencode = JSON.parse(read("opencode/templates/hooks/policy-map.json"));
-		assert.ok(codex.some((entry) => entry.id === "bash-guard" && entry.status === "supported"));
-		assert.ok(codex.some((entry) => entry.id === "write-quality" && entry.status === "unsupported"));
-		assert.ok(opencode.some((entry) => entry.id === "bash-guard" && entry.status === "supported"));
-		assert.ok(opencode.some((entry) => entry.id === "prompt-git-context" && entry.status === "unsupported"));
+		const opencode = JSON.parse(
+			read("opencode/templates/hooks/policy-map.json"),
+		);
+		assert.ok(
+			codex.some(
+				(entry) => entry.id === "bash-guard" && entry.status === "supported",
+			),
+		);
+		assert.ok(
+			codex.some(
+				(entry) =>
+					entry.id === "write-quality" && entry.status === "unsupported",
+			),
+		);
+		assert.ok(
+			opencode.some(
+				(entry) => entry.id === "bash-guard" && entry.status === "supported",
+			),
+		);
+		assert.ok(
+			opencode.some(
+				(entry) =>
+					entry.id === "prompt-git-context" && entry.status === "unsupported",
+			),
+		);
 	});
 });

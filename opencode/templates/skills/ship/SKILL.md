@@ -143,7 +143,7 @@ Present a commit message draft for the user to review before proceeding.
 
 ### Phase 2 - Commit
 
-Human runs the commit, or AI runs it only after explicit approval. If the AI executes the commit, keep the platform-specific co-author trailer so agent-authored commits stay distinguishable from user-authored commits:
+Human runs the commit, or AI runs it only after explicit approval. Apply the platform-specific attribution policy when the AI executes the commit: Claude uses a trailer, Codex uses native `commit_attribution`, and OpenCode emits no AI author block.
 
 ```bash
 git commit -m "$(cat <<'EOF'
@@ -151,7 +151,7 @@ type(scope): description
 
 Body explaining why, not what.
 
-Co-Authored-By: OpenCode via openagentsbtw <opencode@openagentsbtw.local>
+
 EOF
 )"
 ```
