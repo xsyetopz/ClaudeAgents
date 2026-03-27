@@ -26,6 +26,29 @@ describe("generated prompts", () => {
 	});
 });
 
+describe("generated skills", () => {
+	it("renders platform-specific ship co-author trailers", () => {
+		const claudeShip = read("claude/skills/ship/SKILL.md");
+		const codexShip = read("codex/plugin/openagentsbtw/skills/ship/SKILL.md");
+		assert.match(
+			claudeShip,
+			/Co-Authored-By: Claude via openagentsbtw <claude@openagentsbtw\.local>/,
+		);
+		assert.match(
+			codexShip,
+			/Co-Authored-By: Codex via openagentsbtw <codex@openagentsbtw\.local>/,
+		);
+		assert.equal(
+			claudeShip.includes("Co-Authored-By: Codex via openagentsbtw"),
+			false,
+		);
+		assert.equal(
+			codexShip.includes("Co-Authored-By: Claude via openagentsbtw"),
+			false,
+		);
+	});
+});
+
 describe("generated OpenCode assets", () => {
 	it("uses documented instruction files instead of system transform injection", () => {
 		const plugin = read("opencode/templates/plugins/openagentsbtw.ts");

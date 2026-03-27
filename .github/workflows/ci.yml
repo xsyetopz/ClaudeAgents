@@ -15,41 +15,74 @@ jobs:
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
       - name: Lint shell scripts
-        run: shellcheck install.sh build-plugin.sh uninstall.sh hooks/scripts/_run.sh statusline/statusline-command.sh
+        run: shellcheck install.sh build-plugin.sh uninstall.sh claude/hooks/scripts/_run.sh claude/statusline/statusline-command.sh opencode/install.sh opencode/templates/hooks/install.sh opencode/templates/hooks/pre-commit opencode/templates/hooks/pre-push
 
   jsonlint:
     name: JSON Validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: "18"
+          bun-version: "1.3.11"
       - name: Validate JSON files
         run: |
           find . -name '*.json' -not -path './node_modules/*' -not -path './dist/*' | while read f; do
-            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" 2>&1 || { echo "Invalid JSON: $f"; exit 1; }
+            bun -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" 2>&1 || { echo "Invalid JSON: $f"; exit 1; }
           done
 
-  hook-tests:
-    name: Hook Tests
+  generated:
+    name: Generated Artifacts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: "18"
+          bun-version: "1.3.11"
+      - name: Install root deps
+        run: bun install --frozen-lockfile
+      - name: Check generated outputs
+        run: bun run check:generated
+
+  hook-tests:
+    name: Node Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+      - name: Install root deps
+        run: bun install --frozen-lockfile
       - name: Run tests
-        run: node --test tests/test-*.mjs
+        run: bun run test
+
+  opencode:
+    name: OpenCode Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+      - name: Install OpenCode deps
+        working-directory: opencode
+        run: bun install --frozen-lockfile
+      - name: Run OpenCode tests
+        working-directory: opencode
+        run: bun run test
+      - name: Run OpenCode typecheck
+        working-directory: opencode
+        run: bun run typecheck
 
   install-test:
     name: Install Validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: "18"
+          bun-version: "1.3.11"
       - name: Install jq
         run: sudo apt-get install -y jq
       - name: Validate script syntax
@@ -57,29 +90,33 @@ jobs:
           bash -n install.sh
           bash -n build-plugin.sh
           bash -n uninstall.sh
+          bash -n opencode/install.sh
+          bash -n opencode/templates/hooks/install.sh
           echo "All scripts parse OK"
       - name: Validate plugin manifest
         run: |
-          node -e "const p = JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8')); console.log('Plugin: ' + p.name + ' v' + p.version)"
+          bun -e "const p = JSON.parse(require('fs').readFileSync('claude/.claude-plugin/plugin.json','utf8')); console.log('Claude plugin: ' + p.name + ' v' + p.version)"
+      - name: Validate Codex plugin manifest
+        run: |
+          bun -e "const p = JSON.parse(require('fs').readFileSync('codex/plugin/openagentsbtw/.codex-plugin/plugin.json','utf8')); console.log('Codex plugin: ' + p.name + ' v' + p.version)"
 
   plugin-build:
-    name: Plugin Build
+    name: Claude Plugin Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: "18"
+          bun-version: "1.3.11"
       - name: Install jq
         run: sudo apt-get install -y jq
       - name: Build plugin
         run: ./build-plugin.sh
       - name: Validate build output
         run: |
-          test -d dist/claude-agents-plugin
-          test -f dist/claude-agents-plugin/.claude-plugin/plugin.json
-          node -e "JSON.parse(require('fs').readFileSync('dist/claude-agents-plugin/.claude-plugin/plugin.json','utf8'))"
-          # No placeholder remnants
-          ! grep -r '__SHARED_CONSTRAINTS__' dist/claude-agents-plugin/ || exit 1
-          ! grep -r '__PACKAGE_CONSTRAINTS__' dist/claude-agents-plugin/ || exit 1
+          test -d dist/openagentsbtw-claude-plugin
+          test -f dist/openagentsbtw-claude-plugin/.claude-plugin/plugin.json
+          bun -e "JSON.parse(require('fs').readFileSync('dist/openagentsbtw-claude-plugin/.claude-plugin/plugin.json','utf8'))"
+          ! grep -r '__SHARED_CONSTRAINTS__' dist/openagentsbtw-claude-plugin/ || exit 1
+          ! grep -r '__PACKAGE_CONSTRAINTS__' dist/openagentsbtw-claude-plugin/ || exit 1
           echo "Plugin build validated"

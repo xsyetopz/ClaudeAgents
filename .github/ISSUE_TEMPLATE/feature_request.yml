@@ -21,10 +21,12 @@ body:
     attributes:
       label: Component
       options:
-        - Agent (agents/*.md)
-        - Skill (skills/*/SKILL.md)
-        - Hook (hooks/scripts/*.mjs)
-        - Installer (install.sh)
+        - Shared source/generator (`source/`, `scripts/generate.mjs`)
+        - Claude assets (`claude/`)
+        - Codex assets (`codex/`)
+        - OpenCode assets (`opencode/`)
+        - Installer/build scripts
+        - CI/CD
         - Other
     validations:
       required: true

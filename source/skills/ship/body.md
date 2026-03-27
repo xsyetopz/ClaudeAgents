@@ -138,7 +138,7 @@ Present a commit message draft for the user to review before proceeding.
 
 ### Phase 2 - Commit
 
-Human runs the commit, or AI runs it only after explicit approval:
+Human runs the commit, or AI runs it only after explicit approval. If the AI executes the commit, keep the platform-specific co-author trailer so agent-authored commits stay distinguishable from user-authored commits:
 
 ```bash
 git commit -m "$(cat <<'EOF'
@@ -146,7 +146,7 @@ type(scope): description
 
 Body explaining why, not what.
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+__SHIP_COAUTHOR_TRAILER__
 EOF
 )"
 ```

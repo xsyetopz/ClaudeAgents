@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in ClaudeAgents
+description: Report a bug in openagentsbtw
 labels: ["bug"]
 body:
   - type: textarea
@@ -24,20 +24,21 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: package
+    id: target
     attributes:
-      label: Package tier
+      label: Target system
       options:
-        - pro
-        - max
-        - enterprise
+        - Claude Code
+        - Codex
+        - OpenCode
+        - Shared generator/source
     validations:
       required: true
   - type: input
-    id: claude-version
+    id: tool-version
     attributes:
-      label: Claude Code version
-      placeholder: "e.g., 2.1.80"
+      label: Tool version
+      placeholder: "e.g., Claude Code 2.1.80, Codex CLI x.y.z, OpenCode x.y.z"
     validations:
       required: true
   - type: dropdown
@@ -45,7 +46,10 @@ body:
     attributes:
       label: Installation method
       options:
-        - Plugin (claude plugin install cca)
-        - Manual (install.sh)
+        - Generated repo checkout
+        - Claude plugin install
+        - Codex plugin install
+        - OpenCode install
+        - Manual/custom setup
     validations:
       required: true

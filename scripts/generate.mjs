@@ -106,6 +106,28 @@ async function cleanGeneratedDirs() {
 }
 
 async function generateSkills(skills) {
+	const skillBodyTokens = {
+		claude: {
+			SHIP_COAUTHOR_TRAILER:
+				"Co-Authored-By: Claude via openagentsbtw <claude@openagentsbtw.local>",
+		},
+		codex: {
+			SHIP_COAUTHOR_TRAILER:
+				"Co-Authored-By: Codex via openagentsbtw <codex@openagentsbtw.local>",
+		},
+		opencode: {
+			SHIP_COAUTHOR_TRAILER:
+				"Co-Authored-By: OpenCode via openagentsbtw <opencode@openagentsbtw.local>",
+		},
+	};
+
+	function renderSkillBody(body, platform) {
+		return body.replaceAll(
+			"__SHIP_COAUTHOR_TRAILER__",
+			skillBodyTokens[platform].SHIP_COAUTHOR_TRAILER,
+		);
+	}
+
 	for (const skill of skills) {
 		const body = await readText("skills", skill.name, "body.md");
 		const sourceReferenceDir = path.join(
@@ -114,17 +136,22 @@ async function generateSkills(skills) {
 			skill.name,
 			"reference",
 		);
+		const claudeBody = renderSkillBody(body, "claude");
 		const claudeContent =
 			renderFrontmatter([
 				["description", `>\n  ${skill.description}`],
 				["user-invocable", String(skill.userInvocable)],
 			]) +
-			body.trim() +
+			claudeBody.trim() +
 			"\n";
 
+		const renderedCodexBody = renderSkillBody(body, "codex");
 		const codexBody = skill.codexLead
-			? body.replace(/^# [^\n]+\n/, (match) => `${match}\n${skill.codexLead}\n`)
-			: body;
+			? renderedCodexBody.replace(
+					/^# [^\n]+\n/,
+					(match) => `${match}\n${skill.codexLead}\n`,
+				)
+			: renderedCodexBody;
 
 		const codexContent =
 			renderFrontmatter([
@@ -135,13 +162,14 @@ async function generateSkills(skills) {
 			codexBody.trim() +
 			"\n";
 
+		const opencodeBody = renderSkillBody(body, "opencode");
 		const opencodeContent =
 			renderFrontmatter([
 				["name", skill.name],
 				["description", skill.description],
 				["compatibility", "opencode"],
 			]) +
-			body.trim() +
+			opencodeBody.trim() +
 			"\n";
 
 		if (skill.platforms.includes("claude")) {
@@ -287,111 +315,115 @@ async function generateAgents(agents) {
 }
 
 function addHookGroup(hooks, event, group) {
-  hooks[event] ??= [];
-  hooks[event].push(group);
+	hooks[event] ??= [];
+	hooks[event].push(group);
 }
 
 function buildPlatformHookRecord(policy, platform) {
-  if (platform === "claude" && policy.claude) {
-    return {
-      id: policy.id,
-      status: "supported",
-      surfaces: [
-        {
-          type: "hook",
-          event: policy.claude.event,
-          matcher: policy.claude.matcher ?? null,
-          timeout: policy.claude.timeout ?? null,
-          script: policy.script ?? null,
-        },
-      ],
-    };
-  }
+	if (platform === "claude" && policy.claude) {
+		return {
+			id: policy.id,
+			status: "supported",
+			surfaces: [
+				{
+					type: "hook",
+					event: policy.claude.event,
+					matcher: policy.claude.matcher ?? null,
+					timeout: policy.claude.timeout ?? null,
+					script: policy.script ?? null,
+				},
+			],
+		};
+	}
 
-  if (platform === "codex" && policy.codex) {
-    return {
-      id: policy.id,
-      status: "supported",
-      surfaces: [
-        {
-          type: "hook",
-          event: policy.codex.event,
-          matcher: policy.codex.matcher ?? null,
-          timeout: policy.codex.timeout ?? null,
-          statusMessage: policy.codex.statusMessage ?? null,
-          script: policy.script ?? null,
-        },
-      ],
-    };
-  }
+	if (platform === "codex" && policy.codex) {
+		return {
+			id: policy.id,
+			status: "supported",
+			surfaces: [
+				{
+					type: "hook",
+					event: policy.codex.event,
+					matcher: policy.codex.matcher ?? null,
+					timeout: policy.codex.timeout ?? null,
+					statusMessage: policy.codex.statusMessage ?? null,
+					script: policy.script ?? null,
+				},
+			],
+		};
+	}
 
-  if (platform === "opencode" && policy.opencode) {
-    const surfaces = [];
-    if (policy.opencode.plugin) {
-      surfaces.push({
-        type: "plugin",
-        event: policy.opencode.plugin.event,
-        tools: policy.opencode.plugin.tools ?? [],
-        field: policy.opencode.plugin.field ?? null,
-      });
-    }
-    for (const gitHook of policy.opencode.gitHooks ?? []) {
-      surfaces.push({
-        type: "git-hook",
-        hook: gitHook.hook,
-        kind: gitHook.kind,
-      });
-    }
-    return {
-      id: policy.id,
-      status: "supported",
-      surfaces,
-    };
-  }
+	if (platform === "opencode" && policy.opencode) {
+		const surfaces = [];
+		if (policy.opencode.plugin) {
+			surfaces.push({
+				type: "plugin",
+				event: policy.opencode.plugin.event,
+				tools: policy.opencode.plugin.tools ?? [],
+				field: policy.opencode.plugin.field ?? null,
+			});
+		}
+		for (const gitHook of policy.opencode.gitHooks ?? []) {
+			surfaces.push({
+				type: "git-hook",
+				hook: gitHook.hook,
+				kind: gitHook.kind,
+			});
+		}
+		return {
+			id: policy.id,
+			status: "supported",
+			surfaces,
+		};
+	}
 
-  return {
-    id: policy.id,
-    status: "unsupported",
-    reason:
-      policy.unsupported?.[platform] ??
-      "No mapping is defined for this platform in the shared hook policy source.",
-  };
+	return {
+		id: policy.id,
+		status: "unsupported",
+		reason:
+			policy.unsupported?.[platform] ??
+			"No mapping is defined for this platform in the shared hook policy source.",
+	};
 }
 
 function renderHookManifestMarkdown(platformLabel, records) {
-  const supported = records.filter((record) => record.status === "supported");
-  const unsupported = records.filter((record) => record.status === "unsupported");
+	const supported = records.filter((record) => record.status === "supported");
+	const unsupported = records.filter(
+		(record) => record.status === "unsupported",
+	);
 
-  const lines = [`# ${platformLabel} Hook Mapping`, ""];
+	const lines = [`# ${platformLabel} Hook Mapping`, ""];
 
-  lines.push("## Supported Policies", "");
-  for (const record of supported) {
-    lines.push(`- \`${record.id}\``);
-    for (const surface of record.surfaces) {
-      if (surface.type === "hook") {
-        const matcher = surface.matcher ? `, matcher \`${surface.matcher}\`` : "";
-        lines.push(
-          `  ${surface.type}: event \`${surface.event}\`${matcher}${surface.script ? `, script \`${surface.script}\`` : ""}`,
-        );
-        continue;
-      }
-      if (surface.type === "plugin") {
-        lines.push(
-          `  plugin: event \`${surface.event}\`, tools ${surface.tools.map((tool) => `\`${tool}\``).join(", ")}${surface.field ? `, field \`${surface.field}\`` : ""}`,
-        );
-        continue;
-      }
-      lines.push(`  git-hook: \`${surface.hook}\` via \`${surface.kind}\``);
-    }
-  }
+	lines.push("## Supported Policies", "");
+	for (const record of supported) {
+		lines.push(`- \`${record.id}\``);
+		for (const surface of record.surfaces) {
+			if (surface.type === "hook") {
+				const matcher = surface.matcher
+					? `, matcher \`${surface.matcher}\``
+					: "";
+				lines.push(
+					`  ${surface.type}: event \`${surface.event}\`${matcher}${surface.script ? `, script \`${surface.script}\`` : ""}`,
+				);
+				continue;
+			}
+			if (surface.type === "plugin") {
+				lines.push(
+					`  plugin: event \`${surface.event}\`, tools ${surface.tools.map((tool) => `\`${tool}\``).join(", ")}${surface.field ? `, field \`${surface.field}\`` : ""}`,
+				);
+				continue;
+			}
+			lines.push(`  git-hook: \`${surface.hook}\` via \`${surface.kind}\``);
+		}
+	}
 
-  lines.push("", "## Unsupported Policies", "");
-  for (const record of unsupported) {
-    lines.push(`- \`${record.id}\`: ${record.reason}`);
-  }
+	lines.push("", "## Unsupported Policies", "");
+	for (const record of unsupported) {
+		lines.push(`- \`${record.id}\`: ${record.reason}`);
+	}
 
-  lines.push("");
-  return lines.join("\n");
+	lines.push("");
+	return lines.join("\n");
 }
 
 function renderOpenCodePlugin(policies) {
@@ -625,55 +657,55 @@ async function generateHooks(policies) {
 		JSON.stringify(codex, null, 2) + "\n",
 	);
 
-  await writeFile(
-    path.join("opencode", "templates", "plugins", "openagentsbtw.ts"),
-    renderOpenCodePlugin(policies),
-  );
+	await writeFile(
+		path.join("opencode", "templates", "plugins", "openagentsbtw.ts"),
+		renderOpenCodePlugin(policies),
+	);
 	await writeFile(
 		path.join("opencode", "templates", "hooks", "pre-commit"),
 		renderOpenCodeGitHook("pre-commit", opencodeGitRules["pre-commit"]),
 		true,
 	);
-  await writeFile(
-    path.join("opencode", "templates", "hooks", "pre-push"),
-    renderOpenCodeGitHook("pre-push", opencodeGitRules["pre-push"]),
-    true,
-  );
+	await writeFile(
+		path.join("opencode", "templates", "hooks", "pre-push"),
+		renderOpenCodeGitHook("pre-push", opencodeGitRules["pre-push"]),
+		true,
+	);
 
-  const claudeManifest = policies.map((policy) =>
-    buildPlatformHookRecord(policy, "claude"),
-  );
-  const codexManifest = policies.map((policy) =>
-    buildPlatformHookRecord(policy, "codex"),
-  );
-  const opencodeManifest = policies.map((policy) =>
-    buildPlatformHookRecord(policy, "opencode"),
-  );
+	const claudeManifest = policies.map((policy) =>
+		buildPlatformHookRecord(policy, "claude"),
+	);
+	const codexManifest = policies.map((policy) =>
+		buildPlatformHookRecord(policy, "codex"),
+	);
+	const opencodeManifest = policies.map((policy) =>
+		buildPlatformHookRecord(policy, "opencode"),
+	);
 
-  await writeFile(
-    path.join("claude", "hooks", "policy-map.json"),
-    JSON.stringify(claudeManifest, null, 2) + "\n",
-  );
-  await writeFile(
-    path.join("claude", "hooks", "HOOKS.md"),
-    renderHookManifestMarkdown("Claude", claudeManifest),
-  );
-  await writeFile(
-    path.join("codex", "hooks", "policy-map.json"),
-    JSON.stringify(codexManifest, null, 2) + "\n",
-  );
-  await writeFile(
-    path.join("codex", "hooks", "HOOKS.md"),
-    renderHookManifestMarkdown("Codex", codexManifest),
-  );
-  await writeFile(
-    path.join("opencode", "templates", "hooks", "policy-map.json"),
-    JSON.stringify(opencodeManifest, null, 2) + "\n",
-  );
-  await writeFile(
-    path.join("opencode", "templates", "hooks", "HOOKS.md"),
-    renderHookManifestMarkdown("OpenCode", opencodeManifest),
-  );
+	await writeFile(
+		path.join("claude", "hooks", "policy-map.json"),
+		JSON.stringify(claudeManifest, null, 2) + "\n",
+	);
+	await writeFile(
+		path.join("claude", "hooks", "HOOKS.md"),
+		renderHookManifestMarkdown("Claude", claudeManifest),
+	);
+	await writeFile(
+		path.join("codex", "hooks", "policy-map.json"),
+		JSON.stringify(codexManifest, null, 2) + "\n",
+	);
+	await writeFile(
+		path.join("codex", "hooks", "HOOKS.md"),
+		renderHookManifestMarkdown("Codex", codexManifest),
+	);
+	await writeFile(
+		path.join("opencode", "templates", "hooks", "policy-map.json"),
+		JSON.stringify(opencodeManifest, null, 2) + "\n",
+	);
+	await writeFile(
+		path.join("opencode", "templates", "hooks", "HOOKS.md"),
+		renderHookManifestMarkdown("OpenCode", opencodeManifest),
+	);
 }
 
 function renderOpenCodeCommands(commands) {

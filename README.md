@@ -39,7 +39,7 @@ If no system flags are passed, the installer prompts for each system as a toggle
 
 Claude installs:
 
-- the `openagentsbtw@openagentsbtw` plugin
+- the `xsyetopz@openagentsbtw` plugin
 - user-level hooks and output style under `~/.claude/`
 - optional RTK setup via `rtk init -g`
 
@@ -109,13 +109,15 @@ scripts/    Source bootstrap and generation tooling
 
 ## Development
 
+Contributor workflow details live in `CONTRIBUTING.md`.
+
 ```bash
+bun install --frozen-lockfile
 bun run generate
 bun run check:generated
-make lint
-make test
-make build
-make validate
+bun run test
+cd opencode && bun install --frozen-lockfile && bun run test && bun run typecheck
+./build-plugin.sh
 ```
 
 `bun run bootstrap:source` is now a no-op reminder: `source/` is the canonical layer, so edit `source/` directly and regenerate outputs.

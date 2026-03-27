@@ -5,10 +5,11 @@
 ## Component
 
 <!-- Which part of the system? -->
-- [ ] Agent (agents/*.md)
-- [ ] Skill (skills/*/SKILL.md)
-- [ ] Hook (hooks/scripts/*.mjs)
-- [ ] Installer (install.sh / build-plugin.sh)
+- [ ] Shared source/generator (`source/`, `scripts/`)
+- [ ] Claude assets (`claude/`)
+- [ ] Codex assets (`codex/`)
+- [ ] OpenCode assets (`opencode/`)
+- [ ] Installer/build scripts
 - [ ] CI/CD (.github/workflows/)
 - [ ] Documentation
 - [ ] Other
@@ -16,14 +17,16 @@
 ## Testing
 
 <!-- How did you verify this works? -->
-- [ ] `make lint` passes
-- [ ] `make test` passes
+- [ ] `bun run generate` passes
+- [ ] `bun run check:generated` passes
+- [ ] `bun run test` passes
+- [ ] `cd opencode && bun run test && bun run typecheck` passes
 - [ ] Tested install with `CI=true ./install.sh`
-- [ ] Tested in a live Claude Code session
+- [ ] Tested in a live CLI session
 
 ## Checklist
 
 - [ ] No placeholder code <!-- cca-allow -->
 - [ ] No secrets or credentials in the diff
-- [ ] CLAUDE.md updated if structure changed
-- [ ] CHANGELOG.md updated
+- [ ] Generated artifacts refreshed if source changed
+- [ ] Docs updated if platform behavior changed
