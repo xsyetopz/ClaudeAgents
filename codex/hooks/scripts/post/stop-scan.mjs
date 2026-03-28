@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { persistTurnMemory } from "../_memory.mjs";
 import {
 	isProseFile,
 	isMetaFile,
@@ -68,8 +69,17 @@ function scan(files) {
 	const data = await readStdin();
 	if (!data || data.stop_hook_active) passthrough();
 
+	const memoryResult = await persistTurnMemory(data);
+
 	const files = modifiedFiles();
-	if (!files.length) passthrough();
+	if (!files.length) {
+		if (memoryResult?.skipped === "transcript_unavailable") {
+			systemMessage(
+				"openagentsbtw memory skipped this turn because Codex did not expose a transcript path. Ephemeral or non-persistent sessions will not be recalled later.",
+			);
+		}
+		passthrough();
+	}
 
 	const { hard, soft, commentSlop, proseSlop, sycophancy } = scan(files);
 	if (hard.length) {
@@ -88,13 +98,34 @@ function scan(files) {
 		);
 	}
 	if (soft.length) {
-		systemMessage(
+		const notes = [
 			`openagentsbtw completion check found possible placeholders or hedging in modified files:\n${soft.slice(0, 12).join("\n")}`,
-		);
+		];
+		if (memoryResult?.skipped === "transcript_unavailable") {
+			notes.push(
+				"openagentsbtw memory skipped this turn because Codex did not expose a transcript path.",
+			);
+		}
+		systemMessage(notes.join("\n\n"));
 	}
 	if (proseSlop.length) {
-		systemMessage(
+		const notes = [
 			`openagentsbtw completion check found prose filler in modified files:\n${proseSlop.slice(0, 12).join("\n")}`,
+		];
+		if (memoryResult?.skipped === "transcript_unavailable") {
+			notes.push(
+				"openagentsbtw memory skipped this turn because Codex did not expose a transcript path.",
+			);
+		}
+		systemMessage(notes.join("\n\n"));
+	}
+	if (
+		!soft.length &&
+		!proseSlop.length &&
+		memoryResult?.skipped === "transcript_unavailable"
+	) {
+		systemMessage(
+			"openagentsbtw memory skipped this turn because Codex did not expose a transcript path. Ephemeral or non-persistent sessions will not be recalled later.",
 		);
 	}
 	passthrough();

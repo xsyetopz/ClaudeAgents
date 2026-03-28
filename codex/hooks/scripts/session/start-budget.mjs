@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { passthrough, readStdin, systemMessage } from "../_lib.mjs";
+import { loadProjectMemory, renderMemoryContext } from "../_memory.mjs";
+import { passthrough, readStdin } from "../_lib.mjs";
 
 const TARGETS = [
 	["AGENTS.md", 120],
@@ -25,6 +26,26 @@ function fastModeEnabled(pathname) {
 		);
 	} catch {
 		return false;
+	}
+}
+
+function persistenceWarnings(pathname) {
+	try {
+		const content = readFileSync(pathname, "utf8");
+		const warnings = [];
+		if (/sqlite\s*=\s*false/.test(content)) {
+			warnings.push(
+				`SQLite persistence appears disabled in ${pathname}. openagentsbtw Codex memory expects it to stay on.`,
+			);
+		}
+		if (/persistence\s*=\s*"none"/.test(content)) {
+			warnings.push(
+				`History persistence appears disabled in ${pathname}. openagentsbtw Codex memory will not persist across sessions.`,
+			);
+		}
+		return warnings;
+	} catch {
+		return [];
 	}
 }
 
@@ -54,8 +75,28 @@ function fastModeEnabled(pathname) {
 				`Fast mode appears enabled in ${configPath}. openagentsbtw expects it to stay off.`,
 			);
 		}
+		if (existsSync(configPath)) {
+			warnings.push(...persistenceWarnings(configPath));
+		}
 	}
 
-	if (!warnings.length) passthrough();
-	systemMessage(warnings.join("\n"));
+	const memory = await loadProjectMemory(cwd);
+	const additionalContext = renderMemoryContext(memory, true);
+	if (!warnings.length && !additionalContext) passthrough();
+
+	process.stdout.write(
+		`${JSON.stringify({
+			continue: true,
+			...(warnings.length ? { systemMessage: warnings.join("\n") } : {}),
+			...(additionalContext
+				? {
+						hookSpecificOutput: {
+							hookEventName: "SessionStart",
+							additionalContext,
+						},
+					}
+				: {}),
+		})}\n`,
+	);
+	process.exit(0);
 })();

@@ -16,6 +16,12 @@ Modes:
   implement   Generated openagentsbtw Codex route
   review      Generated openagentsbtw Codex route
   orchestrate Generated openagentsbtw Codex route
+  memory      Inspect or manage openagentsbtw Codex memory
+
+Memory commands:
+  oabtw-codex memory show [path]
+  oabtw-codex memory forget-project [path]
+  oabtw-codex memory prune
 EOF
     exit 1
 }
@@ -24,6 +30,11 @@ EOF
 
 MODE="$1"
 shift
+
+if [[ "$MODE" == "memory" ]]; then
+    [[ $# -ge 1 ]] || usage
+    exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/memory-manage.mjs" "$@"
+fi
 
 if [[ $# -gt 0 ]]; then
     PROMPT="$*"

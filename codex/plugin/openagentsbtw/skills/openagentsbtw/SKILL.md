@@ -53,6 +53,12 @@ Canonical equivalent: `openagentsbtw-codex`
   `nemesis`-shaped routing on `openagentsbtw`.
 - `oabtw-codex orchestrate`
   `odysseus`-shaped routing on `openagentsbtw`.
+- `oabtw-codex memory show`
+  print the current project's openagentsbtw Codex memory recap and recent session notes.
+- `oabtw-codex memory forget-project`
+  delete the current project's stored openagentsbtw Codex memory.
+- `oabtw-codex memory prune`
+  compact the shared openagentsbtw Codex memory store by dropping old session notes.
 
 These wrappers do not hard-bind a native Codex mode like `/plan` to a custom agent. The reliable contract is profile selection plus a strong system prompt, while the custom agent TOMLs hold the actual model pinning for each specialist.
 

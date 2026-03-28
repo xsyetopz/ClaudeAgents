@@ -26,6 +26,7 @@ The managed profiles share the same model/style defaults unless noted otherwise:
 - `sandbox_mode = "workspace-write"` across every managed profile
 - `service_tier = "flex"`
 - `codex_hooks = true`
+- `sqlite = true`
 - `multi_agent = true`
 - `fast_mode = false`
 
@@ -35,6 +36,21 @@ Approval policy splits by mode:
 - `openagentsbtw-accept-edits` uses `approval_policy = "never"`
 
 The matching repo sample is in `codex/templates/config.toml`.
+
+## Memory Layer
+
+Codex already has native SQLite-backed state persistence and saved sessions. openagentsbtw does not replace that. The Codex package layers a second, plugin-owned SQLite DB on top for project recall:
+
+- native Codex SQLite keeps Codex runtime/session state
+- `~/.codex/openagentsbtw/state/memory.sqlite` stores openagentsbtw per-project memory
+
+That overlay is driven by the existing SessionStart, UserPromptSubmit, and Stop hooks:
+
+- SessionStart loads the current project's recap plus recent session notes
+- UserPromptSubmit adds a lightweight project-memory hint during active work
+- Stop persists a bounded deterministic session summary for later recall
+
+The overlay assumes native persistence is still enabled. If a user disables SQLite or sets history persistence to `none`, the startup hook warns that cross-session recall will be weakened.
 
 ## Attribution And Style
 

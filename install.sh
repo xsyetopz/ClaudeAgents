@@ -173,10 +173,10 @@ validate_codex_tier() {
 }
 
 check_node() {
-    command -v node &>/dev/null || die "node not found. Claude hook scripts require Node.js >= 18."
+    command -v node &>/dev/null || die "node not found. Claude and Codex hook scripts require Node.js >= 24.14.1."
     local node_ver
     node_ver=$(node --version 2>/dev/null | grep -oE '[0-9]+' | head -1)
-    (( node_ver >= 18 )) || die "Node.js v${node_ver} is too old. Requires >= 18."
+    (( node_ver >= 24 )) || die "Node.js v${node_ver} is too old. Requires >= 24.14.1."
     info "Node.js $(node --version 2>&1)"
 }
 
@@ -689,6 +689,7 @@ service_tier = "flex"
 
 [profiles.openagentsbtw-plus.features]
 codex_hooks = true
+sqlite = true
 multi_agent = true
 fast_mode = false
 
@@ -705,6 +706,7 @@ service_tier = "flex"
 
 [profiles.openagentsbtw-pro.features]
 codex_hooks = true
+sqlite = true
 multi_agent = true
 fast_mode = false
 
@@ -721,6 +723,7 @@ service_tier = "flex"
 
 [profiles.openagentsbtw-codex-mini.features]
 codex_hooks = true
+sqlite = true
 multi_agent = true
 fast_mode = false
 
@@ -737,6 +740,7 @@ service_tier = "flex"
 
 [profiles.openagentsbtw.features]
 codex_hooks = true
+sqlite = true
 multi_agent = true
 fast_mode = false
 
@@ -753,6 +757,7 @@ service_tier = "flex"
 
 [profiles.openagentsbtw-accept-edits.features]
 codex_hooks = true
+sqlite = true
 multi_agent = true
 fast_mode = false
 """

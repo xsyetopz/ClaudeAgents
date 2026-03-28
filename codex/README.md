@@ -23,6 +23,7 @@ Wrapper command after install:
 ~/.codex/openagentsbtw/bin/oabtw-codex docs "tighten the README install section"
 ~/.codex/openagentsbtw/bin/oabtw-codex implement "fix the auth race in src/auth.ts"
 ~/.codex/openagentsbtw/bin/oabtw-codex review "audit the current diff for regressions"
+~/.codex/openagentsbtw/bin/oabtw-codex memory show
 ```
 
 `oabtw-codex` is the short alias. `openagentsbtw-codex` remains the canonical equivalent and is installed alongside it.
@@ -33,6 +34,7 @@ The installer:
 - registers a personal plugin marketplace entry in `~/.agents/plugins/marketplace.json`
 - installs custom agents into `~/.codex/agents/`
 - installs hook scripts into `~/.codex/openagentsbtw/hooks/` and merges `~/.codex/hooks.json`
+- keeps openagentsbtw memory state in `~/.codex/openagentsbtw/state/`
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
 - appends managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, and `openagentsbtw-accept-edits` profiles to `~/.codex/config.toml`
 - optionally runs `rtk init -g --codex`
@@ -58,6 +60,7 @@ What gets refreshed:
 - `~/.codex/agents/`
 - `~/.codex/openagentsbtw/hooks/`
 - `~/.codex/openagentsbtw/bin/`
+- `~/.codex/openagentsbtw/state/`
 - managed openagentsbtw blocks in `~/.codex/config.toml` and `~/.codex/AGENTS.md`
 
 Important:
@@ -93,6 +96,7 @@ The plugin package gives Codex the skills and install surface. Default behavior 
 
 - `oabtw-codex plan|implement|review|orchestrate` is the short supported CLI routing layer.
 - `oabtw-codex accept` is the sandboxed auto-accept implementation route.
+- `oabtw-codex memory show|forget-project|prune` manages the openagentsbtw SQLite memory overlay.
 - `openagentsbtw-codex` remains supported as the canonical full-form command.
 - Wrapper modes select the managed profile and reinforce the intended specialist path.
 - Native `/plan` still helps with reasoning depth, but it does not guarantee `athena` selection.
@@ -103,6 +107,15 @@ The plugin package gives Codex the skills and install surface. Default behavior 
 - Codex safety is centered on sandboxing, approvals, writable roots, rules, project trust, and hooks.
 - This is similar in outcome to Claude Code’s permissions, but not the same implementation shape.
 - Current Codex hooks intercept Bash, not a broad built-in edit/write/read tool matrix.
+
+## Memory
+
+- Codex already has native SQLite-backed state persistence and saved sessions.
+- openagentsbtw adds a second, explicit project-memory DB at `~/.codex/openagentsbtw/state/memory.sqlite`.
+- SessionStart loads the current project's recap and recent session notes.
+- UserPromptSubmit adds a lightweight project-memory hint during active work.
+- Stop writes a bounded deterministic summary for later recall.
+- If Codex does not expose a transcript path, the turn still runs, but openagentsbtw warns that memory was skipped for that turn.
 
 ## Notes
 

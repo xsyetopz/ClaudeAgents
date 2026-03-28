@@ -7,15 +7,19 @@ Codex supports project and user hook config files at `.codex/hooks.json` and `~/
 The Codex port keeps only the Claude hook behavior that maps onto documented Codex events:
 
 - `session/start-budget.mjs`
-  Checks `AGENTS.md` size and warns if Fast mode appears enabled in active config.
+  Checks `AGENTS.md` size, warns if Fast mode or native persistence appears disabled, and injects project memory on startup or resume.
 - `session/prompt-git-context.mjs`
-  Injects lightweight git context at prompt submit time.
+  Injects lightweight git context plus a compact project-memory hint at prompt submit time.
 - `pre/bash-guard.mjs`
   Blocks broad `rm -rf`, blanket `git add`, noisy shell commands, and unsafe DNS-style checks.
 - `post/bash-redact.mjs`
   Warns when Bash output appears to contain secrets or PII.
 - `post/stop-scan.mjs`
-  Scans modified files for placeholder code before final completion.
+  Scans modified files for placeholder code before final completion and persists a bounded session summary into the openagentsbtw SQLite memory store.
+
+## Memory Layer
+
+Codex already ships native SQLite-backed persistence. openagentsbtw uses that as the base layer, then stores project-specific recall in `~/.codex/openagentsbtw/state/memory.sqlite`. The hook flow uses documented Codex fields such as `session_id`, `transcript_path`, `cwd`, `prompt`, and `last_assistant_message`, so the memory feature stays inside the supported hook contract instead of scraping undocumented runtime state.
 
 ## Important Limitation
 

@@ -55,6 +55,7 @@ describe("generated Codex defaults", () => {
 		assert.equal(config.includes('personality = "pragmatic"'), false);
 		assert.match(config, /\[profiles\.openagentsbtw-accept-edits\]/);
 		assert.match(config, /approval_policy = "never"/);
+		assert.match(config, /sqlite = true/);
 	});
 
 	it("ports the CCA-style response contract into Codex guidance", () => {
@@ -83,6 +84,11 @@ describe("generated Codex defaults", () => {
 			/Route implementation through hephaestus-style execution/,
 		);
 		assert.match(shortWrapper, /accept\s+Generated openagentsbtw Codex route/);
+		assert.match(
+			shortWrapper,
+			/memory\s+Inspect or manage openagentsbtw Codex memory/,
+		);
+		assert.match(shortWrapper, /memory show \[path\]/);
 		assert.match(
 			shortWrapper,
 			/Route implementation through hephaestus-style execution on the sandboxed auto-accept profile/,

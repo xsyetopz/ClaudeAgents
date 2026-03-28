@@ -46,9 +46,13 @@ Hooks are enabled by config, not by the plugin manifest alone. openagentsbtw mer
 
 Config is also where Codex-native defaults live: profile selection, `commit_attribution`, reasoning effort, and Fast mode policy.
 
+The Codex memory feature follows that same split. Native Codex SQLite/session persistence remains the runtime base, while openagentsbtw stores project-level recall in its own SQLite DB under `~/.codex/openagentsbtw/state/memory.sqlite` and surfaces it through the supported hook events.
+
 ## Wrapper Routing
 
 `openagentsbtw-codex <mode> ...` is the supported routing layer for mode-specific CLI flows. The wrapper selects the managed profile and supplies a strong role-shaped prompt for plan, accept-edits, implement, review, orchestration, docs, cleanup, handoff, and bounded validation.
+
+The wrapper also exposes `memory show`, `memory forget-project`, and `memory prune` so users can inspect or clear the openagentsbtw memory layer without touching SQLite directly.
 
 That wrapper contract is more reliable than implying the plugin can hard-bind native `/plan` or `/review` to a custom agent. Native `/plan` remains useful, but it is documented as a reasoning mode, not as an agent selector.
 

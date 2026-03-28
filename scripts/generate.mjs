@@ -759,6 +759,14 @@ function renderCodexWrapper(commandName, modes) {
         ;;`,
 		)
 		.join("\n");
+	const utilityModes =
+		"  memory      Inspect or manage openagentsbtw Codex memory";
+	const modeLines = [
+		...modes.map(
+			(mode) => `  ${mode.mode.padEnd(11)} Generated openagentsbtw Codex route`,
+		),
+		utilityModes,
+	].join("\n");
 
 	return `#!/bin/bash
 set -euo pipefail
@@ -768,7 +776,12 @@ usage() {
 Usage: ${commandName} <mode> [prompt...]
 
 Modes:
-${modes.map((mode) => `  ${mode.mode.padEnd(11)} Generated openagentsbtw Codex route`).join("\n")}
+${modeLines}
+
+Memory commands:
+  ${commandName} memory show [path]
+  ${commandName} memory forget-project [path]
+  ${commandName} memory prune
 EOF
     exit 1
 }
@@ -777,6 +790,11 @@ EOF
 
 MODE="$1"
 shift
+
+if [[ "$MODE" == "memory" ]]; then
+    [[ $# -ge 1 ]] || usage
+    exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/memory-manage.mjs" "$@"
+fi
 
 if [[ $# -gt 0 ]]; then
     PROMPT="$*"

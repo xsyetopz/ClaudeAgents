@@ -59,7 +59,7 @@ Scopes: `agents`, `skills`, `hooks`, `install`, `ci`, `docs`
 
 ## Code Style
 
-- **JavaScript**: Node.js >= 18 ESM (.mjs), stdlib-only
+- **JavaScript**: Node.js >= 24.14.1 LTS ESM (.mjs), stdlib-only
 - **Bash**: shellcheck
 - **JSON**: valid JSON (validated in CI)
 - **Markdown**: clear structure, no filler adjectives
