@@ -115,7 +115,7 @@ remove_opencode() {
     done
 
     local command
-    for command in openagents-review openagents-test openagents-implement openagents-docs openagents-deps openagents-explain openagents-plan-feature openagents-plan-refactor openagents-audit openagents-ship; do
+    for command in openagents-review openagents-test openagents-implement openagents-docs openagents-explore openagents-trace openagents-debug openagents-plan-feature openagents-plan-refactor openagents-audit openagents-ship; do
         rm -f "$target/commands/$command.md"
     done
 

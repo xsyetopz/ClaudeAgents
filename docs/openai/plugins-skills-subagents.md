@@ -44,15 +44,17 @@ This is the main style and behavior-shaping layer for the CCA-like response cont
 
 Hooks are enabled by config, not by the plugin manifest alone. openagentsbtw merges supported hook definitions into `~/.codex/hooks.json`, turns on `codex_hooks = true` in the managed profiles, and keeps the unsupported policy map explicit in `codex/hooks/`.
 
-Config is also where Codex-native defaults live: profile selection, `commit_attribution`, reasoning effort, and Fast mode policy.
+Config is also where Codex-native defaults live: profile selection, `commit_attribution`, reasoning effort, Fast mode policy, and optional MCP servers such as DeepWiki.
 
 The Codex memory feature follows that same split. Native Codex SQLite/session persistence remains the runtime base, while openagentsbtw stores project-level recall in its own SQLite DB under `~/.codex/openagentsbtw/state/memory.sqlite` and surfaces it through the supported hook events.
 
 ## Wrapper Routing
 
-`openagentsbtw-codex <mode> ...` is the supported routing layer for mode-specific CLI flows. The wrapper selects the managed profile and supplies a strong role-shaped prompt for plan, accept-edits, implement, review, orchestration, docs, cleanup, handoff, and bounded validation.
+`openagentsbtw-codex <mode> ...` is the supported routing layer for mode-specific CLI flows. The wrapper selects the managed profile, adds per-mode model overrides where needed, and supplies a strong role-shaped prompt for plan, accept-edits, implement, review, orchestration, docs, cleanup, handoff, bounded validation, and the explicit `deepwiki` exploration path.
 
 The wrapper also exposes `memory show`, `memory forget-project`, and `memory prune` so users can inspect or clear the openagentsbtw memory layer without touching SQLite directly.
+
+`deepwiki` is intentionally explicit instead of silently changing `triage`. It depends on an opt-in `mcp_servers.deepwiki` config block and is meant for GitHub repo exploration, not as a universal replacement for local repo reads.
 
 That wrapper contract is more reliable than implying the plugin can hard-bind native `/plan` or `/review` to a custom agent. Native `/plan` remains useful, but it is documented as a reasoning mode, not as an agent selector.
 

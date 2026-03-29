@@ -44,6 +44,28 @@
     "codexLead": ""
   },
   {
+    "name": "debug",
+    "description": "Structured debugging workflow for reproducing failures, narrowing root causes, and collecting evidence before changing code. Triggers: debug, debugging, root cause, reproduce, failing behavior, broken flow, investigate bug, triage failure, isolate issue, regression analysis.",
+    "userInvocable": true,
+    "platforms": [
+      "claude",
+      "codex",
+      "opencode"
+    ],
+    "codexLead": "Recommended routing: `oabtw-codex debug \"<failure or symptom>\"` for read-only bug investigation, or `oabtw-codex test \"<scope>\"` when you specifically need test execution evidence."
+  },
+  {
+    "name": "explore",
+    "description": "Evidence-first codebase exploration for repo mapping, architecture reading, component inventory, and research-heavy understanding work. Triggers: explore, research, investigate codebase, understand project, map repo, architecture walkthrough, component inventory, where is, how does this work.",
+    "userInvocable": true,
+    "platforms": [
+      "claude",
+      "codex",
+      "opencode"
+    ],
+    "codexLead": "Recommended routing: `oabtw-codex explore \"<target>\"` for local repo exploration, or `oabtw-codex deepwiki \"<target>\"` for public GitHub repos when you want indexed background first."
+  },
+  {
     "name": "handoff",
     "description": "Export session context as a structured handoff file for continuity between Claude Code sessions. Use when the user wants to save session progress, create a handoff, preserve context before ending, or mentions \"session export\", \"session handoff\", \"save session\", \"session continuity\".",
     "userInvocable": true,
@@ -128,5 +150,16 @@
       "opencode"
     ],
     "codexLead": ""
+  },
+  {
+    "name": "trace",
+    "description": "Structured tracing workflow for dependencies, call paths, data flow, and change impact analysis. Triggers: trace, dependency trace, call graph, data flow, impact analysis, who uses this, what depends on this, downstream effects, upstream callers, symbol trace.",
+    "userInvocable": true,
+    "platforms": [
+      "claude",
+      "codex",
+      "opencode"
+    ],
+    "codexLead": "Recommended routing: `oabtw-codex trace \"<symbol or path>\"` for local dependency and data-flow tracing."
   }
 ]

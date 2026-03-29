@@ -35,6 +35,14 @@ Canonical equivalent: `openagentsbtw-codex`
 
 - `oabtw-codex triage`
   `hermes`-shaped routing on `openagentsbtw-codex-mini` for bounded search, classification, and evidence gathering.
+- `oabtw-codex explore`
+  `hermes`-shaped routing on `openagentsbtw-codex-mini` for repo mapping, architecture reading, and evidence-first exploration.
+- `oabtw-codex trace`
+  `hermes`-shaped routing on `openagentsbtw-codex-mini` for dependency, call-path, and data-flow tracing.
+- `oabtw-codex debug`
+  `hermes`-shaped routing on `openagentsbtw-codex-mini` for read-only failure investigation and root-cause narrowing.
+- `oabtw-codex deepwiki`
+  `hermes`-shaped routing on `openagentsbtw-codex-mini` for public GitHub repo exploration through DeepWiki MCP first, with local repo verification before making exact file or line claims.
 - `oabtw-codex docs`
   `calliope`-shaped routing on `openagentsbtw-codex-mini` for documentation-only edits.
 - `oabtw-codex desloppify`
@@ -61,6 +69,8 @@ Canonical equivalent: `openagentsbtw-codex`
   compact the shared openagentsbtw Codex memory store by dropping old session notes.
 
 These wrappers do not hard-bind a native Codex mode like `/plan` to a custom agent. The reliable contract is profile selection plus a strong system prompt, while the custom agent TOMLs hold the actual model pinning for each specialist.
+
+Prefer the specific research routes (`explore`, `trace`, `debug`, `deepwiki`) when the intent is known. Keep `triage` as the generic fallback for bounded search that does not yet fit one of the narrower research patterns.
 
 The `accept` route is an openagentsbtw convenience mode, not a native Codex collaboration mode. It maps to `approval_policy = "never"` plus `sandbox_mode = "workspace-write"` so edits auto-apply inside the sandbox without turning on full access.
 

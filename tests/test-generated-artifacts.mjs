@@ -5,7 +5,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "..", "..");
+const ROOT = resolve(__dirname, "..");
 
 function read(relativePath) {
 	return readFileSync(resolve(ROOT, relativePath), "utf8");
@@ -42,15 +42,33 @@ describe("generated skills", () => {
 		assert.equal(codexShip.includes("Co-Authored-By:"), false);
 		assert.equal(opencodeShip.includes("Co-Authored-By:"), false);
 	});
+
+	it("ships the shared research skills across all platforms", () => {
+		for (const relativePath of [
+			"claude/skills/explore/SKILL.md",
+			"claude/skills/trace/SKILL.md",
+			"claude/skills/debug/SKILL.md",
+			"codex/plugin/openagentsbtw/skills/explore/SKILL.md",
+			"codex/plugin/openagentsbtw/skills/trace/SKILL.md",
+			"codex/plugin/openagentsbtw/skills/debug/SKILL.md",
+			"opencode/templates/skills/explore/SKILL.md",
+			"opencode/templates/skills/trace/SKILL.md",
+			"opencode/templates/skills/debug/SKILL.md",
+		]) {
+			assert.match(read(relativePath), /# /);
+		}
+	});
 });
 
 describe("generated Codex defaults", () => {
-	it("uses native commit attribution and disables personality overlays", () => {
+	it("uses native commit attribution and ships the 5.2-first profile split", () => {
 		const config = read("codex/templates/config.toml");
 		assert.match(
 			config,
 			/commit_attribution = "Co-Authored-By: Codex <codex@users\.noreply\.github\.com>"/,
 		);
+		assert.match(config, /model = "gpt-5\.2"/);
+		assert.match(config, /model = "gpt-5\.2-codex"/);
 		assert.match(config, /personality = "none"/);
 		assert.equal(config.includes('personality = "pragmatic"'), false);
 		assert.match(config, /\[profiles\.openagentsbtw-accept-edits\]/);
@@ -62,6 +80,9 @@ describe("generated Codex defaults", () => {
 		const guidance = read("codex/templates/AGENTS.md");
 		assert.match(guidance, /Start with the answer, decision, or action\./);
 		assert.match(guidance, /If something is uncertain, say `UNKNOWN`/);
+		assert.match(guidance, /Default to the 5\.2-first path for daily work\./);
+		assert.match(guidance, /oabtw-codex explore/);
+		assert.match(guidance, /`deepwiki`/);
 		assert.equal(
 			guidance.includes("Keep responses terse and peer-like."),
 			false,
@@ -71,6 +92,10 @@ describe("generated Codex defaults", () => {
 	it("ships wrapper prompts that route through explicit specialist paths", () => {
 		const wrapper = read("bin/openagentsbtw-codex");
 		const shortWrapper = read("bin/oabtw-codex");
+		assert.match(wrapper, /deepwiki\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /explore\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /trace\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /debug\s+Generated openagentsbtw Codex route/);
 		assert.match(
 			wrapper,
 			/Route planning through athena-style architecture analysis/,
@@ -93,6 +118,15 @@ describe("generated Codex defaults", () => {
 			shortWrapper,
 			/Route implementation through hephaestus-style execution on the sandboxed auto-accept profile/,
 		);
+		assert.match(
+			shortWrapper,
+			/CODEX_CONFIG_ARGS\+=\(-c "model = \\"gpt-5\.2-codex\\""\)/,
+		);
+		assert.match(
+			shortWrapper,
+			/CODEX_CONFIG_ARGS\+=\(-c "model = \\"gpt-5\.2\\""\)/,
+		);
+		assert.match(shortWrapper, /DeepWiki is not configured/);
 		assert.match(shortWrapper, /Usage: oabtw-codex <mode> \[prompt\.\.\.\]/);
 		assert.match(
 			shortWrapper,
@@ -141,6 +175,15 @@ describe("generated OpenCode assets", () => {
 		assert.match(manifest, /plugin: event `tool\.execute\.before`/);
 		assert.match(manifest, /git-hook: `pre-commit`/);
 		assert.match(manifest, /git-hook: `pre-push`/);
+	});
+
+	it("ships explicit OpenCode research commands", () => {
+		const commands = read("opencode/src/commands.ts");
+		assert.match(commands, /name: "openagents-explore"/);
+		assert.match(commands, /name: "openagents-trace"/);
+		assert.match(commands, /name: "openagents-debug"/);
+		assert.equal(commands.includes('name: "openagents-deps"'), false);
+		assert.equal(commands.includes('name: "openagents-explain"'), false);
 	});
 });
 

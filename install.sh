@@ -19,6 +19,7 @@ OPENCODE_SCOPE="global"
 OPENCODE_DEFAULT_MODEL=""
 OPENCODE_MODEL_OVERRIDES=()
 CODEX_TIER=""
+CODEX_DEEPWIKI="false"
 
 die() { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 info() { echo -e "  ${GREEN}✓${NC} $1"; }
@@ -46,6 +47,7 @@ Options:
   --opencode-model ROLE=MODEL
                           Override a specific OpenCode role model
   --codex-tier plus|pro   Codex preset for subscriber/model access
+  --codex-deepwiki        Configure DeepWiki MCP for Codex
   -h, --help              Show this help
 EOF
     exit 0
@@ -82,6 +84,9 @@ parse_args() {
             --codex-tier)
                 CODEX_TIER="${2:-}"
                 shift
+                ;;
+            --codex-deepwiki)
+                CODEX_DEEPWIKI="true"
                 ;;
             -h|--help) usage ;;
             *) die "Unknown argument: $1" ;;
@@ -160,7 +165,7 @@ prompt_codex_tier() {
 
     echo ""
     read -rp "  Codex tier preset [plus/pro]: " CODEX_TIER
-    CODEX_TIER="${CODEX_TIER:-pro}"
+    CODEX_TIER="${CODEX_TIER:-plus}"
 }
 
 validate_codex_tier() {
@@ -489,20 +494,20 @@ tier = os.environ["CODEX_TIER"]
 
 profiles = {
     "plus": {
-        "athena": ("gpt-5.3-codex", "high"),
-        "hephaestus": ("gpt-5.3-codex", "high"),
-        "nemesis": ("gpt-5.3-codex", "high"),
-        "odysseus": ("gpt-5.3-codex", "high"),
-        "hermes": ("gpt-5.4-mini", "medium"),
+        "athena": ("gpt-5.2", "high"),
+        "hephaestus": ("gpt-5.2-codex", "high"),
+        "nemesis": ("gpt-5.2", "high"),
+        "odysseus": ("gpt-5.2", "high"),
+        "hermes": ("gpt-5.2-codex", "medium"),
         "atalanta": ("gpt-5.4-mini", "medium"),
         "calliope": ("gpt-5.4-mini", "medium"),
     },
     "pro": {
         "athena": ("gpt-5.4", "high"),
-        "hephaestus": ("gpt-5.3-codex", "high"),
-        "nemesis": ("gpt-5.3-codex", "high"),
+        "hephaestus": ("gpt-5.2-codex", "high"),
+        "nemesis": ("gpt-5.2", "high"),
         "odysseus": ("gpt-5.4", "high"),
-        "hermes": ("gpt-5.3-codex", "medium"),
+        "hermes": ("gpt-5.2-codex", "medium"),
         "atalanta": ("gpt-5.4-mini", "medium"),
         "calliope": ("gpt-5.4-mini", "medium"),
     },
@@ -629,7 +634,9 @@ body = """## openagentsbtw
 - Prefer `athena` before non-trivial multi-file implementation.
 - Prefer `nemesis` for review and `atalanta` for targeted validation before closing substantial changes.
 - Keep Fast mode off for this workflow.
+- Default to the 5.2-first path for daily work. Use the pro tier only when you explicitly want 5.4 for harder planning or orchestration.
 - Use real `AGENTS.md` files in projects instead of symlinked `CLAUDE.md`.
+- Prefer `oabtw-codex triage` or `oabtw-codex deepwiki` before broad repo exploration. Use DeepWiki only for public GitHub repos, then verify local file:line claims in the repo.
 - Start with the answer, decision, or action. Do not restate the prompt or narrate intent.
 - Match detail to the task. No praise, apology, therapist tone, or trailing optional-offer boilerplate.
 - If something is uncertain, say `UNKNOWN` and state what would resolve it.
@@ -664,7 +671,7 @@ PY
 "
     fi
 
-    CONFIG_TARGET="$config_target" PROFILE_LINE="$profile_line" CODEX_TIER="$CODEX_TIER" python3 - <<'PY'
+    CONFIG_TARGET="$config_target" PROFILE_LINE="$profile_line" CODEX_TIER="$CODEX_TIER" CODEX_DEEPWIKI="$CODEX_DEEPWIKI" python3 - <<'PY'
 import os
 from pathlib import Path
 
@@ -674,11 +681,19 @@ start = "# >>> openagentsbtw codex >>>"
 end = "# <<< openagentsbtw codex <<<"
 profile_line = os.environ.get("PROFILE_LINE", "")
 tier = os.environ["CODEX_TIER"]
-default_model = "gpt-5.4" if tier == "pro" else "gpt-5.3-codex"
-default_reasoning = "high" if tier == "pro" else "medium"
+deepwiki = os.environ.get("CODEX_DEEPWIKI", "false") == "true"
+default_model = "gpt-5.4" if tier == "pro" else "gpt-5.2"
+default_reasoning = "high"
+accept_model = "gpt-5.2-codex"
+accept_reasoning = "high"
+deepwiki_block = """
+[mcp_servers.deepwiki]
+url = "https://mcp.deepwiki.com/mcp"
+enabled = true
+""" if deepwiki else ""
 body = f"""{profile_line}[profiles.openagentsbtw-plus]
-model = "gpt-5.3-codex"
-model_reasoning_effort = "medium"
+model = "gpt-5.2"
+model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
@@ -745,8 +760,8 @@ multi_agent = true
 fast_mode = false
 
 [profiles.openagentsbtw-accept-edits]
-model = "{default_model}"
-model_reasoning_effort = "{default_reasoning}"
+model = "{accept_model}"
+model_reasoning_effort = "{accept_reasoning}"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
@@ -760,7 +775,8 @@ codex_hooks = true
 sqlite = true
 multi_agent = true
 fast_mode = false
-"""
+
+{deepwiki_block}"""
 block = f"{start}\n{body.rstrip()}\n{end}\n"
 text = target.read_text() if target.exists() else ""
 
@@ -789,6 +805,9 @@ PY
     fi
     info "Codex profile merged into ~/.codex/config.toml"
     info "Codex tier preset: $CODEX_TIER"
+    if [[ "$CODEX_DEEPWIKI" == "true" ]]; then
+        info "DeepWiki MCP configured in ~/.codex/config.toml"
+    fi
 }
 
 validate_claude() {

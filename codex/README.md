@@ -15,12 +15,14 @@ This package ports openagentsbtw onto Codex’s native extension surfaces: custo
 ./install.sh --codex
 ./install.sh --codex --codex-tier plus
 ./install.sh --codex --codex-tier pro
+./install.sh --codex --codex-deepwiki
 ```
 
 Wrapper command after install:
 
 ```bash
 ~/.codex/openagentsbtw/bin/oabtw-codex docs "tighten the README install section"
+~/.codex/openagentsbtw/bin/oabtw-codex deepwiki "map the auth subsystem before editing it"
 ~/.codex/openagentsbtw/bin/oabtw-codex implement "fix the auth race in src/auth.ts"
 ~/.codex/openagentsbtw/bin/oabtw-codex review "audit the current diff for regressions"
 ~/.codex/openagentsbtw/bin/oabtw-codex memory show
@@ -37,6 +39,7 @@ The installer:
 - keeps openagentsbtw memory state in `~/.codex/openagentsbtw/state/`
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
 - appends managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, and `openagentsbtw-accept-edits` profiles to `~/.codex/config.toml`
+- optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
 - optionally runs `rtk init -g --codex`
 
 ## Updating
@@ -74,9 +77,9 @@ The plugin package gives Codex the skills and install surface. Default behavior 
 ## Model Presets
 
 - `plus`
-  Uses `gpt-5.3-codex` for the heavy coding/planning roles and `gpt-5.4-mini` for lighter roles.
+  Default preset. Uses `gpt-5.2` for planning/default sessions, `gpt-5.2-codex` for implementation-heavy paths, and `gpt-5.4-mini` for lighter secondary roles.
 - `pro`
-  Uses `gpt-5.4` for `athena` and `odysseus`, `gpt-5.3-codex` for the main coding roles, and `gpt-5.4-mini` for lighter roles.
+  Explicit opt-in preset. Uses `gpt-5.4` for `athena` and `odysseus`, while coding and review paths remain on the `5.2` split.
 - `openagentsbtw-codex-mini`
   A separate lightweight profile for narrow high-volume tasks using `gpt-5.1-codex-mini`. It is installed for manual use rather than assigned as a default role.
 - `openagentsbtw-accept-edits`
@@ -94,11 +97,12 @@ The plugin package gives Codex the skills and install surface. Default behavior 
 
 ## Routing
 
-- `oabtw-codex plan|implement|review|orchestrate` is the short supported CLI routing layer.
+- `oabtw-codex explore|trace|debug|plan|implement|review|orchestrate|deepwiki` is the short supported CLI routing layer.
 - `oabtw-codex accept` is the sandboxed auto-accept implementation route.
 - `oabtw-codex memory show|forget-project|prune` manages the openagentsbtw SQLite memory overlay.
 - `openagentsbtw-codex` remains supported as the canonical full-form command.
-- Wrapper modes select the managed profile and reinforce the intended specialist path.
+- Wrapper modes select the managed profile, add per-mode model overrides where needed, and reinforce the intended specialist path.
+- `deepwiki` is explicit and opt-in. It is for GitHub repo exploration through the configured DeepWiki MCP server, not a replacement for normal local repo reads.
 - Native `/plan` still helps with reasoning depth, but it does not guarantee `athena` selection.
 - Specialist model pinning lives in the installed custom agent TOMLs, not in the plugin manifest.
 

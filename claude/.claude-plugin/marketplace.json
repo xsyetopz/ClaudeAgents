@@ -7,13 +7,15 @@
 		{
 			"name": "openagentsbtw",
 			"source": "./",
-			"description": "7 specialised agents, 11 skills, and 10 safety hooks for Claude Code",
-			"version": "1.1.2",
+			"description": "7 specialised agents, 14 skills, 10 safety hooks for Claude Code",
+			"version": "1.1.3",
 			"keywords": [
 				"agents",
 				"skills",
 				"hooks",
 				"code-quality",
+				"safety",
+				"orchestration",
 				"desloppify"
 			]
 		}

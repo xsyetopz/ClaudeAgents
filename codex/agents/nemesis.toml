@@ -1,7 +1,7 @@
 # openagentsbtw managed file. Generated from source/ via scripts/generate.mjs
 name = "nemesis"
 description = "Review and audit agent focused on correctness, regressions, security, and missing tests."
-model = "gpt-5.3-codex"
+model = "gpt-5.2"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """

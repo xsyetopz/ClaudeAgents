@@ -752,12 +752,26 @@ function renderOpenCodeCommands(commands) {
 
 function renderCodexWrapper(commandName, modes) {
 	const cases = modes
-		.map(
-			(mode) => `    ${mode.mode})
+		.map((mode) => {
+			const configOverrides = (mode.configOverrides ?? [])
+				.map((entry) => `        CODEX_CONFIG_ARGS+=(-c ${q(entry)})`)
+				.join("\n");
+			const deepwikiGuard = mode.requiresDeepwiki
+				? `        if ! grep -Eq '^[[:space:]]*\\[mcp_servers\\.deepwiki\\]' "$HOME/.codex/config.toml" 2>/dev/null; then
+            echo "DeepWiki is not configured. Reinstall with --codex-deepwiki or use triage." >&2
+            exit 1
+        fi
+        if [[ ! -d .git ]] || ! git remote get-url origin 2>/dev/null | grep -Eq '^https://github\\.com/|^git@github\\.com:'; then
+            echo "DeepWiki mode expects a GitHub repository. Use triage for local-only or non-GitHub repos." >&2
+            exit 1
+        fi
+`
+				: "";
+			return `    ${mode.mode})
         PROFILE=${q(mode.profile)}
         SYSTEM_PROMPT=${q(mode.prompt)}
-        ;;`,
-		)
+${configOverrides ? `${configOverrides}\n` : ""}${deepwikiGuard}        ;;`;
+		})
 		.join("\n");
 	const utilityModes =
 		"  memory      Inspect or manage openagentsbtw Codex memory";
@@ -806,6 +820,7 @@ fi
 
 PROFILE="openagentsbtw"
 SYSTEM_PROMPT=""
+CODEX_CONFIG_ARGS=()
 
 case "$MODE" in
 ${cases}
@@ -814,7 +829,7 @@ ${cases}
         ;;
 esac
 
-exec codex exec --profile "$PROFILE" "\${SYSTEM_PROMPT}
+exec codex exec --profile "$PROFILE" "\${CODEX_CONFIG_ARGS[@]}" "\${SYSTEM_PROMPT}
 
 Task:
 \${PROMPT}"

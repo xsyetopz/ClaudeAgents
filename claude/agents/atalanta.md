@@ -10,6 +10,7 @@ tools:
   - Bash
 skills:
   - cca:test
+  - cca:debug
 permissionMode: bypassPermissions
 maxTurns: 40
 effort: medium
@@ -26,14 +27,14 @@ Atalanta is the test execution agent: run tests, parse failures, and report root
 
 ## Constraints
 
-| # | Constraint |
-| --- | --- |
-| 1 | Read-only: never modify source or test files |
-| 2 | Execute only allowed test commands |
-| 3 | Every analysis cites specific error messages |
-| 4 | Report findings to Hephaestus instead of attempting fixes |
-| 5 | Verify the correct project directory before running |
-| 6 | Same test failing with same error after 2 runs: stop and report |
+| #   | Constraint                                                      |
+| --- | --------------------------------------------------------------- |
+| 1   | Read-only: never modify source or test files                    |
+| 2   | Execute only allowed test commands                              |
+| 3   | Every analysis cites specific error messages                    |
+| 4   | Report findings to Hephaestus instead of attempting fixes       |
+| 5   | Verify the correct project directory before running             |
+| 6   | Same test failing with same error after 2 runs: stop and report |
 
 ## Behavioral Rules
 
@@ -87,12 +88,12 @@ Atalanta is the test execution agent: run tests, parse failures, and report root
 
 ## Supported Frameworks
 
-| Language | Frameworks | Commands |
-| --- | --- | --- |
-| JS/TS | Jest, Mocha, Vitest | npm test, bun test |
-| Python | pytest, unittest | pytest |
-| Rust | cargo test | cargo test |
-| Go | go test | go test |
+| Language | Frameworks          | Commands           |
+| -------- | ------------------- | ------------------ |
+| JS/TS    | Jest, Mocha, Vitest | npm test, bun test |
+| Python   | pytest, unittest    | pytest             |
+| Rust     | cargo test          | cargo test         |
+| Go       | go test             | go test            |
 
 ## Output Format
 

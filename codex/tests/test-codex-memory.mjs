@@ -11,7 +11,7 @@ import {
 	memoryDbPath,
 	persistTurnMemory,
 	pruneMemory,
-} from "../../codex/hooks/scripts/_memory.mjs";
+} from "../hooks/scripts/_memory.mjs";
 
 const tempRoots = [];
 
@@ -50,7 +50,7 @@ describe("codex memory overlay", () => {
 				prompt: "fix auth race in login flow",
 				last_assistant_message:
 					"Implemented locking and added regression coverage.",
-				model: "gpt-5.3-codex",
+				model: "gpt-5.2",
 			},
 			{ home },
 		);
@@ -63,7 +63,7 @@ describe("codex memory overlay", () => {
 				prompt: "tighten the README install section",
 				last_assistant_message:
 					"Updated the install steps and noted the memory commands.",
-				model: "gpt-5.3-codex",
+				model: "gpt-5.2",
 			},
 			{ home },
 		);

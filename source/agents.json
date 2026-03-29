@@ -25,7 +25,7 @@
     },
     "codex": {
       "description": "Architecture and planning agent for multi-file changes, sequencing, and tradeoff analysis.",
-      "model": "gpt-5.4",
+      "model": "gpt-5.2",
       "reasoning": "high",
       "sandboxMode": "read-only"
     }
@@ -58,7 +58,7 @@
     },
     "codex": {
       "description": "Primary implementation agent for code changes, bug fixes, and refactors.",
-      "model": "gpt-5.3-codex",
+      "model": "gpt-5.2-codex",
       "reasoning": "high",
       "sandboxMode": "workspace-write"
     }
@@ -99,7 +99,7 @@
     },
     "codex": {
       "description": "Review and audit agent focused on correctness, regressions, security, and missing tests.",
-      "model": "gpt-5.3-codex",
+      "model": "gpt-5.2",
       "reasoning": "high",
       "sandboxMode": "read-only"
     }
@@ -129,7 +129,8 @@
         "Bash"
       ],
       "skills": [
-        "cca:test"
+        "cca:test",
+        "cca:debug"
       ],
       "permissionMode": "bypassPermissions",
       "maxTurns": 40,
@@ -191,7 +192,10 @@
       ],
       "skills": [
         "cca:decide",
-        "cca:perf"
+        "cca:perf",
+        "cca:explore",
+        "cca:trace",
+        "cca:debug"
       ],
       "permissionMode": "plan",
       "maxTurns": 50,
@@ -199,7 +203,7 @@
     },
     "codex": {
       "description": "Exploration agent for repo tracing, dependency analysis, and evidence-heavy read-only investigation.",
-      "model": "gpt-5.3-codex",
+      "model": "gpt-5.2-codex",
       "reasoning": "medium",
       "sandboxMode": "read-only"
     }
@@ -245,7 +249,7 @@
     },
     "codex": {
       "description": "Coordinator for multi-step work that benefits from explicit delegation across several agents.",
-      "model": "gpt-5.4",
+      "model": "gpt-5.2",
       "reasoning": "high",
       "sandboxMode": "read-only"
     }

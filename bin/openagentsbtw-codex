@@ -7,6 +7,10 @@ Usage: openagentsbtw-codex <mode> [prompt...]
 
 Modes:
   triage      Generated openagentsbtw Codex route
+  explore     Generated openagentsbtw Codex route
+  trace       Generated openagentsbtw Codex route
+  debug       Generated openagentsbtw Codex route
+  deepwiki    Generated openagentsbtw Codex route
   docs        Generated openagentsbtw Codex route
   desloppify  Generated openagentsbtw Codex route
   handoff     Generated openagentsbtw Codex route
@@ -46,11 +50,38 @@ fi
 
 PROFILE="openagentsbtw"
 SYSTEM_PROMPT=""
+CODEX_CONFIG_ARGS=()
 
 case "$MODE" in
     triage)
         PROFILE="openagentsbtw-codex-mini"
         SYSTEM_PROMPT="Use openagentsbtw. Route this through hermes-style exploration on the codex-mini profile. Keep the result concise, evidence-driven, and scoped to bounded search or classification."
+        ;;
+    explore)
+        PROFILE="openagentsbtw-codex-mini"
+        SYSTEM_PROMPT="Use openagentsbtw plus the explore skill. Route this through hermes-style repo exploration on the codex-mini profile. Map architecture, entrypoints, ownership, and likely change points. Keep the result concise and evidence-driven."
+        ;;
+    trace)
+        PROFILE="openagentsbtw-codex-mini"
+        SYSTEM_PROMPT="Use openagentsbtw plus the trace skill. Route this through hermes-style tracing on the codex-mini profile. Follow a symbol, dependency path, or data flow end-to-end and report upstream, downstream, and impact points."
+        ;;
+    debug)
+        PROFILE="openagentsbtw-codex-mini"
+        SYSTEM_PROMPT="Use openagentsbtw plus the debug skill. Route this through hermes-style investigation on the codex-mini profile. Narrow the failure, separate verified evidence from suspicion, and do not drift into implementation."
+        ;;
+    deepwiki)
+        PROFILE="openagentsbtw-codex-mini"
+        SYSTEM_PROMPT="Use openagentsbtw. Route this through hermes-style exploration on the codex-mini profile. Use DeepWiki MCP tools first for public GitHub repository understanding, then verify exact local file or line claims with repo reads before stating them. Keep the result concise, evidence-driven, and scoped to exploration."
+        CODEX_CONFIG_ARGS+=(-c "model = \"gpt-5.1-codex-mini\"")
+        CODEX_CONFIG_ARGS+=(-c "model_reasoning_effort = \"low\"")
+        if ! grep -Eq '^[[:space:]]*\[mcp_servers\.deepwiki\]' "$HOME/.codex/config.toml" 2>/dev/null; then
+            echo "DeepWiki is not configured. Reinstall with --codex-deepwiki or use triage." >&2
+            exit 1
+        fi
+        if [[ ! -d .git ]] || ! git remote get-url origin 2>/dev/null | grep -Eq '^https://github\.com/|^git@github\.com:'; then
+            echo "DeepWiki mode expects a GitHub repository. Use triage for local-only or non-GitHub repos." >&2
+            exit 1
+        fi
         ;;
     docs)
         PROFILE="openagentsbtw-codex-mini"
@@ -75,14 +106,20 @@ case "$MODE" in
     accept)
         PROFILE="openagentsbtw-accept-edits"
         SYSTEM_PROMPT="Use openagentsbtw. Route implementation through hephaestus-style execution on the sandboxed auto-accept profile. This mode keeps workspace-write sandboxing but does not pause for edit approvals. Complete the requested work, avoid placeholders, avoid unnecessary fallbacks, and keep comments to non-obvious why."
+        CODEX_CONFIG_ARGS+=(-c "model = \"gpt-5.2-codex\"")
+        CODEX_CONFIG_ARGS+=(-c "model_reasoning_effort = \"high\"")
         ;;
     implement)
         PROFILE="openagentsbtw"
         SYSTEM_PROMPT="Use openagentsbtw. Route implementation through hephaestus-style execution on the main profile. Complete the requested work, avoid placeholders, avoid unnecessary fallbacks, and keep comments to non-obvious why."
+        CODEX_CONFIG_ARGS+=(-c "model = \"gpt-5.2-codex\"")
+        CODEX_CONFIG_ARGS+=(-c "model_reasoning_effort = \"high\"")
         ;;
     review)
         PROFILE="openagentsbtw"
         SYSTEM_PROMPT="Use openagentsbtw. Route review through nemesis-style analysis on the main profile. Lead with findings, cite evidence, and focus on correctness, regressions, security, and missing tests."
+        CODEX_CONFIG_ARGS+=(-c "model = \"gpt-5.2\"")
+        CODEX_CONFIG_ARGS+=(-c "model_reasoning_effort = \"high\"")
         ;;
     orchestrate)
         PROFILE="openagentsbtw"
@@ -93,7 +130,7 @@ case "$MODE" in
         ;;
 esac
 
-exec codex exec --profile "$PROFILE" "${SYSTEM_PROMPT}
+exec codex exec --profile "$PROFILE" "${CODEX_CONFIG_ARGS[@]}" "${SYSTEM_PROMPT}
 
 Task:
 ${PROMPT}"

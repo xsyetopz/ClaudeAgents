@@ -2,6 +2,41 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.3] - 2026-03-29
+
+### Added
+
+- Shared research skills across Claude, Codex, and OpenCode:
+  - `explore` for repo mapping and architecture reading
+  - `trace` for dependency, call-flow, and impact tracing
+  - `debug` for evidence-first failure investigation without implementation drift
+- New Codex research routes:
+  - `openagentsbtw-codex explore`
+  - `openagentsbtw-codex trace`
+  - `openagentsbtw-codex debug`
+- New OpenCode research commands:
+  - `openagents-explore`
+  - `openagents-trace`
+  - `openagents-debug`
+- Optional DeepWiki-assisted Codex exploration flow for public GitHub repositories
+
+### Changed
+
+- Codex defaults now follow a 5.2-first routing policy for day-to-day work:
+  - `gpt-5.2` for planning and review-oriented paths
+  - `gpt-5.2-codex` for implementation paths
+  - `gpt-5.4` kept only for the explicit higher-tier planning/orchestration path
+- Claude plugin metadata now reflects the expanded 14-skill surface
+- Codex-related tests were moved out of `claude/tests` into repo-level and Codex-specific test locations
+- The shared Node test runner now executes:
+  - repo-level generated artifact tests
+  - Claude harness tests
+  - Codex harness tests
+
+### Removed
+
+- OpenCode compatibility aliases `openagents-deps` and `openagents-explain`
+
 ## [0.4.0] - 2026-03-17
 
 ### Added

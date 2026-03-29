@@ -7,7 +7,7 @@ Codex supports both global and project config files. The basic flow is `~/.codex
 openagentsbtw installs managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, and `openagentsbtw-accept-edits` profiles into `~/.codex/config.toml` rather than overwriting arbitrary top-level user settings.
 
 - `openagentsbtw-plus`
-  Defaults to `gpt-5.3-codex` with medium reasoning for the main interactive session.
+  Defaults to `gpt-5.2` with high reasoning for the main interactive session.
 - `openagentsbtw-pro`
   Defaults to `gpt-5.4` with high reasoning for the main interactive session.
 - `openagentsbtw-codex-mini`
@@ -15,7 +15,7 @@ openagentsbtw installs managed `openagentsbtw-plus`, `openagentsbtw-pro`, `opena
 - `openagentsbtw`
   Tracks the selected install preset so users can still refer to one stable profile name.
 - `openagentsbtw-accept-edits`
-  Tracks the selected install preset but flips to sandboxed auto-accept with `approval_policy = "never"` and `sandbox_mode = "workspace-write"`.
+  Uses `gpt-5.2-codex` with high reasoning for sandboxed auto-accept implementation work.
 
 The managed profiles share the same model/style defaults unless noted otherwise:
 
@@ -36,6 +36,23 @@ Approval policy splits by mode:
 - `openagentsbtw-accept-edits` uses `approval_policy = "never"`
 
 The matching repo sample is in `codex/templates/config.toml`.
+
+Wrapper routing adds mode-specific overrides on top of those profiles:
+
+- `plan` and `orchestrate` follow the selected `openagentsbtw` tier
+- `implement` and `accept` force `gpt-5.2-codex` with `high`
+- `review` forces `gpt-5.2` with `high`
+- bounded utility modes stay on `openagentsbtw-codex-mini`
+
+## Optional DeepWiki MCP
+
+`./install.sh --codex --codex-deepwiki` appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`:
+
+- endpoint: `https://mcp.deepwiki.com/mcp`
+- enabled: `true`
+- scope: user-level Codex config only
+
+This is opt-in because it is only useful for the explicit `deepwiki` exploration route and only makes sense for GitHub repos that DeepWiki can index.
 
 ## Memory Layer
 
@@ -85,4 +102,4 @@ Codex supports project doc fallback filenames. We intentionally keep openagentsb
 
 ## Install Behavior
 
-The installer appends a managed profile block instead of attempting a full TOML rewrite. If the user already has a default `profile = ...` set, the installer preserves it and leaves profile selection to the user. If no default profile exists, the installer points `profile = ...` at the selected preset, either `openagentsbtw-plus` or `openagentsbtw-pro`.
+The installer appends a managed profile block instead of attempting a full TOML rewrite. If the user already has a default `profile = ...` set, the installer preserves it and leaves profile selection to the user. If no default profile exists, the installer points `profile = ...` at the selected preset, with `openagentsbtw-plus` now the default install choice and `openagentsbtw-pro` remaining explicit opt-in.
