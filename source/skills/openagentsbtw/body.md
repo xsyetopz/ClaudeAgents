@@ -20,6 +20,13 @@ Use this skill when the task benefits from the openagentsbtw role split while op
 - Prefer repo `AGENTS.md` files for project-specific constraints; use this skill for the openagentsbtw operating model.
 - Plugin install makes the skills discoverable; `AGENTS.md`, config, hooks, and wrapper commands are what shape default behavior.
 
+## Optional MCP Servers
+
+Some installs also configure optional MCP servers. Do not assume they exist; if they're configured, prefer them where appropriate:
+
+- `chrome-devtools`: Chrome DevTools-backed debugging and performance traces.
+- `browsermcp`: controls a real browser tab (requires the Browser MCP extension installed and a connected tab).
+
 ## Routing Matrix
 
 Use these wrappers when you want consistent profile selection plus explicit role-shaped prompting:

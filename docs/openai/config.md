@@ -54,6 +54,18 @@ Wrapper routing adds mode-specific overrides on top of those profiles:
 
 This is opt-in because it is only useful for the explicit `deepwiki` exploration route and only makes sense for GitHub repos that DeepWiki can index.
 
+## Optional Chrome DevTools MCP
+
+`./install.sh --codex --chrome-devtools-mcp` appends a managed `mcp_servers.chrome-devtools` block to `~/.codex/config.toml` (and `--no-chrome-devtools-mcp` removes only the managed block).
+
+This enables the `chrome-devtools-mcp@latest` server, which lets agents use Chrome DevTools for debugging and performance traces.
+
+## Optional Browser MCP
+
+`./install.sh --codex --browsermcp` appends a managed `mcp_servers.browsermcp` block to `~/.codex/config.toml` (and `--no-browsermcp` removes only the managed block).
+
+Browser MCP requires installing the Browser MCP Chrome extension and connecting a tab before tools can act on that page.
+
 ## Memory Layer
 
 Codex already has native SQLite-backed state persistence and saved sessions. openagentsbtw does not replace that. The Codex package layers a second, plugin-owned SQLite DB on top for project recall:

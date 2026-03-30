@@ -30,6 +30,19 @@ The root installer now supports multiple systems in one run.
 
 If no system flags are passed, the installer prompts for each system as a toggle.
 
+### MCP options
+
+These flags apply to any selected systems (Claude, OpenCode, Codex):
+
+```bash
+./install.sh --chrome-devtools-mcp
+./install.sh --no-chrome-devtools-mcp
+./install.sh --browsermcp
+./install.sh --no-browsermcp
+```
+
+If you run `./install.sh` interactively without these flags, it prompts per MCP server as `keep/enable/disable` (default: `keep`).
+
 ### Claude options
 
 ```bash

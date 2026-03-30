@@ -74,6 +74,22 @@ export function buildMcpConfig(): Record<string, unknown> {
 	};
 }
 
+function buildChromeDevtoolsMcpConfig(): Record<string, unknown> {
+	return {
+		type: "local",
+		command: ["bunx", "-y", "chrome-devtools-mcp@latest"],
+		enabled: true,
+	};
+}
+
+function buildBrowserMcpConfig(): Record<string, unknown> {
+	return {
+		type: "local",
+		command: ["bunx", "-y", "@browsermcp/mcp@latest"],
+		enabled: true,
+	};
+}
+
 function deepMerge(
 	target: Record<string, unknown>,
 	source: Record<string, unknown>,
@@ -135,6 +151,35 @@ export function mergeMcpConfig(
 	}
 
 	return { ...existing, mcp: mcpConfig };
+}
+
+export function applyMcpToggles(
+	existing: Record<string, unknown>,
+	toggles: { chromeDevtoolsMcp?: boolean; browserMcp?: boolean },
+): Record<string, unknown> {
+	if (
+		typeof toggles.chromeDevtoolsMcp !== "boolean" &&
+		typeof toggles.browserMcp !== "boolean"
+	) {
+		return existing;
+	}
+
+	const currentMcp = (existing["mcp"] as Record<string, unknown>) ?? {};
+	const nextMcp: Record<string, unknown> = { ...currentMcp };
+
+	if (toggles.chromeDevtoolsMcp === true) {
+		nextMcp["chrome-devtools"] = buildChromeDevtoolsMcpConfig();
+	} else if (toggles.chromeDevtoolsMcp === false) {
+		delete nextMcp["chrome-devtools"];
+	}
+
+	if (toggles.browserMcp === true) {
+		nextMcp["browsermcp"] = buildBrowserMcpConfig();
+	} else if (toggles.browserMcp === false) {
+		delete nextMcp["browsermcp"];
+	}
+
+	return { ...existing, mcp: nextMcp };
 }
 
 export function mergeAgentDisableConfig(

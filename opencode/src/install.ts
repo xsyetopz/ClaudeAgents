@@ -11,6 +11,7 @@ import {
 	resolveModel,
 } from "./models.ts";
 import {
+	applyMcpToggles,
 	buildAgentDisableConfig,
 	buildMcpConfig,
 	mergeAgentDisableConfig,
@@ -305,6 +306,8 @@ async function writeOpenCodeJsonc(
 	scope: InstallScope,
 	instructionPaths: string[],
 	dryRun: boolean,
+	chromeDevtoolsMcp: boolean | undefined,
+	browserMcp: boolean | undefined,
 ): Promise<number> {
 	const configPath = await resolveConfigPath(scope);
 	const exists = dryRun ? false : await Bun.file(configPath).exists();
@@ -316,12 +319,16 @@ async function writeOpenCodeJsonc(
 		try {
 			config = parseJsonc(text);
 			config = mergeMcpConfig(config, buildMcpConfig());
+			config = applyMcpToggles(config, { chromeDevtoolsMcp, browserMcp });
 			config = mergeAgentDisableConfig(config, buildAgentDisableConfig());
 			config = mergeInstructions(config, instructionPaths);
 		} catch {
 			config = {
 				$schema: "https://opencode.ai/config.json",
-				mcp: buildMcpConfig(),
+				mcp: applyMcpToggles(
+					{ mcp: buildMcpConfig() },
+					{ chromeDevtoolsMcp, browserMcp },
+				)["mcp"],
 				agent: buildAgentDisableConfig(),
 				instructions: instructionPaths,
 			};
@@ -329,7 +336,10 @@ async function writeOpenCodeJsonc(
 	} else {
 		config = {
 			$schema: "https://opencode.ai/config.json",
-			mcp: buildMcpConfig(),
+			mcp: applyMcpToggles(
+				{ mcp: buildMcpConfig() },
+				{ chromeDevtoolsMcp, browserMcp },
+			)["mcp"],
 			agent: buildAgentDisableConfig(),
 			instructions: instructionPaths,
 		};
@@ -340,7 +350,8 @@ async function writeOpenCodeJsonc(
 }
 
 export async function install(options: InstallOptions): Promise<InstallReport> {
-	const { scope, clean, dryRun, noOverrides } = options;
+	const { scope, clean, dryRun, noOverrides, chromeDevtoolsMcp, browserMcp } =
+		options;
 	const providers = options.providers ?? (await detectProviders());
 	const modelOverrides = options.modelOverrides ?? {};
 
@@ -408,7 +419,13 @@ export async function install(options: InstallOptions): Promise<InstallReport> {
 			? ["instructions/openagentsbtw.md"]
 			: [".opencode/instructions/openagentsbtw.md"];
 
-	await writeOpenCodeJsonc(scope, instructionPaths, dryRun);
+	await writeOpenCodeJsonc(
+		scope,
+		instructionPaths,
+		dryRun,
+		chromeDevtoolsMcp,
+		browserMcp,
+	);
 
 	return {
 		agentAssignments: assignments.map(({ role, assignment }) => ({

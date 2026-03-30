@@ -20,6 +20,10 @@ OPENCODE_DEFAULT_MODEL=""
 OPENCODE_MODEL_OVERRIDES=()
 CODEX_TIER=""
 CODEX_DEEPWIKI="false"
+MCP_CHROME_DEVTOOLS="keep"
+MCP_BROWSERMCP="keep"
+MCP_CHROME_DEVTOOLS_SET="false"
+MCP_BROWSERMCP_SET="false"
 
 die() { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 info() { echo -e "  ${GREEN}✓${NC} $1"; }
@@ -48,6 +52,11 @@ Options:
                           Override a specific OpenCode role model
   --codex-tier plus|pro   Codex preset for subscriber/model access
   --codex-deepwiki        Configure DeepWiki MCP for Codex
+  --chrome-devtools-mcp   Enable Chrome DevTools MCP server (all selected systems)
+  --no-chrome-devtools-mcp
+                          Disable Chrome DevTools MCP server (all selected systems)
+  --browsermcp            Enable Browser MCP server (all selected systems)
+  --no-browsermcp         Disable Browser MCP server (all selected systems)
   -h, --help              Show this help
 EOF
     exit 0
@@ -88,6 +97,22 @@ parse_args() {
             --codex-deepwiki)
                 CODEX_DEEPWIKI="true"
                 ;;
+            --chrome-devtools-mcp)
+                MCP_CHROME_DEVTOOLS="enable"
+                MCP_CHROME_DEVTOOLS_SET="true"
+                ;;
+            --no-chrome-devtools-mcp)
+                MCP_CHROME_DEVTOOLS="disable"
+                MCP_CHROME_DEVTOOLS_SET="true"
+                ;;
+            --browsermcp)
+                MCP_BROWSERMCP="enable"
+                MCP_BROWSERMCP_SET="true"
+                ;;
+            --no-browsermcp)
+                MCP_BROWSERMCP="disable"
+                MCP_BROWSERMCP_SET="true"
+                ;;
             -h|--help) usage ;;
             *) die "Unknown argument: $1" ;;
         esac
@@ -109,6 +134,37 @@ prompt_toggle() {
     read -rp "  ${label} ${prompt} " answer
     answer="${answer:-$default_answer}"
     [[ "$answer" =~ ^[Yy]$ ]]
+}
+
+prompt_tri_state() {
+    local label="$1"
+    local default_choice="$2" # keep|enable|disable
+    local answer
+
+    echo -e "\n${GREEN}${label}${NC}"
+    echo "  [1] keep    (no changes)"
+    echo "  [2] enable"
+    echo "  [3] disable"
+
+    read -rp "  > " answer
+    case "${answer:-}" in
+        2) echo "enable" ;;
+        3) echo "disable" ;;
+        1|"") echo "$default_choice" ;;
+        *) echo "$default_choice" ;;
+    esac
+}
+
+prompt_mcp_toggles() {
+    [[ "${CI:-}" == "true" ]] && return 0
+    [[ "$INSTALL_CLAUDE" == "true" || "$INSTALL_OPENCODE" == "true" || "$INSTALL_CODEX" == "true" ]] || return 0
+
+    if [[ "$MCP_CHROME_DEVTOOLS_SET" != "true" ]]; then
+        MCP_CHROME_DEVTOOLS="$(prompt_tri_state "Chrome DevTools MCP" "keep")"
+    fi
+    if [[ "$MCP_BROWSERMCP_SET" != "true" ]]; then
+        MCP_BROWSERMCP="$(prompt_tri_state "Browser MCP" "keep")"
+    fi
 }
 
 ensure_selection() {
@@ -266,6 +322,44 @@ merge_claude_global_settings() {
 
     info "Claude orchestrator: $CCA_MODEL"
     info "Claude plugin settings merged"
+}
+
+configure_claude_mcp_server() {
+    local settings_file="$HOME/.claude/settings.json"
+    local key="$1"
+    local action="$2" # keep|enable|disable
+    local args_json="$3"
+
+    [[ -f "$settings_file" ]] || return 0
+    [[ "$action" == "keep" ]] && return 0
+
+    if [[ "$action" == "enable" ]]; then
+        jq --arg key "$key" --arg cmd "bunx" --argjson args "$args_json" '
+            .mcpServers = (.mcpServers // {}) |
+            .mcpServers[$key] = {command: $cmd, args: $args}
+        ' "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
+        return 0
+    fi
+
+    jq --arg key "$key" '
+        if (.mcpServers? | type == "object") then
+            .mcpServers |= del(.[$key]) |
+            if ((.mcpServers | length) == 0) then del(.mcpServers) else . end
+        else
+            .
+        end
+    ' "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
+}
+
+configure_claude_mcp_servers() {
+    [[ "$INSTALL_CLAUDE" == "true" ]] || return 0
+
+    configure_claude_mcp_server "chrome-devtools" "$MCP_CHROME_DEVTOOLS" '["-y","chrome-devtools-mcp@latest"]'
+    configure_claude_mcp_server "browsermcp" "$MCP_BROWSERMCP" '["-y","@browsermcp/mcp@latest"]'
+
+    if [[ "$MCP_BROWSERMCP" == "enable" ]]; then
+        info "Browser MCP requires the Chrome extension + a connected tab: https://docs.browsermcp.io/setup-extension"
+    fi
 }
 
 install_claude_user_files() {
@@ -427,6 +521,7 @@ install_claude() {
     configure_claude_models
     register_claude_marketplace
     merge_claude_global_settings
+    configure_claude_mcp_servers
     install_claude_user_files
     install_claude_plugin
     install_ctx7
@@ -457,8 +552,124 @@ install_opencode() {
         info "OpenCode override: $override"
     done
 
+    if [[ "$MCP_CHROME_DEVTOOLS" == "enable" ]]; then
+        cmd+=(--chrome-devtools-mcp)
+    elif [[ "$MCP_CHROME_DEVTOOLS" == "disable" ]]; then
+        cmd+=(--no-chrome-devtools-mcp)
+    fi
+
+    if [[ "$MCP_BROWSERMCP" == "enable" ]]; then
+        cmd+=(--browsermcp)
+    elif [[ "$MCP_BROWSERMCP" == "disable" ]]; then
+        cmd+=(--no-browsermcp)
+    fi
+
     "${cmd[@]}"
     info "OpenCode support installed"
+}
+
+configure_codex_mcp_servers() {
+    [[ "$INSTALL_CODEX" == "true" ]] || return 0
+    [[ "$MCP_CHROME_DEVTOOLS" == "keep" && "$MCP_BROWSERMCP" == "keep" ]] && return 0
+
+    local config_target="$HOME/.codex/config.toml"
+    if [[ "$MCP_CHROME_DEVTOOLS" == "enable" && -f "$config_target" ]]; then
+        if grep -Eq '^[[:space:]]*\[mcp_servers\.chrome-devtools\]' "$config_target" && ! grep -q '# >>> openagentsbtw mcp chrome-devtools >>>' "$config_target"; then
+            warn "Codex config already defines mcp_servers.chrome-devtools; leaving it untouched."
+        fi
+    fi
+    if [[ "$MCP_BROWSERMCP" == "enable" && -f "$config_target" ]]; then
+        if grep -Eq '^[[:space:]]*\[mcp_servers\.browsermcp\]' "$config_target" && ! grep -q '# >>> openagentsbtw mcp browsermcp >>>' "$config_target"; then
+            warn "Codex config already defines mcp_servers.browsermcp; leaving it untouched."
+        fi
+    fi
+
+    MCP_CHROME_DEVTOOLS="$MCP_CHROME_DEVTOOLS" MCP_BROWSERMCP="$MCP_BROWSERMCP" CONFIG_TARGET="$config_target" python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+
+target = Path(os.environ["CONFIG_TARGET"])
+target.parent.mkdir(parents=True, exist_ok=True)
+
+action_chrome = os.environ.get("MCP_CHROME_DEVTOOLS", "keep")
+action_browser = os.environ.get("MCP_BROWSERMCP", "keep")
+
+chrome_start = "# >>> openagentsbtw mcp chrome-devtools >>>"
+chrome_end = "# <<< openagentsbtw mcp chrome-devtools <<<"
+browser_start = "# >>> openagentsbtw mcp browsermcp >>>"
+browser_end = "# <<< openagentsbtw mcp browsermcp <<<"
+
+chrome_body = """[mcp_servers.chrome-devtools]
+command = "bunx"
+args = ["-y", "chrome-devtools-mcp@latest"]
+enabled = true
+"""
+
+browser_body = """[mcp_servers.browsermcp]
+command = "bunx"
+args = ["-y", "@browsermcp/mcp@latest"]
+enabled = true
+"""
+
+def remove_block(text: str, start: str, end: str) -> str:
+    if start in text and end in text:
+        before, _, rest = text.partition(start)
+        _, _, after = rest.partition(end)
+        out = before.rstrip()
+        after = after.lstrip("\n")
+        if out and after:
+            out += "\n\n" + after
+        elif after:
+            out = after
+        return out
+    return text
+
+def append_block(text: str, start: str, end: str, body: str) -> str:
+    block = f"{start}\n{body.rstrip()}\n{end}\n"
+    text = text.rstrip()
+    if text:
+        text += "\n\n"
+    text += block
+    return text
+
+def manage(text: str, action: str, start: str, end: str, body: str, header_re: str) -> str:
+    if action == "keep":
+        return text
+    text_without_managed = remove_block(text, start, end)
+    if action == "disable":
+        return text_without_managed
+    if re.search(header_re, text_without_managed, flags=re.M):
+        return text_without_managed
+    return append_block(text_without_managed, start, end, body)
+
+existed = target.exists()
+text = target.read_text() if existed else ""
+text = manage(
+    text,
+    action_chrome,
+    chrome_start,
+    chrome_end,
+    chrome_body,
+    r"^[\s]*\[mcp_servers\.chrome-devtools\][\s]*$",
+)
+text = manage(
+    text,
+    action_browser,
+    browser_start,
+    browser_end,
+    browser_body,
+    r"^[\s]*\[mcp_servers\.browsermcp\][\s]*$",
+)
+
+if not existed and not text.strip():
+    raise SystemExit(0)
+
+target.write_text(text if text.endswith("\n") else text + "\n")
+PY
+    if [[ "$MCP_BROWSERMCP" == "enable" ]]; then
+        info "Browser MCP requires the Chrome extension + a connected tab: https://docs.browsermcp.io/setup-extension"
+    fi
 }
 
 install_codex() {
@@ -808,6 +1019,8 @@ PY
     if [[ "$CODEX_DEEPWIKI" == "true" ]]; then
         info "DeepWiki MCP configured in ~/.codex/config.toml"
     fi
+
+    configure_codex_mcp_servers
 }
 
 validate_claude() {
@@ -867,13 +1080,14 @@ main() {
     prompt_opencode_models
     prompt_codex_tier
     validate_codex_tier
+    prompt_mcp_toggles
 
     echo -e "${GREEN}openagentsbtw installer${NC}"
 
     install_claude
     install_opencode
-    install_codex
     install_rtk
+    install_codex
 
     local errors=0
     validate_claude || errors=$((errors + $?))

@@ -4,6 +4,11 @@
 - Run tests after modifying code. Run lint. Fix all warnings — never suppress them.
 - Prefer KISS over SOLID. Functions under 30 lines. Abstractions earn their place through reuse.
 
+### MCP (optional)
+
+- If available, you may use the `chrome-devtools` MCP server for Chrome DevTools-backed debugging and performance traces.
+- If available, you may use the `browsermcp` MCP server to control a real browser tab. This requires the Browser MCP extension installed and a connected tab.
+
 ### Scope
 
 - Do only what was asked. Scope reductions require user confirmation.

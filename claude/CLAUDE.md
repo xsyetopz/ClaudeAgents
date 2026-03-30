@@ -35,6 +35,13 @@ If you use a specific tier, repeat it:
 ./install.sh --claude --claude-tier 20x
 ```
 
+Optional MCP servers (writes `mcpServers` entries into `~/.claude/settings.json`):
+
+```bash
+./install.sh --claude --chrome-devtools-mcp
+./install.sh --claude --browsermcp
+```
+
 Important:
 
 - The supported update path in this repo is reinstall-from-repo.

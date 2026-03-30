@@ -2,6 +2,18 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.4] - 2026-03-31
+
+### Added
+
+- Optional installer-managed MCP servers for Claude, Codex, and OpenCode:
+  - Chrome DevTools MCP (`chrome-devtools-mcp@latest`)
+  - Browser MCP (`@browsermcp/mcp@latest`, requires installing the extension and connecting a tab)
+
+### Changed
+
+- Codex install now runs `rtk init -g --codex` before merging `~/.codex/hooks.json` so RTK routing doesn't clobber openagentsbtw hook config.
+
 ## [1.1.3] - 2026-03-29
 
 ### Added
