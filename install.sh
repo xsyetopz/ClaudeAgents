@@ -334,7 +334,7 @@ configure_claude_mcp_server() {
     [[ "$action" == "keep" ]] && return 0
 
     if [[ "$action" == "enable" ]]; then
-        jq --arg key "$key" --arg cmd "npx" --argjson args "$args_json" '
+        jq --arg key "$key" --arg cmd "bunx" --argjson args "$args_json" '
             .mcpServers = (.mcpServers // {}) |
             .mcpServers[$key] = {command: $cmd, args: $args}
         ' "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
@@ -607,13 +607,13 @@ browser_start = "# >>> openagentsbtw mcp browsermcp >>>"
 browser_end = "# <<< openagentsbtw mcp browsermcp <<<"
 
 chrome_body = """[mcp_servers.chrome-devtools]
-command = "npx"
+command = "bunx"
 args = ["-y", "chrome-devtools-mcp@latest"]
 enabled = true
 """
 
 browser_body = """[mcp_servers.browsermcp]
-command = "npx"
+command = "bunx"
 args = ["-y", "@browsermcp/mcp@latest"]
 enabled = true
 """
