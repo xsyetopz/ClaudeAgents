@@ -334,7 +334,7 @@ configure_claude_mcp_server() {
     [[ "$action" == "keep" ]] && return 0
 
     if [[ "$action" == "enable" ]]; then
-        jq --arg key "$key" --arg cmd "bunx" --argjson args "$args_json" '
+        jq --arg key "$key" --arg cmd "npx" --argjson args "$args_json" '
             .mcpServers = (.mcpServers // {}) |
             .mcpServers[$key] = {command: $cmd, args: $args}
         ' "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
@@ -437,20 +437,26 @@ install_rtk() {
         else
             install_rtk_binary || return
         fi
-        if command -v rtk &>/dev/null; then
-            info "RTK installed successfully"
-            if [[ "$INSTALL_CLAUDE" == "true" ]]; then
-                rtk init --global || warn "rtk init --global failed - run manually"
-                info "RTK initialized for Claude Code / Copilot via: rtk init -g"
-            fi
-            if [[ "$INSTALL_CODEX" == "true" ]]; then
-                rtk init --global --codex || warn "rtk init --global --codex failed - run manually"
-                info "RTK initialized for Codex via: rtk init -g --codex"
-            fi
-        else
-            warn "RTK binary not found in PATH. Restart your shell, then run: rtk init -g and/or rtk init -g --codex"
-        fi
-    else
+	        if command -v rtk &>/dev/null; then
+	            info "RTK installed successfully"
+	            if [[ "$INSTALL_CLAUDE" == "true" ]]; then
+	                if rtk init --global; then
+	                    info "RTK initialized for Claude Code / Copilot via: rtk init -g"
+	                else
+	                    warn "rtk init --global failed - run manually: rtk init -g"
+	                fi
+	            fi
+	            if [[ "$INSTALL_CODEX" == "true" ]]; then
+	                if rtk init --global --codex; then
+	                    info "RTK initialized for Codex via: rtk init -g --codex"
+	                else
+	                    warn "rtk init --global --codex failed - run manually: rtk init -g --codex"
+	                fi
+	            fi
+	        else
+	            warn "RTK binary not found in PATH. Restart your shell, then run: rtk init -g and/or rtk init -g --codex"
+	        fi
+	    else
         warn "Skipping RTK install"
     fi
 }
@@ -601,13 +607,13 @@ browser_start = "# >>> openagentsbtw mcp browsermcp >>>"
 browser_end = "# <<< openagentsbtw mcp browsermcp <<<"
 
 chrome_body = """[mcp_servers.chrome-devtools]
-command = "bunx"
+command = "npx"
 args = ["-y", "chrome-devtools-mcp@latest"]
 enabled = true
 """
 
 browser_body = """[mcp_servers.browsermcp]
-command = "bunx"
+command = "npx"
 args = ["-y", "@browsermcp/mcp@latest"]
 enabled = true
 """
@@ -884,6 +890,7 @@ PY
 
     CONFIG_TARGET="$config_target" PROFILE_LINE="$profile_line" CODEX_TIER="$CODEX_TIER" CODEX_DEEPWIKI="$CODEX_DEEPWIKI" python3 - <<'PY'
 import os
+import re
 from pathlib import Path
 
 target = Path(os.environ["CONFIG_TARGET"])
@@ -893,22 +900,58 @@ end = "# <<< openagentsbtw codex <<<"
 profile_line = os.environ.get("PROFILE_LINE", "")
 tier = os.environ["CODEX_TIER"]
 deepwiki = os.environ.get("CODEX_DEEPWIKI", "false") == "true"
+
 default_model = "gpt-5.4" if tier == "pro" else "gpt-5.2"
 default_reasoning = "high"
 accept_model = "gpt-5.2-codex"
 accept_reasoning = "high"
+
 deepwiki_block = """
 [mcp_servers.deepwiki]
 url = "https://mcp.deepwiki.com/mcp"
 enabled = true
 """ if deepwiki else ""
-body = f"""{profile_line}[profiles.openagentsbtw-plus]
+
+
+def remove_block(text: str, start: str, end: str) -> str:
+    if start in text and end in text:
+        before, _, rest = text.partition(start)
+        _, _, after = rest.partition(end)
+        out = before.rstrip()
+        after = after.lstrip("\n")
+        if out and after:
+            out += "\n\n" + after
+        elif after:
+            out = after
+        return out
+    return text
+
+
+existing_text = target.read_text() if target.exists() else ""
+text_without_managed = remove_block(existing_text, start, end)
+
+prefix_lines: list[str] = []
+for line in text_without_managed.splitlines():
+    if re.match(r"^[\s]*\[", line):
+        break
+    prefix_lines.append(line)
+
+prefix = "\n".join(prefix_lines)
+has_commit_attribution = (
+    re.search(r"^[\s]*commit_attribution[\s]*=", prefix, flags=re.M) is not None
+)
+commit_attribution_line = (
+    ""
+    if has_commit_attribution
+    else 'commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"\n\n'
+)
+
+body = f"""{profile_line}{commit_attribution_line}[profiles.openagentsbtw-plus]
 model = "gpt-5.2"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
-commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 service_tier = "flex"
@@ -925,7 +968,6 @@ model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
-commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 service_tier = "flex"
@@ -942,7 +984,6 @@ model_reasoning_effort = "low"
 plan_mode_reasoning_effort = "low"
 model_verbosity = "low"
 personality = "none"
-commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 service_tier = "flex"
@@ -959,7 +1000,6 @@ model_reasoning_effort = "{default_reasoning}"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
-commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 service_tier = "flex"
@@ -976,7 +1016,6 @@ model_reasoning_effort = "{accept_reasoning}"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
-commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"
 approval_policy = "never"
 sandbox_mode = "workspace-write"
 service_tier = "flex"
@@ -989,7 +1028,7 @@ fast_mode = false
 
 {deepwiki_block}"""
 block = f"{start}\n{body.rstrip()}\n{end}\n"
-text = target.read_text() if target.exists() else ""
+text = existing_text
 
 if start in text and end in text:
     before, _, rest = text.partition(start)

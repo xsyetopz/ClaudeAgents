@@ -2,15 +2,15 @@
 
 ## Agents
 
-| Task                    | Agent       |
-| ----------------------- | ----------- |
-| Design, architecture    | @athena     |
-| Code changes, bugs      | @hephaestus |
-| Security/perf review    | @nemesis    |
-| Run tests               | @atalanta   |
-| Write docs              | @calliope   |
-| Explore codebase        | @hermes     |
-| Multi-step coordination | @odysseus   |
+| Task | Agent |
+| --- | --- |
+| Design, architecture | @athena |
+| Code changes, bugs | @hephaestus |
+| Security/perf review | @nemesis |
+| Run tests | @atalanta |
+| Write docs | @calliope |
+| Explore codebase | @hermes |
+| Multi-step coordination | @odysseus |
 
 Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (general-purpose).
 
@@ -22,3 +22,4 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 - Run git diff --stat before git diff; raw diff can dump too much context.
 
 @RTK.md
+

@@ -22,7 +22,6 @@ The managed profiles share the same model/style defaults unless noted otherwise:
 - `plan_mode_reasoning_effort = "high"` except the codex-mini profile, which stays low
 - `model_verbosity = "medium"` except the codex-mini profile, which stays low
 - `personality = "none"`
-- `commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"`
 - `sandbox_mode = "workspace-write"` across every managed profile
 - `service_tier = "flex"`
 - `codex_hooks = true`
@@ -83,7 +82,7 @@ The overlay assumes native persistence is still enabled. If a user disables SQLi
 
 ## Attribution And Style
 
-Codex exposes native `commit_attribution` in `config.toml`. openagentsbtw uses that for Codex instead of teaching the shared ship skill to emit a Codex-specific trailer, because the config surface is the documented source of truth and it avoids duplicate attribution when the user commits from Codex.
+Codex exposes native `commit_attribution` in `config.toml` as a top-level key (not per-profile). openagentsbtw sets it once in the managed block so it applies across the installed profiles. Set an empty string to disable attribution.
 
 We also set `personality = "none"` in the managed Codex profiles. The response style is intentionally driven by `AGENTS.md`, the custom agent TOMLs, and wrapper prompts so the Codex output stays close to the old CCA contract instead of mixing in a separate personality overlay.
 

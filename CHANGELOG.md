@@ -2,6 +2,14 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.5] - 2026-03-31
+
+### Fixed
+
+- Codex config `commit_attribution` now follows the documented top-level schema (and the installer avoids duplicating it when users already define it).
+- Chrome DevTools MCP / Browser MCP configs now use `npx` instead of `bunx` in installer-managed entries.
+- RTK install output no longer claims init succeeded when `rtk init` fails.
+
 ## [1.1.4] - 2026-03-31
 
 ### Added
