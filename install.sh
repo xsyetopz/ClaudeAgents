@@ -141,10 +141,10 @@ prompt_tri_state() {
     local default_choice="$2" # keep|enable|disable
     local answer
 
-    echo -e "\n${GREEN}${label}${NC}"
-    echo "  [1] keep    (no changes)"
-    echo "  [2] enable"
-    echo "  [3] disable"
+    echo -e "\n${GREEN}${label}${NC}" >&2
+    echo "  [1] keep    (no changes)" >&2
+    echo "  [2] enable" >&2
+    echo "  [3] disable" >&2
 
     read -rp "  > " answer
     case "${answer:-}" in
