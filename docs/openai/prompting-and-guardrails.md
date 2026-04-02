@@ -26,7 +26,7 @@ openagentsbtw keeps guardrails at three native layers:
 1. Agent prompts
    Role-specific boundaries like read-only planning or review-first output.
 2. Hooks
-   Bash guardrails, redaction, session warnings, and completion checks.
+   Bash guardrails, redaction, session warnings, and completion checks. Routine success paths stay silent; only warn/error/block cases should surface visible hook text from openagentsbtw.
 3. Project docs
    `AGENTS.md` keeps the system visible to Codex at the project layer.
 

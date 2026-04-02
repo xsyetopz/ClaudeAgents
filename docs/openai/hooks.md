@@ -17,6 +17,8 @@ The Codex port keeps only the Claude hook behavior that maps onto documented Cod
 - `post/stop-scan.mjs`
   Scans modified files for placeholder code before final completion and persists a bounded session summary into the openagentsbtw SQLite memory store.
 
+Routine Codex hook status text is intentionally omitted from the generated `hooks.json`. openagentsbtw only asks Codex to surface warning, error, or block conditions from these hooks, not normal success chatter.
+
 ## Memory Layer
 
 Codex already ships native SQLite-backed persistence. openagentsbtw uses that as the base layer, then stores project-specific recall in `~/.codex/openagentsbtw/state/memory.sqlite`. The hook flow uses documented Codex fields such as `session_id`, `transcript_path`, `cwd`, `prompt`, and `last_assistant_message`, so the memory feature stays inside the supported hook contract instead of scraping undocumented runtime state.
@@ -24,6 +26,8 @@ Codex already ships native SQLite-backed persistence. openagentsbtw uses that as
 ## Important Limitation
 
 Codex hooks are useful guardrails, not a complete Claude-style permission layer. In the current Codex docs, `PreToolUse` and `PostToolUse` only intercept `Bash`. They do not provide a general-purpose hook matrix for built-in edit/read/write surfaces, so hook-based enforcement in Codex should be treated as a shell guardrail layered on top of sandboxing and approvals, not a full replacement for Claude’s richer permission patterns.
+
+As of the current Codex hooks docs, `statusMessage` is optional and `suppressOutput` is parsed but not implemented. That means openagentsbtw can remove its own routine status text, but generic Codex lifecycle lines such as `PreToolUse hook (completed)` may still appear until upstream suppression support exists.
 
 ## Hooks We Did Not Port
 

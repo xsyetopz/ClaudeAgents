@@ -222,4 +222,18 @@ describe("generated hook manifests", () => {
 			),
 		);
 	});
+
+	it("keeps Codex hooks silent on routine success paths", () => {
+		const hooks = JSON.parse(read("codex/hooks/hooks.json"));
+		assert.equal(
+			JSON.stringify(hooks).includes('"statusMessage"'),
+			false,
+		);
+
+		const policyMap = JSON.parse(read("codex/hooks/policy-map.json"));
+		assert.equal(
+			JSON.stringify(policyMap).includes('"statusMessage"'),
+			false,
+		);
+	});
 });

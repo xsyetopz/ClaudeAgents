@@ -8,8 +8,7 @@
     },
     "codex": {
       "event": "UserPromptSubmit",
-      "timeout": 10,
-      "statusMessage": "openagentsbtw git context"
+      "timeout": 10
     }
   },
   {
@@ -22,8 +21,7 @@
     "codex": {
       "event": "SessionStart",
       "matcher": "startup|resume",
-      "timeout": 10,
-      "statusMessage": "openagentsbtw session checks"
+      "timeout": 10
     }
   },
   {
@@ -49,8 +47,7 @@
     "codex": {
       "event": "PreToolUse",
       "matcher": "Bash",
-      "timeout": 10,
-      "statusMessage": "openagentsbtw bash guard"
+      "timeout": 10
     },
     "opencode": {
       "plugin": {
@@ -94,8 +91,7 @@
     "codex": {
       "event": "PostToolUse",
       "matcher": "Bash",
-      "timeout": 10,
-      "statusMessage": "openagentsbtw output redaction"
+      "timeout": 10
     }
   },
   {
@@ -132,8 +128,7 @@
     },
     "codex": {
       "event": "Stop",
-      "timeout": 15,
-      "statusMessage": "openagentsbtw completion scan"
+      "timeout": 15
     }
   },
   {

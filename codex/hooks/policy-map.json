@@ -8,7 +8,6 @@
         "event": "UserPromptSubmit",
         "matcher": null,
         "timeout": 10,
-        "statusMessage": "openagentsbtw git context",
         "script": "session/prompt-git-context.mjs"
       }
     ]
@@ -22,7 +21,6 @@
         "event": "SessionStart",
         "matcher": "startup|resume",
         "timeout": 10,
-        "statusMessage": "openagentsbtw session checks",
         "script": "session/start-budget.mjs"
       }
     ]
@@ -41,7 +39,6 @@
         "event": "PreToolUse",
         "matcher": "Bash",
         "timeout": 10,
-        "statusMessage": "openagentsbtw bash guard",
         "script": "pre/bash-guard.mjs"
       }
     ]
@@ -60,7 +57,6 @@
         "event": "PostToolUse",
         "matcher": "Bash",
         "timeout": 10,
-        "statusMessage": "openagentsbtw output redaction",
         "script": "post/bash-redact.mjs"
       }
     ]
@@ -84,7 +80,6 @@
         "event": "Stop",
         "matcher": null,
         "timeout": 15,
-        "statusMessage": "openagentsbtw completion scan",
         "script": "post/stop-scan.mjs"
       }
     ]

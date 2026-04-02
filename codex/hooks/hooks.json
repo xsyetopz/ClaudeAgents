@@ -6,8 +6,7 @@
           {
             "type": "command",
             "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/session/prompt-git-context.mjs\"",
-            "timeout": 10,
-            "statusMessage": "openagentsbtw git context"
+            "timeout": 10
           }
         ]
       }
@@ -18,8 +17,7 @@
           {
             "type": "command",
             "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/session/start-budget.mjs\"",
-            "timeout": 10,
-            "statusMessage": "openagentsbtw session checks"
+            "timeout": 10
           }
         ],
         "matcher": "startup|resume"
@@ -31,8 +29,7 @@
           {
             "type": "command",
             "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/pre/bash-guard.mjs\"",
-            "timeout": 10,
-            "statusMessage": "openagentsbtw bash guard"
+            "timeout": 10
           }
         ],
         "matcher": "Bash"
@@ -44,8 +41,7 @@
           {
             "type": "command",
             "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/post/bash-redact.mjs\"",
-            "timeout": 10,
-            "statusMessage": "openagentsbtw output redaction"
+            "timeout": 10
           }
         ],
         "matcher": "Bash"
@@ -57,8 +53,7 @@
           {
             "type": "command",
             "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/post/stop-scan.mjs\"",
-            "timeout": 15,
-            "statusMessage": "openagentsbtw completion scan"
+            "timeout": 15
           }
         ]
       }

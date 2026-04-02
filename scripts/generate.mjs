@@ -353,19 +353,21 @@ function buildPlatformHookRecord(policy, platform) {
 	}
 
 	if (platform === "codex" && policy.codex) {
+		const surface = {
+			type: "hook",
+			event: policy.codex.event,
+			matcher: policy.codex.matcher ?? null,
+			timeout: policy.codex.timeout ?? null,
+			script: policy.script ?? null,
+		};
+		if (policy.codex.statusMessage) {
+			surface.statusMessage = policy.codex.statusMessage;
+		}
+
 		return {
 			id: policy.id,
 			status: "supported",
-			surfaces: [
-				{
-					type: "hook",
-					event: policy.codex.event,
-					matcher: policy.codex.matcher ?? null,
-					timeout: policy.codex.timeout ?? null,
-					statusMessage: policy.codex.statusMessage ?? null,
-					script: policy.script ?? null,
-				},
-			],
+			surfaces: [surface],
 		};
 	}
 
@@ -640,15 +642,16 @@ async function generateHooks(policies) {
 		}
 
 		if (policy.codex) {
+			const hook = {
+				type: "command",
+				command: `node "$HOME/.codex/openagentsbtw/hooks/scripts/${policy.script}"`,
+				timeout: policy.codex.timeout,
+			};
+			if (policy.codex.statusMessage) {
+				hook.statusMessage = policy.codex.statusMessage;
+			}
 			const group = {
-				hooks: [
-					{
-						type: "command",
-						command: `node "$HOME/.codex/openagentsbtw/hooks/scripts/${policy.script}"`,
-						timeout: policy.codex.timeout,
-						statusMessage: policy.codex.statusMessage,
-					},
-				],
+				hooks: [hook],
 			};
 			if (policy.codex.matcher) {
 				group.matcher = policy.codex.matcher;
