@@ -14,15 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.11"
       - name: Install dependencies
-        run: sudo apt-get install -y jq shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq shellcheck
       - name: Install root deps
         run: bun install --frozen-lockfile
       - name: Lint
-        run: shellcheck install.sh build-plugin.sh uninstall.sh claude/hooks/scripts/_run.sh claude/statusline/statusline-command.sh opencode/install.sh opencode/templates/hooks/install.sh opencode/templates/hooks/pre-commit opencode/templates/hooks/pre-push
+        run: shellcheck install.sh build-plugin.sh uninstall.sh claude/hooks/scripts/_run.sh claude/statusline/statusline-command.sh opencode/install.sh
       - name: Check generated outputs
         run: bun run check:generated
       - name: Test

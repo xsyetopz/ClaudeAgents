@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# If invoked via `zsh install.sh` / `source install.sh`, re-exec under Bash so we
+# don't trip over subtle shell incompatibilities (arrays + `set -u` in particular).
+if [[ -z "${BASH_VERSION:-}" ]]; then
+    exec /usr/bin/env bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 RED='\033[0;31m'
@@ -743,8 +750,19 @@ install_opencode() {
         info "OpenCode models: auto-detect/fallback"
     fi
 
+    # Guard against `set -u` crashes if this script is sourced/modified and the array
+    # wasn't initialized for some reason.
+    local -a overrides=()
+    local overrides_decl=""
+    overrides_decl="$(declare -p OPENCODE_MODEL_OVERRIDES 2>/dev/null || true)"
+    # `declare -a OPENCODE_MODEL_OVERRIDES` (no `=`) means "declared but unassigned",
+    # which still trips `set -u` if we expand it. Treat as empty.
+    if [[ -n "$overrides_decl" && "$overrides_decl" == *"="* ]]; then
+        overrides=("${OPENCODE_MODEL_OVERRIDES[@]}")
+    fi
+
     local override
-    for override in "${OPENCODE_MODEL_OVERRIDES[@]}"; do
+    for override in "${overrides[@]}"; do
         cmd+=(--model "$override")
         info "OpenCode override: $override"
     done

@@ -2,6 +2,17 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.1] - 2026-04-08
+
+### Fixed
+
+- `install.sh` no longer crashes under `set -u` when OpenCode model overrides are unset / declared-but-unassigned.
+- `install.sh` now re-execs itself under Bash when invoked from another shell (e.g. `zsh install.sh`), avoiding subtle array + nounset incompatibilities.
+
+### Changed
+
+- GitHub Actions workflows now install a compatible Node.js version before running `bun run check:generated` / `bun run test`, and remove references to deleted legacy template hook files.
+
 ## [1.2.0] - 2026-04-08
 
 ### Added
