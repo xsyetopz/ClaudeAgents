@@ -76,7 +76,9 @@ Important:
 
 The plugin package gives Codex the skills and install surface. Default behavior comes from `AGENTS.md`, the managed profiles, enabled hooks, and the `openagentsbtw-codex` wrapper.
 
-As of this package version, the wrappers also auto-attach the plugin by prepending `$openagentsbtw` to the prompt when the plugin is installed under `~/.codex/plugins/openagentsbtw`. This avoids having to manually invoke the plugin in normal wrapper-driven workflows.
+As of this package version, openagentsbtw also auto-attaches the plugin on normal interactive prompts by injecting `$openagentsbtw` via the `UserPromptSubmit` hook. Prefix a prompt with `!raw` to opt out for that one turn.
+
+Wrappers still prepend `$openagentsbtw` for mode-specific flows.
 
 ## Model Presets
 

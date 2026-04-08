@@ -52,7 +52,9 @@ The Codex memory feature follows that same split. Native Codex SQLite/session pe
 
 `openagentsbtw-codex <mode> ...` is the supported routing layer for mode-specific CLI flows. The wrapper selects the managed profile, adds per-mode model overrides where needed, and supplies a strong role-shaped prompt for plan, accept-edits, implement, review, orchestration, docs, cleanup, handoff, bounded validation, and the explicit `deepwiki` exploration path.
 
-Wrappers also auto-attach the plugin by prepending `$openagentsbtw` to the prompt when the plugin is installed under `~/.codex/plugins/openagentsbtw`. This is the most reliable way we can make “plugin usage” automatic in Codex today.
+openagentsbtw also auto-attaches the plugin on normal interactive prompts by injecting `$openagentsbtw` via the `UserPromptSubmit` hook when installed. Prefix a prompt with `!raw` to opt out for that one turn.
+
+Wrappers still prepend `$openagentsbtw` as a belt-and-suspenders path for mode-specific flows.
 
 The wrapper also exposes `memory show`, `memory forget-project`, and `memory prune` so users can inspect or clear the openagentsbtw memory layer without touching SQLite directly.
 
