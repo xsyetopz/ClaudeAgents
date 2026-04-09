@@ -76,7 +76,7 @@ Important:
 
 The plugin package gives Codex the skills and install surface. Default behavior comes from `AGENTS.md`, the managed profiles, enabled hooks, and the `openagentsbtw-codex` wrapper.
 
-As of this package version, openagentsbtw also auto-attaches the plugin on normal interactive prompts by injecting `$openagentsbtw` via the `UserPromptSubmit` hook. Prefix a prompt with `!raw` to opt out for that one turn.
+openagentsbtw installs a `UserPromptSubmit` hook that injects lightweight git context plus a compact project-memory hint during active work. Prefix a prompt with `!raw` to opt out for that one turn. Hooks do not “run” skills; reliable role routing comes from `AGENTS.md` guidance and the wrapper commands.
 
 Wrappers still prepend `$openagentsbtw` for mode-specific flows.
 
@@ -123,7 +123,7 @@ Wrappers still prepend `$openagentsbtw` for mode-specific flows.
 - Codex already has native SQLite-backed state persistence and saved sessions.
 - openagentsbtw adds a second, explicit project-memory DB at `~/.codex/openagentsbtw/state/memory.sqlite`.
 - SessionStart loads the current project's recap and recent session notes.
-- UserPromptSubmit adds a lightweight project-memory hint during active work.
+- UserPromptSubmit adds lightweight git context and a compact project-memory hint during active work.
 - Stop writes a bounded deterministic summary for later recall.
 - If Codex does not expose a transcript path, the turn still runs, but openagentsbtw warns that memory was skipped for that turn.
 

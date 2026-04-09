@@ -52,7 +52,7 @@ The Codex memory feature follows that same split. Native Codex SQLite/session pe
 
 `openagentsbtw-codex <mode> ...` is the supported routing layer for mode-specific CLI flows. The wrapper selects the managed profile, adds per-mode model overrides where needed, and supplies a strong role-shaped prompt for plan, accept-edits, implement, review, orchestration, docs, cleanup, handoff, bounded validation, and the explicit `deepwiki` exploration path.
 
-openagentsbtw also auto-attaches the plugin on normal interactive prompts by injecting `$openagentsbtw` via the `UserPromptSubmit` hook when installed. Prefix a prompt with `!raw` to opt out for that one turn.
+openagentsbtw installs a `UserPromptSubmit` hook that injects lightweight git context plus a compact project-memory hint on normal interactive prompts. Prefix a prompt with `!raw` to opt out for that one turn. Hooks do not “run” skills; role routing is driven by `AGENTS.md` guidance and the wrapper commands.
 
 Wrappers still prepend `$openagentsbtw` as a belt-and-suspenders path for mode-specific flows.
 

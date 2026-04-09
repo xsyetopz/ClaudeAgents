@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOK = resolve(
@@ -23,16 +23,18 @@ function runHook(inputJson) {
 }
 
 describe("codex UserPromptSubmit injection", () => {
-	it("injects $openagentsbtw by default", () => {
+	it("injects git/memory context by default (no $openagentsbtw token)", () => {
 		const result = runHook({ prompt: "hello", cwd: process.cwd() });
 		assert.equal(result.status, 0);
-		assert.ok(result.stdout.trimStart().startsWith("$openagentsbtw"));
-	});
-
-	it("does not duplicate when prompt already includes $openagentsbtw", () => {
-		const result = runHook({ prompt: "$openagentsbtw hello", cwd: process.cwd() });
-		assert.equal(result.status, 0);
-		assert.ok(!result.stdout.includes("$openagentsbtw\n\n$openagentsbtw"));
+		assert.ok(result.stdout.includes("openagentsbtw git context:"));
+		assert.equal(result.stdout.trimStart().startsWith("$openagentsbtw"), false);
+		assert.equal(
+			result.stdout
+				.split("\n")
+				.map((line) => line.trim())
+				.includes("$openagentsbtw"),
+			false,
+		);
 	});
 
 	it("respects !raw opt-out", () => {
@@ -41,4 +43,3 @@ describe("codex UserPromptSubmit injection", () => {
 		assert.equal(result.stdout, "");
 	});
 });
-

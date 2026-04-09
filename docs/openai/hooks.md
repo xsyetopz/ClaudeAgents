@@ -9,7 +9,7 @@ The Codex port keeps only the Claude hook behavior that maps onto documented Cod
 - `session/start-budget.mjs`
   Checks `AGENTS.md` size, warns if Fast mode or native persistence appears disabled, and injects project memory on startup or resume.
 - `session/prompt-git-context.mjs`
-  Injects `$openagentsbtw` automatically (so users do not need to type it manually), plus lightweight git context and a compact project-memory hint at prompt submit time. Prefix a prompt with `!raw` to opt out for that one turn.
+  Injects lightweight git context and a compact project-memory hint at prompt submit time. Prefix a prompt with `!raw` to opt out for that one turn.
 - `pre/bash-guard.mjs`
   Blocks broad `rm -rf`, blanket `git add`, noisy shell commands, and unsafe DNS-style checks.
 - `post/bash-redact.mjs`

@@ -2,6 +2,22 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.3] - 2026-04-09
+
+### Fixed
+
+- Codex: stop emitting `$openagentsbtw` from the `UserPromptSubmit` hook (hooks inject context; they do not reliably run skills). Always-on routing now comes from the managed `AGENTS.md` guidance.
+
+### Changed
+
+- Codex docs now describe the hook behavior as git/memory context injection (not skill invocation).
+
+## [1.2.2] - 2026-04-08
+
+### Fixed
+
+- `install.sh` no longer crashes under `set -u` when the OpenCode overrides array is empty (Bash treats `${arr[@]}` as “unbound” under nounset when the array has no elements).
+
 ## [1.2.1] - 2026-04-08
 
 ### Fixed
@@ -12,12 +28,6 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 ### Changed
 
 - GitHub Actions workflows now install a compatible Node.js version before running `bun run check:generated` / `bun run test`, and remove references to deleted legacy template hook files.
-
-## [1.2.2] - 2026-04-08
-
-### Fixed
-
-- `install.sh` no longer crashes under `set -u` when the OpenCode overrides array is empty (Bash treats `${arr[@]}` as “unbound” under nounset when the array has no elements).
 
 ## [1.2.0] - 2026-04-08
 

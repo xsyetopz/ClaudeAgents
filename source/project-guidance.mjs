@@ -48,6 +48,7 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 - Use \`gpt-5.2\` for high-reasoning main work, \`gpt-5.3-codex\` for implementation, and \`gpt-5.3-codex-spark\` for the lightweight mini profile.
 - Keep this file short and task-shaping. Put deep reference material in docs and link to it.
 - Use athena before large multi-file implementation when the plan is not already clear. Run nemesis review plus targeted validation before closing substantial work.
+- Default to role routing: explicitly use the custom agents by name when the task clearly benefits (don’t wait for the user to ask). Keep it proportional; skip spawning for trivial edits.
 - Prefer \`oabtw-codex explore\`, \`trace\`, \`debug\`, or \`deepwiki\` before broad repo exploration. Keep \`triage\` as the generic fallback. Use DeepWiki only for public GitHub repos, then verify local file:line claims in the repo.
 - Use /clear between unrelated tasks. Start fresh when context usage reaches roughly 90-95%.
 - Run \`git diff --stat\` before \`git diff\`. Avoid dumping large files or raw diffs into context.

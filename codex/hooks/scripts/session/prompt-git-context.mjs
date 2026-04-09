@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { loadProjectMemory, renderMemoryContext } from "../_memory.mjs";
 import { passthrough, readStdin } from "../_lib.mjs";
+import { loadProjectMemory, renderMemoryContext } from "../_memory.mjs";
 
 function runGit(args) {
 	try {
@@ -23,8 +23,6 @@ function runGit(args) {
 	// One-turn escape hatch: no injection and no extra context.
 	if (prompt.startsWith("!raw")) passthrough();
 
-	const shouldInvoke = !prompt.includes("$openagentsbtw");
-
 	const branch = runGit(["rev-parse", "--abbrev-ref", "HEAD"]);
 	const recent = runGit(["log", "--oneline", "-5", "--no-decorate"]);
 	const diffStat = runGit(["diff", "--stat", "--no-color", "HEAD"]);
@@ -37,10 +35,9 @@ function runGit(args) {
 	const memoryContext = memory ? renderMemoryContext(memory, false) : "";
 	if (memoryContext) parts.push(memoryContext);
 
-	if (!shouldInvoke && !parts.length) passthrough();
+	if (!parts.length) passthrough();
 
 	const output = [];
-	if (shouldInvoke) output.push("$openagentsbtw");
 	if (parts.length) {
 		output.push(`openagentsbtw git context:\n${parts.join("\n\n")}`);
 	}

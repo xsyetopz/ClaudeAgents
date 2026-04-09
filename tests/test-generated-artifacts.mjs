@@ -133,6 +133,7 @@ describe("generated Codex defaults", () => {
 		);
 		assert.match(guidance, /oabtw-codex explore/);
 		assert.match(guidance, /`deepwiki`/);
+		assert.match(guidance, /Default to role routing:/);
 		assert.equal(
 			guidance.includes("Keep responses terse and peer-like."),
 			false,
