@@ -240,12 +240,15 @@ export function deny(reason, event = "PreToolUse") {
 	});
 }
 
-export function allow(reason = "", event = "PreToolUse") {
+export function allow(reason = "", event = "PreToolUse", updatedInput = null) {
 	const result = {
 		hookSpecificOutput: { hookEventName: event, permissionDecision: "allow" },
 	};
 	if (reason) {
 		result.hookSpecificOutput.permissionDecisionReason = reason;
+	}
+	if (updatedInput) {
+		result.hookSpecificOutput.updatedInput = updatedInput;
 	}
 	_printAndExit(result);
 }

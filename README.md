@@ -10,6 +10,15 @@ Deterministic, multi-platform agents/skills/hooks for:
 
 Everything is generated from `source/` at install/build time so we don’t maintain duplicate agent/skill/hook files per platform.
 
+## Shared Surfaces
+
+openagentsbtw treats these as shared cross-platform surfaces:
+
+- `ctx7` CLI for external library/API/setup/config docs lookups
+- RTK enforcement via `rtk rewrite` when RTK policy is active
+- Playwright CLI for browser automation tasks
+- DeepWiki MCP plus explicit DeepWiki-assisted exploration routing
+
 ## Quickstart
 
 Install one system:
@@ -32,6 +41,22 @@ Optional browser automation (Playwright CLI):
 
 ```bash
 ./install.sh --playwright-cli
+```
+
+Optional external-doc tooling (Context7 CLI):
+
+```bash
+./install.sh --ctx7-cli
+./install.sh --no-ctx7-cli
+```
+
+Post-install configuration:
+
+```bash
+./config.sh --ctx7
+./config.sh --ctx7-api-key
+./config.sh --deepwiki
+./config.sh --rtk
 ```
 
 Update later:
@@ -58,6 +83,13 @@ This repo packages the four platform-specific surfaces:
 
 Shared source-of-truth content lives in `source/`. The installer generates platform artifacts into a temporary build dir (and `bun run generate` can write into `.build/generated/`).
 
+Installer/generator decomposition (no god script):
+
+- `install.sh` is a thin Bash compatibility wrapper over `scripts/install/cli.mjs`
+- `config.sh` is a thin Bash compatibility wrapper over `scripts/install/config-cli.mjs`
+- `scripts/build.mjs` assembles build output for packaging
+- `scripts/generate.mjs` orchestrates focused render modules under `scripts/generate/`
+
 Each platform also gets a generated “hook support map” so it’s explicit what ports cleanly vs what’s unsupported.
 
 ## Docs
@@ -66,6 +98,14 @@ Each platform also gets a generated “hook support map” so it’s explicit wh
 - Codex notes (models, hooks, porting): `docs/openai/README.md`
 - OpenCode notes (rules/plugins): `docs/opencode/README.md`
 - “Nano BMAD” method notes: `docs/method/nano-bmad.md`
+
+Codex installs also include `oabtw-codex qa`, `oabtw-codex longrun`, and `oabtw-codex-peer batch|tmux` for evidence-heavy validation, patient long-running jobs, and openagentsbtw-managed peer threads.
+
+RTK enforcement is only active when both of the following are true:
+- `rtk` is installed
+- an `RTK.md` policy file exists in the repo tree (nearest ancestor wins) or at `~/.config/openagentsbtw/RTK.md` (legacy fallback paths are also checked)
+
+When active, openagentsbtw uses `rtk rewrite` as the source of truth and enforces RTK-prefixed Bash forms for commands RTK can rewrite.
 
 ## Development
 

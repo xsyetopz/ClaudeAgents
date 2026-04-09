@@ -311,6 +311,7 @@ async function writeOpenCodeJsonc(
 	instructionPaths: string[],
 	dryRun: boolean,
 ): Promise<number> {
+	const deepwikiEnabled = process.env["OABTW_OPENCODE_DEEPWIKI"] === "true";
 	const configPath = await resolveConfigPath(scope);
 	const exists = dryRun ? false : await Bun.file(configPath).exists();
 
@@ -320,14 +321,14 @@ async function writeOpenCodeJsonc(
 		const text = await Bun.file(configPath).text();
 		try {
 			config = parseJsonc(text);
-			config = mergeMcpConfig(config, buildMcpConfig());
+			config = mergeMcpConfig(config, buildMcpConfig({ deepwikiEnabled }));
 			config = pruneLegacyOpenAgentsMcpServers(config);
 			config = mergeAgentDisableConfig(config, buildAgentDisableConfig());
 			config = mergeInstructions(config, instructionPaths);
 		} catch {
 			config = {
 				$schema: "https://opencode.ai/config.json",
-				mcp: buildMcpConfig(),
+				mcp: buildMcpConfig({ deepwikiEnabled }),
 				agent: buildAgentDisableConfig(),
 				instructions: instructionPaths,
 			};
@@ -335,7 +336,7 @@ async function writeOpenCodeJsonc(
 	} else {
 		config = {
 			$schema: "https://opencode.ai/config.json",
-			mcp: buildMcpConfig(),
+			mcp: buildMcpConfig({ deepwikiEnabled }),
 			agent: buildAgentDisableConfig(),
 			instructions: instructionPaths,
 		};

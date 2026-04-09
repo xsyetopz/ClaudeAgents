@@ -56,15 +56,30 @@ openagentsbtw installs a `UserPromptSubmit` hook that injects lightweight git co
 
 Wrappers do not prepend `$openagentsbtw`. The managed profiles enable the plugin via `~/.codex/config.toml`, and hooks inject git/memory context automatically.
 
+Wrapper and `AGENTS.md` guidance also treat `ctx7` as the default external-docs path when available for third-party library/API/setup/configuration work. This is CLI-only; openagentsbtw does not depend on a managed Context7 MCP block.
+
 The wrapper also exposes `memory show`, `memory forget-project`, and `memory prune` so users can inspect or clear the openagentsbtw memory layer without touching SQLite directly.
 
-`deepwiki` is intentionally explicit instead of silently changing `triage`. It depends on an opt-in `mcp_servers.deepwiki` config block and is meant for GitHub repo exploration, not as a universal replacement for local repo reads.
+`deepwiki` is intentionally explicit instead of silently changing `triage`. It depends on an opt-in DeepWiki MCP config block on the installed surface and is meant for GitHub repo exploration, not as a universal replacement for local repo reads.
+
+For already-installed setups, that DeepWiki block can be toggled with `./config.sh --deepwiki` and `./config.sh --no-deepwiki`.
 
 Codex only spawns subagents when explicitly asked, so openagentsbtw provides `oabtw-codex swarm "<task>"` as the “always delegate” route for multi-workstream requests.
 
 That wrapper contract is more reliable than implying the plugin can hard-bind native `/plan` or `/review` to a custom agent. Native `/plan` remains useful, but it is documented as a reasoning mode, not as an agent selector.
 
 We also support `oabtw-codex` as a short alias for the same wrapper behavior. The alias is human-facing only; plugin IDs, marketplace keys, and profile names remain `openagentsbtw`.
+
+## Peer Threads
+
+openagentsbtw can also run a separate peer-thread layer with `oabtw-codex-peer batch|tmux`.
+
+- This is an openagentsbtw-managed top-level orchestration helper, not a native Codex feature.
+- `batch` runs orchestrator → QA → worker → review as separate top-level Codex executions with a shared handoff directory.
+- `tmux` creates a four-pane live session for the same role split when `tmux` is installed.
+- The shared artifact root is `.openagentsbtw/codex-peer/<run-id>/`.
+
+This path exists because native subagents are explicit-only and can still be the wrong tool for long-running, evidence-heavy, or tightly supervised multi-worker flows.
 
 ## Local Observation
 

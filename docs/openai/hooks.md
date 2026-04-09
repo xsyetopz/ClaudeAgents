@@ -12,6 +12,8 @@ The Codex port keeps only the Claude hook behavior that maps onto documented Cod
   Injects lightweight git context and a compact project-memory hint at prompt submit time. Prefix a prompt with `!raw` to opt out for that one turn.
 - `pre/bash-guard.mjs`
   Blocks broad `rm -rf`, blanket `git add`, noisy shell commands, and unsafe DNS-style checks.
+- `pre/rtk-enforce.mjs`
+  When `rtk` is installed and an `RTK.md` policy is present (repo ancestry or `~/.config/openagentsbtw/RTK.md`), enforce RTK-prefixed Bash for commands that `rtk rewrite` can rewrite.
 - `post/bash-redact.mjs`
   Warns when Bash output appears to contain secrets or PII.
 - `post/stop-scan.mjs`
@@ -26,6 +28,8 @@ Codex already ships native SQLite-backed persistence. openagentsbtw uses that as
 ## Important Limitation
 
 Codex hooks are useful guardrails, not a complete Claude-style permission layer. In the current Codex docs, `PreToolUse` and `PostToolUse` only intercept `Bash`. They do not provide a general-purpose hook matrix for built-in edit/read/write surfaces, so hook-based enforcement in Codex should be treated as a shell guardrail layered on top of sandboxing and approvals, not a full replacement for Claude’s richer permission patterns.
+
+For RTK specifically, this means Codex can enforce only Bash forms that flow through hooks. It does not force non-Bash tools through RTK.
 
 As of the current Codex hooks docs, `statusMessage` is optional and `suppressOutput` is parsed but not implemented. That means openagentsbtw can remove its own routine status text, but generic Codex lifecycle lines such as `PreToolUse hook (completed)` may still appear until upstream suppression support exists.
 

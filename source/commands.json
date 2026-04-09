@@ -115,6 +115,11 @@
       "prompt": "Use openagentsbtw. Route this through atalanta-style targeted validation on the codex-mini profile. Run and analyze; do not drift into implementation."
     },
     {
+      "mode": "qa",
+      "profile": "openagentsbtw-codex-mini",
+      "prompt": "Use openagentsbtw. Route this through atalanta-style QA on the codex-mini profile. Reproduce broadly, test neighboring variants instead of one narrow path, and separate verified failures from assumptions. Record exact repro steps, note passed and failed cases, prefer integration tests when behavior crosses boundaries, and use Playwright CLI for screenshots, traces, or DOM evidence when it is available."
+    },
+    {
       "mode": "plan",
       "profile": "openagentsbtw",
       "prompt": "Use openagentsbtw. Route planning through athena-style architecture analysis on the main profile. Treat native /plan as reasoning mode only, not role selection. Default to multi-agent routing when it materially improves outcomes (disjoint ownership; avoid parallel edits). Use prompt contracts: explicit step order, explicit ask-vs-proceed rules, and crisp completion criteria. Lead with the recommendation and keep the plan concrete."
@@ -170,6 +175,11 @@
         "features.fast_mode = true",
         "service_tier = \"fast\""
       ]
+    },
+    {
+      "mode": "longrun",
+      "profile": "openagentsbtw-longrun",
+      "prompt": "Use openagentsbtw. Route this through patient long-run execution on the longrun profile. For long-running builds, test suites, or validation jobs: start the command once, avoid killing a healthy process without concrete failure evidence, prefer coarse progress checks over impatient short polling, and do not invent fixes for a command that is merely still running. When RTK policy is active, prefer RTK-prefixed build and test commands."
     },
     {
       "mode": "swarm",

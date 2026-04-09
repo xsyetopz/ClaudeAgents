@@ -41,3 +41,4 @@ This directory documents the Codex-specific port of openagentsbtw. It was re-ver
 - We do not symlink `CLAUDE.md` for Codex. The project guidance lives in actual `AGENTS.md` files.
 - Native `/plan` is treated as reasoning mode, not as a guaranteed custom-agent selector.
 - DeepWiki is optional MCP infrastructure for explicit exploration flows, not a hidden dependency of the normal routing path.
+- Context7 is CLI-only (`ctx7`) and used as an automatic docs/source lookup path when available for external library/API/setup/config work.

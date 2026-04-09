@@ -44,7 +44,7 @@ async function ensureCleanDir(dir) {
 
 function prefixFilter(excludedPrefixes) {
 	const normalized = excludedPrefixes.map(
-		(p) => p.replaceAll("\\", "/").replace(/\/+$/, "") + "/",
+		(p) => `${p.replaceAll("\\", "/").replace(/\/+$/, "")}/`,
 	);
 	return (src) => {
 		const rel = path.relative(REPO_ROOT, src).replaceAll("\\", "/");

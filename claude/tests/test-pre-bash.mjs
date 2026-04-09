@@ -1,9 +1,79 @@
 import assert from "node:assert/strict";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import { parseHookOutput, runHook } from "./helpers.mjs";
 
 function makeBashInput(command) {
 	return { tool_name: "Bash", tool_input: { command } };
+}
+
+function withFakeRtk(options = {}) {
+	const tempRoot = mkdtempSync(join(tmpdir(), "oabtw-rtk-"));
+	const binDir = join(tempRoot, "bin");
+	mkdirSync(binDir, { recursive: true });
+
+	const rewriteMap = options.rewriteMap ?? { "cargo test": "rtk cargo test" };
+	const rewriteCases = Object.entries(rewriteMap)
+		.map(
+			([command, rewritten]) =>
+				`    ${JSON.stringify(command)}) printf '%s\\n' ${JSON.stringify(rewritten)} ;;`,
+		)
+		.join("\n");
+
+	writeFileSync(
+		join(binDir, "rtk"),
+		`#!/bin/sh
+set -eu
+if [ "$1" = "--version" ]; then
+  printf '%s\\n' 'rtk 0.23.0'
+  exit 0
+fi
+if [ "$1" = "rewrite" ]; then
+  shift
+  case "$*" in
+${rewriteCases}
+    *) exit 1 ;;
+  esac
+  exit 0
+fi
+exit 1
+`,
+	);
+	chmodSync(join(binDir, "rtk"), 0o755);
+
+	const repoDir = join(tempRoot, "repo");
+	mkdirSync(repoDir, { recursive: true });
+	if (options.repoRtk !== false) {
+		writeFileSync(join(repoDir, "RTK.md"), "# RTK\nAlways use rtk.\n");
+	}
+
+	const homeDir = join(tempRoot, "home");
+	mkdirSync(join(homeDir, ".config", "openagentsbtw"), { recursive: true });
+	if (options.homeRtk) {
+		writeFileSync(
+			join(homeDir, ".config", "openagentsbtw", "RTK.md"),
+			"# RTK\nAlways use rtk.\n",
+		);
+	}
+
+	return {
+		cleanup() {
+			rmSync(tempRoot, { recursive: true, force: true });
+		},
+		env: {
+			HOME: homeDir,
+			PATH: `${binDir}:${process.env.PATH || ""}`,
+		},
+		repoDir,
+	};
 }
 
 describe("BlockedCommands", () => {
@@ -70,5 +140,43 @@ describe("AllowedCommands", () => {
 	it("should allow make", () => {
 		const result = runHook("pre/bash-guard.mjs", makeBashInput("make test"));
 		assert.notEqual(result.status, 2);
+	});
+});
+
+describe("RTK enforce", () => {
+	it("should auto-rewrite Claude Bash input when RTK.md and rtk are available", () => {
+		const fixture = withFakeRtk({ repoRtk: false, homeRtk: true });
+		try {
+			const result = runHook(
+				"pre/rtk-enforce.mjs",
+				{
+					tool_name: "Bash",
+					tool_input: { command: "cargo test", description: "Run tests" },
+				},
+				fixture.env,
+			);
+			const output = parseHookOutput(result);
+			assert.equal(output?.hookSpecificOutput?.permissionDecision, "allow");
+			assert.deepEqual(output?.hookSpecificOutput?.updatedInput, {
+				command: "rtk cargo test",
+				description: "Run tests",
+			});
+		} finally {
+			fixture.cleanup();
+		}
+	});
+
+	it("should pass through when RTK.md is absent", () => {
+		const fixture = withFakeRtk({ repoRtk: false });
+		try {
+			const result = runHook(
+				"pre/rtk-enforce.mjs",
+				makeBashInput("cargo test"),
+				fixture.env,
+			);
+			assert.equal(result.stdout.trim(), "");
+		} finally {
+			fixture.cleanup();
+		}
 	});
 });

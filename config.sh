@@ -7,10 +7,10 @@ fi
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI_PATH="$SCRIPT_DIR/scripts/install/cli.mjs"
+CLI_PATH="$SCRIPT_DIR/scripts/install/config-cli.mjs"
 
 if ! command -v node >/dev/null 2>&1; then
-	echo "Error: node not found. openagentsbtw install requires Node.js >= 24.14.1." >&2
+	echo "Error: node not found. openagentsbtw config requires Node.js >= 24.14.1." >&2
 	exit 1
 fi
 

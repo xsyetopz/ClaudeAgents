@@ -20,3 +20,4 @@ This directory documents the OpenCode-specific side of the shared openagentsbtw 
 - OpenCode runtime guardrails live in generated plugins using documented plugin events such as `tool.execute.before`.
 - OpenCode repo hygiene stays in generated git hooks for `pre-commit` and `pre-push`.
 - OpenCode agent prompts are generated as plain markdown sections with no XML-style prompt tags.
+- External docs flow uses `ctx7` CLI guidance when available; openagentsbtw does not install a managed Context7 MCP block for OpenCode.

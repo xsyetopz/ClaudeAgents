@@ -157,10 +157,20 @@ describe("Allow", () => {
 		assert.equal(hso.permissionDecision, "allow");
 	});
 
+	it("should include updatedInput when provided", () => {
+		const output = captureExit(allow, "allowed", "PreToolUse", {
+			command: "rtk cargo test",
+		});
+		const hso = output.hookSpecificOutput;
+		assert.deepEqual(hso.updatedInput, { command: "rtk cargo test" });
+	});
+
 	it("should validate against schema", { skip: !Ajv }, () => {
 		const ajv = new Ajv();
 		const validate = ajv.compile(loadSchema());
-		const output = captureExit(allow, "allowed");
+		const output = captureExit(allow, "allowed", "PreToolUse", {
+			command: "rtk cargo test",
+		});
 		assert.ok(validate(output), JSON.stringify(validate.errors));
 	});
 });

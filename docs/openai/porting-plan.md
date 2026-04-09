@@ -22,7 +22,7 @@ The repo now keeps shared source content under the root `source/` tree and rende
 - Codex no longer uses a placeholder skill pack. It now has a full system package.
 - The repo ships a real local marketplace entry for Codex plugins.
 - The installer now treats Codex as a first-class install target with plugin, agent, hook, config, and `AGENTS.md` installation.
-- Optional RTK setup is split by system: `rtk init -g` for Claude Code and `rtk init -g --codex` for Codex.
+- RTK routing now follows a shared policy contract across Claude/Codex/OpenCode/Copilot: enforcement is active only when `rtk` is installed and `RTK.md` exists (repo ancestry or `~/.config/openagentsbtw/RTK.md`), with `rtk rewrite` as the source of truth.
 - The Codex model presets are now driven by the local Codex CLI model list rather than the broader API catalog when the two differ.
 - Fast mode is explicitly disabled in the openagentsbtw Codex profile.
 

@@ -121,6 +121,10 @@ describe("generated Codex defaults", () => {
 		assert.match(config, /personality = "none"/);
 		assert.equal(config.includes('personality = "pragmatic"'), false);
 		assert.match(config, /\[profiles\.openagentsbtw-accept-edits\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-longrun\]/);
+		assert.match(config, /background_terminal_max_timeout = 7200/);
+		assert.match(config, /unified_exec = true/);
+		assert.match(config, /prevent_idle_sleep = true/);
 		assert.match(config, /approval_policy = "never"/);
 		assert.match(config, /sqlite = true/);
 	});
@@ -137,10 +141,17 @@ describe("generated Codex defaults", () => {
 		assert.match(guidance, /`deepwiki`/);
 		assert.match(guidance, /Default to role routing:/);
 		assert.match(guidance, /Multi-agent safety:/);
-		assert.match(guidance, /Subagents: Codex only spawns subagents when explicitly asked\./);
+		assert.match(
+			guidance,
+			/Subagents: Codex only spawns subagents when explicitly asked\./,
+		);
 		assert.match(guidance, /spawn subagents” by default/);
 		assert.match(guidance, /Prompt contracts:/);
 		assert.match(guidance, /Avoid slop \+ god objects:/);
+		assert.match(
+			guidance,
+			/External docs: when third-party library\/API\/setup\/configuration work depends on external docs and `ctx7` is available, use it automatically\./,
+		);
 		assert.equal(
 			guidance.includes("Keep responses terse and peer-like."),
 			false,
@@ -154,12 +165,23 @@ describe("generated Codex defaults", () => {
 		assert.match(wrapper, /explore\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /trace\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /debug\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /qa\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /plan-fast\s+Generated openagentsbtw Codex route/);
-		assert.match(wrapper, /implement-fast\s+Generated openagentsbtw Codex route/);
+		assert.match(
+			wrapper,
+			/implement-fast\s+Generated openagentsbtw Codex route/,
+		);
 		assert.match(wrapper, /review-fast\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /longrun\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /swarm\s+Generated openagentsbtw Codex route/);
-		assert.match(wrapper, /CODEX_CONFIG_ARGS\+=\(-c "features\.fast_mode = true"\)/);
-		assert.match(wrapper, /CODEX_CONFIG_ARGS\+=\(-c "service_tier = \\"fast\\""\)/);
+		assert.match(
+			wrapper,
+			/CODEX_CONFIG_ARGS\+=\(-c "features\.fast_mode = true"\)/,
+		);
+		assert.match(
+			wrapper,
+			/CODEX_CONFIG_ARGS\+=\(-c "service_tier = \\"fast\\""\)/,
+		);
 		assert.match(
 			wrapper,
 			/Route planning through athena-style architecture analysis/,
@@ -171,6 +193,10 @@ describe("generated Codex defaults", () => {
 		assert.match(
 			wrapper,
 			/Route implementation through hephaestus-style execution/,
+		);
+		assert.match(
+			wrapper,
+			/Route this through patient long-run execution on the longrun profile/,
 		);
 		assert.match(shortWrapper, /accept\s+Generated openagentsbtw Codex route/);
 		assert.match(
@@ -193,6 +219,9 @@ describe("generated Codex defaults", () => {
 			shortWrapper,
 			/Route planning through athena-style architecture analysis/,
 		);
+		const peerWrapper = readBuild("bin/oabtw-codex-peer");
+		assert.match(peerWrapper, /Usage: oabtw-codex-peer <batch\|tmux>/);
+		assert.match(peerWrapper, /Run orchestrator, QA, worker, and review/);
 	});
 
 	it("keeps canonical plugin identifiers while adding only a wrapper alias", () => {
@@ -223,6 +252,7 @@ describe("generated Copilot assets", () => {
 		);
 		assert.equal(hooks.version, 1);
 		assert.ok(hooks.hooks?.preToolUse?.length);
+		assert.match(JSON.stringify(hooks), /rtk-enforce\.mjs/);
 		for (const entries of Object.values(hooks.hooks)) {
 			for (const entry of entries) {
 				assert.equal(entry.type, "command");
@@ -242,10 +272,40 @@ describe("generated Copilot assets", () => {
 });
 
 describe("generated Codex docs", () => {
-	it("documents the Bash-only hook limitation", () => {
+	it("documents hook limitations and RTK activation rules", () => {
 		const hooks = readRepo("docs/openai/hooks.md");
 		assert.match(hooks, /PreToolUse` and `PostToolUse` only intercept `Bash`/);
 		assert.match(hooks, /not a complete Claude-style permission layer/);
+		assert.match(hooks, /pre\/rtk-enforce\.mjs/);
+		assert.match(hooks, /`RTK\.md` policy is present/);
+	});
+
+	it("documents peer threads as openagentsbtw-managed instead of native Codex behavior", () => {
+		const plugins = readRepo("docs/openai/plugins-skills-subagents.md");
+		assert.match(plugins, /Peer Threads/);
+		assert.match(plugins, /not a native Codex feature/);
+		assert.match(plugins, /\.openagentsbtw\/codex-peer\/<run-id>\//);
+	});
+});
+
+describe("installer docs", () => {
+	it("documents shared cross-platform optional surfaces", () => {
+		const install = readRepo("docs/install.md");
+		assert.match(install, /Shared cross-platform surfaces/);
+		assert.match(install, /`ctx7` CLI/);
+		assert.match(install, /RTK enforcement/);
+		assert.match(install, /Playwright CLI/);
+		assert.match(install, /DeepWiki MCP/);
+		assert.match(install, /explicit `deepwiki` exploration routing/);
+	});
+
+	it("documents installer decomposition", () => {
+		const install = readRepo("docs/install.md");
+		const readme = readRepo("README.md");
+		assert.match(readme, /Installer\/generator decomposition/);
+		assert.match(install, /Installer\/generator decomposition/);
+		assert.match(readme, /thin Bash compatibility wrapper/);
+		assert.match(install, /thin Bash wrapper/);
 	});
 });
 
@@ -253,6 +313,8 @@ describe("generated OpenCode assets", () => {
 	it("uses documented instruction files instead of system transform injection", () => {
 		const plugin = readBuild("opencode/templates/plugins/openagentsbtw.ts");
 		assert.match(plugin, /"tool\.execute\.before"/);
+		assert.match(plugin, /kind: "rtk-rewrite"/);
+		assert.match(plugin, /resolveCommandCwd/);
 		assert.equal(plugin.includes("experimental.chat.system.transform"), false);
 	});
 
@@ -262,6 +324,10 @@ describe("generated OpenCode assets", () => {
 		);
 		assert.match(instructions, /## Working Rules/);
 		assert.match(instructions, /## Guardrails/);
+		assert.match(
+			instructions,
+			/third-party library\/API\/setup\/config docs are needed and `ctx7` is available, use it automatically/,
+		);
 	});
 
 	it("ships an OpenCode hook manifest that includes plugin and git-hook surfaces", () => {
@@ -305,8 +371,18 @@ describe("generated hook manifests", () => {
 			),
 		);
 		assert.ok(
+			codex.some(
+				(entry) => entry.id === "rtk-enforce" && entry.status === "supported",
+			),
+		);
+		assert.ok(
 			opencode.some(
 				(entry) => entry.id === "bash-guard" && entry.status === "supported",
+			),
+		);
+		assert.ok(
+			opencode.some(
+				(entry) => entry.id === "rtk-enforce" && entry.status === "supported",
 			),
 		);
 		assert.ok(

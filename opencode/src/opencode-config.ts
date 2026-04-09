@@ -52,23 +52,17 @@ export async function resolveConfigPath(scope: InstallScope): Promise<string> {
 	);
 }
 
-export function buildMcpConfig(): Record<string, unknown> {
+export function buildMcpConfig(options?: {
+	deepwikiEnabled?: boolean;
+}): Record<string, unknown> {
+	if (!options?.deepwikiEnabled) {
+		return {};
+	}
+
 	return {
-		context7: {
+		deepwiki: {
 			type: "remote",
-			url: "https://mcp.context7.com/mcp",
-			headers: {
-				CONTEXT7_API_KEY:
-					process.env["CONTEXT7_API_KEY"] ?? "your-api-key-here",
-			},
-			enabled: true,
-		},
-		octocode: {
-			type: "local",
-			command: ["bunx", "--bun", "octocode-mcp@latest"],
-			environment: {
-				GITHUB_TOKEN: process.env["GITHUB_TOKEN"] ?? "your-api-key-here",
-			},
+			url: "https://mcp.deepwiki.com/mcp",
 			enabled: true,
 		},
 	};

@@ -17,6 +17,7 @@ OpenCode has two distinct customization layers that matter for openagentsbtw:
 ## Current Generated Runtime Rules
 
 - Dangerous bash command blocking before execution
+- RTK enforcement for rewritable bash commands when `rtk` is installed and `RTK.md` is present
 - Secret-like path blocking for `read`, `edit`, and `write`
 
 ## Current Generated Git Hook Rules
@@ -39,3 +40,4 @@ These list every shared hook policy as `supported` or `unsupported`. Supported O
 
 - We do not treat OpenCode plugins as a one-to-one replacement for Claude or Codex hooks. Only guardrails with a documented OpenCode surface are generated as runtime rules.
 - The shared policy source still drives all three systems, but each target only receives the subset that matches its documented interface.
+- Context7 support is CLI-only in openagentsbtw (`ctx7` wrapper) and is routed via generated instruction guidance, not a managed OpenCode MCP block.

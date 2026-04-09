@@ -2,6 +2,23 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.7] - 2026-04-09
+
+### Added
+
+- Docs: shared cross-platform surfaces are now documented explicitly: `ctx7` CLI, RTK enforcement, Playwright CLI, and explicit DeepWiki routing.
+- Docs: RTK enforcement activation contract (`rtk` installed + `RTK.md` present) is documented across install, Codex hook notes, OpenCode notes, and Codex porting docs.
+- Docs: post-install `./config.sh` operations are documented for `ctx7`, DeepWiki, and RTK toggles.
+
+### Changed
+
+- Installer: `install.sh` and `config.sh` now act as thin compatibility wrappers over Node CLIs under `scripts/install/`.
+- Installer: managed config merges and Codex config/hook updates now live in reusable Node modules instead of inline shell/Python blocks.
+- OpenCode: removed the remaining deprecated repo-managed MCP path; only the supported shared surfaces remain.
+- Release: aligned Claude, Codex, and OpenCode version surfaces to the same release number.
+- Docs: replaced stale `rtk init` references with the shared `rtk rewrite`-driven enforcement model and the canonical global policy file at `~/.config/openagentsbtw/RTK.md`.
+- Docs: install docs now describe the thin-wrapper installer/config CLIs plus the generator/build split to avoid monolithic "god script" drift.
+
 ## [1.2.5] - 2026-04-09
 
 ### Fixed

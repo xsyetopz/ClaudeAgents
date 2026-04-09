@@ -57,6 +57,8 @@ Canonical equivalent: `openagentsbtw-codex`
   compact handoff writing on `openagentsbtw-codex-mini`.
 - `oabtw-codex test`
   `atalanta`-shaped routing on `openagentsbtw-codex-mini` for targeted validation.
+- `oabtw-codex qa`
+  `atalanta`-shaped routing on `openagentsbtw-codex-mini` for broader repro, variant testing, evidence capture, and integration-test-first validation.
 - `oabtw-codex plan`
   `athena`-shaped routing on `openagentsbtw`.
 - `oabtw-codex accept`
@@ -65,8 +67,12 @@ Canonical equivalent: `openagentsbtw-codex`
   `hephaestus`-shaped routing on `openagentsbtw`.
 - `oabtw-codex review`
   `nemesis`-shaped routing on `openagentsbtw`.
+- `oabtw-codex longrun`
+  patient long-running command supervision on `openagentsbtw-longrun` for builds, test suites, and other jobs that should not be killed just because they are still running.
 - `oabtw-codex orchestrate`
   `odysseus`-shaped routing on `openagentsbtw`.
+- `oabtw-codex-peer batch|tmux`
+  openagentsbtw-managed top-level peer orchestration for Codex. This is not the same thing as native Codex subagents.
 - `oabtw-codex memory show`
   print the current project's openagentsbtw Codex memory recap and recent session notes.
 - `oabtw-codex memory forget-project`

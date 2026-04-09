@@ -41,7 +41,7 @@ describe("pruneLegacyOpenAgentsMcpServers", () => {
 	it("removes legacy chrome-devtools and browsermcp entries without touching core MCP", () => {
 		const pruned = pruneLegacyOpenAgentsMcpServers({
 			mcp: {
-				...buildMcpConfig(),
+				...buildMcpConfig({ deepwikiEnabled: true }),
 				"chrome-devtools": {
 					type: "local",
 					command: ["bunx", "-y", "chrome-devtools-mcp@latest"],
@@ -58,7 +58,6 @@ describe("pruneLegacyOpenAgentsMcpServers", () => {
 		const mcp = pruned["mcp"] as Record<string, unknown>;
 		expect(mcp["chrome-devtools"]).toBeUndefined();
 		expect(mcp["browsermcp"]).toBeUndefined();
-		expect(mcp["context7"]).toBeTruthy();
-		expect(mcp["octocode"]).toBeTruthy();
+		expect(mcp["deepwiki"]).toBeTruthy();
 	});
 });

@@ -3,6 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AGENT_PROMPTS } from "../source/agent-prompts.mjs";
 import { PROJECT_GUIDANCE } from "../source/project-guidance.mjs";
+import { renderCodexPeerWrapper } from "./generate/render/codex-peer-wrapper.mjs";
+import { renderCodexWrapper } from "./generate/render/codex-wrapper.mjs";
+import { renderOpenCodePlugin } from "./generate/render/opencode-plugin.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -537,71 +540,6 @@ function renderHookManifestMarkdown(platformLabel, records) {
 	return lines.join("\n");
 }
 
-function renderOpenCodePlugin(policies) {
-	const beforeRules = policies
-		.filter(
-			(policy) => policy.opencode?.plugin?.event === "tool.execute.before",
-		)
-		.map((policy) => ({
-			id: policy.id,
-			tools: policy.opencode.plugin.tools,
-			field: policy.opencode.plugin.field,
-			message: policy.opencode.plugin.message,
-			patterns: policy.opencode.plugin.patterns,
-		}));
-
-	const ruleRows = beforeRules
-		.map(
-			(rule) => `  {
-    id: ${q(rule.id)},
-    tools: ${JSON.stringify(rule.tools)},
-    field: ${q(rule.field)},
-    message: ${q(rule.message)},
-    patterns: [${rule.patterns.map((pattern) => pattern).join(", ")}],
-  },`,
-		)
-		.join("\n");
-
-	return `import type { Plugin } from "@opencode-ai/plugin";
-
-const BEFORE_RULES = [
-${ruleRows}
-];
-
-function resolveFieldValue(rule: { field: string }, output: Record<string, unknown>): string | null {
-  const args =
-    output.args && typeof output.args === "object"
-      ? (output.args as Record<string, unknown>)
-      : null;
-  if (!args) {
-    return null;
-  }
-  const value = args[rule.field];
-  return typeof value === "string" ? value : null;
-}
-
-const openAgentsPlugin: Plugin = async () => ({
-  "tool.execute.before": async (input, output) => {
-    for (const rule of BEFORE_RULES) {
-      if (!rule.tools.includes(input.tool)) {
-        continue;
-      }
-      const value = resolveFieldValue(rule, output);
-      if (!value) {
-        continue;
-      }
-      const normalized = rule.field === "command" ? value.trim() : value;
-      if (rule.patterns.some((pattern) => pattern.test(normalized))) {
-        throw new Error(rule.message);
-      }
-    }
-  },
-});
-
-export default openAgentsPlugin;
-`;
-}
-
 function renderGitHookRule(rule) {
 	switch (rule.kind) {
 		case "staged-text-block":
@@ -770,20 +708,20 @@ async function generateHooks(policies) {
 
 	await writeFile(
 		path.join("claude", "hooks", "configs", "hooks.json"),
-		JSON.stringify(claudeProject, null, 2) + "\n",
+		`${JSON.stringify(claudeProject, null, 2)}\n`,
 	);
 	await writeFile(
 		path.join("claude", "hooks", "hooks.json"),
-		JSON.stringify(claudePlugin, null, 2) + "\n",
+		`${JSON.stringify(claudePlugin, null, 2)}\n`,
 	);
 	await writeFile(
 		path.join("codex", "hooks", "hooks.json"),
-		JSON.stringify(codex, null, 2) + "\n",
+		`${JSON.stringify(codex, null, 2)}\n`,
 	);
 
 	await writeFile(
 		path.join("copilot", "templates", ".github", "hooks", "openagentsbtw.json"),
-		JSON.stringify(copilot, null, 2) + "\n",
+		`${JSON.stringify(copilot, null, 2)}\n`,
 	);
 
 	await writeFile(
@@ -816,7 +754,7 @@ async function generateHooks(policies) {
 
 	await writeFile(
 		path.join("claude", "hooks", "policy-map.json"),
-		JSON.stringify(claudeManifest, null, 2) + "\n",
+		`${JSON.stringify(claudeManifest, null, 2)}\n`,
 	);
 	await writeFile(
 		path.join("claude", "hooks", "HOOKS.md"),
@@ -824,7 +762,7 @@ async function generateHooks(policies) {
 	);
 	await writeFile(
 		path.join("codex", "hooks", "policy-map.json"),
-		JSON.stringify(codexManifest, null, 2) + "\n",
+		`${JSON.stringify(codexManifest, null, 2)}\n`,
 	);
 	await writeFile(
 		path.join("codex", "hooks", "HOOKS.md"),
@@ -832,7 +770,7 @@ async function generateHooks(policies) {
 	);
 	await writeFile(
 		path.join("opencode", "templates", "hooks", "policy-map.json"),
-		JSON.stringify(opencodeManifest, null, 2) + "\n",
+		`${JSON.stringify(opencodeManifest, null, 2)}\n`,
 	);
 	await writeFile(
 		path.join("opencode", "templates", "hooks", "HOOKS.md"),
@@ -841,7 +779,7 @@ async function generateHooks(policies) {
 
 	await writeFile(
 		path.join("copilot", "hooks", "policy-map.json"),
-		JSON.stringify(copilotManifest, null, 2) + "\n",
+		`${JSON.stringify(copilotManifest, null, 2)}\n`,
 	);
 	await writeFile(
 		path.join("copilot", "hooks", "HOOKS.md"),
@@ -874,92 +812,6 @@ function renderOpenCodeCommands(commands) {
 	].join("\n");
 }
 
-function renderCodexWrapper(commandName, modes) {
-	const cases = modes
-		.map((mode) => {
-			const configOverrides = (mode.configOverrides ?? [])
-				.map((entry) => `        CODEX_CONFIG_ARGS+=(-c ${q(entry)})`)
-				.join("\n");
-			const deepwikiGuard = mode.requiresDeepwiki
-				? `        if ! grep -Eq '^[[:space:]]*\\[mcp_servers\\.deepwiki\\]' "$HOME/.codex/config.toml" 2>/dev/null; then
-            echo "DeepWiki is not configured. Reinstall with --codex-deepwiki or use triage." >&2
-            exit 1
-        fi
-        if [[ ! -d .git ]] || ! git remote get-url origin 2>/dev/null | grep -Eq '^https://github\\.com/|^git@github\\.com:'; then
-            echo "DeepWiki mode expects a GitHub repository. Use triage for local-only or non-GitHub repos." >&2
-            exit 1
-        fi
-`
-				: "";
-			return `    ${mode.mode})
-        PROFILE=${q(mode.profile)}
-        SYSTEM_PROMPT=${q(mode.prompt)}
-${configOverrides ? `${configOverrides}\n` : ""}${deepwikiGuard}        ;;`;
-		})
-		.join("\n");
-	const utilityModes =
-		"  memory      Inspect or manage openagentsbtw Codex memory";
-	const modeLines = [
-		...modes.map(
-			(mode) => `  ${mode.mode.padEnd(11)} Generated openagentsbtw Codex route`,
-		),
-		utilityModes,
-	].join("\n");
-
-	return `#!/bin/bash
-set -euo pipefail
-
-usage() {
-    cat <<'EOF' >&2
-Usage: ${commandName} <mode> [prompt...]
-
-Modes:
-${modeLines}
-
-Memory commands:
-  ${commandName} memory show [path]
-  ${commandName} memory forget-project [path]
-  ${commandName} memory prune
-EOF
-    exit 1
-}
-
-[[ $# -ge 1 ]] || usage
-
-MODE="$1"
-shift
-
-if [[ "$MODE" == "memory" ]]; then
-    [[ $# -ge 1 ]] || usage
-    exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/memory-manage.mjs" "$@"
-fi
-
-if [[ $# -gt 0 ]]; then
-    PROMPT="$*"
-elif [[ ! -t 0 ]]; then
-    PROMPT="$(cat)"
-else
-    usage
-fi
-
-PROFILE="openagentsbtw"
-SYSTEM_PROMPT=""
-CODEX_CONFIG_ARGS=()
-
-case "$MODE" in
-${cases}
-    *)
-        usage
-        ;;
-esac
-
-exec codex exec --profile "$PROFILE" "\${CODEX_CONFIG_ARGS[@]}" "\${SYSTEM_PROMPT}
-
-Task:
-\${PROMPT}"
-`;
-}
-
 async function generateCommands(commandData) {
 	await writeFile(
 		path.join("opencode", "src", "commands.ts"),
@@ -973,6 +825,16 @@ async function generateCommands(commandData) {
 	await writeFile(
 		path.join("bin", "oabtw-codex"),
 		renderCodexWrapper("oabtw-codex", commandData.codexModes),
+		true,
+	);
+	await writeFile(
+		path.join("bin", "openagentsbtw-codex-peer"),
+		renderCodexPeerWrapper("openagentsbtw-codex-peer"),
+		true,
+	);
+	await writeFile(
+		path.join("bin", "oabtw-codex-peer"),
+		renderCodexPeerWrapper("oabtw-codex-peer"),
 		true,
 	);
 }

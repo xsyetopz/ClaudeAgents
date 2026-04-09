@@ -15,7 +15,7 @@ This package ports openagentsbtw onto Codex’s native extension surfaces: custo
 ./install.sh --codex
 ./install.sh --codex --codex-tier plus
 ./install.sh --codex --codex-tier pro
-./install.sh --codex --codex-deepwiki
+./install.sh --deepwiki-mcp
 ./install.sh --playwright-cli
 ```
 
@@ -26,7 +26,10 @@ Wrapper command after install:
 ~/.codex/openagentsbtw/bin/oabtw-codex deepwiki "map the auth subsystem before editing it"
 ~/.codex/openagentsbtw/bin/oabtw-codex implement "fix the auth race in src/auth.ts"
 ~/.codex/openagentsbtw/bin/oabtw-codex review "audit the current diff for regressions"
+~/.codex/openagentsbtw/bin/oabtw-codex qa "reproduce this bug broadly and record the variants"
+~/.codex/openagentsbtw/bin/oabtw-codex longrun "run the full integration suite and wait for it cleanly"
 ~/.codex/openagentsbtw/bin/oabtw-codex swarm "investigate, implement, test, and review this change"
+~/.codex/openagentsbtw/bin/oabtw-codex-peer batch "investigate, implement, test, and review this change"
 ~/.codex/openagentsbtw/bin/oabtw-codex memory show
 ```
 
@@ -41,9 +44,9 @@ The installer:
 - installs hook scripts into `~/.codex/openagentsbtw/hooks/` and merges `~/.codex/hooks.json`
 - keeps openagentsbtw memory state in `~/.codex/openagentsbtw/state/`
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
-- appends managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, and `openagentsbtw-accept-edits` profiles to `~/.codex/config.toml`
+- appends managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` profiles to `~/.codex/config.toml`
 - optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
-- optionally runs `rtk init -g --codex`
+- optionally installs RTK and a managed `~/.config/openagentsbtw/RTK.md` policy
 
 ## Updating
 
@@ -91,6 +94,8 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
   A separate lightweight profile for narrow high-volume tasks. It uses low reasoning/verbosity on `gpt-5.3-codex-spark`.
 - `openagentsbtw-accept-edits`
   A sandboxed auto-accept profile for implementation work. It keeps `sandbox_mode = "workspace-write"` but switches to `approval_policy = "never"`.
+- `openagentsbtw-longrun`
+  A patient long-running execution profile. It keeps the main high-reasoning route, enables `unified_exec`, prevents idle sleep, and raises the background terminal timeout for long builds and test suites.
 
 ## Behavior Policy
 
@@ -104,8 +109,9 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 
 ## Routing
 
-- `oabtw-codex explore|trace|debug|plan|implement|review|orchestrate|deepwiki` is the short supported CLI routing layer.
+- `oabtw-codex explore|trace|debug|qa|plan|implement|review|longrun|orchestrate|deepwiki` is the short supported CLI routing layer.
 - `oabtw-codex accept` is the sandboxed auto-accept implementation route.
+- `oabtw-codex-peer batch|tmux` is the openagentsbtw-managed peer-thread helper. It runs top-level Codex workers; it is not a native Codex subagent feature.
 - `oabtw-codex memory show|forget-project|prune` manages the openagentsbtw SQLite memory overlay.
 - `openagentsbtw-codex` remains supported as the canonical full-form command.
 - Wrapper modes select the managed profile, add per-mode model overrides where needed, and reinforce the intended specialist path.

@@ -20,6 +20,7 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 				title: "Context",
 				body: `- Keep this file under 50 lines. Link to detailed docs instead of inlining.
 - Code is truth. Do not restate how code works in docs; link to file:line.
+- When third-party library/API/setup/config docs are needed and \`ctx7\` is available, use it automatically. Prefer the CLI path over MCP.
 - Use /clear between unrelated tasks. Start fresh at 90-95% context utilization.
 - Run git diff --stat before git diff; raw diff can dump too much context.
 `,
@@ -52,6 +53,10 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 - Multi-agent safety: when delegating, assign disjoint ownership (paths/modules) so two agents don’t edit the same files. Avoid parallel edits unless the write scopes are clearly separated.
 - Default delegation heuristics: hermes for exploration/tracing, athena for planning, hephaestus for edits, nemesis for review, atalanta for tests, calliope for docs.
 - Subagents: Codex only spawns subagents when explicitly asked. For non-trivial work, explicitly instruct it to “spawn subagents” by default (unless the user requests single-agent), assign disjoint ownership, wait for all agents, then merge results into one cohesive output.
+- Long-running commands: for long builds/tests, prefer \`oabtw-codex longrun\` or the peer helper. Do not kill a healthy in-flight process without concrete failure evidence.
+- QA/evidence: for broad reproduction, neighboring variants, screenshots, traces, or integration-test evidence, prefer \`oabtw-codex qa\` over ad-hoc validation.
+- Peer orchestration: \`oabtw-codex-peer\` is an openagentsbtw-managed top-level thread helper, not a native Codex subagent feature.
+- External docs: when third-party library/API/setup/configuration work depends on external docs and \`ctx7\` is available, use it automatically. Prefer the CLI path over MCP.
 - Prompt contracts: put critical rules first; specify step order; define ambiguity behavior (ask vs proceed); separate “do the action” from “report the action”; specify output packaging (length, section order, follow-up questions) and include one correct example when output format is strict.
 - Reasoning activation: for non-trivial tasks, force structure before the final answer (2–3 options, assumptions, and what evidence would change the conclusion). Prefer permission to be uncertain over pressure to always answer.
 - Avoid slop + god objects: prefer small cohesive modules and targeted diffs. If a file grows into a grab-bag, split it before it calcifies.
@@ -91,6 +96,7 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 - No praise, apology, therapist tone, or trailing optional-offer boilerplate.
 - No placeholders, deferred core work, or fake future-task notes unless the user explicitly narrowed scope.
 - Internal comments explain non-obvious why only.
+- When third-party library/API/setup/config docs are needed and \`ctx7\` is available, use it automatically. Prefer the CLI path over MCP.
 - Read project conventions before acting and prefer repo AGENTS.md plus configured instruction files over generic defaults.
 - Run targeted validation before closing significant code changes and route review-heavy work through nemesis.`,
 			},
@@ -129,6 +135,7 @@ Keep the tone neutral. If blocked, stop and ask; do not game tests or weaken req
 				body: `- Keep this file short and task-shaping. Link to detailed docs instead of inlining.
 - No urgency, shame, or pressure language. Neutral, factual collaboration.
 - Do not hide failures, weaken requirements, or “make tests pass” by cheating.
+- When third-party library/API/setup/config docs are needed and \`ctx7\` is available, use it automatically. Prefer the CLI path over MCP.
 - Prefer small, direct edits and verify outcomes.
 `,
 			},

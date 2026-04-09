@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import { matchPlaceholders } from "../hooks/scripts/_lib.mjs";
+import { getRtkRewrite } from "../hooks/scripts/_rtk.mjs";
 
 describe("codex hook lib", () => {
 	it("matches soft hedges in prose lines", () => {
@@ -16,7 +26,9 @@ describe("codex hook lib", () => {
 		const plainCode = matchPlaceholders("src/foo.ts", ["const forNow = true;"]);
 		assert.equal(plainCode.soft.length, 0);
 
-		const comment = matchPlaceholders("src/foo.ts", ["// for now: keep it simple"]);
+		const comment = matchPlaceholders("src/foo.ts", [
+			"// for now: keep it simple",
+		]);
 		assert.equal(comment.soft.length, 1);
 	});
 
@@ -29,3 +41,90 @@ describe("codex hook lib", () => {
 	});
 });
 
+function withFakeRtk(options = {}) {
+	const tempRoot = mkdtempSync(join(tmpdir(), "oabtw-codex-rtk-"));
+	const binDir = join(tempRoot, "bin");
+	const repoDir = join(tempRoot, "repo");
+	const homeDir = join(tempRoot, "home");
+	mkdirSync(binDir, { recursive: true });
+	mkdirSync(repoDir, { recursive: true });
+	mkdirSync(join(homeDir, ".config", "openagentsbtw"), { recursive: true });
+
+	writeFileSync(
+		join(binDir, "rtk"),
+		`#!/bin/sh
+set -eu
+if [ "$1" = "--version" ]; then
+  printf '%s\\n' 'rtk 0.23.0'
+  exit 0
+fi
+if [ "$1" = "rewrite" ]; then
+  shift
+  [ "$*" = "cargo test" ] || exit 1
+  printf '%s\\n' 'rtk cargo test'
+  exit 0
+fi
+exit 1
+`,
+	);
+	chmodSync(join(binDir, "rtk"), 0o755);
+
+	if (options.repoRtk !== false) {
+		writeFileSync(join(repoDir, "RTK.md"), "# RTK\nAlways use rtk.\n");
+	}
+	if (options.homeRtk) {
+		writeFileSync(
+			join(homeDir, ".config", "openagentsbtw", "RTK.md"),
+			"# RTK\nAlways use rtk.\n",
+		);
+	}
+
+	return {
+		cleanup() {
+			rmSync(tempRoot, { recursive: true, force: true });
+		},
+		homeDir,
+		repoDir,
+		binDir,
+	};
+}
+
+describe("codex RTK helper", () => {
+	it("returns a rewrite when repo RTK policy and rtk are present", () => {
+		const fixture = withFakeRtk();
+		const originalHome = process.env.HOME;
+		const originalPath = process.env.PATH;
+		process.env.HOME = fixture.homeDir;
+		process.env.PATH = `${fixture.binDir}:${originalPath || ""}`;
+		try {
+			const rewrite = getRtkRewrite("cargo test", fixture.repoDir);
+			assert.deepEqual(rewrite, {
+				policyPath: join(fixture.repoDir, "RTK.md"),
+				rewritten: "rtk cargo test",
+			});
+		} finally {
+			process.env.HOME = originalHome;
+			process.env.PATH = originalPath;
+			fixture.cleanup();
+		}
+	});
+
+	it("falls back to the managed home RTK policy", () => {
+		const fixture = withFakeRtk({ repoRtk: false, homeRtk: true });
+		const originalHome = process.env.HOME;
+		const originalPath = process.env.PATH;
+		process.env.HOME = fixture.homeDir;
+		process.env.PATH = `${fixture.binDir}:${originalPath || ""}`;
+		try {
+			const rewrite = getRtkRewrite("cargo test", fixture.repoDir);
+			assert.deepEqual(rewrite, {
+				policyPath: join(fixture.homeDir, ".config", "openagentsbtw", "RTK.md"),
+				rewritten: "rtk cargo test",
+			});
+		} finally {
+			process.env.HOME = originalHome;
+			process.env.PATH = originalPath;
+			fixture.cleanup();
+		}
+	});
+});
