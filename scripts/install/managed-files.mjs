@@ -181,7 +181,6 @@ model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw-plus.features]
 codex_hooks = true
@@ -197,7 +196,6 @@ model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw-pro.features]
 codex_hooks = true
@@ -213,7 +211,6 @@ model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw-frontier.features]
 codex_hooks = true
@@ -229,7 +226,6 @@ model_verbosity = "low"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw-frontier-mini.features]
 codex_hooks = true
@@ -245,7 +241,6 @@ model_verbosity = "low"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw-codex-mini.features]
 codex_hooks = true
@@ -261,7 +256,6 @@ model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw.features]
 codex_hooks = true
@@ -277,7 +271,6 @@ model_verbosity = "medium"
 personality = "none"
 approval_policy = "never"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 
 [profiles.openagentsbtw-accept-edits.features]
 codex_hooks = true
@@ -293,7 +286,6 @@ model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-service_tier = "flex"
 background_terminal_max_timeout = 7200
 
 [profiles.openagentsbtw-longrun.features]

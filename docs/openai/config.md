@@ -136,7 +136,7 @@ That means Codex is good at sandbox boundaries and approval boundaries, but it i
 
 ## Fast Mode
 
-OpenAI documents Fast mode and `service_tier` controls separately. openagentsbtw disables Fast mode in managed profiles because the system depends on deeper planning, stronger review, and predictable hook execution rather than lowest-latency behavior. The managed profiles currently pin `service_tier = "flex"` and reserve `service_tier = "fast"` for the explicit fast wrapper routes. Sources: <https://developers.openai.com/codex/speed>, <https://developers.openai.com/codex/config-reference>
+OpenAI documents Fast mode and `service_tier` controls separately. openagentsbtw disables Fast mode in managed profiles because the system depends on deeper planning, stronger review, and predictable hook execution rather than lowest-latency behavior. The managed profiles leave `service_tier` unset by default to preserve account compatibility, and reserve `service_tier = "fast"` for the explicit fast wrapper routes. Sources: <https://developers.openai.com/codex/speed>, <https://developers.openai.com/codex/config-reference>
 
 ## Long-Run Profile
 

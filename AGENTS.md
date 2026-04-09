@@ -14,6 +14,7 @@ This repo packages openagentsbtw for three systems: Claude Code, OpenCode, and C
 - Use the openagentsbtw custom Codex agents: `athena`, `hephaestus`, `nemesis`, `atalanta`, `calliope`, `hermes`, and `odysseus`.
 - Prefer `athena` before non-trivial multi-file implementation and `nemesis` before closing review-heavy work.
 - Keep Fast mode off for openagentsbtw Codex workflows.
+- Do not hard-code `service_tier = "flex"` in managed Codex profiles; leave `service_tier` unset by default unless a user explicitly overrides it.
 - Use real `AGENTS.md` files for Codex guidance. Do not symlink `CLAUDE.md`.
 - Keep Codex responses terse, peer-level, and task-shaped. No praise, apologies, therapy tone, or trailing "if you want..." boilerplate.
 - Do not leave placeholders, "for now", "future PR", "out of scope", or deferred core work unless the user explicitly narrows scope.
