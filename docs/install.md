@@ -167,7 +167,7 @@ PowerShell users can run the same operations through `./config.ps1`.
 Additional notes:
 
 - `--deepwiki` and `--no-deepwiki` update installed Claude, Codex, OpenCode, and Copilot DeepWiki config surfaces in place.
-- `--rtk` ensures the RTK binary is installed and writes `~/.config/openagentsbtw/RTK.md`.
+- `--rtk` ensures the RTK binary is installed and writes the managed global RTK policy (`~/.config/openagentsbtw/RTK.md` on Unix, `%APPDATA%\openagentsbtw\RTK.md` on Windows).
 - `--no-rtk` removes only the managed global `RTK.md`; it does not uninstall RTK.
 
 ## Updating

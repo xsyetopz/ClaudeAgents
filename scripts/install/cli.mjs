@@ -9,6 +9,10 @@ import {
 	resolveCopilotPlan,
 } from "../../source/subscriptions.mjs";
 import {
+	mergeClaudeSettings,
+	renderClaudeSettingsTemplate,
+} from "./claude-settings.mjs";
+import {
 	mergeCodexConfig,
 	mergeCodexHooks,
 	mergeTaggedMarkdown,
@@ -29,6 +33,7 @@ import {
 	promptToggle,
 	ROOT,
 	readText,
+	resolveWorkspacePaths,
 	run,
 	writeConfigEnv,
 	writeText,
@@ -451,21 +456,6 @@ async function ensureBun() {
 	process.env.PATH = `${path.join(os.homedir(), ".bun", "bin")}:${process.env.PATH ?? ""}`;
 }
 
-async function ensureJq() {
-	if (process.platform === "win32") {
-		logWarn(
-			"jq not found on Windows; Claude settings merging may require manual jq installation",
-		);
-		return;
-	}
-	if (!commandExists("jq")) {
-		fail(
-			"jq is required for Claude settings.json merging. Install with: brew install jq",
-		);
-	}
-	logInfo("jq found");
-}
-
 async function runVersion(command, args) {
 	const output = await new Promise((resolve, reject) => {
 		const child = spawn(command, args, {
@@ -620,11 +610,14 @@ async function maybeInstallPlaywright(args) {
 		return;
 	}
 	try {
+		const workspacePaths = resolveWorkspacePaths();
 		if (commandExists("playwright-cli")) {
-			await run("playwright-cli", ["install", "--skills"], { cwd: ROOT });
+			await run("playwright-cli", ["install", "--skills"], {
+				cwd: workspacePaths.workspaceRoot,
+			});
 		} else {
 			await runJsPackage("@playwright/cli@latest", ["install", "--skills"], {
-				cwd: ROOT,
+				cwd: workspacePaths.workspaceRoot,
 			});
 		}
 		logInfo("playwright-cli skills installed into this repo");
@@ -755,7 +748,6 @@ async function installClaude(args, artifacts) {
 	console.log("\n\x1b[0;32mClaude Code\x1b[0m");
 	await ensureClaudeVersion();
 	await ensureNode();
-	await ensureJq();
 	const models = configureClaudeModels(args.claudePlan);
 	const settingsFile = path.join(PATHS.claudeHome, "settings.json");
 	await fs.mkdir(path.dirname(settingsFile), { recursive: true });
@@ -766,43 +758,26 @@ async function installClaude(args, artifacts) {
 		await fs.copyFile(settingsFile, `${settingsFile}.backup`);
 		logInfo("Backed up existing settings.json");
 	}
-	await run("sh", [
-		"-lc",
-		`jq '.extraKnownMarketplaces["openagentsbtw"] = {"source": {"source": "github", "repo": "xsyetopz/openagentsbtw"}} | .enabledPlugins["openagentsbtw@openagentsbtw"] = true' "${settingsFile}" > "${settingsFile}.tmp" && mv "${settingsFile}.tmp" "${settingsFile}"`,
-	]);
-	logInfo("Registered openagentsbtw marketplace");
 	const template = path.join(
 		artifacts.claudeDir,
 		"templates",
 		"settings-global.json",
 	);
-	const tempTemplate = path.join(
-		os.tmpdir(),
-		`openagentsbtw-claude-${Date.now()}.json`,
-	);
-	const templateText = (await readText(template))
-		.replaceAll("__HOME__", os.homedir())
-		.replaceAll("__OPUS_MODEL__", models.opusModel)
-		.replaceAll("__SONNET_MODEL__", models.sonnetModel)
-		.replaceAll("__HAIKU_MODEL__", models.haikuModel);
-	await writeText(tempTemplate, templateText);
-	await run("sh", [
-		"-lc",
-		`jq -s '.[0] as $tpl | .[1] as $usr | $tpl * { env: ($tpl.env * ($usr.env // {})), enabledPlugins: ($tpl.enabledPlugins * ($usr.enabledPlugins // {})), extraKnownMarketplaces: ($tpl.extraKnownMarketplaces * ($usr.extraKnownMarketplaces // {})), mcpServers: (($tpl.mcpServers // {}) * ($usr.mcpServers // {})) } * ($usr | to_entries | map(select(.key as $k | ($tpl | has($k)) | not)) | from_entries)' "${tempTemplate}" "${settingsFile}" > "${settingsFile}.tmp" && mv "${settingsFile}.tmp" "${settingsFile}"`,
-	]);
-	await run("sh", [
-		"-lc",
-		`jq --arg m "${models.ccaModel}" '.model = $m' "${settingsFile}" > "${settingsFile}.tmp" && mv "${settingsFile}.tmp" "${settingsFile}"`,
-	]);
-	await run("sh", [
-		"-lc",
-		`jq 'def is_legacy(command; args): (.command? == command) and ((.args? // []) == args); def drop_if_legacy(key; command; args): if (.mcpServers? | type == "object") and (.mcpServers[key]? | type == "object") and (.mcpServers[key] | is_legacy(command; args)) then .mcpServers |= del(.[key]) else . end; .mcpServers = (.mcpServers // {}) | drop_if_legacy("chrome-devtools"; "bunx"; ["-y","chrome-devtools-mcp@latest"]) | drop_if_legacy("browsermcp"; "bunx"; ["-y","@browsermcp/mcp@latest"]) | if (.mcpServers | length) == 0 then del(.mcpServers) else . end' "${settingsFile}" > "${settingsFile}.tmp" && mv "${settingsFile}.tmp" "${settingsFile}"`,
-	]);
+	const templateText = await readText(template);
+	const existingSettings = JSON.parse(await readText(settingsFile, "{}"));
+	const nextSettings = mergeClaudeSettings({
+		template: renderClaudeSettingsTemplate(templateText, {
+			homeDir: os.homedir(),
+			models,
+		}),
+		existing: existingSettings,
+		model: models.ccaModel,
+		deepwiki: args.deepwikiMcp,
+	});
+	await writeText(settingsFile, JSON.stringify(nextSettings, null, 2));
+	logInfo("Registered openagentsbtw marketplace");
+	logInfo(`Claude settings merged in ${settingsFile}`);
 	if (args.deepwikiMcp) {
-		await run("sh", [
-			"-lc",
-			`jq '.mcpServers = (.mcpServers // {}) | .mcpServers.deepwiki = {type: "http", url: "https://mcp.deepwiki.com/mcp", enabled: true}' "${settingsFile}" > "${settingsFile}.tmp" && mv "${settingsFile}.tmp" "${settingsFile}"`,
-		]);
 		logInfo(`DeepWiki MCP -> ${settingsFile}`);
 	}
 	await fs.mkdir(path.join(PATHS.claudeHome, "hooks"), {
@@ -871,6 +846,7 @@ async function installOpenCode(args, artifacts) {
 	if (!args.installOpenCode) return;
 	console.log("\n\x1b[0;32mOpenCode\x1b[0m");
 	await ensureBun();
+	const workspacePaths = resolveWorkspacePaths();
 	const commandArgs = [
 		"run",
 		repoPath("opencode", "src", "cli.ts"),
@@ -890,7 +866,7 @@ async function installOpenCode(args, artifacts) {
 		logInfo(`OpenCode override: ${override}`);
 	}
 	await run("bun", commandArgs, {
-		cwd: ROOT,
+		cwd: args.opencodeScope === "project" ? workspacePaths.workspaceRoot : ROOT,
 		env: {
 			OABTW_OPENCODE_TEMPLATES_DIR: artifacts.opencodeTemplatesDir,
 			OABTW_OPENCODE_DEEPWIKI: args.deepwikiMcp ? "true" : "false",
@@ -951,7 +927,8 @@ async function installCopilot(args, artifacts) {
 		}
 	}
 	if (args.copilotScope === "project" || args.copilotScope === "both") {
-		const githubRoot = path.join(ROOT, ".github");
+		const workspacePaths = resolveWorkspacePaths();
+		const githubRoot = workspacePaths.projectGithubDir;
 		await fs.mkdir(path.join(githubRoot, "hooks", "scripts"), {
 			recursive: true,
 		});
@@ -992,8 +969,8 @@ async function installCopilot(args, artifacts) {
 			end: "<!-- <<< openagentsbtw copilot <<< -->",
 		});
 		if (args.deepwikiMcp) {
-			await writeCopilotDeepwiki(path.join(ROOT, ".vscode", "mcp.json"));
-			logInfo("DeepWiki MCP -> .vscode/mcp.json");
+			await writeCopilotDeepwiki(workspacePaths.projectVscodeMcp);
+			logInfo(`DeepWiki MCP -> ${workspacePaths.projectVscodeMcp}`);
 		}
 		logInfo("Copilot repo assets -> .github/");
 	}
@@ -1113,10 +1090,11 @@ async function validateInstall(args) {
 		}
 	}
 	if (args.installOpenCode) {
+		const workspacePaths = resolveWorkspacePaths();
 		const target =
 			args.opencodeScope === "global"
 				? PATHS.opencodeConfigDir
-				: path.join(ROOT, ".opencode");
+				: workspacePaths.projectOpenCodeDir;
 		if (await pathExists(path.join(target, "plugins", "openagentsbtw.ts"))) {
 			logInfo("OpenCode plugin installed");
 		} else {

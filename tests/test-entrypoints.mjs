@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { resolvePaths } from "../scripts/install/shared.mjs";
+import {
+	resolvePaths,
+	resolveWorkspacePaths,
+} from "../scripts/install/shared.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -46,6 +49,13 @@ describe("shared install paths", () => {
 		assert.equal(paths.ctx7Wrapper, "/home/krystian/.local/bin/ctx7");
 		assert.equal(paths.opencodeConfigDir, "/tmp/xdg/opencode");
 	});
+
+	it("resolves project-scoped outputs under the caller workspace", () => {
+		const paths = resolveWorkspacePaths("/tmp/consumer-repo");
+		assert.equal(paths.projectOpenCodeDir, "/tmp/consumer-repo/.opencode");
+		assert.equal(paths.projectGithubDir, "/tmp/consumer-repo/.github");
+		assert.equal(paths.projectVscodeMcp, "/tmp/consumer-repo/.vscode/mcp.json");
+	});
 });
 
 describe("public entrypoints", () => {
@@ -57,6 +67,31 @@ describe("public entrypoints", () => {
 			/scripts\/install\/uninstall-cli\.mjs/,
 		);
 		assert.match(readRepo("build-plugin.sh"), /scripts\/build-plugin-cli\.mjs/);
+	});
+
+	it("uses caller workspace targets for project-scoped install paths", () => {
+		const installer = readRepo("scripts/install/cli.mjs");
+		const uninstaller = readRepo("scripts/install/uninstall-cli.mjs");
+		assert.match(installer, /resolveWorkspacePaths\(\)/);
+		assert.match(installer, /workspacePaths\.projectGithubDir/);
+		assert.match(installer, /workspacePaths\.projectVscodeMcp/);
+		assert.match(installer, /workspacePaths\.projectOpenCodeDir/);
+		assert.match(uninstaller, /workspacePaths\.projectGithubDir/);
+		assert.match(uninstaller, /workspacePaths\.projectOpenCodeDir/);
+		assert.equal(installer.includes('path.join(ROOT, ".github")'), false);
+		assert.equal(
+			installer.includes('path.join(ROOT, ".vscode", "mcp.json")'),
+			false,
+		);
+		assert.equal(uninstaller.includes('path.join(ROOT, ".github")'), false);
+		assert.equal(uninstaller.includes('path.join(ROOT, ".opencode")'), false);
+	});
+
+	it("keeps Claude settings merging Node-native instead of jq shell pipelines", () => {
+		const installer = readRepo("scripts/install/cli.mjs");
+		assert.match(installer, /mergeClaudeSettings/);
+		assert.equal(installer.includes("jq "), false);
+		assert.equal(installer.includes("ensureJq("), false);
 	});
 
 	it("ships matching PowerShell wrappers for all root entrypoints", () => {

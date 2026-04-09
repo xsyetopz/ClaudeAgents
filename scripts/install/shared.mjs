@@ -77,6 +77,15 @@ export function resolvePaths({
 
 export const PATHS = resolvePaths();
 
+export function resolveWorkspacePaths(workspaceRoot = process.cwd()) {
+	return {
+		workspaceRoot,
+		projectOpenCodeDir: path.join(workspaceRoot, ".opencode"),
+		projectGithubDir: path.join(workspaceRoot, ".github"),
+		projectVscodeMcp: path.join(workspaceRoot, ".vscode", "mcp.json"),
+	};
+}
+
 export function logInfo(message) {
 	console.log(`  ✓ ${message}`);
 }

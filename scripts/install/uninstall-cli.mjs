@@ -9,6 +9,7 @@ import {
 	pathExists,
 	ROOT,
 	readText,
+	resolveWorkspacePaths,
 	run,
 	writeText,
 } from "./shared.mjs";
@@ -178,8 +179,11 @@ async function removeClaude() {
 
 async function removeOpenCode(scope) {
 	console.log("\n\x1b[0;32mRemoving OpenCode support\x1b[0m");
+	const workspacePaths = resolveWorkspacePaths();
 	const target =
-		scope === "global" ? PATHS.opencodeConfigDir : path.join(ROOT, ".opencode");
+		scope === "global"
+			? PATHS.opencodeConfigDir
+			: workspacePaths.projectOpenCodeDir;
 
 	for (const agent of [
 		"odysseus",
@@ -298,7 +302,8 @@ async function removeCopilot(scope) {
 	}
 
 	if (scope === "project" || scope === "both") {
-		const ghRoot = path.join(ROOT, ".github");
+		const workspacePaths = resolveWorkspacePaths();
+		const ghRoot = workspacePaths.projectGithubDir;
 		for (const agent of [
 			"athena",
 			"hephaestus",
