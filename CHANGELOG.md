@@ -2,6 +2,20 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.8] - 2026-04-09
+
+### Added
+
+- Installer/config: added shared subscription preset policy for ChatGPT/Codex (`go`, `plus`, `pro-5`, `pro-20`), Claude (`plus`, `pro-5`, `pro-20`), and Copilot (`pro`, `pro-plus`).
+- Config: added in-place plan switching via `./config.sh --claude-plan`, `--codex-plan`, and `--copilot-plan`.
+
+### Changed
+
+- Codex: main, implementation, utility, accept-edits, and longrun routing is now plan-aware, with `gpt-5.3-codex-spark` reserved for Pro plans only.
+- Claude: replaced the public `5x` / `20x` wording with `plus` / `pro-5` / `pro-20`, while keeping legacy aliases for install compatibility.
+- Copilot/OpenCode: added heavier `pro-plus` defaults and routed OpenCode’s Copilot-backed installs through the shared preset layer.
+- Docs: refreshed install, config, and model-strategy docs around the new preset matrix and swarm policy.
+
 ## [1.2.7] - 2026-04-09
 
 ### Added

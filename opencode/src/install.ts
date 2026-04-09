@@ -372,6 +372,7 @@ export async function install(options: InstallOptions): Promise<InstallReport> {
 			providers,
 			modelOverrides,
 			options.defaultModel,
+			options.copilotPlan,
 		),
 	}));
 

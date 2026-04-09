@@ -40,31 +40,31 @@ Short alias: `oabtw-codex`
 Canonical equivalent: `openagentsbtw-codex`
 
 - `oabtw-codex triage`
-  `hermes`-shaped routing on `openagentsbtw-codex-mini` for bounded search, classification, and evidence gathering.
+  `hermes`-shaped routing on the utility profile for bounded search, classification, and evidence gathering.
 - `oabtw-codex explore`
-  `hermes`-shaped routing on `openagentsbtw-codex-mini` for repo mapping, architecture reading, and evidence-first exploration.
+  `hermes`-shaped routing on the utility profile for repo mapping, architecture reading, and evidence-first exploration.
 - `oabtw-codex trace`
-  `hermes`-shaped routing on `openagentsbtw-codex-mini` for dependency, call-path, and data-flow tracing.
+  `hermes`-shaped routing on the utility profile for dependency, call-path, and data-flow tracing.
 - `oabtw-codex debug`
-  `hermes`-shaped routing on `openagentsbtw-codex-mini` for read-only failure investigation and root-cause narrowing.
+  `hermes`-shaped routing on the utility profile for read-only failure investigation and root-cause narrowing.
 - `oabtw-codex deepwiki`
-  `hermes`-shaped routing on `openagentsbtw-codex-mini` for public GitHub repo exploration through DeepWiki MCP first, with local repo verification before making exact file or line claims.
+  `hermes`-shaped routing on the utility profile for public GitHub repo exploration through DeepWiki MCP first, with local repo verification before making exact file or line claims.
 - `oabtw-codex docs`
-  `calliope`-shaped routing on `openagentsbtw-codex-mini` for documentation-only edits.
+  `calliope`-shaped routing on the utility profile for documentation-only edits.
 - `oabtw-codex desloppify`
-  `calliope`-shaped routing on `openagentsbtw-codex-mini` for prose cleanup, comment cleanup, and anti-slop passes.
+  `calliope`-shaped routing on the utility profile for prose cleanup, comment cleanup, and anti-slop passes.
 - `oabtw-codex handoff`
-  compact handoff writing on `openagentsbtw-codex-mini`.
+  compact handoff writing on the utility profile.
 - `oabtw-codex test`
-  `atalanta`-shaped routing on `openagentsbtw-codex-mini` for targeted validation.
+  `atalanta`-shaped routing on the utility profile for targeted validation.
 - `oabtw-codex qa`
-  `atalanta`-shaped routing on `openagentsbtw-codex-mini` for broader repro, variant testing, evidence capture, and integration-test-first validation.
+  `atalanta`-shaped routing on the utility profile for broader repro, variant testing, evidence capture, and integration-test-first validation.
 - `oabtw-codex plan`
   `athena`-shaped routing on `openagentsbtw`.
 - `oabtw-codex accept`
   sandboxed auto-accept implementation routing on `openagentsbtw-accept-edits`.
 - `oabtw-codex implement`
-  `hephaestus`-shaped routing on `openagentsbtw`.
+  `hephaestus`-shaped routing on `openagentsbtw-implement`.
 - `oabtw-codex review`
   `nemesis`-shaped routing on `openagentsbtw`.
 - `oabtw-codex longrun`

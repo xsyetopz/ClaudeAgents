@@ -3,11 +3,13 @@ Opus is available for planning, review, and coordination. Use extended context s
 </model_context>
 
 <tier_constraints>
-**5X (default):** Cost-conscious. Orchestrator runs opusplan (opus planning, sonnet execution). Sonnet handles execution tasks; haiku handles lightweight work. Conserve tokens — prefer focused context windows, avoid loading files speculatively.
+**Plus:** No Opus-backed default routing. Orchestrator and review work stay on Sonnet; Haiku handles lightweight work. Conserve tokens and keep delegated payloads narrow.
 
-**20X:** Quality-first. Orchestrator runs full opus (not opusplan), and the haiku slot is upgraded to sonnet. Sonnet and opus slots are unchanged. Optimize for depth of reasoning and thoroughness over brevity. Extended context windows are available and should be used when beneficial.
+**Pro 5x (default):** Orchestrator runs `opusplan` (Opus planning, Sonnet execution). Sonnet handles execution tasks; Haiku handles lightweight work.
 
-The active tier's model assignments are set at install time via env vars in `~/.claude/settings.json`. Agents do not need to read this block to know their model — it is already in effect.
+**Pro 20x:** Quality-first. Orchestrator runs full Opus, and the lightweight slot is upgraded to Sonnet. Use the extra budget for broader context and deeper review.
+
+The active plan's model assignments are set at install time via env vars in `~/.claude/settings.json`. Agents do not need to read this block to know their model — it is already in effect.
 </tier_constraints>
 
 <context_limits>

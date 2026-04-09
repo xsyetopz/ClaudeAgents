@@ -51,7 +51,7 @@ Notes:
 ## Claude options
 
 ```bash
-./install.sh --claude --claude-tier 20x
+./install.sh --claude --claude-plan pro-20
 ./install.sh --claude --skip-rtk
 ```
 
@@ -78,8 +78,10 @@ OpenCode install also:
 ## Codex
 
 ```bash
-./install.sh --codex --codex-tier plus
-./install.sh --codex --codex-tier pro
+./install.sh --codex --codex-plan go
+./install.sh --codex --codex-plan plus
+./install.sh --codex --codex-plan pro-5
+./install.sh --codex --codex-plan pro-20
 ./install.sh --codex --skip-rtk
 ```
 
@@ -90,13 +92,15 @@ Codex installation:
 - installs custom agents into `~/.codex/agents/`
 - installs and merges hook config into `~/.codex/hooks.json`
 - appends managed guidance to `~/.codex/AGENTS.md`
-- appends managed profiles (tier-dependent) to `~/.codex/config.toml`
+- appends managed profiles (plan-dependent) to `~/.codex/config.toml`
 
 Codex preset summary:
 
-- `plus`: `gpt-5.3-codex` preset for code-specialized daily work and implementation-heavy sessions
-- `pro`: default high-reasoning preset using `gpt-5.2` for the main interactive session and the planning/review orchestration route
-- `openagentsbtw-codex-mini`: optional lightweight profile using `gpt-5.3-codex-spark` with low reasoning/verbosity
+- `go`: budget-first preset; main and utility work stay on `gpt-5.4-mini`, while implementation routes still use `gpt-5.3-codex`
+- `plus`: code-specialized preset using `gpt-5.3-codex` for main work and `gpt-5.4-mini` for bounded utility work
+- `pro-5`: high-reasoning preset using `gpt-5.2` for planning/review/orchestration and `gpt-5.3-codex-spark` for bounded utility work
+- `pro-20`: same model split as `pro-5`, with more aggressive swarm defaults and stronger reasoning on the main profile
+- `openagentsbtw-codex-mini`: lightweight helper profile; `gpt-5.3-codex-spark` is Pro-only and non-Pro installs use `gpt-5.4-mini` instead
 - `openagentsbtw-longrun`: patient long-running profile for builds and test suites with `unified_exec` and a higher background terminal timeout
 
 Installed Codex helper command (after install):
@@ -138,6 +142,9 @@ Behavior:
 Use `./config.sh` to update an existing install without re-running full setup:
 
 ```bash
+./config.sh --claude-plan pro-20
+./config.sh --codex-plan plus
+./config.sh --copilot-plan pro-plus
 ./config.sh --ctx7
 ./config.sh --no-ctx7
 ./config.sh --ctx7-api-key

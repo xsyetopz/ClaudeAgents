@@ -1,107 +1,47 @@
 # Codex Model Strategy
 
-As of April 4, 2026, there are two relevant sources for Codex model policy:
+As of April 9, 2026, openagentsbtw treats ChatGPT/Codex plans as **framework presets**, not entitlement checks. The installer does not try to verify a user’s OpenAI subscription.
 
-- official OpenAI model docs, which describe the broader model lineup
-- local Codex CLI `/model` output, which is the source of truth for what the installed Codex client actually exposes
+## Core split
 
-On this machine, the local Codex CLI exposes:
-
-- `gpt-5.4`
 - `gpt-5.4-mini`
+  Budget and bounded-utility route for `go`, and the non-Pro utility route for `plus`.
 - `gpt-5.3-codex`
-- `gpt-5.3-codex-spark`
-- `gpt-5.2-codex`
+  Implementation-heavy and long-running coding route.
 - `gpt-5.2`
-- `gpt-5.1-codex-max`
-- `gpt-5.1-codex-mini`
-
-That local list is an observation from the Codex CLI, not an official OpenAI docs page.
-
-The broader official OpenAI model docs still support the split we need:
-
-- `gpt-5.2`
-  General GPT-5 model used here for high-reasoning main work. Source: <https://developers.openai.com/api/docs/models/gpt-5.2>
-- `gpt-5.3-codex`
-  Codex-specialized GPT-5 model used here for implementation-heavy coding and code-specialized daily work. Source: <https://developers.openai.com/api/docs/models/gpt-5.3-codex>
+  High-reasoning planning, review, and orchestration route on the Pro plans.
 - `gpt-5.3-codex-spark`
-  Faster lightweight Codex-specialized variant used here for the managed mini profile. Source: <https://developers.openai.com/api/docs/models/gpt-5.3-codex-spark>
+  Lightweight Pro-only utility route.
 
-## Policy
+## Plan presets
 
-openagentsbtw now uses a three-way Codex split:
-
-- `gpt-5.2` for high-reasoning main work
-- `gpt-5.3-codex` for implementation-heavy coding
-- `gpt-5.3-codex-spark` for the lightweight mini profile
-
-The reasons for the policy are operational:
-
-- `gpt-5.2` is the preferred high-reasoning route
-- `gpt-5.3-codex` stays pinned for implementation and code-specialized execution
-- `gpt-5.3-codex-spark` gives the mini profile an actually smaller Codex-specialized model
-- full `gpt-5.4` is not used in managed routing
-
-## Presets
-
-openagentsbtw uses two install presets plus one optional lightweight profile:
-
+- `go`
+  Main profile on `gpt-5.4-mini`, implementation on `gpt-5.3-codex`, conservative swarming.
 - `plus`
-  Code-specialized preset. Uses `gpt-5.3-codex` for the main interactive session.
-- `pro`
-  Default high-reasoning preset. Uses `gpt-5.2` for the main interactive session.
-- `codex-mini`
-  Lightweight profile for narrow extraction, ranking, classification, and other bounded high-volume work on `gpt-5.3-codex-spark`.
+  Main and implementation on `gpt-5.3-codex`, utility on `gpt-5.4-mini`, standard swarming.
+- `pro-5`
+  Main planning/review/orchestration on `gpt-5.2`, implementation on `gpt-5.3-codex`, utility on `gpt-5.3-codex-spark`.
+- `pro-20`
+  Same model family split as `pro-5`, with stronger reasoning on the main profile and more aggressive swarming.
 
-These are openagentsbtw presets, not official OpenAI entitlement checks. The installer does not attempt to verify a user’s OpenAI plan.
+## Agent mapping
 
-## Agent Mapping
+Custom agent TOMLs are installed from this repo, then rewritten for the selected plan:
 
-Custom agent TOMLs are installed from this repo, then the Codex installer applies a tier-specific model mapping during install. Current mappings:
+- `athena`, `nemesis`, `odysseus`
+  Use the selected plan’s main model.
+- `hephaestus`
+  Uses the implementation model.
+- `hermes`, `atalanta`, `calliope`
+  Use the utility model.
 
-### `plus`
+## Wrapper routing
 
-- `athena`: `gpt-5.3-codex` with `high`
-- `hephaestus`: `gpt-5.3-codex` with `high`
-- `nemesis`: `gpt-5.3-codex` with `high`
-- `odysseus`: `gpt-5.3-codex` with `high`
-- `hermes`: `gpt-5.3-codex` with `medium`
-- `atalanta`: `gpt-5.3-codex` with `medium`
-- `calliope`: `gpt-5.3-codex` with `medium`
+- `plan`, `review`, `orchestrate`
+  Use the stable `openagentsbtw` main profile for the selected plan.
+- `implement`, `accept`, `longrun`
+  Use the implementation model.
+- `triage`, `explore`, `trace`, `debug`, `docs`, `desloppify`, `handoff`, `test`, `qa`
+  Use `openagentsbtw-codex-mini`.
 
-### `pro`
-
-- `athena`: `gpt-5.2` with `high`
-- `hephaestus`: `gpt-5.3-codex` with `high`
-- `nemesis`: `gpt-5.2` with `high`
-- `odysseus`: `gpt-5.2` with `high`
-- `hermes`: `gpt-5.3-codex` with `medium`
-- `atalanta`: `gpt-5.3-codex` with `medium`
-- `calliope`: `gpt-5.3-codex` with `medium`
-
-## Wrapper Routing
-
-Wrapper routing is stricter than the base profile mapping:
-
-- `plan`, `review`, and `orchestrate` use the stable `openagentsbtw` profile, which is pinned to `gpt-5.2`
-- `implement` and `accept` force `gpt-5.3-codex` with `high`
-- `triage`, `deepwiki`, `docs`, `desloppify`, `handoff`, and `test` stay on `openagentsbtw-codex-mini` with `gpt-5.3-codex-spark`
-
-That split is intentional. The wrapper contract keeps planning/review on the engineer route, implementation on the code-specialized route, and bounded utility work on the smaller Codex route.
-
-## Reasoning Defaults
-
-openagentsbtw treats `high` as the default ceiling for important work. We do not use `xhigh` by default.
-
-Reasoning policy:
-
-- planning/orchestration: `high`
-- implementation/review: `high`
-- exploration/docs/tests: `medium`
-- lightweight manual profile: `low`
-
-Rationale:
-
-- `high` is the stable default for long sessions
-- `xhigh` remains a manual escalation for unusually hard problems
-- defaulting to `xhigh` increases latency, context churn, and overreach risk for ordinary work
+`gpt-5.3-codex-spark` is reserved for `pro-5` and `pro-20`. `go` and `plus` never materialize Spark in managed config.

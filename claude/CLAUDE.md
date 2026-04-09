@@ -29,10 +29,10 @@ git pull
 ./install.sh --claude
 ```
 
-If you use a specific tier, repeat it:
+If you use a specific plan, repeat it:
 
 ```bash
-./install.sh --claude --claude-tier 20x
+./install.sh --claude --claude-plan pro-20
 ```
 
 Optional browser automation (Playwright CLI):
@@ -88,13 +88,14 @@ Lifecycle-organized in `hooks/scripts/{pre,post,session}/`.
 
 ## Model Strategy
 
-Two tiers, set at install time via `./install.sh --tier <5x|20x>`:
+Three plans, set at install time via `./install.sh --claude-plan <plus|pro-5|pro-20>`:
 
-| Role                       | 5X (default)        | 20X                 |
-| -------------------------- | ------------------- | ------------------- |
-| Orchestrator (`CCA_MODEL`) | `opusplan`          | `opus[1m]`          |
-| Sonnet slot                | `claude-sonnet-4-6` | `claude-sonnet-4-6` |
-| Haiku slot                 | `claude-haiku-4-5`  | `claude-sonnet-4-6` |
+| Role                       | Plus                | Pro 5x              | Pro 20x            |
+| -------------------------- | ------------------- | ------------------- | ------------------ |
+| Orchestrator (`CCA_MODEL`) | `claude-sonnet-4-6` | `opusplan`          | `opus[1m]`         |
+| Opus slot                  | `claude-sonnet-4-6` | `claude-opus-4-6`   | `claude-opus-4-6`  |
+| Sonnet slot                | `claude-sonnet-4-6` | `claude-sonnet-4-6` | `claude-sonnet-4-6` |
+| Haiku slot                 | `claude-haiku-4-5`  | `claude-haiku-4-5`  | `claude-sonnet-4-6` |
 
 Agent models use logical names (`opus`, `sonnet`, `haiku`) that resolve via env vars. Sonnet/haiku agents have 200K context windows and capped maxTurns — keep delegated payloads focused. Env vars pin model versions in `~/.claude/settings.json`. Output style: CCA. Statusline: model, context %, cost, git branch.
 

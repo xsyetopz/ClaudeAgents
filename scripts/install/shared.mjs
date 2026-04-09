@@ -119,9 +119,20 @@ export async function loadConfigEnv() {
 
 export async function writeConfigEnv(values) {
 	await ensureDir(PATHS.configDir);
+	const existing = await loadConfigEnv();
+	const next = { ...existing, ...values };
 	const lines = ["# Managed by openagentsbtw"];
-	if (values.CONTEXT7_API_KEY) {
-		lines.push(`CONTEXT7_API_KEY=${values.CONTEXT7_API_KEY}`);
+	if (next.CONTEXT7_API_KEY) {
+		lines.push(`CONTEXT7_API_KEY=${next.CONTEXT7_API_KEY}`);
+	}
+	if (next.OABTW_CLAUDE_PLAN) {
+		lines.push(`OABTW_CLAUDE_PLAN=${next.OABTW_CLAUDE_PLAN}`);
+	}
+	if (next.OABTW_CODEX_PLAN) {
+		lines.push(`OABTW_CODEX_PLAN=${next.OABTW_CODEX_PLAN}`);
+	}
+	if (next.OABTW_COPILOT_PLAN) {
+		lines.push(`OABTW_COPILOT_PLAN=${next.OABTW_COPILOT_PLAN}`);
 	}
 	await writeText(PATHS.configEnvFile, `${lines.join("\n")}\n`);
 }

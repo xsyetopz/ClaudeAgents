@@ -3,6 +3,12 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+	getClaudePlan,
+	resolveClaudePlan,
+	resolveCodexPlan,
+	resolveCopilotPlan,
+} from "../../source/subscriptions.mjs";
+import {
 	mergeCodexConfig,
 	mergeCodexHooks,
 	mergeTaggedMarkdown,
@@ -41,7 +47,9 @@ System toggles (allow multiple):
 
 Options:
   --skip-rtk              Skip RTK install for Claude Code, Codex, OpenCode, and Copilot
-  --claude-tier 5x|20x    Claude model tier (default: 5x)
+  --claude-plan plus|pro-5|pro-20
+                          Claude capability preset (default: pro-5)
+  --claude-tier 5x|20x    Legacy alias for --claude-plan
   --opencode-scope project|global
                           OpenCode install target (default: global)
   --opencode-default-model MODEL
@@ -50,7 +58,11 @@ Options:
                           Override a specific OpenCode role model
   --copilot-scope global|project|both
                           Copilot install target (default: global)
-  --codex-tier plus|pro   Codex model routing preset
+  --copilot-plan pro|pro-plus
+                          Copilot capability preset (default: pro)
+  --codex-plan go|plus|pro-5|pro-20
+                          Codex capability preset (default: pro-5)
+  --codex-tier plus|pro   Legacy alias for --codex-plan
   --codex-set-top-profile Force setting top-level Codex profile in ~/.codex/config.toml
   --no-codex-set-top-profile
                           Do not set top-level Codex profile in ~/.codex/config.toml
@@ -70,12 +82,16 @@ function parseArgs(argv) {
 		installCodex: false,
 		installCopilot: false,
 		skipRtk: false,
-		claudeTier: "5x",
+		claudePlan: "pro-5",
+		claudePlanSet: false,
 		opencodeScope: "global",
 		opencodeDefaultModel: "",
 		opencodeModelOverrides: [],
 		copilotScope: "global",
-		codexTier: "",
+		copilotPlan: "pro",
+		copilotPlanSet: false,
+		codexPlan: "",
+		codexPlanSet: false,
 		deepwikiMcp: false,
 		deepwikiMcpSet: false,
 		codexSetTopProfile: "auto",
@@ -111,7 +127,12 @@ function parseArgs(argv) {
 				args.skipRtk = true;
 				break;
 			case "--claude-tier":
-				args.claudeTier = argv[++index] ?? "";
+				args.claudePlan = resolveClaudePlan(argv[++index] ?? "");
+				args.claudePlanSet = true;
+				break;
+			case "--claude-plan":
+				args.claudePlan = argv[++index] ?? "";
+				args.claudePlanSet = true;
 				break;
 			case "--opencode-scope":
 				args.opencodeScope = argv[++index] ?? "";
@@ -125,8 +146,17 @@ function parseArgs(argv) {
 			case "--copilot-scope":
 				args.copilotScope = argv[++index] ?? "";
 				break;
+			case "--copilot-plan":
+				args.copilotPlan = argv[++index] ?? "";
+				args.copilotPlanSet = true;
+				break;
 			case "--codex-tier":
-				args.codexTier = argv[++index] ?? "";
+				args.codexPlan = resolveCodexPlan(argv[++index] ?? "");
+				args.codexPlanSet = true;
+				break;
+			case "--codex-plan":
+				args.codexPlan = argv[++index] ?? "";
+				args.codexPlanSet = true;
 				break;
 			case "--codex-set-top-profile":
 				args.codexSetTopProfile = "true";
@@ -218,25 +248,58 @@ async function ensureSelection(args) {
 }
 
 async function promptOptionalSurfaces(args, existingEnv) {
+	if (args.installClaude && !args.claudePlanSet && !isCi()) {
+		args.claudePlan =
+			resolveClaudePlan(
+				(await promptText(
+					"Claude plan preset [plus/pro-5/pro-20]:",
+					false,
+					args.claudePlan || existingEnv.OABTW_CLAUDE_PLAN || "pro-5",
+				)) ||
+					args.claudePlan ||
+					existingEnv.OABTW_CLAUDE_PLAN ||
+					"pro-5",
+			) || "pro-5";
+	}
 	if (args.installOpenCode && !args.opencodeDefaultModel && !isCi()) {
 		args.opencodeDefaultModel = await promptText(
 			"OpenCode default model for all agents (blank = auto-detect/fallback):",
 		);
 	}
-	if (args.installCodex && !args.codexTier) {
-		args.codexTier = isCi()
-			? "pro"
-			: (await promptText("Codex tier preset [pro/plus]:", false, "pro")) ||
-				"pro";
+	if (args.installCodex && !args.codexPlanSet && !args.codexPlan) {
+		args.codexPlan = isCi()
+			? existingEnv.OABTW_CODEX_PLAN || "pro-5"
+			: resolveCodexPlan(
+					(await promptText(
+						"Codex plan preset [go/plus/pro-5/pro-20]:",
+						false,
+						args.codexPlan || existingEnv.OABTW_CODEX_PLAN || "pro-5",
+					)) || "pro-5",
+				) ||
+				existingEnv.OABTW_CODEX_PLAN ||
+				"pro-5";
 	}
 	if (args.installCodex && args.codexSetTopProfile === "auto" && !isCi()) {
-		const profileName = `openagentsbtw-${args.codexTier}`;
+		const profileName = `openagentsbtw-${args.codexPlan}`;
 		args.codexSetTopProfile = (await promptToggle(
 			`Set Codex default profile at top-level in ~/.codex/config.toml to ${profileName}?`,
 			true,
 		))
 			? "true"
 			: "false";
+	}
+	if (args.installCopilot && !args.copilotPlanSet && !isCi()) {
+		args.copilotPlan =
+			resolveCopilotPlan(
+				(await promptText(
+					"Copilot plan preset [pro/pro-plus]:",
+					false,
+					args.copilotPlan || existingEnv.OABTW_COPILOT_PLAN || "pro",
+				)) ||
+					args.copilotPlan ||
+					existingEnv.OABTW_COPILOT_PLAN ||
+					"pro",
+			) || "pro";
 	}
 	if (
 		!args.ctx7CliSet &&
@@ -281,16 +344,28 @@ async function promptOptionalSurfaces(args, existingEnv) {
 }
 
 function validateArgs(args) {
-	if (!["5x", "20x"].includes(args.claudeTier)) {
-		fail(`Unsupported Claude tier: ${args.claudeTier}`);
+	args.claudePlan = resolveClaudePlan(args.claudePlan);
+	if (!args.claudePlan) {
+		fail(
+			`Unsupported Claude plan: ${args.claudePlan} (expected plus, pro-5, or pro-20)`,
+		);
 	}
 	if (!["global", "project"].includes(args.opencodeScope)) {
 		fail(
 			`Unsupported OpenCode scope: ${args.opencodeScope} (expected global or project)`,
 		);
 	}
-	if (args.installCodex && !["plus", "pro"].includes(args.codexTier)) {
-		fail(`Unsupported Codex tier: ${args.codexTier} (expected plus or pro)`);
+	args.codexPlan = resolveCodexPlan(args.codexPlan || "pro-5");
+	if (args.installCodex && !args.codexPlan) {
+		fail(
+			`Unsupported Codex plan: ${args.codexPlan} (expected go, plus, pro-5, or pro-20)`,
+		);
+	}
+	args.copilotPlan = resolveCopilotPlan(args.copilotPlan);
+	if (!args.copilotPlan) {
+		fail(
+			`Unsupported Copilot plan: ${args.copilotPlan} (expected pro or pro-plus)`,
+		);
 	}
 	if (!["global", "project", "both"].includes(args.copilotScope)) {
 		fail(
@@ -411,21 +486,8 @@ async function buildArtifacts() {
 	};
 }
 
-function configureClaudeModels(tier) {
-	if (tier === "20x") {
-		return {
-			ccaModel: "opus[1m]",
-			opusModel: "claude-opus-4-6[1m]",
-			sonnetModel: "claude-sonnet-4-6",
-			haikuModel: "claude-sonnet-4-6",
-		};
-	}
-	return {
-		ccaModel: "opusplan",
-		opusModel: "claude-opus-4-6[1m]",
-		sonnetModel: "claude-sonnet-4-6",
-		haikuModel: "claude-haiku-4-5",
-	};
+function configureClaudeModels(planName) {
+	return getClaudePlan(planName).models;
 }
 
 async function installCtx7WrapperAndEnv(apiKey) {
@@ -636,7 +698,7 @@ async function installClaude(args, artifacts) {
 	await ensureClaudeVersion();
 	await ensureNode();
 	await ensureJq();
-	const models = configureClaudeModels(args.claudeTier);
+	const models = configureClaudeModels(args.claudePlan);
 	const settingsFile = path.join(os.homedir(), ".claude", "settings.json");
 	await fs.mkdir(path.dirname(settingsFile), { recursive: true });
 	if (!(await pathExists(settingsFile))) {
@@ -778,6 +840,7 @@ async function installOpenCode(args, artifacts) {
 		env: {
 			OABTW_OPENCODE_TEMPLATES_DIR: artifacts.opencodeTemplatesDir,
 			OABTW_OPENCODE_DEEPWIKI: args.deepwikiMcp ? "true" : "false",
+			OABTW_COPILOT_PLAN: args.copilotPlan,
 		},
 	});
 	logInfo("OpenCode support installed");
@@ -947,7 +1010,7 @@ async function installCodex(args, artifacts) {
 	);
 	await updateCodexAgents({
 		agentsDir: path.join(codexHome, "agents"),
-		tier: args.codexTier,
+		tier: args.codexPlan,
 	});
 	await fs.cp(
 		path.join(artifacts.codexDir, "hooks", "scripts"),
@@ -979,7 +1042,7 @@ async function installCodex(args, artifacts) {
 		start: "<!-- >>> openagentsbtw codex >>> -->",
 		end: "<!-- <<< openagentsbtw codex <<< -->",
 	});
-	const profileName = `openagentsbtw-${args.codexTier}`;
+	const profileName = `openagentsbtw-${args.codexPlan}`;
 	const configExisting = await readText(configTarget, "");
 	const existingProfile = /^[\s]*profile[\s]*=/m.test(configExisting);
 	const willSetTopProfile =
@@ -989,6 +1052,7 @@ async function installCodex(args, artifacts) {
 		target: configTarget,
 		profileAction: args.codexSetTopProfile,
 		profileName,
+		planName: args.codexPlan,
 		deepwiki: args.deepwikiMcp,
 	});
 	if (willSetTopProfile) {
@@ -1056,18 +1120,20 @@ function reportSummary(args) {
 	console.log("\n\x1b[0;32mopenagentsbtw install complete\x1b[0m\n");
 	if (args.installClaude) {
 		console.log(
-			`  Claude:   openagentsbtw@openagentsbtw (tier ${args.claudeTier})`,
+			`  Claude:   openagentsbtw@openagentsbtw (plan ${args.claudePlan})`,
 		);
 	}
 	if (args.installOpenCode) {
 		console.log(`  OpenCode: ${args.opencodeScope} install`);
 	}
 	if (args.installCopilot) {
-		console.log(`  Copilot:  ${args.copilotScope} install`);
+		console.log(
+			`  Copilot:  ${args.copilotScope} install (${args.copilotPlan})`,
+		);
 	}
 	if (args.installCodex) {
 		console.log(
-			`  Codex:    ~/.codex/plugins/openagentsbtw + ~/.codex/agents (${args.codexTier})`,
+			`  Codex:    ~/.codex/plugins/openagentsbtw + ~/.codex/agents (${args.codexPlan})`,
 		);
 	}
 }
@@ -1082,6 +1148,12 @@ async function main() {
 	await ensureSelection(args);
 	await promptOptionalSurfaces(args, existingEnv);
 	validateArgs(args);
+	await writeConfigEnv({
+		CONTEXT7_API_KEY: args.context7ApiKey || existingEnv.CONTEXT7_API_KEY || "",
+		OABTW_CLAUDE_PLAN: args.claudePlan,
+		OABTW_CODEX_PLAN: args.codexPlan || "pro-5",
+		OABTW_COPILOT_PLAN: args.copilotPlan,
+	});
 	console.log("\x1b[0;32mopenagentsbtw installer\x1b[0m");
 	const artifacts = await buildArtifacts();
 	try {

@@ -46,13 +46,13 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 				title: "Working Rules",
 				body: `- Use real AGENTS.md files for Codex guidance. Do not symlink CLAUDE.md.
 - Keep Fast mode off for openagentsbtw workflows.
-- Use \`gpt-5.2\` for high-reasoning main work, \`gpt-5.3-codex\` for implementation, and \`gpt-5.3-codex-spark\` for the lightweight mini profile.
+- Use the active Codex plan preset. Keep high-reasoning work on the main profile, implementation on the implementation profile, and bounded utility work on the utility profile. \`gpt-5.3-codex-spark\` is Pro-only.
 - Keep this file short and task-shaping. Put deep reference material in docs and link to it.
 - Use athena before large multi-file implementation when the plan is not already clear. Run nemesis review plus targeted validation before closing substantial work.
 - Default to role routing: explicitly use the custom agents by name when the task clearly benefits (don’t wait for the user to ask). Keep it proportional; skip spawning for trivial edits.
 - Multi-agent safety: when delegating, assign disjoint ownership (paths/modules) so two agents don’t edit the same files. Avoid parallel edits unless the write scopes are clearly separated.
 - Default delegation heuristics: hermes for exploration/tracing, athena for planning, hephaestus for edits, nemesis for review, atalanta for tests, calliope for docs.
-- Subagents: Codex only spawns subagents when explicitly asked. For non-trivial work, explicitly instruct it to “spawn subagents” by default (unless the user requests single-agent), assign disjoint ownership, wait for all agents, then merge results into one cohesive output.
+- Subagents: Codex only spawns subagents when explicitly asked. For non-trivial work, explicitly instruct it to “spawn subagents” by default on the Pro plans (unless the user requests single-agent), assign disjoint ownership, wait for all agents, then merge results into one cohesive output.
 - Long-running commands: for long builds/tests, prefer \`oabtw-codex longrun\` or the peer helper. Do not kill a healthy in-flight process without concrete failure evidence.
 - QA/evidence: for broad reproduction, neighboring variants, screenshots, traces, or integration-test evidence, prefer \`oabtw-codex qa\` over ad-hoc validation.
 - Peer orchestration: \`oabtw-codex-peer\` is an openagentsbtw-managed top-level thread helper, not a native Codex subagent feature.
@@ -136,7 +136,7 @@ Keep the tone neutral. If blocked, stop and ask; do not game tests or weaken req
 - No urgency, shame, or pressure language. Neutral, factual collaboration.
 - Do not hide failures, weaken requirements, or “make tests pass” by cheating.
 - When third-party library/API/setup/config docs are needed and \`ctx7\` is available, use it automatically. Prefer the CLI path over MCP.
-- Prefer small, direct edits and verify outcomes.
+- Prefer small, direct edits and verify outcomes. When the active Copilot plan is \`pro-plus\`, heavier review/implementation routing is allowed; keep \`pro\` more conservative.
 `,
 			},
 		],

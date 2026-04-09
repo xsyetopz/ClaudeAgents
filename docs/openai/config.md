@@ -4,7 +4,7 @@ Codex supports both global and project config files. The basic flow is `~/.codex
 
 ## openagentsbtw Profiles
 
-openagentsbtw installs managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, and `openagentsbtw-accept-edits` profiles into `~/.codex/config.toml` rather than overwriting arbitrary top-level user settings.
+openagentsbtw installs a plan-aware `openagentsbtw` main profile, a matching `openagentsbtw-<plan>` alias, plus `openagentsbtw-codex-mini`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` into `~/.codex/config.toml` rather than overwriting arbitrary top-level user settings.
 
 The installer also enables the plugin in Codex config by adding (or preserving) a plugin entry:
 
@@ -13,18 +13,18 @@ The installer also enables the plugin in Codex config by adding (or preserving) 
 enabled = true
 ```
 
-- `openagentsbtw-plus`
-  Defaults to `gpt-5.3-codex` with high reasoning for the main interactive session.
-- `openagentsbtw-pro`
-  Defaults to `gpt-5.2` with high reasoning for the main interactive session.
+- `openagentsbtw-go`, `openagentsbtw-plus`, `openagentsbtw-pro-5`, `openagentsbtw-pro-20`
+  Plan aliases for the selected ChatGPT/Codex capability preset.
 - `openagentsbtw-codex-mini`
-  Defaults to `gpt-5.3-codex-spark` with low reasoning for narrow high-volume work.
+  Uses `gpt-5.3-codex-spark` on the Pro plans and `gpt-5.4-mini` on `go` / `plus`.
 - `openagentsbtw`
-  Stays pinned to `gpt-5.2` so wrappers and users can rely on one stable high-reasoning main profile name.
+  Stays stable as the wrapper target, but its model now comes from the selected plan.
+- `openagentsbtw-implement`
+  Stable implementation profile used by wrapper routes across plans.
 - `openagentsbtw-accept-edits`
-  Uses `gpt-5.3-codex` with high reasoning for sandboxed auto-accept implementation work.
+  Uses the selected plan’s implementation route for sandboxed auto-accept work.
 - `openagentsbtw-longrun`
-  Uses `gpt-5.2` for patient long-running builds and test suites with `unified_exec`, idle-sleep prevention, and a higher background terminal timeout.
+  Uses the selected plan’s implementation route for patient long-running builds and test suites with `unified_exec`, idle-sleep prevention, and a higher background terminal timeout.
 
 The managed profiles share the same model/style defaults unless noted otherwise:
 
@@ -39,18 +39,19 @@ The managed profiles share the same model/style defaults unless noted otherwise:
 
 Approval policy splits by mode:
 
-- `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, and `openagentsbtw` use `approval_policy = "on-request"`
+- the main plan alias, `openagentsbtw-codex-mini`, and `openagentsbtw` use `approval_policy = "on-request"`
 - `openagentsbtw-accept-edits` uses `approval_policy = "never"`
 
 The matching repo sample is in `codex/templates/config.toml`.
 
 Wrapper routing adds mode-specific overrides on top of those profiles:
 
-- `plan`, `review`, and `orchestrate` use the stable `openagentsbtw` profile on `gpt-5.2`
-- `implement` and `accept` force `gpt-5.3-codex` with `high`
+- `plan`, `review`, and `orchestrate` use the stable `openagentsbtw` profile for the selected plan
+- `implement` uses the stable `openagentsbtw-implement` profile
+- `accept` uses the stable `openagentsbtw-accept-edits` profile
 - `qa` stays on the codex-mini route for bounded evidence gathering and repro
 - `longrun` uses the dedicated `openagentsbtw-longrun` profile
-- bounded utility modes stay on `openagentsbtw-codex-mini` with `gpt-5.3-codex-spark`
+- bounded utility modes stay on `openagentsbtw-codex-mini`, with Spark reserved for Pro plans only
 
 ## Optional DeepWiki MCP
 
@@ -154,4 +155,4 @@ Codex supports project doc fallback filenames. We intentionally keep openagentsb
 
 ## Install Behavior
 
-The installer appends a managed profile block instead of attempting a full TOML rewrite. During interactive Codex install, it asks whether to set a top-level `profile = ...` default in `~/.codex/config.toml` (to the selected preset). If declined, existing/default profile behavior is preserved and users can still choose with `--profile`. For automation, `--codex-set-top-profile` and `--no-codex-set-top-profile` force that behavior without prompts. In CI/non-interactive runs, when neither flag is provided, it defaults the selected preset to `pro` and sets `profile = ...` only when none exists.
+The installer appends a managed profile block instead of attempting a full TOML rewrite. During interactive Codex install, it asks whether to set a top-level `profile = ...` default in `~/.codex/config.toml` (to the selected preset). If declined, existing/default profile behavior is preserved and users can still choose with `--profile`. For automation, `--codex-set-top-profile` and `--no-codex-set-top-profile` force that behavior without prompts. In CI/non-interactive runs, when neither flag is provided, it defaults the selected preset to `pro-5` and sets `profile = ...` only when none exists.

@@ -1,5 +1,19 @@
 import { promises as fs } from "node:fs";
-import { toggleCodexDeepwiki } from "./managed-files.mjs";
+import path from "node:path";
+import {
+	DEFAULT_CLAUDE_PLAN,
+	DEFAULT_CODEX_PLAN,
+	DEFAULT_COPILOT_PLAN,
+	getClaudePlan,
+	resolveClaudePlan,
+	resolveCodexPlan,
+	resolveCopilotPlan,
+} from "../../source/subscriptions.mjs";
+import {
+	mergeCodexConfig,
+	toggleCodexDeepwiki,
+	updateCodexAgents,
+} from "./managed-files.mjs";
 import {
 	commandExists,
 	ctx7RunnerLine,
@@ -25,6 +39,9 @@ Usage: ./config.sh [options]
   --ctx7-api-key [KEY]   Set or update CONTEXT7_API_KEY (prompt if omitted)
   --deepwiki             Enable managed DeepWiki config on installed surfaces
   --no-deepwiki          Disable managed DeepWiki config on installed surfaces
+  --claude-plan PLAN     Set Claude plan: plus|pro-5|pro-20
+  --codex-plan PLAN      Set Codex plan: go|plus|pro-5|pro-20
+  --copilot-plan PLAN    Set Copilot plan: pro|pro-plus
   --rtk                  Install RTK if needed and write the managed global RTK.md
   --no-rtk               Remove the managed global RTK.md
   --yes                  Accept default prompts without asking
@@ -286,6 +303,104 @@ async function toggleDeepwikiEverywhere(enabled) {
 	await toggleCopilotDeepwiki(enabled);
 }
 
+async function applyClaudePlan(planName) {
+	const plan = getClaudePlan(planName);
+	const target = `${process.env.HOME ?? ""}/.claude/settings.json`;
+	const changed = await updateJsonFile(target, (payload) => {
+		const next = payload && typeof payload === "object" ? { ...payload } : {};
+		next.env = next.env && typeof next.env === "object" ? { ...next.env } : {};
+		next.env.ANTHROPIC_DEFAULT_OPUS_MODEL = plan.models.opusModel;
+		next.env.ANTHROPIC_DEFAULT_SONNET_MODEL = plan.models.sonnetModel;
+		next.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = plan.models.haikuModel;
+		next.model = plan.models.ccaModel;
+		return next;
+	});
+	if (changed) {
+		logInfo(`Applied Claude plan ${plan.id} in ${target}`);
+	}
+}
+
+async function applyCodexPlan(planName) {
+	if (!(await pathExists(PATHS.codexConfig))) {
+		logInfo("Skipping Codex plan update (~/.codex/config.toml not found)");
+		return;
+	}
+	await mergeCodexConfig({
+		target: PATHS.codexConfig,
+		profileAction: "true",
+		profileName: `openagentsbtw-${planName}`,
+		planName,
+		deepwiki: /(^|\n)\[mcp_servers\.deepwiki\]/.test(
+			await fs.readFile(PATHS.codexConfig, "utf8").catch(() => ""),
+		),
+	});
+	const agentsDir = path.join(process.env.HOME ?? "", ".codex", "agents");
+	if (await pathExists(agentsDir)) {
+		await updateCodexAgents({ agentsDir, tier: planName });
+	}
+	logInfo(`Applied Codex plan ${planName} in ${PATHS.codexConfig}`);
+}
+
+async function applyOpenCodeCopilotPlan(planName) {
+	if (!commandExists("bun")) {
+		logInfo("Skipping OpenCode Copilot plan update (bun not installed)");
+		return;
+	}
+	const repoRoot = process.cwd();
+	const projectInstall = `${repoRoot}/.opencode`;
+	const home = process.env.HOME ?? "";
+	const configHome = process.env.XDG_CONFIG_HOME ?? `${home}/.config`;
+	const globalInstall = `${configHome}/opencode`;
+
+	if (await pathExists(projectInstall)) {
+		await run(
+			"bun",
+			[
+				"run",
+				"opencode/src/cli.ts",
+				"--scope",
+				"project",
+				"--provider",
+				"copilot",
+				"--plugins",
+				"inject-preamble,openagentsbtw-core,conventions,safety-guard",
+			],
+			{
+				cwd: repoRoot,
+				env: {
+					...process.env,
+					OABTW_COPILOT_PLAN: planName,
+				},
+			},
+		);
+		logInfo(`Applied Copilot plan ${planName} to project OpenCode install`);
+	}
+
+	if (await pathExists(globalInstall)) {
+		await run(
+			"bun",
+			[
+				"run",
+				"opencode/src/cli.ts",
+				"--scope",
+				"global",
+				"--provider",
+				"copilot",
+				"--plugins",
+				"inject-preamble,openagentsbtw-core,conventions,safety-guard",
+			],
+			{
+				cwd: repoRoot,
+				env: {
+					...process.env,
+					OABTW_COPILOT_PLAN: planName,
+				},
+			},
+		);
+		logInfo(`Applied Copilot plan ${planName} to global OpenCode install`);
+	}
+}
+
 function parseArgs(argv) {
 	return {
 		ctx7: argv.includes("--ctx7"),
@@ -297,6 +412,9 @@ function parseArgs(argv) {
 		yes: argv.includes("--yes"),
 		help: argv.includes("-h") || argv.includes("--help"),
 		ctx7ApiKeyIndex: argv.indexOf("--ctx7-api-key"),
+		claudePlanIndex: argv.indexOf("--claude-plan"),
+		codexPlanIndex: argv.indexOf("--codex-plan"),
+		copilotPlanIndex: argv.indexOf("--copilot-plan"),
 		argv,
 	};
 }
@@ -310,6 +428,14 @@ async function main() {
 
 	const existingEnv = await loadConfigEnv();
 	let context7ApiKey = existingEnv.CONTEXT7_API_KEY || "";
+	let claudePlan =
+		resolveClaudePlan(existingEnv.OABTW_CLAUDE_PLAN || "") ||
+		DEFAULT_CLAUDE_PLAN;
+	let codexPlan =
+		resolveCodexPlan(existingEnv.OABTW_CODEX_PLAN || "") || DEFAULT_CODEX_PLAN;
+	let copilotPlan =
+		resolveCopilotPlan(existingEnv.OABTW_COPILOT_PLAN || "") ||
+		DEFAULT_COPILOT_PLAN;
 
 	if (args.ctx7ApiKeyIndex !== -1) {
 		const explicit = args.argv[args.ctx7ApiKeyIndex + 1];
@@ -317,9 +443,49 @@ async function main() {
 			explicit && !explicit.startsWith("--")
 				? explicit
 				: await promptText("Context7 API key:", args.yes, "");
-		await writeConfigEnv({ CONTEXT7_API_KEY: context7ApiKey });
-		logInfo(`Updated ${PATHS.configEnvFile}`);
 	}
+
+	if (args.claudePlanIndex !== -1) {
+		const rawValue = args.argv[args.claudePlanIndex + 1] ?? "";
+		claudePlan = resolveClaudePlan(rawValue);
+		if (!claudePlan) {
+			throw new Error(
+				`Unsupported Claude plan: ${rawValue} (expected plus, pro-5, or pro-20)`,
+			);
+		}
+		await applyClaudePlan(claudePlan);
+	}
+
+	if (args.codexPlanIndex !== -1) {
+		const rawValue = args.argv[args.codexPlanIndex + 1] ?? "";
+		codexPlan = resolveCodexPlan(rawValue);
+		if (!codexPlan) {
+			throw new Error(
+				`Unsupported Codex plan: ${rawValue} (expected go, plus, pro-5, or pro-20)`,
+			);
+		}
+		await applyCodexPlan(codexPlan);
+	}
+
+	if (args.copilotPlanIndex !== -1) {
+		const rawValue = args.argv[args.copilotPlanIndex + 1] ?? "";
+		copilotPlan = resolveCopilotPlan(rawValue);
+		if (!copilotPlan) {
+			throw new Error(
+				`Unsupported Copilot plan: ${rawValue} (expected pro or pro-plus)`,
+			);
+		}
+		await applyOpenCodeCopilotPlan(copilotPlan);
+		logInfo(`Stored Copilot plan ${copilotPlan} for future installs`);
+	}
+
+	await writeConfigEnv({
+		CONTEXT7_API_KEY: context7ApiKey,
+		OABTW_CLAUDE_PLAN: claudePlan,
+		OABTW_CODEX_PLAN: codexPlan,
+		OABTW_COPILOT_PLAN: copilotPlan,
+	});
+	logInfo(`Updated ${PATHS.configEnvFile}`);
 
 	if (args.ctx7) {
 		await installCtx7Wrapper();
@@ -348,7 +514,10 @@ async function main() {
 		!args.noDeepwiki &&
 		!args.rtk &&
 		!args.noRtk &&
-		args.ctx7ApiKeyIndex === -1
+		args.ctx7ApiKeyIndex === -1 &&
+		args.claudePlanIndex === -1 &&
+		args.codexPlanIndex === -1 &&
+		args.copilotPlanIndex === -1
 	) {
 		usage();
 		return;

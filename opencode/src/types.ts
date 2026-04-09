@@ -71,6 +71,7 @@ export interface InstallOptions {
 	defaultModel?: string;
 	modelOverrides?: Record<string, string>;
 	providers?: ProviderAvailability;
+	copilotPlan?: string;
 }
 
 export interface Plugin {

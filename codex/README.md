@@ -13,8 +13,10 @@ This package ports openagentsbtw onto Codex’s native extension surfaces: custo
 
 ```bash
 ./install.sh --codex
-./install.sh --codex --codex-tier plus
-./install.sh --codex --codex-tier pro
+./install.sh --codex --codex-plan go
+./install.sh --codex --codex-plan plus
+./install.sh --codex --codex-plan pro-5
+./install.sh --codex --codex-plan pro-20
 ./install.sh --deepwiki-mcp
 ./install.sh --playwright-cli
 ```
@@ -44,7 +46,7 @@ The installer:
 - installs hook scripts into `~/.codex/openagentsbtw/hooks/` and merges `~/.codex/hooks.json`
 - keeps openagentsbtw memory state in `~/.codex/openagentsbtw/state/`
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
-- appends managed `openagentsbtw-plus`, `openagentsbtw-pro`, `openagentsbtw-codex-mini`, `openagentsbtw`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` profiles to `~/.codex/config.toml`
+- appends a plan-aware `openagentsbtw` main profile, a matching `openagentsbtw-<plan>` alias, `openagentsbtw-codex-mini`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` to `~/.codex/config.toml`
 - optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
 - optionally installs RTK and a managed `~/.config/openagentsbtw/RTK.md` policy
 
@@ -57,10 +59,10 @@ git pull
 ./install.sh --codex
 ```
 
-If you use a specific tier, repeat it:
+If you use a specific plan, repeat it:
 
 ```bash
-./install.sh --codex --codex-tier pro
+./install.sh --codex --codex-plan pro-20
 ```
 
 What gets refreshed:
@@ -86,16 +88,20 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 
 ## Model Presets
 
+- `go`
+  Budget-first preset. Keeps the main route on `gpt-5.4-mini`, uses `gpt-5.3-codex` for implementation, and stays conservative about swarming.
 - `plus`
-  Code-specialized preset. Uses `gpt-5.3-codex` for implementation-heavy daily work.
-- `pro`
-  Default high-reasoning preset. Uses `gpt-5.2` for the main interactive session. The installer also maps planning/review orchestration agents (`athena`, `nemesis`, `odysseus`) to `gpt-5.2`.
+  Code-specialized preset. Uses `gpt-5.3-codex` for the main route and `gpt-5.4-mini` for bounded utility work.
+- `pro-5`
+  High-reasoning preset. Uses `gpt-5.2` for planning/review/orchestration, `gpt-5.3-codex` for implementation, and `gpt-5.3-codex-spark` for Pro-only utility work.
+- `pro-20`
+  Same model split as `pro-5`, with stronger reasoning on the main route and more aggressive swarming.
 - `openagentsbtw-codex-mini`
-  A separate lightweight profile for narrow high-volume tasks. It uses low reasoning/verbosity on `gpt-5.3-codex-spark`.
+  A separate lightweight profile for narrow high-volume tasks. It uses Spark on the Pro plans and `gpt-5.4-mini` on `go` / `plus`.
 - `openagentsbtw-accept-edits`
   A sandboxed auto-accept profile for implementation work. It keeps `sandbox_mode = "workspace-write"` but switches to `approval_policy = "never"`.
 - `openagentsbtw-longrun`
-  A patient long-running execution profile. It keeps the main high-reasoning route, enables `unified_exec`, prevents idle sleep, and raises the background terminal timeout for long builds and test suites.
+  A patient long-running execution profile. It keeps the implementation route, enables `unified_exec`, prevents idle sleep, and raises the background terminal timeout for long builds and test suites.
 
 ## Behavior Policy
 

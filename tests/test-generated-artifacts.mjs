@@ -107,21 +107,26 @@ describe("generated skills", () => {
 });
 
 describe("generated Codex defaults", () => {
-	it("uses native commit attribution and ships the 5.2 / 5.3 Codex profile split", () => {
+	it("uses native commit attribution and ships the plan-aware Codex profile split", () => {
 		const config = readBuild("codex/templates/config.toml");
 		assert.match(
 			config,
 			/commit_attribution = "Co-Authored-By: Codex <codex@users\.noreply\.github\.com>"/,
 		);
+		assert.match(config, /\[profiles\.openagentsbtw-go\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-plus\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-pro-5\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-pro-20\]/);
 		assert.match(config, /model = "gpt-5\.2"/);
 		assert.match(config, /model = "gpt-5\.3-codex"/);
 		assert.match(config, /model = "gpt-5\.3-codex-spark"/);
-		assert.match(config, /model = "gpt-5\.4"/);
 		assert.match(config, /model = "gpt-5\.4-mini"/);
 		assert.match(config, /personality = "none"/);
 		assert.equal(config.includes('personality = "pragmatic"'), false);
+		assert.match(config, /\[profiles\.openagentsbtw-implement\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-accept-edits\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-longrun\]/);
+		assert.match(config, /agents\.max_threads = 6/);
 		assert.match(config, /background_terminal_max_timeout = 7200/);
 		assert.match(config, /unified_exec = true/);
 		assert.match(config, /prevent_idle_sleep = true/);
@@ -133,10 +138,7 @@ describe("generated Codex defaults", () => {
 		const guidance = readBuild("codex/templates/AGENTS.md");
 		assert.match(guidance, /Start with the answer, decision, or action\./);
 		assert.match(guidance, /If something is uncertain, say `UNKNOWN`/);
-		assert.match(
-			guidance,
-			/Use `gpt-5\.2` for high-reasoning main work, `gpt-5\.3-codex` for implementation, and `gpt-5\.3-codex-spark` for the lightweight mini profile\./,
-		);
+		assert.match(guidance, /Use the active Codex plan preset\./);
 		assert.match(guidance, /oabtw-codex explore/);
 		assert.match(guidance, /`deepwiki`/);
 		assert.match(guidance, /Default to role routing:/);
@@ -145,7 +147,7 @@ describe("generated Codex defaults", () => {
 			guidance,
 			/Subagents: Codex only spawns subagents when explicitly asked\./,
 		);
-		assert.match(guidance, /spawn subagents” by default/);
+		assert.match(guidance, /Pro plans/);
 		assert.match(guidance, /Prompt contracts:/);
 		assert.match(guidance, /Avoid slop \+ god objects:/);
 		assert.match(
@@ -206,12 +208,9 @@ describe("generated Codex defaults", () => {
 		assert.match(shortWrapper, /memory show \[path\]/);
 		assert.match(
 			shortWrapper,
-			/Route implementation through hephaestus-style execution on the sandboxed auto-accept profile/,
+			/Route implementation through hephaestus-style execution on the sandboxed auto-accept implementation profile/,
 		);
-		assert.match(
-			shortWrapper,
-			/CODEX_CONFIG_ARGS\+=\(-c "model = \\"gpt-5\.3-codex\\""\)/,
-		);
+		assert.match(shortWrapper, /PROFILE="openagentsbtw-implement"/);
 		assert.equal(shortWrapper.includes("gpt-5.3-codex-spark"), false);
 		assert.match(shortWrapper, /DeepWiki is not configured/);
 		assert.match(shortWrapper, /Usage: oabtw-codex <mode> \[prompt\.\.\.\]/);

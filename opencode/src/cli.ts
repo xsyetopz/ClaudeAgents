@@ -267,6 +267,9 @@ async function main(): Promise<void> {
 		noOverrides: parsed.noOverrides,
 		plugins: parsed.plugins,
 		providers,
+		...(process.env["OABTW_COPILOT_PLAN"]
+			? { copilotPlan: process.env["OABTW_COPILOT_PLAN"] }
+			: {}),
 		...(parsed.defaultModel ? { defaultModel: parsed.defaultModel } : {}),
 		...(Object.keys(parsed.modelOverrides).length > 0
 			? { modelOverrides: parsed.modelOverrides }

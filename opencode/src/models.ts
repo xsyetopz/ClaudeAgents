@@ -1,7 +1,11 @@
+import { COPILOT_MODELS, getCopilotPlan } from "../../source/subscriptions.mjs";
 import type { ProviderAvailability } from "./types.ts";
 
 export const MODELS = {
-	COPILOT_GPT_5_MINI: "github-copilot/gpt-5-mini",
+	COPILOT_GPT_5_MINI: COPILOT_MODELS.gpt5Mini,
+	COPILOT_GPT_5_2: COPILOT_MODELS.gpt52,
+	COPILOT_GPT_5_3_CODEX: COPILOT_MODELS.gpt53Codex,
+	COPILOT_GPT_5_4_MINI: COPILOT_MODELS.gpt54Mini,
 	OPENCODE_BIG_PICKLE: "opencode/big-pickle",
 	OPENCODE_GPT_5_NANO: "opencode/gpt-5-nano",
 	OPENCODE_MINIMAX_M2_5_FREE: "opencode/minimax-m2.5-free",
@@ -26,16 +30,6 @@ interface ModelConfig {
 	top_p?: number;
 	thinking?: boolean;
 }
-
-const COPILOT_FALLBACK: Record<AgentRole, ModelConfig> = {
-	build: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 0.7 },
-	plan: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 0.8 },
-	explore: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 0.8 },
-	review: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 0.7 },
-	implement: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 0.7 },
-	document: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 1.0 },
-	test: { model: MODELS.COPILOT_GPT_5_MINI, temperature: 0.7 },
-};
 
 const FREE_FALLBACK: Record<AgentRole, ModelConfig> = {
 	build: { model: MODELS.OPENCODE_BIG_PICKLE, temperature: 0.7 },
@@ -83,11 +77,30 @@ function assignModelFromConfig(
 	return assignment;
 }
 
+function copilotFallback(
+	role: AgentRole,
+	planName: string | undefined,
+): ModelAssignment {
+	const roleModels = getCopilotPlan(planName).roleModels;
+	const assignment: ModelAssignment = {
+		model: roleModels[role] as ModelId,
+		tier: "copilot",
+	};
+	assignment.temperature =
+		role === "document"
+			? 1.0
+			: role === "plan" || role === "explore"
+				? 0.8
+				: 0.7;
+	return assignment;
+}
+
 export function resolveModel(
 	role: AgentRole,
 	providers: ProviderAvailability,
 	modelOverrides: Record<string, string> = {},
 	defaultModel?: string,
+	copilotPlan?: string,
 ): ModelAssignment {
 	const configuredModel = modelOverrides[role] ?? defaultModel;
 	if (configuredModel) {
@@ -97,7 +110,10 @@ export function resolveModel(
 		};
 	}
 	if (providers.githubCopilot) {
-		return assignModelFromConfig(role, COPILOT_FALLBACK, "copilot");
+		return copilotFallback(
+			role,
+			copilotPlan ?? process.env["OABTW_COPILOT_PLAN"],
+		);
 	}
 	return assignModelFromConfig(role, FREE_FALLBACK, "free");
 }

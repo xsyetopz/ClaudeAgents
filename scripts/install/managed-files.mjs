@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getCodexPlan } from "../../source/subscriptions.mjs";
 import { pathExists, readText, writeText } from "./shared.mjs";
 
 export function mergeTaggedBlock(text, block, start, end) {
@@ -22,30 +23,122 @@ export async function mergeTaggedMarkdown({ target, template, start, end }) {
 	);
 }
 
-export async function updateCodexAgents({ agentsDir, tier }) {
-	const profiles = {
-		plus: {
-			athena: ["gpt-5.3-codex", "high"],
-			hephaestus: ["gpt-5.3-codex", "high"],
-			nemesis: ["gpt-5.3-codex", "high"],
-			odysseus: ["gpt-5.3-codex", "high"],
-			hermes: ["gpt-5.3-codex", "medium"],
-			atalanta: ["gpt-5.3-codex", "medium"],
-			calliope: ["gpt-5.3-codex", "medium"],
-		},
-		pro: {
-			athena: ["gpt-5.2", "high"],
-			hephaestus: ["gpt-5.3-codex", "high"],
-			nemesis: ["gpt-5.2", "high"],
-			odysseus: ["gpt-5.2", "high"],
-			hermes: ["gpt-5.3-codex", "medium"],
-			atalanta: ["gpt-5.3-codex", "medium"],
-			calliope: ["gpt-5.3-codex", "medium"],
-		},
+function buildCodexAgentProfiles(planName) {
+	const plan = getCodexPlan(planName);
+	return {
+		athena: [plan.main.model, plan.main.reasoning],
+		hephaestus: [plan.implement.model, plan.implement.reasoning],
+		nemesis: [plan.main.model, plan.main.reasoning],
+		odysseus: [plan.main.model, plan.main.reasoning],
+		hermes: [plan.utility.model, plan.utility.reasoning],
+		atalanta: [plan.utility.model, plan.utility.reasoning],
+		calliope: [plan.utility.model, plan.utility.reasoning],
 	};
-	for (const [agent, [model, reasoning]] of Object.entries(
-		profiles[tier] || {},
-	)) {
+}
+
+function renderCodexProfile(name, config, extra = "") {
+	return `[profiles.${name}]
+model = "${config.model}"
+model_reasoning_effort = "${config.reasoning}"
+plan_mode_reasoning_effort = "${config.reasoning}"
+model_verbosity = "${config.verbosity}"
+personality = "none"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"${extra}
+
+[profiles.${name}.features]
+codex_hooks = true
+sqlite = true
+multi_agent = true
+fast_mode = false`;
+}
+
+function buildManagedCodexBody({
+	planName,
+	deepwiki,
+	includeCommitAttribution,
+	includePluginEntry,
+}) {
+	const plan = getCodexPlan(planName);
+	const pluginEntry = includePluginEntry
+		? '\n[plugins."openagentsbtw@openagentsbtw-local"]\nenabled = true\n'
+		: "";
+	const deepwikiBlock = deepwiki
+		? '\n[mcp_servers.deepwiki]\nurl = "https://mcp.deepwiki.com/mcp"\nenabled = true\n'
+		: "";
+	const aliasProfile = renderCodexProfile(
+		`openagentsbtw-${plan.id}`,
+		plan.main,
+	);
+	const mainProfile = renderCodexProfile("openagentsbtw", plan.main);
+	const implementProfile = renderCodexProfile(
+		"openagentsbtw-implement",
+		plan.implement,
+	);
+	const utilityProfile = renderCodexProfile(
+		"openagentsbtw-codex-mini",
+		plan.utility,
+	);
+	const acceptEditsProfile = `[profiles.openagentsbtw-accept-edits]
+model = "${plan.implement.model}"
+model_reasoning_effort = "${plan.implement.reasoning}"
+plan_mode_reasoning_effort = "${plan.implement.reasoning}"
+model_verbosity = "${plan.implement.verbosity}"
+personality = "none"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[profiles.openagentsbtw-accept-edits.features]
+codex_hooks = true
+sqlite = true
+multi_agent = true
+fast_mode = false`;
+	const longrunProfile = `[profiles.openagentsbtw-longrun]
+model = "${plan.implement.model}"
+model_reasoning_effort = "${plan.implement.reasoning}"
+plan_mode_reasoning_effort = "${plan.implement.reasoning}"
+model_verbosity = "${plan.implement.verbosity}"
+personality = "none"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+background_terminal_max_timeout = 7200
+
+[profiles.openagentsbtw-longrun.features]
+codex_hooks = true
+sqlite = true
+multi_agent = true
+fast_mode = false
+unified_exec = true
+prevent_idle_sleep = true`;
+	return [
+		includeCommitAttribution
+			? 'commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"'
+			: "",
+		"",
+		`agents.max_threads = ${plan.swarm.maxThreads}`,
+		"agents.max_depth = 1",
+		"",
+		aliasProfile,
+		"",
+		mainProfile,
+		"",
+		implementProfile,
+		"",
+		utilityProfile,
+		"",
+		acceptEditsProfile,
+		"",
+		longrunProfile,
+		deepwikiBlock,
+		pluginEntry,
+	]
+		.filter(Boolean)
+		.join("\n");
+}
+
+export async function updateCodexAgents({ agentsDir, tier }) {
+	const profiles = buildCodexAgentProfiles(tier);
+	for (const [agent, [model, reasoning]] of Object.entries(profiles)) {
 		const filepath = path.join(agentsDir, `${agent}.toml`);
 		if (!(await pathExists(filepath))) continue;
 		let text = await readText(filepath);
@@ -123,6 +216,7 @@ export async function mergeCodexConfig({
 	target,
 	profileAction,
 	profileName,
+	planName,
 	deepwiki,
 }) {
 	const start = "# >>> openagentsbtw codex >>>";
@@ -162,146 +256,28 @@ export async function mergeCodexConfig({
 		prefixLines.unshift(`profile = "${profileName}"`);
 	}
 	const prefixText = prefixLines.join("\n");
-	const commitAttribution = /^[\s]*commit_attribution[\s]*=/m.test(prefixText)
-		? ""
-		: 'commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"\n\n';
-	const pluginEntry = /\[plugins\."openagentsbtw@openagentsbtw-local"\]/.test(
-		text,
-	)
-		? ""
-		: '\n[plugins."openagentsbtw@openagentsbtw-local"]\nenabled = true\n';
-	const deepwikiBlock = deepwiki
-		? '\n[mcp_servers.deepwiki]\nurl = "https://mcp.deepwiki.com/mcp"\nenabled = true\n'
-		: "";
-	const managedBody = `${commitAttribution}[profiles.openagentsbtw-plus]
-model = "gpt-5.3-codex"
-model_reasoning_effort = "high"
-plan_mode_reasoning_effort = "high"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-plus.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw-pro]
-model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-pro.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw-frontier]
-model = "gpt-5.4"
-model_reasoning_effort = "high"
-plan_mode_reasoning_effort = "high"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-frontier.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw-frontier-mini]
-model = "gpt-5.4-mini"
-model_reasoning_effort = "medium"
-plan_mode_reasoning_effort = "medium"
-model_verbosity = "low"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-frontier-mini.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw-codex-mini]
-model = "gpt-5.3-codex-spark"
-model_reasoning_effort = "low"
-plan_mode_reasoning_effort = "low"
-model_verbosity = "low"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-codex-mini.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw]
-model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw-accept-edits]
-model = "gpt-5.3-codex"
-model_reasoning_effort = "high"
-plan_mode_reasoning_effort = "high"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "never"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-accept-edits.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw-longrun]
-model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-background_terminal_max_timeout = 7200
-
-[profiles.openagentsbtw-longrun.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-unified_exec = true
-prevent_idle_sleep = true${deepwikiBlock}${pluginEntry}`.trimEnd();
+	const managedBody = buildManagedCodexBody({
+		planName: planName || profileName.replace(/^openagentsbtw-/, ""),
+		deepwiki,
+		includeCommitAttribution: !/^[\s]*commit_attribution[\s]*=/m.test(
+			prefixText,
+		),
+		includePluginEntry:
+			!/\[plugins\."openagentsbtw@openagentsbtw-local"\]/.test(text),
+	});
+	const finalManagedBody = /^[\s]*commit_attribution[\s]*=/m.test(prefixText)
+		? managedBody.replace(
+				/^commit_attribution = "Co-Authored-By: Codex <codex@users\.noreply\.github\.com>"\n\n?/,
+				"",
+			)
+		: managedBody;
 
 	await writeText(
 		target,
 		[
 			prefixLines.join("\n").trim(),
 			restLines.join("\n").trim(),
-			`${start}\n${managedBody}\n${end}`,
+			`${start}\n${finalManagedBody}\n${end}`,
 		]
 			.filter(Boolean)
 			.join("\n\n"),
@@ -358,7 +334,8 @@ async function main() {
 			await mergeCodexConfig({
 				target: arg("--target"),
 				profileAction: arg("--profile-action") || "auto",
-				profileName: arg("--profile-name") || "openagentsbtw-pro",
+				profileName: arg("--profile-name") || "openagentsbtw-pro-5",
+				planName: arg("--plan-name") || "pro-5",
 				deepwiki: arg("--deepwiki") === "true",
 			});
 			break;

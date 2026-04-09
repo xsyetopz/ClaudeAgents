@@ -26,6 +26,21 @@ description = "Orchestration agent. Coordinates multi-step work and delegates bo
 agents.max_threads = 6
 agents.max_depth = 1
 
+[profiles.openagentsbtw-go]
+model = "gpt-5.4-mini"
+model_reasoning_effort = "medium"
+plan_mode_reasoning_effort = "medium"
+model_verbosity = "medium"
+personality = "none"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.openagentsbtw-go.features]
+codex_hooks = true
+sqlite = true
+multi_agent = true
+fast_mode = false
+
 [profiles.openagentsbtw-plus]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "high"
@@ -41,7 +56,22 @@ sqlite = true
 multi_agent = true
 fast_mode = false
 
-[profiles.openagentsbtw-pro]
+[profiles.openagentsbtw-pro-5]
+model = "gpt-5.2"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
+model_verbosity = "medium"
+personality = "none"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.openagentsbtw-pro-5.features]
+codex_hooks = true
+sqlite = true
+multi_agent = true
+fast_mode = false
+
+[profiles.openagentsbtw-pro-20]
 model = "gpt-5.2"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
@@ -50,14 +80,14 @@ personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
-[profiles.openagentsbtw-pro.features]
+[profiles.openagentsbtw-pro-20.features]
 codex_hooks = true
 sqlite = true
 multi_agent = true
 fast_mode = false
 
-[profiles.openagentsbtw-frontier]
-model = "gpt-5.4"
+[profiles.openagentsbtw]
+model = "gpt-5.2"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
@@ -65,22 +95,22 @@ personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
-[profiles.openagentsbtw-frontier.features]
+[profiles.openagentsbtw.features]
 codex_hooks = true
 sqlite = true
 multi_agent = true
 fast_mode = false
 
-[profiles.openagentsbtw-frontier-mini]
-model = "gpt-5.4-mini"
-model_reasoning_effort = "medium"
-plan_mode_reasoning_effort = "medium"
-model_verbosity = "low"
+[profiles.openagentsbtw-implement]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
+model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
-[profiles.openagentsbtw-frontier-mini.features]
+[profiles.openagentsbtw-implement.features]
 codex_hooks = true
 sqlite = true
 multi_agent = true
@@ -96,21 +126,6 @@ approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
 [profiles.openagentsbtw-codex-mini.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-
-[profiles.openagentsbtw]
-model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_verbosity = "medium"
-personality = "none"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw.features]
 codex_hooks = true
 sqlite = true
 multi_agent = true
@@ -132,9 +147,9 @@ multi_agent = true
 fast_mode = false
 
 [profiles.openagentsbtw-longrun]
-model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
 model_verbosity = "medium"
 personality = "none"
 approval_policy = "on-request"
