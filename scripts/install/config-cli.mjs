@@ -16,6 +16,7 @@ import {
 } from "./managed-files.mjs";
 import {
 	commandExists,
+	ctx7RunnerCommand,
 	ctx7RunnerLine,
 	loadConfigEnv,
 	logInfo,
@@ -28,6 +29,42 @@ import {
 } from "./shared.mjs";
 
 const DEEPWIKI_URL = "https://mcp.deepwiki.com/mcp";
+
+function renderCtx7Ps1() {
+	const [runner, runnerArgs] = ctx7RunnerCommand();
+	if (!runner) {
+		return [
+			"$ErrorActionPreference = 'Stop'",
+			'Write-Error "Error: no JS package runner found for ctx7 (need bun, pnpm, yarn, or npm)."',
+		].join("\n");
+	}
+	const joinedArgs = runnerArgs.map((arg) => `'${arg}'`).join(", ");
+	return [
+		"Set-StrictMode -Version Latest",
+		"$ErrorActionPreference = 'Stop'",
+		`$configEnv = "${PATHS.configEnvFile.replaceAll("\\", "\\\\")}"`,
+		"if (Test-Path $configEnv) {",
+		"  foreach ($line in Get-Content $configEnv) {",
+		"    if ($line -match '^(#|\\s*$)') { continue }",
+		"    $parts = $line -split '=', 2",
+		"    if ($parts.Length -eq 2) {",
+		"      [Environment]::SetEnvironmentVariable($parts[0], $parts[1])",
+		"    }",
+		"  }",
+		"}",
+		`$runner = '${runner}'`,
+		`$runnerArgs = @(${joinedArgs}) + $args`,
+		"& $runner @runnerArgs",
+		"exit $LASTEXITCODE",
+	].join("\n");
+}
+
+function renderCtx7Cmd() {
+	return [
+		"@echo off",
+		`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0ctx7.ps1" %*`,
+	].join("\r\n");
+}
 
 function usage() {
 	console.log(`openagentsbtw config
@@ -49,6 +86,12 @@ Usage: ./config.sh [options]
 }
 
 async function installCtx7Wrapper() {
+	if (process.platform === "win32") {
+		await writeText(PATHS.ctx7Ps1Wrapper, renderCtx7Ps1(), true);
+		await writeText(PATHS.ctx7CmdWrapper, renderCtx7Cmd());
+		logInfo(`Installed managed ctx7 wrappers in ${PATHS.managedBinDir}`);
+		return;
+	}
 	await writeText(
 		PATHS.ctx7Wrapper,
 		`#!/bin/bash
@@ -69,12 +112,20 @@ ${ctx7RunnerLine()}
 
 async function removeCtx7Wrapper() {
 	await fs.rm(PATHS.ctx7Wrapper, { force: true });
+	await fs.rm(PATHS.ctx7Ps1Wrapper, { force: true });
+	await fs.rm(PATHS.ctx7CmdWrapper, { force: true });
 	logInfo("Removed managed ctx7 wrapper");
 }
 
 async function ensureRtkBinary() {
 	if (commandExists("rtk")) {
 		logInfo("RTK already installed");
+		return;
+	}
+	if (process.platform === "win32") {
+		logInfo(
+			"RTK not found on Windows; skipping binary bootstrap and leaving configure-only mode",
+		);
 		return;
 	}
 	if (commandExists("brew")) {
@@ -158,15 +209,7 @@ async function updateJsoncFile(target, mutate) {
 }
 
 function resolveCopilotUserMcpPath() {
-	if (process.platform === "darwin") {
-		return `${process.env.HOME ?? ""}/Library/Application Support/Code/User/mcp.json`;
-	}
-	if (process.platform === "linux") {
-		const configHome =
-			process.env.XDG_CONFIG_HOME ?? `${process.env.HOME ?? ""}/.config`;
-		return `${configHome}/Code/User/mcp.json`;
-	}
-	return "";
+	return PATHS.vscodeUserMcp;
 }
 
 function enableDeepwikiServer(payload) {
@@ -214,7 +257,7 @@ function disableOpenCodeDeepwiki(payload) {
 }
 
 async function toggleClaudeDeepwiki(enabled) {
-	const target = `${process.env.HOME ?? ""}/.claude/settings.json`;
+	const target = path.join(PATHS.claudeHome, "settings.json");
 	const changed = await updateJsonFile(target, (payload) => {
 		const next = payload && typeof payload === "object" ? { ...payload } : {};
 		next.mcpServers =
@@ -241,13 +284,11 @@ async function toggleClaudeDeepwiki(enabled) {
 }
 
 async function toggleOpenCodeDeepwiki(enabled) {
-	const home = process.env.HOME ?? "";
-	const configHome = process.env.XDG_CONFIG_HOME ?? `${home}/.config`;
 	for (const target of [
 		`${process.cwd()}/opencode.jsonc`,
 		`${process.cwd()}/opencode.json`,
-		`${configHome}/opencode/opencode.jsonc`,
-		`${configHome}/opencode/opencode.json`,
+		path.join(PATHS.opencodeConfigDir, "opencode.jsonc"),
+		path.join(PATHS.opencodeConfigDir, "opencode.json"),
 	]) {
 		const changed = target.endsWith(".jsonc")
 			? await updateJsoncFile(
@@ -278,11 +319,11 @@ async function toggleCopilotDeepwiki(enabled) {
 		logInfo(`${enabled ? "Enabled" : "Disabled"} DeepWiki in ${target}`);
 	}
 
-	const copilotHome = `${process.env.HOME ?? ""}/.copilot`;
+	const resolvedCopilotHome = PATHS.copilotHome;
 	const userMcpPath = resolveCopilotUserMcpPath();
 	if (
 		userMcpPath &&
-		((await pathExists(copilotHome)) || (await pathExists(userMcpPath)))
+		((await pathExists(resolvedCopilotHome)) || (await pathExists(userMcpPath)))
 	) {
 		await updateJsonFile(
 			userMcpPath,
@@ -305,7 +346,7 @@ async function toggleDeepwikiEverywhere(enabled) {
 
 async function applyClaudePlan(planName) {
 	const plan = getClaudePlan(planName);
-	const target = `${process.env.HOME ?? ""}/.claude/settings.json`;
+	const target = path.join(PATHS.claudeHome, "settings.json");
 	const changed = await updateJsonFile(target, (payload) => {
 		const next = payload && typeof payload === "object" ? { ...payload } : {};
 		next.env = next.env && typeof next.env === "object" ? { ...next.env } : {};
@@ -322,7 +363,7 @@ async function applyClaudePlan(planName) {
 
 async function applyCodexPlan(planName) {
 	if (!(await pathExists(PATHS.codexConfig))) {
-		logInfo("Skipping Codex plan update (~/.codex/config.toml not found)");
+		logInfo(`Skipping Codex plan update (${PATHS.codexConfig} not found)`);
 		return;
 	}
 	await mergeCodexConfig({
@@ -334,7 +375,7 @@ async function applyCodexPlan(planName) {
 			await fs.readFile(PATHS.codexConfig, "utf8").catch(() => ""),
 		),
 	});
-	const agentsDir = path.join(process.env.HOME ?? "", ".codex", "agents");
+	const agentsDir = path.join(PATHS.codexHome, "agents");
 	if (await pathExists(agentsDir)) {
 		await updateCodexAgents({ agentsDir, tier: planName });
 	}
@@ -348,9 +389,7 @@ async function applyOpenCodeCopilotPlan(planName) {
 	}
 	const repoRoot = process.cwd();
 	const projectInstall = `${repoRoot}/.opencode`;
-	const home = process.env.HOME ?? "";
-	const configHome = process.env.XDG_CONFIG_HOME ?? `${home}/.config`;
-	const globalInstall = `${configHome}/opencode`;
+	const globalInstall = PATHS.opencodeConfigDir;
 
 	if (await pathExists(projectInstall)) {
 		await run(

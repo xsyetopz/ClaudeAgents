@@ -170,10 +170,15 @@ function promptLine(question: string): Promise<string> {
 }
 
 async function promptScope(): Promise<InstallScope> {
-	const configHome = process.env["XDG_CONFIG_HOME"];
+	const configHome =
+		process.platform === "win32"
+			? process.env["APPDATA"]
+			: process.env["XDG_CONFIG_HOME"];
 	const defaultConfig = configHome
 		? `${configHome}/opencode`
-		: "~/.config/opencode";
+		: process.platform === "win32"
+			? "%APPDATA%/opencode"
+			: "~/.config/opencode";
 
 	console.log("  scope:");
 	console.log("    [1] project  (.opencode/ in current workspace)");

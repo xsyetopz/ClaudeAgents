@@ -123,6 +123,8 @@ templates/       CLAUDE.md, settings-global.json
 output-styles/   cca.md (custom output style)
 statusline/      statusline-command.sh (context/cost/git statusline)
 tests/           node:test tests for all hooks
-install.sh       Bootstrap: marketplace registration, user-level extras, plugin install
-build-plugin.sh  Builds marketplace-ready dist from source
+install.sh       Bash wrapper over the shared installer CLI
+install.ps1      PowerShell wrapper over the shared installer CLI
+build-plugin.sh  Bash wrapper that builds marketplace-ready dist from source
+build-plugin.ps1 PowerShell wrapper for the same dist build flow
 ```

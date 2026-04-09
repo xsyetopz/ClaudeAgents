@@ -17,6 +17,7 @@ import {
 } from "./managed-files.mjs";
 import {
 	commandExists,
+	ctx7RunnerCommand,
 	ctx7RunnerLine,
 	fail,
 	loadConfigEnv,
@@ -32,6 +33,43 @@ import {
 	writeConfigEnv,
 	writeText,
 } from "./shared.mjs";
+
+function renderCtx7Ps1() {
+	const [runner, runnerArgs] = ctx7RunnerCommand();
+	if (!runner) {
+		return [
+			"Set-StrictMode -Version Latest",
+			"$ErrorActionPreference = 'Stop'",
+			'Write-Error "Error: no JS package runner found for ctx7 (need bun, pnpm, yarn, or npm)."',
+		].join("\n");
+	}
+	const joinedArgs = runnerArgs.map((arg) => `'${arg}'`).join(", ");
+	return [
+		"Set-StrictMode -Version Latest",
+		"$ErrorActionPreference = 'Stop'",
+		`$configEnv = "${PATHS.configEnvFile.replaceAll("\\", "\\\\")}"`,
+		"if (Test-Path $configEnv) {",
+		"  foreach ($line in Get-Content $configEnv) {",
+		"    if ($line -match '^(#|\\s*$)') { continue }",
+		"    $parts = $line -split '=', 2",
+		"    if ($parts.Length -eq 2) {",
+		"      [Environment]::SetEnvironmentVariable($parts[0], $parts[1])",
+		"    }",
+		"  }",
+		"}",
+		`$runner = '${runner}'`,
+		`$runnerArgs = @(${joinedArgs}) + $args`,
+		"& $runner @runnerArgs",
+		"exit $LASTEXITCODE",
+	].join("\n");
+}
+
+function renderCtx7Cmd() {
+	return [
+		"@echo off",
+		`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0ctx7.ps1" %*`,
+	].join("\r\n");
+}
 
 function usage() {
 	console.log(`openagentsbtw installer
@@ -63,9 +101,9 @@ Options:
   --codex-plan go|plus|pro-5|pro-20
                           Codex capability preset (default: pro-5)
   --codex-tier plus|pro   Legacy alias for --codex-plan
-  --codex-set-top-profile Force setting top-level Codex profile in ~/.codex/config.toml
+  --codex-set-top-profile Force setting top-level Codex profile in the managed Codex config
   --no-codex-set-top-profile
-                          Do not set top-level Codex profile in ~/.codex/config.toml
+                          Do not set top-level Codex profile in the managed Codex config
   --deepwiki-mcp          Configure DeepWiki MCP where supported
   --codex-deepwiki        Alias for --deepwiki-mcp
   --ctx7-cli              Install Context7 CLI support
@@ -282,7 +320,7 @@ async function promptOptionalSurfaces(args, existingEnv) {
 	if (args.installCodex && args.codexSetTopProfile === "auto" && !isCi()) {
 		const profileName = `openagentsbtw-${args.codexPlan}`;
 		args.codexSetTopProfile = (await promptToggle(
-			`Set Codex default profile at top-level in ~/.codex/config.toml to ${profileName}?`,
+			`Set Codex default profile at top-level in ${PATHS.codexConfig} to ${profileName}?`,
 			true,
 		))
 			? "true"
@@ -401,6 +439,11 @@ async function ensureBun() {
 	if (isCi()) {
 		fail("bun not found and CI mode is enabled. Install bun first.");
 	}
+	if (process.platform === "win32") {
+		fail(
+			"bun not found. Install bun manually on Windows before enabling OpenCode support.",
+		);
+	}
 	logWarn(
 		"bun not found; attempting to install bun (required for OpenCode support and preferred for JS tooling)",
 	);
@@ -409,6 +452,12 @@ async function ensureBun() {
 }
 
 async function ensureJq() {
+	if (process.platform === "win32") {
+		logWarn(
+			"jq not found on Windows; Claude settings merging may require manual jq installation",
+		);
+		return;
+	}
 	if (!commandExists("jq")) {
 		fail(
 			"jq is required for Claude settings.json merging. Install with: brew install jq",
@@ -433,14 +482,6 @@ async function runVersion(command, args) {
 		child.on("error", reject);
 	});
 	return output;
-}
-
-async function ensurePython3() {
-	if (!commandExists("python3")) {
-		fail("python3 is required for Codex installation.");
-	}
-	const version = await runVersion("python3", ["--version"]);
-	logInfo(version);
 }
 
 async function ensureClaudeVersion() {
@@ -492,6 +533,15 @@ function configureClaudeModels(planName) {
 
 async function installCtx7WrapperAndEnv(apiKey) {
 	await writeConfigEnv({ CONTEXT7_API_KEY: apiKey });
+	if (process.platform === "win32") {
+		await writeText(PATHS.ctx7Ps1Wrapper, renderCtx7Ps1(), true);
+		await writeText(PATHS.ctx7CmdWrapper, renderCtx7Cmd());
+		logInfo(`ctx7 wrappers -> ${PATHS.managedBinDir}`);
+		logWarn(
+			`Ensure ${PATHS.managedBinDir} is on PATH for ctx7/cmd discovery in PowerShell and cmd.exe`,
+		);
+		return;
+	}
 	await writeText(
 		PATHS.ctx7Wrapper,
 		`#!/bin/bash
@@ -507,7 +557,7 @@ ${ctx7RunnerLine()}
 `,
 		true,
 	);
-	logInfo("ctx7 wrapper -> ~/.local/bin/ctx7");
+	logInfo(`ctx7 wrapper -> ${PATHS.ctx7Wrapper}`);
 }
 
 async function maybeInstallCtx7(args) {
@@ -530,7 +580,9 @@ async function maybeInstallCtx7(args) {
 	await installCtx7WrapperAndEnv(args.context7ApiKey);
 	try {
 		await runJsPackage("ctx7@latest", ["--help"]);
-		logInfo("ctx7 CLI available via ~/.local/bin/ctx7");
+		logInfo(
+			`ctx7 CLI available via ${process.platform === "win32" ? PATHS.ctx7CmdWrapper : PATHS.ctx7Wrapper}`,
+		);
 	} catch {
 		logWarn(
 			"ctx7 package runner check failed; the managed wrapper will still pick an available JS runner at runtime",
@@ -660,6 +712,12 @@ async function maybeInstallRtk(args) {
 		return;
 	}
 	if (!commandExists("rtk")) {
+		if (process.platform === "win32") {
+			logWarn(
+				"RTK not found on Windows; skipping binary bootstrap and leaving configure-only mode",
+			);
+			return;
+		}
 		if (commandExists("brew")) {
 			await run("brew", ["install", "rtk-ai/tap/rtk"]);
 		} else {
@@ -689,7 +747,7 @@ rtk pytest -q
 When \`RTK.md\` is present and \`rtk\` is installed, openagentsbtw will enforce RTK-prefixed forms where RTK can rewrite the command.
 `,
 	);
-	logInfo("RTK policy -> ~/.config/openagentsbtw/RTK.md");
+	logInfo(`RTK policy -> ${PATHS.globalRtkMd}`);
 }
 
 async function installClaude(args, artifacts) {
@@ -699,7 +757,7 @@ async function installClaude(args, artifacts) {
 	await ensureNode();
 	await ensureJq();
 	const models = configureClaudeModels(args.claudePlan);
-	const settingsFile = path.join(os.homedir(), ".claude", "settings.json");
+	const settingsFile = path.join(PATHS.claudeHome, "settings.json");
 	await fs.mkdir(path.dirname(settingsFile), { recursive: true });
 	if (!(await pathExists(settingsFile))) {
 		await writeText(settingsFile, "{}\n");
@@ -745,32 +803,29 @@ async function installClaude(args, artifacts) {
 			"-lc",
 			`jq '.mcpServers = (.mcpServers // {}) | .mcpServers.deepwiki = {type: "http", url: "https://mcp.deepwiki.com/mcp", enabled: true}' "${settingsFile}" > "${settingsFile}.tmp" && mv "${settingsFile}.tmp" "${settingsFile}"`,
 		]);
-		logInfo("DeepWiki MCP -> ~/.claude/settings.json");
+		logInfo(`DeepWiki MCP -> ${settingsFile}`);
 	}
-	await fs.mkdir(path.join(os.homedir(), ".claude", "hooks"), {
+	await fs.mkdir(path.join(PATHS.claudeHome, "hooks"), {
 		recursive: true,
 	});
-	await fs.mkdir(path.join(os.homedir(), ".claude", "output-styles"), {
+	await fs.mkdir(path.join(PATHS.claudeHome, "output-styles"), {
 		recursive: true,
 	});
 	for (const hook of ["pre-secrets.mjs"]) {
 		const source = path.join(artifacts.claudeDir, "hooks", "user", hook);
 		if (await pathExists(source)) {
-			await fs.copyFile(
-				source,
-				path.join(os.homedir(), ".claude", "hooks", hook),
-			);
-			await fs.chmod(path.join(os.homedir(), ".claude", "hooks", hook), 0o755);
+			await fs.copyFile(source, path.join(PATHS.claudeHome, "hooks", hook));
+			await fs.chmod(path.join(PATHS.claudeHome, "hooks", hook), 0o755);
 		}
 	}
 	for (const [source, dest] of [
 		[
 			path.join(artifacts.claudeDir, "output-styles", "cca.md"),
-			path.join(os.homedir(), ".claude", "output-styles", "cca.md"),
+			path.join(PATHS.claudeHome, "output-styles", "cca.md"),
 		],
 		[
 			path.join(artifacts.claudeDir, "statusline", "statusline-command.sh"),
-			path.join(os.homedir(), ".claude", "statusline-command.sh"),
+			path.join(PATHS.claudeHome, "statusline-command.sh"),
 		],
 	]) {
 		if (await pathExists(source)) {
@@ -794,8 +849,7 @@ async function installClaude(args, artifacts) {
 			cwd: ROOT,
 		}).catch(() => {});
 		const marketplaceDir = path.join(
-			os.homedir(),
-			".claude",
+			PATHS.claudeHome,
 			"plugins",
 			"marketplaces",
 			"openagentsbtw",
@@ -866,7 +920,7 @@ async function installCopilot(args, artifacts) {
 	await ensureNode();
 	const templateRoot = path.join(artifacts.copilotDir, "templates", ".github");
 	if (args.copilotScope === "global" || args.copilotScope === "both") {
-		const home = path.join(os.homedir(), ".copilot");
+		const home = PATHS.copilotHome;
 		await fs.mkdir(path.join(home, "agents"), { recursive: true });
 		await fs.mkdir(path.join(home, "skills"), { recursive: true });
 		if (await pathExists(path.join(templateRoot, "agents"))) {
@@ -887,27 +941,9 @@ async function installCopilot(args, artifacts) {
 				},
 			);
 		}
-		logInfo("Copilot agents + skills -> ~/.copilot/");
+		logInfo(`Copilot agents + skills -> ${PATHS.copilotHome}`);
 		if (args.deepwikiMcp) {
-			const vscodeUserMcp =
-				process.platform === "darwin"
-					? path.join(
-							os.homedir(),
-							"Library",
-							"Application Support",
-							"Code",
-							"User",
-							"mcp.json",
-						)
-					: process.platform === "linux"
-						? path.join(
-								process.env.XDG_CONFIG_HOME ??
-									path.join(os.homedir(), ".config"),
-								"Code",
-								"User",
-								"mcp.json",
-							)
-						: "";
+			const vscodeUserMcp = PATHS.vscodeUserMcp;
 			if (vscodeUserMcp) {
 				await writeCopilotDeepwiki(vscodeUserMcp);
 				logInfo(`DeepWiki MCP -> ${vscodeUserMcp}`);
@@ -967,9 +1003,8 @@ async function installCodex(args, artifacts) {
 	if (!args.installCodex) return;
 	console.log("\n\x1b[0;32mCodex\x1b[0m");
 	await ensureNode();
-	await ensurePython3();
-	const codexHome = path.join(os.homedir(), ".codex");
-	const agentsHome = path.join(os.homedir(), ".agents");
+	const codexHome = PATHS.codexHome;
+	const agentsHome = PATHS.agentsHome;
 	const pluginTarget = path.join(codexHome, "plugins", "openagentsbtw");
 	const hooksRoot = path.join(codexHome, "openagentsbtw", "hooks");
 	const binRoot = path.join(codexHome, "openagentsbtw", "bin");
@@ -1062,23 +1097,17 @@ async function installCodex(args, artifacts) {
 			`Existing Codex default profile preserved; use --profile ${profileName} to activate this system.`,
 		);
 	}
-	logInfo("Codex profile merged into ~/.codex/config.toml");
+	logInfo(`Codex profile merged into ${configTarget}`);
 }
 
 async function validateInstall(args) {
 	let errors = 0;
 	if (args.installClaude && commandExists("jq")) {
 		try {
-			await run(
-				"jq",
-				["empty", path.join(os.homedir(), ".claude", "settings.json")],
-				{
-					stdio: "ignore",
-				},
-			);
-			logInfo(
-				`${path.join(os.homedir(), ".claude", "settings.json")} is valid JSON`,
-			);
+			await run("jq", ["empty", path.join(PATHS.claudeHome, "settings.json")], {
+				stdio: "ignore",
+			});
+			logInfo(`${path.join(PATHS.claudeHome, "settings.json")} is valid JSON`);
 		} catch {
 			errors += 1;
 		}
@@ -1086,10 +1115,7 @@ async function validateInstall(args) {
 	if (args.installOpenCode) {
 		const target =
 			args.opencodeScope === "global"
-				? path.join(
-						process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config"),
-						"opencode",
-					)
+				? PATHS.opencodeConfigDir
 				: path.join(ROOT, ".opencode");
 		if (await pathExists(path.join(target, "plugins", "openagentsbtw.ts"))) {
 			logInfo("OpenCode plugin installed");
@@ -1100,15 +1126,14 @@ async function validateInstall(args) {
 	if (args.installCodex) {
 		for (const filepath of [
 			path.join(
-				os.homedir(),
-				".codex",
+				PATHS.codexHome,
 				"plugins",
 				"openagentsbtw",
 				".codex-plugin",
 				"plugin.json",
 			),
-			path.join(os.homedir(), ".codex", "agents", "athena.toml"),
-			path.join(os.homedir(), ".codex", "hooks.json"),
+			path.join(PATHS.codexHome, "agents", "athena.toml"),
+			path.join(PATHS.codexHome, "hooks.json"),
 		]) {
 			if (!(await pathExists(filepath))) errors += 1;
 		}
@@ -1133,7 +1158,7 @@ function reportSummary(args) {
 	}
 	if (args.installCodex) {
 		console.log(
-			`  Codex:    ~/.codex/plugins/openagentsbtw + ~/.codex/agents (${args.codexPlan})`,
+			`  Codex:    ${path.join(PATHS.codexHome, "plugins", "openagentsbtw")} + ${path.join(PATHS.codexHome, "agents")} (${args.codexPlan})`,
 		);
 	}
 }

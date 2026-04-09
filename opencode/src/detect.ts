@@ -10,15 +10,26 @@ async function fileExists(path: string): Promise<boolean> {
 
 async function hasGitHubCopilot(): Promise<boolean> {
 	const home = process.env["HOME"] ?? "";
-	if (!home) {
+	const userProfile = process.env["USERPROFILE"] ?? "";
+	const resolvedHome = process.platform === "win32" ? userProfile : home;
+	if (!resolvedHome) {
 		return false;
 	}
 
-	const configHome = process.env["XDG_CONFIG_HOME"] ?? `${home}/.config`;
-	const copilotPaths = [
-		`${configHome}/github-copilot/hosts.json`,
-		`${configHome}/github-copilot/apps.json`,
-	];
+	const configHome =
+		process.platform === "win32"
+			? (process.env["APPDATA"] ?? `${resolvedHome}/AppData/Roaming`)
+			: (process.env["XDG_CONFIG_HOME"] ?? `${resolvedHome}/.config`);
+	const copilotPaths =
+		process.platform === "win32"
+			? [
+					`${configHome}/GitHub Copilot/hosts.json`,
+					`${configHome}/GitHub Copilot/apps.json`,
+				]
+			: [
+					`${configHome}/github-copilot/hosts.json`,
+					`${configHome}/github-copilot/apps.json`,
+				];
 
 	for (const path of copilotPaths) {
 		if (await fileExists(path)) {

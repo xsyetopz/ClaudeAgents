@@ -8,18 +8,74 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 export const ROOT = path.resolve(path.dirname(__filename), "..", "..");
 
-export const PATHS = {
-	configDir: path.join(os.homedir(), ".config", "openagentsbtw"),
-	configEnvFile: path.join(
-		os.homedir(),
-		".config",
-		"openagentsbtw",
-		"config.env",
-	),
-	globalRtkMd: path.join(os.homedir(), ".config", "openagentsbtw", "RTK.md"),
-	ctx7Wrapper: path.join(os.homedir(), ".local", "bin", "ctx7"),
-	codexConfig: path.join(os.homedir(), ".codex", "config.toml"),
-};
+export function resolvePaths({
+	platform = process.platform,
+	env = process.env,
+	homeDir = os.homedir(),
+} = {}) {
+	const pathLib = platform === "win32" ? path.win32 : path;
+	const appDataDir =
+		platform === "win32"
+			? (env.APPDATA ?? pathLib.join(homeDir, "AppData", "Roaming"))
+			: (env.XDG_CONFIG_HOME ?? pathLib.join(homeDir, ".config"));
+	const configDir = pathLib.join(appDataDir, "openagentsbtw");
+	const managedBinDir =
+		platform === "win32"
+			? pathLib.join(configDir, "bin")
+			: pathLib.join(homeDir, ".local", "bin");
+	const claudeHome = pathLib.join(homeDir, ".claude");
+	const codexHome = pathLib.join(homeDir, ".codex");
+	const agentsHome = pathLib.join(homeDir, ".agents");
+	const copilotHome = pathLib.join(homeDir, ".copilot");
+	const opencodeConfigDir =
+		platform === "win32"
+			? pathLib.join(appDataDir, "opencode")
+			: pathLib.join(
+					env.XDG_CONFIG_HOME ?? pathLib.join(homeDir, ".config"),
+					"opencode",
+				);
+	const vscodeUserMcp =
+		platform === "darwin"
+			? pathLib.join(
+					homeDir,
+					"Library",
+					"Application Support",
+					"Code",
+					"User",
+					"mcp.json",
+				)
+			: platform === "linux"
+				? pathLib.join(
+						env.XDG_CONFIG_HOME ?? pathLib.join(homeDir, ".config"),
+						"Code",
+						"User",
+						"mcp.json",
+					)
+				: platform === "win32"
+					? pathLib.join(appDataDir, "Code", "User", "mcp.json")
+					: "";
+
+	return {
+		homeDir,
+		appDataDir,
+		configDir,
+		configEnvFile: pathLib.join(configDir, "config.env"),
+		globalRtkMd: pathLib.join(configDir, "RTK.md"),
+		managedBinDir,
+		ctx7Wrapper: pathLib.join(managedBinDir, "ctx7"),
+		ctx7Ps1Wrapper: pathLib.join(managedBinDir, "ctx7.ps1"),
+		ctx7CmdWrapper: pathLib.join(managedBinDir, "ctx7.cmd"),
+		claudeHome,
+		codexHome,
+		codexConfig: pathLib.join(codexHome, "config.toml"),
+		agentsHome,
+		copilotHome,
+		opencodeConfigDir,
+		vscodeUserMcp,
+	};
+}
+
+export const PATHS = resolvePaths();
 
 export function logInfo(message) {
 	console.log(`  ✓ ${message}`);
@@ -66,13 +122,15 @@ export async function writeText(filepath, content, executable = false) {
 }
 
 export function commandExists(command) {
-	const result = spawnSync(
-		"sh",
-		["-lc", `command -v ${command} >/dev/null 2>&1`],
-		{
-			stdio: "ignore",
-		},
-	);
+	const result =
+		process.platform === "win32"
+			? spawnSync("where", [command], {
+					stdio: "ignore",
+					shell: true,
+				})
+			: spawnSync("sh", ["-lc", `command -v ${command} >/dev/null 2>&1`], {
+					stdio: "ignore",
+				});
 	return result.status === 0;
 }
 
@@ -101,6 +159,25 @@ export function ctx7RunnerLine() {
 			return 'echo "Error: no JS package runner found for ctx7 (need bun, pnpm, yarn, or npm)." >&2; exit 1';
 		default:
 			return 'exec npx -y ctx7 "$@"';
+	}
+}
+
+export function ctx7RunnerCommand() {
+	const runner = resolveJsRunner();
+	switch (runner) {
+		case "bunx":
+			return ["bunx", ["-y", "ctx7"]];
+		case "bunx-fallback":
+			return ["bun", ["x", "-y", "ctx7"]];
+		case "pnpm":
+			return ["pnpm", ["dlx", "ctx7"]];
+		case "yarn":
+			return ["yarn", ["dlx", "ctx7"]];
+		case "npx":
+		case "npm-npx":
+			return ["npx", ["-y", "ctx7"]];
+		default:
+			return ["", []];
 	}
 }
 

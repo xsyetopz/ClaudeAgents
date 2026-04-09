@@ -11,6 +11,13 @@ The root installer supports multiple systems in one run and generates platform a
 ./install.sh --all
 ```
 
+```powershell
+./install.ps1 --claude --opencode
+./install.ps1 --codex
+./install.ps1 --copilot
+./install.ps1 --all
+```
+
 If no system flags are passed, the installer prompts for each system as a toggle.
 
 ## Shared cross-platform surfaces
@@ -35,7 +42,7 @@ On project-scoped installs, the installer can also run `playwright-cli install -
 
 ## Context7 CLI (optional)
 
-Installs a managed `ctx7` wrapper at `~/.local/bin/ctx7`:
+Installs a managed `ctx7` wrapper:
 
 ```bash
 ./install.sh --ctx7-cli
@@ -46,7 +53,8 @@ Notes:
 
 - Context7 is CLI-only in openagentsbtw; we do not install a managed Context7 MCP block.
 - During install, openagentsbtw can prompt for a Context7 API key to raise rate limits.
-- API keys are stored in `~/.config/openagentsbtw/config.env`.
+- API keys are stored in the managed config env file: `~/.config/openagentsbtw/config.env` on Unix, `%APPDATA%\openagentsbtw\config.env` on Windows.
+- Managed wrappers land at `~/.local/bin/ctx7` on Unix and `%APPDATA%\openagentsbtw\bin\ctx7.ps1` plus `%APPDATA%\openagentsbtw\bin\ctx7.cmd` on Windows.
 
 ## Claude options
 
@@ -127,7 +135,7 @@ openagentsbtw enables RTK enforcement only when both conditions are true:
 1. `rtk` is installed and available on `PATH`
 2. `RTK.md` is present in either:
    - the current repo path ancestry (nearest file wins), or
-   - `~/.config/openagentsbtw/RTK.md` (canonical global policy), with legacy fallback checks at `~/.codex/RTK.md` and `~/.claude/RTK.md`
+   - the canonical managed global policy path (`~/.config/openagentsbtw/RTK.md` on Unix, `%APPDATA%\openagentsbtw\RTK.md` on Windows), with legacy fallback checks at `~/.codex/RTK.md` and `~/.claude/RTK.md`
 
 Behavior:
 
@@ -154,6 +162,8 @@ Use `./config.sh` to update an existing install without re-running full setup:
 ./config.sh --no-rtk
 ```
 
+PowerShell users can run the same operations through `./config.ps1`.
+
 Additional notes:
 
 - `--deepwiki` and `--no-deepwiki` update installed Claude, Codex, OpenCode, and Copilot DeepWiki config surfaces in place.
@@ -175,6 +185,9 @@ openagentsbtw keeps install-time and generation-time responsibilities separate:
 
 - `install.sh` is a thin Bash wrapper over `scripts/install/cli.mjs`
 - `config.sh` is a thin Bash wrapper over `scripts/install/config-cli.mjs`
+- `uninstall.sh` is a thin Bash wrapper over `scripts/install/uninstall-cli.mjs`
+- `build-plugin.sh` is a thin Bash wrapper over `scripts/build-plugin-cli.mjs`
+- `install.ps1`, `config.ps1`, `uninstall.ps1`, and `build-plugin.ps1` are first-class PowerShell wrappers over the same shared Node CLIs
 - `scripts/build.mjs` stages build output
 - `scripts/generate.mjs` orchestrates smaller render modules under `scripts/generate/`
 
@@ -186,4 +199,10 @@ This decomposition keeps policy generation out of one large script and helps pre
 ./uninstall.sh --claude
 ./uninstall.sh --opencode --codex
 ./uninstall.sh --all
+```
+
+```powershell
+./uninstall.ps1 --claude
+./uninstall.ps1 --opencode --codex
+./uninstall.ps1 --all
 ```

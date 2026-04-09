@@ -30,6 +30,13 @@ Install one system:
 ./install.sh --copilot
 ```
 
+```powershell
+./install.ps1 --claude
+./install.ps1 --codex
+./install.ps1 --opencode
+./install.ps1 --copilot
+```
+
 Install everything (or run with no flags to get prompts):
 
 ```bash
@@ -59,6 +66,12 @@ Post-install configuration:
 ./config.sh --rtk
 ```
 
+```powershell
+./config.ps1 --ctx7
+./config.ps1 --deepwiki
+./config.ps1 --rtk
+```
+
 Update later:
 
 ```bash
@@ -70,6 +83,10 @@ Uninstall:
 
 ```bash
 ./uninstall.sh --all
+```
+
+```powershell
+./uninstall.ps1 --all
 ```
 
 ## What this repo is
@@ -87,6 +104,9 @@ Installer/generator decomposition (no god script):
 
 - `install.sh` is a thin Bash compatibility wrapper over `scripts/install/cli.mjs`
 - `config.sh` is a thin Bash compatibility wrapper over `scripts/install/config-cli.mjs`
+- `uninstall.sh` is a thin Bash compatibility wrapper over `scripts/install/uninstall-cli.mjs`
+- `build-plugin.sh` is a thin Bash compatibility wrapper over `scripts/build-plugin-cli.mjs`
+- `install.ps1`, `config.ps1`, `uninstall.ps1`, and `build-plugin.ps1` are matching PowerShell wrappers over the same shared Node CLIs
 - `scripts/build.mjs` assembles build output for packaging
 - `scripts/generate.mjs` orchestrates focused render modules under `scripts/generate/`
 
@@ -103,7 +123,7 @@ Codex installs also include `oabtw-codex qa`, `oabtw-codex longrun`, and `oabtw-
 
 RTK enforcement is only active when both of the following are true:
 - `rtk` is installed
-- an `RTK.md` policy file exists in the repo tree (nearest ancestor wins) or at `~/.config/openagentsbtw/RTK.md` (legacy fallback paths are also checked)
+- an `RTK.md` policy file exists in the repo tree (nearest ancestor wins) or at the managed global openagentsbtw config path (`~/.config/openagentsbtw/RTK.md` on Unix, `%APPDATA%\openagentsbtw\RTK.md` on Windows; legacy fallback paths are also checked)
 
 When active, openagentsbtw uses `rtk rewrite` as the source of truth and enforces RTK-prefixed Bash forms for commands RTK can rewrite.
 
@@ -117,6 +137,13 @@ bun run generate
 bun run test
 cd opencode && bun install --frozen-lockfile && bun run test && bun run typecheck
 ./build-plugin.sh
+```
+
+```powershell
+bun install --frozen-lockfile
+bun run generate
+bun run test
+./build-plugin.ps1
 ```
 
 Build output for the Claude plugin lands in `dist/openagentsbtw-claude-plugin/`.

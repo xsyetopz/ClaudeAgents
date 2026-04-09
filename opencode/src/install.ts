@@ -43,11 +43,17 @@ import {
 
 function resolveTargetDir(scope: InstallScope): string {
 	if (scope === "global") {
-		const home = process.env["HOME"] ?? "";
+		const home =
+			process.platform === "win32"
+				? (process.env["USERPROFILE"] ?? "")
+				: (process.env["HOME"] ?? "");
 		if (!home) {
 			throw new Error("Cannot determine home directory for global install");
 		}
-		const configHome = process.env["XDG_CONFIG_HOME"] ?? `${home}/.config`;
+		const configHome =
+			process.platform === "win32"
+				? (process.env["APPDATA"] ?? `${home}/AppData/Roaming`)
+				: (process.env["XDG_CONFIG_HOME"] ?? `${home}/.config`);
 		return `${configHome}/opencode`;
 	}
 	return `${process.cwd()}`;
