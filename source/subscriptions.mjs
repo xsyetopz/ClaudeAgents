@@ -18,13 +18,15 @@ export const SWARM_POLICIES = {
 	},
 };
 
-export const DEFAULT_CLAUDE_PLAN = "pro-5";
+export const DEFAULT_CLAUDE_PLAN = "max5";
 export const DEFAULT_CODEX_PLAN = "pro-5";
 export const DEFAULT_COPILOT_PLAN = "pro";
 
 export const CLAUDE_PLAN_ALIASES = {
-	"5x": "pro-5",
-	"20x": "pro-20",
+	"5x": "max5",
+	"20x": "max20",
+	"pro-5": "max5",
+	"pro-20": "max20",
 };
 
 export const CODEX_PLAN_ALIASES = {
@@ -289,9 +291,9 @@ export const CLAUDE_PLANS = {
 			haikuModel: "claude-haiku-4-5",
 		},
 	},
-	"pro-5": {
-		name: "pro-5",
-		displayName: "Pro 5x",
+	max5: {
+		name: "max5",
+		displayName: "Max 5x",
 		swarmPolicy: "aggressive",
 		models: {
 			ccaModel: "opusplan",
@@ -300,9 +302,9 @@ export const CLAUDE_PLANS = {
 			haikuModel: "claude-haiku-4-5",
 		},
 	},
-	"pro-20": {
-		name: "pro-20",
-		displayName: "Pro 20x",
+	max20: {
+		name: "max20",
+		displayName: "Max 20x",
 		swarmPolicy: "max",
 		models: {
 			ccaModel: "opus[1m]",

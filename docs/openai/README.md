@@ -29,7 +29,7 @@ Research and design decisions for the Codex-native port of openagentsbtw. Last v
 - Codex is a first-class target, not a placeholder skill.
 - Native Codex surfaces are used for what they actually do: plugin packaging, skill discovery, custom agent model pinning, hooks, config, wrapper routing, and real `AGENTS.md` files.
 - Fast mode is off in managed profiles.
-- Plan-aware routing: `go` and `plus` use `gpt-5.4-mini` for utility; `pro-5` and `pro-20` unlock `gpt-5.3-codex-spark`.
+- Plan-aware Codex routing: `go` and `plus` use `gpt-5.4-mini` for utility; `pro-5` and `pro-20` unlock `gpt-5.3-codex-spark`.
 - No `CLAUDE.md` symlinks. Project guidance lives in `AGENTS.md`.
 - Native `/plan` is reasoning mode, not a custom-agent selector.
 - DeepWiki is optional, explicit, opt-in MCP infrastructure.

@@ -132,7 +132,7 @@ These are guardrails, not walls. They catch common mistakes but are not a securi
 | Clean up AI-sounding text | `/cca:desloppify` / `oabtw-codex desloppify` |
 | Make a technical decision | `/cca:decide` |
 | Commit and ship | `/cca:ship` |
-| Change your plan preset | `./config.sh --claude-plan pro-20` |
+| Change your plan preset | `./config.sh --claude-plan max20` |
 
 ## Further Reading
 

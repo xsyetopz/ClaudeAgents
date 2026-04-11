@@ -77,7 +77,7 @@ Usage: ./config.sh [options]
   --ctx7-api-key [KEY]   Set or update CONTEXT7_API_KEY (prompt if omitted)
   --deepwiki             Enable managed DeepWiki config on installed surfaces
   --no-deepwiki          Disable managed DeepWiki config on installed surfaces
-  --claude-plan PLAN     Set Claude plan: plus|pro-5|pro-20
+  --claude-plan PLAN     Set Claude plan: plus|max5|max20
   --codex-plan PLAN      Set Codex plan: go|plus|pro-5|pro-20
   --copilot-plan PLAN    Set Copilot plan: pro|pro-plus
   --rtk                  Install RTK if needed and write the managed global RTK.md
@@ -491,7 +491,7 @@ async function main() {
 		claudePlan = resolveClaudePlan(rawValue);
 		if (!claudePlan) {
 			throw new Error(
-				`Unsupported Claude plan: ${rawValue} (expected plus, pro-5, or pro-20)`,
+				`Unsupported Claude plan: ${rawValue} (expected plus, max5, or max20)`,
 			);
 		}
 		await applyClaudePlan(claudePlan);

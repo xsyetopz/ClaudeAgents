@@ -49,8 +49,8 @@ Each platform has plan presets that control which models route to which agents. 
 | Plan | Flag | Subscription | What you get |
 |------|------|-------------|--------------|
 | `plus` | `--claude-plan plus` | Claude Plus | Sonnet-only. Budget-conscious, no Opus routing. |
-| `pro-5` | `--claude-plan pro-5` | Claude Pro | **Default.** Opus for planning/review, Sonnet for implementation. |
-| `pro-20` | `--claude-plan pro-20` | Claude Max | Full Opus orchestration, Sonnet for lightweight tasks, max parallelism. |
+| `max5` | `--claude-plan max5` | Claude Pro | **Default.** Opus for planning/review, Sonnet for implementation. |
+| `max20` | `--claude-plan max20` | Claude Max | Full Opus orchestration, Sonnet for lightweight tasks, max parallelism. |
 
 **Codex CLI:**
 
@@ -75,7 +75,7 @@ Each platform has plan presets that control which models route to which agents. 
 Install with your plan:
 
 ```bash
-./install.sh --claude --claude-plan pro-5
+./install.sh --claude --claude-plan max5
 ./install.sh --codex --codex-plan plus
 ./install.sh --copilot --copilot-plan pro
 ./install.sh --opencode
@@ -93,14 +93,14 @@ Or run with no flags for interactive prompts that walk you through each choice:
 ./install.sh
 ```
 
-PowerShell works the same way: `./install.ps1 --claude --claude-plan pro-5`.
+PowerShell works the same way: `./install.ps1 --claude --claude-plan max5`.
 
 ### 4. Change your plan later
 
 No need to reinstall. Use `config.sh`:
 
 ```bash
-./config.sh --claude-plan pro-20
+./config.sh --claude-plan max20
 ./config.sh --codex-plan pro-5
 ./config.sh --copilot-plan pro-plus
 ```
