@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-7 agents, 14 skills, and 10 safety hooks for Claude Code, Codex CLI, OpenCode, and GitHub Copilot -- generated from a single canonical source.
+7 agents, 15 skills, and 10 safety hooks for Claude Code, Codex CLI, OpenCode, and GitHub Copilot -- generated from a single canonical source.
 
 Edit once in `source/`. Run the generator. Get deterministic, platform-correct artifacts for all four targets. No duplicate files to maintain.
 
@@ -17,7 +17,7 @@ Edit once in `source/`. Run the generator. Get deterministic, platform-correct a
 ```
 source/                          Canonical definitions
   agents.json                    7 agents (athena, hephaestus, nemesis, atalanta, calliope, hermes, odysseus)
-  skills.json                    14 skills (review, test, desloppify, explore, ...)
+  skills.json                    15 skills (review, test, desloppify, explore, ...)
   hook-policies.json             10 hook policies (pre-bash guard, post-write scan, ...)
   agent-prompts.mjs              Prompt templates
   skills/*/body.md               Skill content
