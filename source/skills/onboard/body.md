@@ -13,8 +13,8 @@ One source of truth, four platform targets. Edit once, regenerate, and every pla
 ```
 source/
   agents.json        -> 7 agents
-  skills.json        -> 16 skills (including this one)
-  hook-policies.json -> 10 safety hooks
+  skills.json        -> skills (see source/skills.json for current list)
+  hook-policies.json -> safety hooks
        |
        v
   scripts/generate.mjs

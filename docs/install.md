@@ -241,6 +241,10 @@ Update without re-running full setup:
 
 PowerShell: `./config.ps1` accepts the same flags.
 
+Notes:
+- `--deepwiki` / `--no-deepwiki` updates installed Claude, Codex, OpenCode, and Copilot DeepWiki config surfaces in place.
+- `--rtk` ensures the RTK binary is installed and writes the managed global RTK policy. `--no-rtk` removes only the managed global `RTK.md`; it does not uninstall RTK.
+
 ## Installer/generator decomposition
 
 openagentsbtw keeps install-time and generation-time responsibilities separate:
