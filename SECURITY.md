@@ -2,41 +2,41 @@
 
 ## Reporting Vulnerabilities
 
-Report security issues to the maintainers via GitHub Security Advisories (preferred) or email. Do not open public issues for security vulnerabilities.
+Report security issues via GitHub Security Advisories (preferred) or email. Do not open public issues for security vulnerabilities.
 
 ## Security Model
 
-openagentsbtw hooks are **guardrails, not walls**. They catch common mistakes and enforce best practices, but are not a security boundary against determined adversaries.
+openagentsbtw hooks are guardrails, not walls. They catch common mistakes and enforce best practices but are not a security boundary against determined adversaries.
 
-### What hooks protect against
+### What Hooks Protect Against
 
-- Accidental secret leaks in command output (post-bash.mjs)
-- Blanket `git add .` that may stage .env files (pre-bash.mjs)
-- Broad `rm -rf` on system paths (pre-bash.mjs)
-- Placeholder/stub code reaching production (post-write.mjs, subagent-scan.mjs)
-- Silent scope reduction by agents (subagent-scan.mjs)
-- DNS exfiltration patterns (pre-bash.mjs)
+| Hook | Protects against |
+|------|-----------------|
+| `pre-bash.mjs` | Broad `rm -rf`, blanket `git add .`, DNS exfiltration patterns |
+| `post-bash.mjs` | Accidental secret leaks in command output |
+| `post-write.mjs` | Placeholder/stub code reaching production |
+| `subagent-scan.mjs` | Silent scope reduction by agents |
 
-### What hooks do NOT protect against
+### What Hooks Do Not Protect Against
 
 - Sophisticated prompt injection attacks
 - Adversarial code in untrusted repositories
 - Supply chain attacks via dependencies
 
-### Defense in depth
+### Defense in Depth
 
 For production use, combine hooks with:
 
-1. **OS-level sandboxing**: macOS Seatbelt, Linux bubblewrap, or Docker containers
-2. **Permission deny rules**: the settings template blocks access to ~/.ssh, ~/.aws, credentials
-3. **Code review**: @nemesis should review changes before committing via /cca:ship
-4. **Minimal permissions**: only grant tools each agent needs (enforced via agent frontmatter)
+1. **OS-level sandboxing** -- macOS Seatbelt, Linux bubblewrap, or Docker containers
+2. **Permission deny rules** -- settings template blocks access to `~/.ssh`, `~/.aws`, credentials
+3. **Code review** -- `@nemesis` should review changes before committing via `/cca:ship`
+4. **Minimal permissions** -- only grant tools each agent needs (enforced via agent frontmatter)
 
-## Sandboxing Recommendations
+## Sandboxing
 
 ### macOS (Seatbelt)
 
-Use Claude Code's built-in `/sandbox` command, or run with a custom Seatbelt profile that restricts filesystem and network access to the project directory.
+Use Claude Code's built-in `/sandbox` command, or run with a custom Seatbelt profile restricting filesystem and network access to the project directory.
 
 ### Linux (bubblewrap)
 
@@ -49,12 +49,16 @@ bwrap --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp \
 
 ### Docker / Devcontainers
 
-Mount only the project directory. Do not mount ~/.ssh, ~/.aws, or other credential stores.
+Mount only the project directory. Do not mount `~/.ssh`, `~/.aws`, or other credential stores.
 
 ## Known CVE Mitigations
 
-- **CVE-2025-59536** (RCE via malicious project config): Fixed in Claude Code v1.0.111. Always update to the latest Claude Code version.
-- **CVE-2026-21852** (API key exfiltration): Fixed in Claude Code v2.0.65. The pre-secrets hook provides an additional layer of protection.
+| CVE | Impact | Fix |
+|-----|--------|-----|
+| CVE-2025-59536 | RCE via malicious project config | Fixed in Claude Code v1.0.111 |
+| CVE-2026-21852 | API key exfiltration | Fixed in Claude Code v2.0.65; pre-secrets hook adds extra protection |
+
+Always update to the latest Claude Code version.
 
 ## Skill/Plugin Vetting
 

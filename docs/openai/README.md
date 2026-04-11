@@ -1,44 +1,36 @@
-# OpenAI / Codex Research
+# Codex Research
 
-This directory documents the Codex-specific port of openagentsbtw. It was re-verified against OpenAI’s official Codex docs on 2026-03-28.
+Research and design decisions for the Codex-native port of openagentsbtw. Last verified against OpenAI's official Codex docs on 2026-03-28.
 
-## What Lives Here
+## Contents
 
-- `config.md` explains Codex config layers, profile strategy, and the Fast mode decision.
-- `model-strategy.md` explains the Plus/Pro preset split, the agent-to-model mapping, and where Codex Mini fits.
-- `hooks.md` explains Codex hook events and which Claude hooks do and do not port cleanly.
-- `plugins-skills-subagents.md` explains the native Codex extension surfaces that openagentsbtw uses.
-- `prompting-and-guardrails.md` captures the GPT/Codex prompting guidance that shapes the new agent prompts.
-- `porting-plan.md` is the implementation map from the old Claude-first system to the Codex-native one.
+| Doc | Covers |
+|-----|--------|
+| `config.md` | Config layers, profiles, plan presets, Fast mode, memory, DeepWiki/ctx7 |
+| `model-strategy.md` | Plan-to-model mapping, agent routing, wrapper routing |
+| `hooks.md` | Hook events, what ports from Claude, what doesn't and why |
+| `plugins-skills-subagents.md` | Native Codex surfaces: plugins, skills, custom agents, AGENTS.md |
+| `prompting-and-guardrails.md` | GPT/Codex prompting approach and guardrail layers |
+| `porting-plan.md` | Source-to-target mapping from the Claude-first system |
 
 ## Canonical Sources
 
-- Config basics: <https://developers.openai.com/codex/config-basic>
-- Config advanced: <https://developers.openai.com/codex/config-advanced>
-- Config reference: <https://developers.openai.com/codex/config-reference>
-- Config sample: <https://developers.openai.com/codex/config-sample>
-- Speed and Fast mode: <https://developers.openai.com/codex/speed>
-- Rules: <https://developers.openai.com/codex/rules>
-- Hooks: <https://developers.openai.com/codex/hooks>
-- AGENTS.md guide: <https://developers.openai.com/codex/guides/agents-md>
-- Plugins: <https://developers.openai.com/codex/plugins>
-- Skills: <https://developers.openai.com/codex/skills>
-- Subagents: <https://developers.openai.com/codex/subagents>
-- SDK: <https://developers.openai.com/codex/sdk>
-- Best practices: <https://developers.openai.com/codex/learn/best-practices>
-- Codex prompting guide: <https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide>
-- Optimization topic: <https://developers.openai.com/cookbook/topic/optimization>
-- Guardrails topic: <https://developers.openai.com/cookbook/topic/guardrails>
-- Text topic: <https://developers.openai.com/cookbook/topic/text>
-- Agents topic: <https://developers.openai.com/cookbook/topic/agents>
+- [Config basics](https://developers.openai.com/codex/config-basic) / [advanced](https://developers.openai.com/codex/config-advanced) / [reference](https://developers.openai.com/codex/config-reference) / [sample](https://developers.openai.com/codex/config-sample)
+- [Speed and Fast mode](https://developers.openai.com/codex/speed)
+- [Rules](https://developers.openai.com/codex/rules)
+- [Hooks](https://developers.openai.com/codex/hooks)
+- [AGENTS.md guide](https://developers.openai.com/codex/guides/agents-md)
+- [Plugins](https://developers.openai.com/codex/plugins) / [Skills](https://developers.openai.com/codex/skills) / [Subagents](https://developers.openai.com/codex/subagents) / [SDK](https://developers.openai.com/codex/sdk)
+- [Best practices](https://developers.openai.com/codex/learn/best-practices) / [Prompting guide](https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide)
+- Cookbook topics: [optimization](https://developers.openai.com/cookbook/topic/optimization) / [guardrails](https://developers.openai.com/cookbook/topic/guardrails) / [text](https://developers.openai.com/cookbook/topic/text) / [agents](https://developers.openai.com/cookbook/topic/agents)
 
-## openagentsbtw Decisions
+## Design Decisions
 
-- Codex is treated as a first-class system, not as a placeholder skill.
-- We use native Codex surfaces for the jobs they actually do: plugin packaging, skill discovery, custom agent model pinning, hooks, config, wrapper routing, and real `AGENTS.md` files.
-- We keep Fast mode off in the openagentsbtw Codex profile.
-- We use plan-aware Codex routing: `go` and `plus` keep bounded utility work on `gpt-5.4-mini`, while `pro-5` and `pro-20` unlock `gpt-5.3-codex-spark` for lightweight utility routes.
-- We do not symlink `CLAUDE.md` for Codex. The project guidance lives in actual `AGENTS.md` files.
-- Native `/plan` is treated as reasoning mode, not as a guaranteed custom-agent selector.
-- DeepWiki is optional MCP infrastructure for explicit exploration flows, not a hidden dependency of the normal routing path.
-- Context7 is CLI-only (`ctx7`) and used as an automatic docs/source lookup path when available for external library/API/setup/config work.
+- Codex is a first-class target, not a placeholder skill.
+- Native Codex surfaces are used for what they actually do: plugin packaging, skill discovery, custom agent model pinning, hooks, config, wrapper routing, and real `AGENTS.md` files.
+- Fast mode is off in managed profiles.
+- Plan-aware routing: `go` and `plus` use `gpt-5.4-mini` for utility; `pro-5` and `pro-20` unlock `gpt-5.3-codex-spark`.
+- No `CLAUDE.md` symlinks. Project guidance lives in `AGENTS.md`.
+- Native `/plan` is reasoning mode, not a custom-agent selector.
+- DeepWiki is optional, explicit, opt-in MCP infrastructure.
+- Context7 is CLI-only (`ctx7`) for external docs lookups.

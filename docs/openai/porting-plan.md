@@ -1,39 +1,34 @@
-# Claude To Codex Porting Plan
+# Claude-to-Codex Porting Plan
 
-This is the concrete mapping used for the openagentsbtw Codex split.
+Mapping used for the openagentsbtw Codex split. Shared source content lives under `source/` and renders Codex-facing files from that canonical layer.
 
-The repo now keeps shared source content under the root `source/` tree and renders Codex-facing files from that canonical layer instead of treating Claude files as the source of truth.
+## Source-to-Target Mapping
 
-## Source To Target
-
-- Claude plugin manifest
-  To Codex plugin manifest at `codex/plugin/openagentsbtw/.codex-plugin/plugin.json`
-- Claude skills
-  To Codex plugin-bundled skills at `codex/plugin/openagentsbtw/skills/`
-- Claude agent markdown files
-  To Codex custom agent TOMLs in `codex/agents/`
-- Claude `CLAUDE.md`
-  To real Codex `AGENTS.md` files and templates
-- Claude hooks
-  To the subset of Codex hook events we verified from the official docs
+| Claude | Codex |
+|--------|-------|
+| Plugin manifest | `codex/plugin/openagentsbtw/.codex-plugin/plugin.json` |
+| Skills | `codex/plugin/openagentsbtw/skills/` |
+| Agent markdown files | Custom agent TOMLs in `codex/agents/` |
+| `CLAUDE.md` | Real `AGENTS.md` files and templates |
+| Hooks | Subset of verified Codex hook events |
 
 ## Behavior Changes
 
-- Codex no longer uses a placeholder skill pack. It now has a full system package.
-- The repo ships a real local marketplace entry for Codex plugins.
-- The installer now treats Codex as a first-class install target with plugin, agent, hook, config, and `AGENTS.md` installation.
-- RTK routing now follows a shared policy contract across Claude/Codex/OpenCode/Copilot: enforcement is active only when `rtk` is installed and `RTK.md` exists (repo ancestry or `~/.config/openagentsbtw/RTK.md`), with `rtk rewrite` as the source of truth.
-- The Codex model presets are now driven by the local Codex CLI model list rather than the broader API catalog when the two differ.
-- Fast mode is explicitly disabled in the openagentsbtw Codex profile.
+- Codex has a full system package, not a placeholder skill pack.
+- Real local marketplace entry for Codex plugins.
+- First-class install target with plugin, agent, hook, config, and `AGENTS.md` installation.
+- RTK follows shared policy contract across all four platforms.
+- Model presets driven by local Codex CLI model list, not the broader API catalog.
+- Fast mode disabled in managed profiles.
 
 ## Intentional Non-Ports
 
-- No `CLAUDE.md` symlink strategy for Codex.
-- No attempt to force undocumented Codex plugin-install commands.
+- No `CLAUDE.md` symlink strategy.
+- No undocumented plugin-install commands.
 - No direct port of Claude-only hook events or file-edit-specific hook logic.
 
 ## Follow-On Work
 
-- Add automated validation around the Codex hook scripts and agent file parsing.
-- Expand the Codex plugin skill metadata if OpenAI stabilizes more plugin-facing interface fields.
-- Revisit installer defaults if Codex later exposes an official plugin install CLI.
+- Automated validation for Codex hook scripts and agent file parsing.
+- Expand plugin skill metadata if OpenAI stabilizes more plugin-facing fields.
+- Revisit installer defaults if Codex exposes an official plugin install CLI.

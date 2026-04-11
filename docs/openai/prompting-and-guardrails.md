@@ -1,38 +1,27 @@
-# Prompting And Guardrails
+# Prompting and Guardrails
 
-openagentsbtw’s Codex prompts were rewritten around GPT/Codex guidance rather than copied verbatim from the Claude agent markdown. Sources: <https://developers.openai.com/codex/learn/best-practices>, <https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide>, <https://developers.openai.com/cookbook/topic/guardrails>, <https://developers.openai.com/cookbook/topic/optimization>, <https://developers.openai.com/cookbook/topic/agents>
+openagentsbtw's Codex prompts were rewritten around GPT/Codex guidance, not copied from Claude. Sources: [best practices](https://developers.openai.com/codex/learn/best-practices), [prompting guide](https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide), [guardrails](https://developers.openai.com/cookbook/topic/guardrails), [optimization](https://developers.openai.com/cookbook/topic/optimization), [agents](https://developers.openai.com/cookbook/topic/agents)
 
-## Prompting Principles We Carried Over
+## Prompting Principles
 
-- Put role, scope, and hard rules up front.
-- Keep instructions concrete and operational instead of aspirational.
-- Tell each agent what not to do, not just what to do.
-- Require explicit handling of uncertainty, blockers, and verification.
-- Keep prompts short enough that Codex can still focus on the task and local code.
+- Role, scope, and hard rules up front.
+- Concrete and operational, not aspirational.
+- Each agent knows what not to do, not just what to do.
+- Explicit handling of uncertainty, blockers, and verification.
+- Short enough that Codex stays focused on task and local code.
 
 ## Codex-Specific Adjustments
 
-- Agent definitions are now TOML with `developer_instructions`, not Claude markdown frontmatter plus prompt bodies.
-- Shared prompt content now comes from a structured source model and is rendered per platform instead of treating Claude-shaped prompt text as canonical.
-- Multi-agent work is framed around Codex custom agents and the broader multi-agent feature set rather than Claude subagent routing.
-- Project shaping guidance moves into `AGENTS.md`, because OpenAI documents that as the main project-instruction channel.
-- Hook logic is narrower and more deterministic because Codex’s documented hook events are narrower than the Claude hook graph.
-- The `plus`/`pro` model split means the smaller `mini` and `codex-mini` paths need more explicit task framing than the main `gpt-5.2` / `gpt-5.3-codex` routes.
+- Agent definitions are TOML with `developer_instructions`, not Claude markdown frontmatter.
+- Shared prompt content rendered per platform from structured source, not from Claude-shaped text.
+- Multi-agent work framed around Codex custom agents, not Claude subagent routing.
+- Project guidance in `AGENTS.md` (OpenAI's documented project-instruction channel).
+- Hook logic narrower and more deterministic (Codex hook events are narrower than Claude's).
+- Smaller `mini` and `codex-mini` paths need more explicit task framing than `gpt-5.2` / `gpt-5.3-codex`.
 
-## Guardrail Strategy
+## Guardrail Layers
 
-openagentsbtw keeps guardrails at three native layers:
-
-1. Agent prompts
-   Role-specific boundaries like read-only planning or review-first output.
-2. Hooks
-   Bash guardrails, redaction, session warnings, and completion checks. Routine success paths stay silent; only warn/error/block cases should surface visible hook text from openagentsbtw.
-3. Project docs
-   `AGENTS.md` keeps the system visible to Codex at the project layer.
-
-The Codex port also adds a practical routing layer:
-
-1. Wrapper commands
-   `openagentsbtw-codex <mode> ...` routes lightweight flows like docs cleanup, handoff generation, and bounded validation onto the lightweight Codex profile while keeping heavy plan/implement/review work on the main preset. The wrapper selects the profile and reinforces the intended specialist path, but it does not magically rebind native `/plan` to a custom agent.
-
-This is a better fit for Codex than trying to emulate the exact Claude plugin contract.
+1. **Agent prompts** -- role-specific boundaries (read-only planning, review-first output)
+2. **Hooks** -- bash guardrails, redaction, session warnings, completion checks. Only warn/error/block conditions surface.
+3. **Project docs** -- `AGENTS.md` keeps the system visible at the project layer.
+4. **Wrapper commands** -- `openagentsbtw-codex <mode> ...` routes to the right profile and reinforces the specialist path. Does not rebind native `/plan` to a custom agent.

@@ -1,86 +1,59 @@
-# Plugins, Skills, And Subagents
+# Plugins, Skills, and Subagents
 
-Codex has separate native surfaces for plugins, skills, custom agents, `AGENTS.md`, hooks, and config. openagentsbtw uses each surface for what it can actually enforce, rather than pretending the plugin layer controls everything. Sources: <https://developers.openai.com/codex/plugins>, <https://developers.openai.com/codex/skills>, <https://developers.openai.com/codex/subagents>, <https://developers.openai.com/codex/guides/agents-md>, <https://developers.openai.com/codex/config-reference>
+Codex has separate native surfaces for plugins, skills, custom agents, `AGENTS.md`, hooks, and config. openagentsbtw uses each for what it can actually enforce. Sources: [plugins](https://developers.openai.com/codex/plugins), [skills](https://developers.openai.com/codex/skills), [subagents](https://developers.openai.com/codex/subagents), [AGENTS.md](https://developers.openai.com/codex/guides/agents-md), [config](https://developers.openai.com/codex/config-reference)
 
 ## Plugins
 
-The Codex plugin manifest lives at `.codex-plugin/plugin.json`. Marketplaces live in `.agents/plugins/marketplace.json` at repo scope or `~/.agents/plugins/marketplace.json` at user scope. openagentsbtw ships:
+The Codex plugin manifest lives at `.codex-plugin/plugin.json`. Marketplaces at `.agents/plugins/marketplace.json` (repo) and `~/.agents/plugins/marketplace.json` (user).
 
-- a repo-local marketplace file at `.agents/plugins/marketplace.json`
-- a Codex plugin payload at `codex/plugin/openagentsbtw/`
-- an installer step that registers the plugin in the user marketplace as a local plugin
+openagentsbtw ships:
+- Repo-local marketplace at `.agents/plugins/marketplace.json`
+- Plugin payload at `codex/plugin/openagentsbtw/`
+- Installer step that registers the plugin as a local entry
 
-We intentionally keep the plugin source under `codex/plugin/openagentsbtw` inside this repo rather than pretending Codex uses the Claude marketplace format.
+The plugin layer packages and distributes assets. It does not guarantee role routing, force a custom agent for `/plan`, or enable hooks by itself.
 
-The plugin layer packages and distributes reusable assets. It does not guarantee role routing, force a custom agent for `/plan`, or enable hooks by itself.
+Note: the local Codex CLI does not expose `codex plugins` or `codex skills` subcommands. The installer uses file-based marketplace and agent installation.
 
 ## Skills
 
-Codex skills live in `.agents/skills` for repo scope and `~/.agents/skills` for user scope. openagentsbtw’s Codex plugin bundles the shared skill set under `codex/plugin/openagentsbtw/skills/`, including the `openagentsbtw` orchestration skill and optional `openai.yaml` metadata where we want better discoverability. Source: <https://developers.openai.com/codex/skills>
+Repo scope: `.agents/skills`. User scope: `~/.agents/skills`.
 
-Skills are reusable workflows. They help Codex discover and apply repeated patterns, but they are still one layer in the stack rather than the whole system.
+openagentsbtw bundles skills under `codex/plugin/openagentsbtw/skills/`, including optional `openai.yaml` metadata for discoverability. Skills are reusable workflows, not the whole system.
 
 ## Custom Agents
 
-Codex custom agents live in `.codex/agents` for project scope and `~/.codex/agents` for user scope. openagentsbtw installs seven agent TOML files into `~/.codex/agents/`:
+Project scope: `.codex/agents`. User scope: `~/.codex/agents`.
 
-- `athena`
-- `hephaestus`
-- `nemesis`
-- `atalanta`
-- `calliope`
-- `hermes`
-- `odysseus`
-
-These are the Codex-native replacement for the old Claude agent markdown manifests. Source: <https://developers.openai.com/codex/subagents>
+openagentsbtw installs seven agent TOML files: athena, hephaestus, nemesis, atalanta, calliope, hermes, odysseus. These replace the Claude agent markdown manifests.
 
 ## AGENTS.md
 
-Codex applies the closest `AGENTS.md`, then parent `AGENTS.md` files up to the repo root, then the home-level file. openagentsbtw therefore installs guidance into `~/.codex/AGENTS.md` and ships a project template in `codex/templates/AGENTS.md`. We do not rely on `CLAUDE.md` symlinks for Codex. Source: <https://developers.openai.com/codex/guides/agents-md>
+Codex applies the closest `AGENTS.md`, then parents up to repo root, then `~/.codex/AGENTS.md`. openagentsbtw installs to `~/.codex/AGENTS.md` and ships a project template at `codex/templates/AGENTS.md`. No `CLAUDE.md` symlinks.
 
-This is the main style and behavior-shaping layer for the CCA-like response contract.
-
-## Hooks And Config
-
-Hooks are enabled by config, not by the plugin manifest alone. openagentsbtw merges supported hook definitions into `~/.codex/hooks.json`, turns on `codex_hooks = true` in the managed profiles, and keeps the unsupported policy map explicit in `codex/hooks/`.
-
-Config is also where Codex-native defaults live: profile selection, `commit_attribution`, reasoning effort, Fast mode policy, and optional MCP servers such as DeepWiki.
-
-The Codex memory feature follows that same split. Native Codex SQLite/session persistence remains the runtime base, while openagentsbtw stores project-level recall in its own SQLite DB under `~/.codex/openagentsbtw/state/memory.sqlite` and surfaces it through the supported hook events.
+This is the main style and behavior layer for the CCA-like response contract.
 
 ## Wrapper Routing
 
-`openagentsbtw-codex <mode> ...` is the supported routing layer for mode-specific CLI flows. The wrapper selects the managed profile, adds per-mode model overrides where needed, and supplies a strong role-shaped prompt for plan, accept-edits, implement, review, orchestration, docs, cleanup, handoff, bounded validation, and the explicit `deepwiki` exploration path.
+`openagentsbtw-codex <mode> ...` selects the managed profile, adds per-mode overrides, and supplies a role-shaped prompt. Does not rebind native `/plan` to a custom agent.
 
-openagentsbtw installs a `UserPromptSubmit` hook that injects lightweight git context plus a compact project-memory hint on normal interactive prompts. Prefix a prompt with `!raw` to opt out for that one turn. Hooks do not “run” skills; role routing is driven by `AGENTS.md` guidance and the wrapper commands.
+The `UserPromptSubmit` hook injects git context + project-memory hints. Prefix with `!raw` to skip for one turn. Hooks don't "run" skills; routing is driven by `AGENTS.md` guidance and wrapper commands.
 
-Wrappers do not prepend `$openagentsbtw`. The managed profiles enable the plugin via `~/.codex/config.toml`, and hooks inject git/memory context automatically.
+Wrappers don't prepend `$openagentsbtw`. The plugin is enabled via config; hooks inject context automatically.
 
-Wrapper and `AGENTS.md` guidance also treat `ctx7` as the default external-docs path when available for third-party library/API/setup/configuration work. This is CLI-only; openagentsbtw does not depend on a managed Context7 MCP block.
+Additional wrapper features:
+- `memory show` / `memory forget-project` / `memory prune` -- inspect or clear memory without touching SQLite
+- `swarm "<task>"` -- "always delegate" route for multi-workstream requests
+- `deepwiki` -- explicit GitHub repo exploration (opt-in, requires DeepWiki MCP config)
+- `oabtw-codex` -- short alias (human-facing only; IDs and profile names remain `openagentsbtw`)
 
-The wrapper also exposes `memory show`, `memory forget-project`, and `memory prune` so users can inspect or clear the openagentsbtw memory layer without touching SQLite directly.
-
-`deepwiki` is intentionally explicit instead of silently changing `triage`. It depends on an opt-in DeepWiki MCP config block on the installed surface and is meant for GitHub repo exploration, not as a universal replacement for local repo reads.
-
-For already-installed setups, that DeepWiki block can be toggled with `./config.sh --deepwiki` and `./config.sh --no-deepwiki`.
-
-Codex only spawns subagents when explicitly asked, so openagentsbtw provides `oabtw-codex swarm "<task>"` as the “always delegate” route for multi-workstream requests.
-
-That wrapper contract is more reliable than implying the plugin can hard-bind native `/plan` or `/review` to a custom agent. Native `/plan` remains useful, but it is documented as a reasoning mode, not as an agent selector.
-
-We also support `oabtw-codex` as a short alias for the same wrapper behavior. The alias is human-facing only; plugin IDs, marketplace keys, and profile names remain `openagentsbtw`.
+`ctx7` is the default external-docs path when available. CLI-only; no managed MCP block.
 
 ## Peer Threads
 
-openagentsbtw can also run a separate peer-thread layer with `oabtw-codex-peer batch|tmux`.
+`oabtw-codex-peer batch|tmux` runs a separate peer-thread layer:
 
-- This is an openagentsbtw-managed top-level orchestration helper, not a native Codex feature.
-- `batch` runs orchestrator → QA → worker → review as separate top-level Codex executions with a shared handoff directory.
-- `tmux` creates a four-pane live session for the same role split when `tmux` is installed.
-- The shared artifact root is `.openagentsbtw/codex-peer/<run-id>/`.
+- **batch**: orchestrator -> QA -> worker -> review as separate Codex executions with shared handoff at `.openagentsbtw/codex-peer/<run-id>/`
+- **tmux**: four-pane live session for the same role split (requires `tmux`)
 
-This path exists because native subagents are explicit-only and can still be the wrong tool for long-running, evidence-heavy, or tightly supervised multi-worker flows.
-
-## Local Observation
-
-In the currently installed Codex CLI on this machine, `codex --help` exposes `mcp`, `review`, and other top-level commands, but there is no documented `codex plugins` or `codex skills` subcommand in the local help output. That is a local observation, not an official OpenAI guarantee. It is the reason the installer uses file-based marketplace and agent installation rather than assuming a plugin-install CLI verb.
+Exists because native subagents are explicit-only and can be the wrong tool for long-running, evidence-heavy, or tightly supervised multi-worker flows.
