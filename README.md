@@ -137,6 +137,15 @@ git pull && ./install.sh --all          # update
 | `CONTRIBUTING.md` | Development setup, workflow, contribution rules |
 | `CHANGELOG.md` | Release history |
 
+## Installer/generator decomposition
+
+- `install.sh` is a thin Bash compatibility wrapper over `scripts/install/cli.mjs`
+- `config.sh` is a thin Bash compatibility wrapper over `scripts/install/config-cli.mjs`
+- `uninstall.sh` is a thin Bash compatibility wrapper over `scripts/install/uninstall-cli.mjs`
+- `build-plugin.sh` is a thin Bash compatibility wrapper over `scripts/build-plugin-cli.mjs`
+- PowerShell wrappers (`install.ps1`, `config.ps1`, `uninstall.ps1`, `build-plugin.ps1`) delegate to the same Node CLIs
+- `scripts/generate.mjs` orchestrates focused render modules under `scripts/generate/`
+
 ## Development
 
 ```bash

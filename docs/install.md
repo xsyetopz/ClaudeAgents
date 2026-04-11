@@ -57,6 +57,15 @@ Selections are saved to `~/.config/openagentsbtw/config.env` and reused on futur
 
 In CI mode (`CI=true`), all prompts are skipped; defaults or env vars are used.
 
+## Shared cross-platform surfaces
+
+openagentsbtw treats the following as shared surfaces across Claude, Codex, OpenCode, and Copilot:
+
+- `ctx7` CLI for external docs lookup workflows
+- RTK enforcement for rewritable shell commands when policy is active
+- Playwright CLI for browser-automation workflows
+- DeepWiki MCP plus explicit `deepwiki` exploration routing
+
 ## Claude
 
 Installs the `xsyetopz@openagentsbtw` plugin, user-level hooks, and output style under `~/.claude/`.
@@ -231,6 +240,18 @@ Update without re-running full setup:
 ```
 
 PowerShell: `./config.ps1` accepts the same flags.
+
+## Installer/generator decomposition
+
+openagentsbtw keeps install-time and generation-time responsibilities separate:
+
+- `install.sh` is a thin Bash wrapper over `scripts/install/cli.mjs`
+- `config.sh` is a thin Bash wrapper over `scripts/install/config-cli.mjs`
+- `uninstall.sh` is a thin Bash wrapper over `scripts/install/uninstall-cli.mjs`
+- `build-plugin.sh` is a thin Bash wrapper over `scripts/build-plugin-cli.mjs`
+- `install.ps1`, `config.ps1`, `uninstall.ps1`, and `build-plugin.ps1` are first-class PowerShell wrappers over the same shared Node CLIs
+- `scripts/build.mjs` stages build output
+- `scripts/generate.mjs` orchestrates smaller render modules under `scripts/generate/`
 
 ## Update
 

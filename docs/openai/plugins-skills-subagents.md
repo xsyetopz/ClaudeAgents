@@ -56,4 +56,4 @@ Additional wrapper features:
 - **batch**: orchestrator -> QA -> worker -> review as separate Codex executions with shared handoff at `.openagentsbtw/codex-peer/<run-id>/`
 - **tmux**: four-pane live session for the same role split (requires `tmux`)
 
-Exists because native subagents are explicit-only and can be the wrong tool for long-running, evidence-heavy, or tightly supervised multi-worker flows.
+This is an openagentsbtw-managed top-level orchestration helper, not a native Codex feature. Exists because native subagents are explicit-only and can be the wrong tool for long-running, evidence-heavy, or tightly supervised multi-worker flows.

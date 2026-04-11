@@ -9,7 +9,7 @@ Codex supports project and user hook config at `.codex/hooks.json` and `~/.codex
 | `session/start-budget.mjs` | SessionStart | Checks AGENTS.md size, warns if Fast mode or persistence is disabled, injects project memory |
 | `session/prompt-git-context.mjs` | UserPromptSubmit | Injects git context + project-memory hint. Prefix with `!raw` to skip for one turn |
 | `pre/bash-guard.mjs` | PreToolUse | Blocks broad `rm -rf`, blanket `git add`, noisy shell, unsafe DNS patterns |
-| `pre/rtk-enforce.mjs` | PreToolUse | Enforces RTK-prefixed Bash when `rtk` + `RTK.md` are present |
+| `pre/rtk-enforce.mjs` | PreToolUse | Enforces RTK-prefixed Bash when `rtk` is installed and `RTK.md` policy is present |
 | `post/bash-redact.mjs` | PostToolUse | Warns when Bash output contains secrets or PII |
 | `post/stop-scan.mjs` | Stop | Scans for placeholder code before completion, persists session summary to memory |
 
@@ -33,7 +33,7 @@ Project-specific recall stored in `~/.codex/openagentsbtw/state/memory.sqlite`, 
 ## Limitations
 
 - `PreToolUse` and `PostToolUse` only intercept `Bash`. No general-purpose hook matrix for built-in edit/read/write surfaces.
-- Hook-based enforcement is a shell guardrail on top of sandboxing and approvals, not a replacement for Claude's permission patterns.
+- Hook-based enforcement is a shell guardrail on top of sandboxing and approvals, not a complete Claude-style permission layer.
 - RTK can only enforce Bash forms that flow through hooks.
 - `statusMessage` is optional, `suppressOutput` is parsed but not implemented upstream. Generic Codex lifecycle lines may still appear. Track: [openai/codex#15497](https://github.com/openai/codex/issues/15497)
 
