@@ -11,8 +11,10 @@ import {
 
 describe("subscription presets", () => {
 	it("normalizes legacy Claude and Codex aliases", () => {
-		assert.equal(resolveClaudePlan("5x"), "pro-5");
-		assert.equal(resolveClaudePlan("20x"), "pro-20");
+		assert.equal(resolveClaudePlan("5x"), "max5");
+		assert.equal(resolveClaudePlan("20x"), "max20");
+		assert.equal(resolveClaudePlan("pro-5"), "max5");
+		assert.equal(resolveClaudePlan("pro-20"), "max20");
 		assert.equal(resolveCodexPlan("pro"), "pro-5");
 	});
 

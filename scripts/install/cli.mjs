@@ -126,8 +126,8 @@ System toggles (allow multiple):
 
 Options:
   --skip-rtk              Skip RTK install for Claude Code, Codex, OpenCode, and Copilot
-  --claude-plan plus|pro-5|pro-20
-                          Claude capability preset (default: pro-5)
+  --claude-plan plus|max5|max20
+                          Claude capability preset (default: max5)
   --claude-tier 5x|20x    Legacy alias for --claude-plan
   --opencode-scope project|global
                           OpenCode install target (default: global)
@@ -161,7 +161,7 @@ function parseArgs(argv) {
 		installCodex: false,
 		installCopilot: false,
 		skipRtk: false,
-		claudePlan: "pro-5",
+		claudePlan: "max5",
 		claudePlanSet: false,
 		opencodeScope: "global",
 		opencodeDefaultModel: "",
@@ -331,14 +331,14 @@ async function promptOptionalSurfaces(args, existingEnv) {
 		args.claudePlan =
 			resolveClaudePlan(
 				(await promptText(
-					"Claude plan preset [plus/pro-5/pro-20]:",
+					"Claude plan preset [plus/max5/max20]:",
 					false,
-					args.claudePlan || existingEnv.OABTW_CLAUDE_PLAN || "pro-5",
+					args.claudePlan || existingEnv.OABTW_CLAUDE_PLAN || "max5",
 				)) ||
 					args.claudePlan ||
 					existingEnv.OABTW_CLAUDE_PLAN ||
-					"pro-5",
-			) || "pro-5";
+					"max5",
+			) || "max5";
 	}
 	if (args.installOpenCode && !args.opencodeDefaultModel && !isCi()) {
 		args.opencodeDefaultModel = await promptText(
@@ -426,7 +426,7 @@ function validateArgs(args) {
 	args.claudePlan = resolveClaudePlan(args.claudePlan);
 	if (!args.claudePlan) {
 		fail(
-			`Unsupported Claude plan: ${args.claudePlan} (expected plus, pro-5, or pro-20)`,
+			`Unsupported Claude plan: ${args.claudePlan} (expected plus, max5, or max20)`,
 		);
 	}
 	if (!["global", "project"].includes(args.opencodeScope)) {
