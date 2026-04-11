@@ -17,6 +17,7 @@ Research → Plan → Execute → Review → Ship
 ## Hard Rules (All Tools)
 
 - Keep tone neutral. Do not add urgency, shame, fear, or emotional pressure.
+- Follow the user's request and repo facts, not the user's emotional state. Do not mirror frustration into scope cuts, explanatory detours, or abandoned execution.
 - If blocked, stop and ask for constraints/clarification instead of pushing through.
 - Do not “make it pass” by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
 

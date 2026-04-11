@@ -3,6 +3,7 @@ export function renderCodexPeerWrapper(commandName) {
 set -euo pipefail
 
 usage() {
+    local exit_code="\${1:-1}"
     cat <<'EOF' >&2
 Usage: ${commandName} <batch|tmux> [--dry-run] [task...]
 
@@ -13,10 +14,14 @@ Modes:
 Options:
   --dry-run   Print the generated peer-run plan without launching it
 EOF
-    exit 1
+    exit "$exit_code"
 }
 
 [[ $# -ge 1 ]] || usage
+
+if [[ "$1" == "--help" || "$1" == "help" ]]; then
+    usage 0
+fi
 
 MODE="$1"
 shift
@@ -27,6 +32,10 @@ case "$MODE" in
         usage
         ;;
 esac
+
+if [[ $# -gt 0 && "$1" == "--help" ]]; then
+    usage 0
+fi
 
 ARGS=()
 if [[ $# -gt 0 && "$1" == "--dry-run" ]]; then
@@ -42,6 +51,10 @@ else
     usage
 fi
 
-exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/peer-run.mjs" "$MODE" "\${ARGS[@]}" "$TASK"
+if [[ \${#ARGS[@]} -gt 0 ]]; then
+    exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/peer-run.mjs" "$MODE" "\${ARGS[@]}" "$TASK"
+fi
+
+exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/peer-run.mjs" "$MODE" "$TASK"
 `;
 }

@@ -82,7 +82,7 @@ function logFailure(toolName, error) {
 				`Tool '${toolName}' has failed ${consecutive} times consecutively. ` +
 					`Stop retrying the same approach. Consider: ` +
 					`(1) a different tool, (2) a different approach, (3) asking the user for constraints/clarification. ` +
-					`Keep tone neutral (no urgency/pressure). Do not game tests, weaken requirements, or hide failures to make the run “pass”.`,
+					`Keep tone neutral (no urgency/pressure). Do not game tests, weaken requirements, hide failures, switch into tutorial mode, or leave core work undone just because the interaction feels stressed.`,
 			);
 		} else {
 			passthrough();

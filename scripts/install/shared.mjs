@@ -68,6 +68,7 @@ export function resolvePaths({
 		claudeHome,
 		codexHome,
 		codexConfig: pathLib.join(codexHome, "config.toml"),
+		codexWrapperBinDir: pathLib.join(codexHome, "openagentsbtw", "bin"),
 		agentsHome,
 		copilotHome,
 		opencodeConfigDir,

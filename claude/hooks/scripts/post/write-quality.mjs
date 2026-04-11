@@ -8,6 +8,7 @@ import {
 	COMMENT_SLOP_PATTERNS,
 	isProseFile,
 	isTestFile,
+	matchPrototypeScaffolding,
 	PLACEHOLDER_EMPTY_BODY,
 	PLACEHOLDER_HARD,
 	passthrough,
@@ -125,6 +126,13 @@ function placeholderPatterns(content, filePath) {
 		.map((pat) => pat.source);
 }
 
+function prototypePatterns(content, filePath) {
+	if (isTestFile(filePath)) return [];
+	return matchPrototypeScaffolding(filePath, content.split("\n"))
+		.slice(0, 5)
+		.map((hit) => hit.replace(/^\s+/, ""));
+}
+
 function slopPatterns(content, filePath) {
 	const hits = [];
 	for (const pat of COMMENT_SLOP_PATTERNS) {
@@ -179,6 +187,15 @@ function sycophancyPatterns(content) {
 				`Placeholder code in ${basename(filePath)}: ` +
 					`${placeholders.slice(0, 3).join(", ")}. ` +
 					`Finish the implementation.${formatNote}`,
+			);
+		}
+
+		const prototypeHits = prototypePatterns(content, filePath);
+		if (prototypeHits.length) {
+			postWarn(
+				`Prototype/demo scaffolding in ${basename(filePath)}: ` +
+					`${prototypeHits.slice(0, 3).join(", ")}. ` +
+					`Replace it with production code that matches the requested behavior.${formatNote}`,
 			);
 		}
 

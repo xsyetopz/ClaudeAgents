@@ -2,6 +2,20 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.9] - 2026-04-11
+
+### Added
+
+- Claude: added route-contract metadata generation plus `SubagentStart` route-context injection for openagentsbtw agents.
+- Claude: added route-aware stop-gate tests covering `edit-required`, `execution-required`, and strict `BLOCKED:` behavior.
+
+### Changed
+
+- Claude: default continuity now stays native via persisted hook context, transcript resume, and memory; `/cca:handoff` is explicit export-only.
+- Claude: `Stop` and `SubagentStop` now reject explanation-only completions, docs-only churn on implementation routes, and prototype/demo scaffolding.
+- Shared guardrails: tightened affect-discipline rules so user frustration cannot downgrade effort or push agents into tutorial/prototype fallbacks.
+- Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `1.2.9`.
+
 ## [1.2.8] - 2026-04-09
 
 ### Added

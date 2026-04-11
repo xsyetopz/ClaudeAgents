@@ -8,6 +8,7 @@ import {
 	deny,
 	genericBlock,
 	genericWarn,
+	hiddenContext,
 	postWarn,
 	stopBlock,
 	stopWarn,
@@ -145,6 +146,35 @@ describe("Warn", () => {
 		const ajv = new Ajv();
 		const validate = ajv.compile(loadSchema());
 		const output = captureExit(warn, "msg");
+		assert.ok(validate(output), JSON.stringify(validate.errors));
+	});
+});
+
+describe("HiddenContext", () => {
+	it("should emit hidden UserPromptSubmit context", () => {
+		const output = captureExit(hiddenContext, "OPENAGENTSBTW_ROUTE=review");
+		assert.equal(output.suppressOutput, true);
+		assert.equal(output.hookSpecificOutput.hookEventName, "UserPromptSubmit");
+	});
+
+	it("should emit hidden SubagentStart context", () => {
+		const output = captureExit(
+			hiddenContext,
+			"OPENAGENTSBTW_ROUTE=hephaestus",
+			"SubagentStart",
+		);
+		assert.equal(output.suppressOutput, true);
+		assert.equal(output.hookSpecificOutput.hookEventName, "SubagentStart");
+	});
+
+	it("should validate against schema", { skip: !Ajv }, () => {
+		const ajv = new Ajv();
+		const validate = ajv.compile(loadSchema());
+		const output = captureExit(
+			hiddenContext,
+			"OPENAGENTSBTW_ROUTE=review",
+			"UserPromptSubmit",
+		);
 		assert.ok(validate(output), JSON.stringify(validate.errors));
 	});
 });

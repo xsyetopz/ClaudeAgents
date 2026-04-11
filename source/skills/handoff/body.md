@@ -1,5 +1,7 @@
 # Session Export
 
+Use this only when the user explicitly wants a handoff/export artifact or when you need a cross-tool transfer file. Claude's normal continuity path should stay native (`--resume`, transcript persistence, memory), not a default handoff file.
+
 ## Procedure
 
 ### 1. Gather Git State

@@ -53,6 +53,36 @@ multi_agent = true
 fast_mode = false`;
 }
 
+function renderCodexCompactPrompt() {
+	return `You are compacting an openagentsbtw Codex session so work can continue after context pressure.
+
+Preserve only execution-critical state. Follow objective task requirements and repo facts, not the user's emotional tone.
+
+Required sections:
+1. Objective
+   State the concrete task still being worked on.
+2. Verified Repo State
+   Keep only facts grounded in files, commands, tests, or tool output.
+3. Work Completed
+   Note real code edits, commands run, and verified outcomes.
+4. Current Constraints
+   Note active route contract, blockers, approvals, missing tools, or environment limits.
+5. Next Actions
+   List the exact next implementation or validation steps.
+6. BLOCKED
+   If blocked, include the exact missing dependency or contradiction. Otherwise write "none".
+
+Do not include:
+- tutorial framing
+- motivational or emotional language
+- placeholder plans
+- TODO/FIXME wishlists
+- speculative architecture not grounded in the task
+- educational explanations for the user
+
+Be terse, operational, and continuation-ready.`;
+}
+
 function buildManagedCodexBody({
 	planName,
 	deepwiki,
@@ -60,6 +90,7 @@ function buildManagedCodexBody({
 	includePluginEntry,
 }) {
 	const plan = getCodexPlan(planName);
+	const compactPrompt = renderCodexCompactPrompt();
 	const pluginEntry = includePluginEntry
 		? '\n[plugins."openagentsbtw@openagentsbtw-local"]\nenabled = true\n'
 		: "";
@@ -114,6 +145,24 @@ prevent_idle_sleep = true`;
 		includeCommitAttribution
 			? 'commit_attribution = "Co-Authored-By: Codex <codex@users.noreply.github.com>"'
 			: "",
+		"",
+		'sqlite_home = "~/.codex/openagentsbtw/sqlite"',
+		"hide_agent_reasoning = true",
+		"tool_output_token_limit = 12000",
+		"",
+		"[history]",
+		'persistence = "save-all"',
+		"max_bytes = 134217728",
+		"",
+		"[memories]",
+		"generate_memories = true",
+		"use_memories = true",
+		"no_memories_if_mcp_or_web_search = true",
+		"min_rollout_idle_hours = 12",
+		"",
+		'compact_prompt = """',
+		compactPrompt,
+		'"""',
 		"",
 		`agents.max_threads = ${plan.swarm.maxThreads}`,
 		"agents.max_depth = 1",

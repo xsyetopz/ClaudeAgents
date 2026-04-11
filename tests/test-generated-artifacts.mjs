@@ -113,6 +113,18 @@ describe("generated Codex defaults", () => {
 			config,
 			/commit_attribution = "Co-Authored-By: Codex <codex@users\.noreply\.github\.com>"/,
 		);
+		assert.match(config, /sqlite_home = "~\/\.codex\/openagentsbtw\/sqlite"/);
+		assert.match(config, /hide_agent_reasoning = true/);
+		assert.match(config, /tool_output_token_limit = 12000/);
+		assert.match(config, /\[history\]/);
+		assert.match(config, /persistence = "save-all"/);
+		assert.match(config, /max_bytes = 134217728/);
+		assert.match(config, /\[memories\]/);
+		assert.match(config, /no_memories_if_mcp_or_web_search = true/);
+		assert.match(
+			config,
+			/compact_prompt = """[\s\S]*Follow objective task requirements and repo facts, not the user's emotional tone\./,
+		);
 		assert.match(config, /\[profiles\.openagentsbtw-go\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-plus\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-pro-5\]/);
@@ -168,6 +180,7 @@ describe("generated Codex defaults", () => {
 		assert.match(wrapper, /trace\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /debug\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /qa\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /resume\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /plan-fast\s+Generated openagentsbtw Codex route/);
 		assert.match(
 			wrapper,
@@ -196,6 +209,15 @@ describe("generated Codex defaults", () => {
 			wrapper,
 			/Route implementation through hephaestus-style execution/,
 		);
+		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=implement/);
+		assert.match(wrapper, /OPENAGENTSBTW_CONTRACT=edit-required/);
+		assert.match(wrapper, /OPENAGENTSBTW_REJECT_PROTOTYPE_SCAFFOLDING=true/);
+		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=qa/);
+		assert.match(wrapper, /OPENAGENTSBTW_CONTRACT=execution-required/);
+		assert.match(
+			wrapper,
+			/run-codex-filtered\.mjs" resume --profile "\$PROFILE" "\$@"/,
+		);
 		assert.match(
 			wrapper,
 			/Route this through patient long-run execution on the longrun profile/,
@@ -206,6 +228,7 @@ describe("generated Codex defaults", () => {
 			/memory\s+Inspect or manage openagentsbtw Codex memory/,
 		);
 		assert.match(shortWrapper, /memory show \[path\]/);
+		assert.match(shortWrapper, /resume\s+Generated openagentsbtw Codex route/);
 		assert.match(
 			shortWrapper,
 			/Route implementation through hephaestus-style execution on the sandboxed auto-accept implementation profile/,
@@ -221,6 +244,22 @@ describe("generated Codex defaults", () => {
 		const peerWrapper = readBuild("bin/oabtw-codex-peer");
 		assert.match(peerWrapper, /Usage: oabtw-codex-peer <batch\|tmux>/);
 		assert.match(peerWrapper, /Run orchestrator, QA, worker, and review/);
+		assert.match(
+			peerWrapper,
+			/if \[\[ "\$1" == "--help" \|\| "\$1" == "help" \]\]/,
+		);
+		assert.match(peerWrapper, /if \[\[ \$\{#ARGS\[@\]\} -gt 0 \]\]/);
+	});
+
+	it("ships the managed Codex hook-noise scrubber", () => {
+		const helper = readBuild(
+			"codex/hooks/scripts/session/run-codex-filtered.mjs",
+		);
+		assert.match(helper, /OABTW_CODEX_FILTER_TUI_HOOK_NOISE/);
+		assert.match(
+			helper,
+			/UserPromptSubmit\|SessionStart\|PreToolUse\|PostToolUse\|Stop/,
+		);
 	});
 
 	it("keeps canonical plugin identifiers while adding only a wrapper alias", () => {
@@ -229,9 +268,22 @@ describe("generated Codex defaults", () => {
 		);
 		const claudePlugin = readBuild("claude/.claude-plugin/plugin.json");
 		const claudeSettings = readBuild("claude/templates/settings-global.json");
+		const claudeHooks = readBuild("claude/hooks/hooks.json");
+		const routeContracts = JSON.parse(
+			readBuild("claude/hooks/route-contracts.json"),
+		);
 		assert.match(codexPlugin, /"name": "openagentsbtw"/);
 		assert.match(claudePlugin, /"name": "openagentsbtw"/);
 		assert.match(claudeSettings, /"openagentsbtw@openagentsbtw": true/);
+		assert.match(
+			claudeSettings,
+			/"CLAUDE_CODE_SAVE_HOOK_ADDITIONAL_CONTEXT": "1"/,
+		);
+		assert.match(claudeHooks, /"SubagentStart"/);
+		assert.match(claudeHooks, /subagent-route-context\.mjs/);
+		assert.equal(routeContracts.skills.review.routeKind, "readonly");
+		assert.equal(routeContracts.skills.test.routeKind, "execution-required");
+		assert.equal(routeContracts.agents.hephaestus.routeKind, "edit-required");
 		assert.equal(claudeSettings.includes('"oabtw@oabtw"'), false);
 	});
 });

@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-import { appendFileSync, mkdirSync } from "node:fs";
-import { extname, join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { dirname, extname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export const HOOK_STRICT = process.env.CCA_HOOK_STRICT === "1";
 
@@ -38,6 +42,17 @@ export const PLACEHOLDER_SOFT = [
 	/in production(?:,)? (?:you|this) (?:would|should)/i,
 	/this (?:is|can be) (?:improved|optimized) later/i,
 	/handle (?:edge cases?|errors?) (?:here|later|properly)/i,
+];
+
+export const PROTOTYPE_SCAFFOLDING = [
+	/\bprototype\b/i,
+	/\bdemo\b/i,
+	/\btoy\b/i,
+	/\bexample\b/i,
+	/\bsample app\b/i,
+	/for demo(?:nstration)?/i,
+	/mock implementation/i,
+	/simplified version/i,
 ];
 
 export const AI_PROSE_SLOP = [
@@ -259,6 +274,7 @@ export function block(reason) {
 
 export function warn(message, event = "PostToolUse") {
 	_printAndExit({
+		suppressOutput: false,
 		hookSpecificOutput: {
 			hookEventName: event,
 			additionalContext: message,
@@ -268,6 +284,7 @@ export function warn(message, event = "PostToolUse") {
 
 export function postWarn(message) {
 	_printAndExit({
+		suppressOutput: false,
 		hookSpecificOutput: {
 			hookEventName: "PostToolUse",
 			additionalContext: message,
@@ -304,6 +321,16 @@ export function passthrough() {
 	process.exit(0);
 }
 
+export function hiddenContext(message, event = "UserPromptSubmit") {
+	_printAndExit({
+		suppressOutput: true,
+		hookSpecificOutput: {
+			hookEventName: event,
+			additionalContext: message,
+		},
+	});
+}
+
 export function isCommentLine(line) {
 	return COMMENT_LEADER_RE.test(line);
 }
@@ -338,6 +365,17 @@ export function matchPlaceholders(
 		}
 	});
 	return { hard, soft };
+}
+
+export function matchPrototypeScaffolding(filepath, lines) {
+	const hits = [];
+	lines.forEach((line, index) => {
+		if (hasSuppression(line)) return;
+		if (PROTOTYPE_SCAFFOLDING.some((pattern) => pattern.test(line))) {
+			hits.push(`  ${filepath}:${index + 1}: ${line.trim().slice(0, 100)}`);
+		}
+	});
+	return hits;
 }
 
 export function matchSecrets(filepath, lines) {
@@ -386,4 +424,21 @@ export function auditLog(
 	} catch {
 		// Best-effort logging, never block on write failure
 	}
+}
+
+let routeContractCache = null;
+
+export function loadRouteContracts() {
+	if (routeContractCache) return routeContractCache;
+	const routeContractsPath = join(__dirname, "..", "route-contracts.json");
+	if (!existsSync(routeContractsPath)) {
+		routeContractCache = { skills: {}, agents: {} };
+		return routeContractCache;
+	}
+	try {
+		routeContractCache = JSON.parse(readFileSync(routeContractsPath, "utf8"));
+	} catch {
+		routeContractCache = { skills: {}, agents: {} };
+	}
+	return routeContractCache;
 }

@@ -10,10 +10,11 @@ openagentsbtw treats this as an **interaction risk**: we can reduce bad outcomes
 - **Blocked-state behavior**: if stuck, the right move is to stop and ask for constraints/clarification, not “push through”.
 - **Anti-reward-hacking constraint**: explicit prohibition on gaming tests, weakening requirements, or hiding failures to make a run “pass”.
 - **Failure loop circuit breaker**: repeated tool failures trigger a message that tells the assistant to stop retry loops and avoid “cheating” behaviors.
+- **Completion gating**: Claude and Codex stop hooks reject explanation-only or prototype-grade “done” states on execution routes so pressure does not collapse into fake progress.
 
 ## Where This Is Implemented
 
 - Shared prompt constraints: `source/shared/constraints.md`
 - Claude failure loop message: `claude/hooks/scripts/post/failure-circuit.mjs`
+- Claude route-aware stop hooks: `claude/hooks/scripts/post/stop-scan.mjs` and `claude/hooks/scripts/post/subagent-scan.mjs`
 - Copilot failure loop hook: `copilot/hooks/scripts/openagentsbtw/post/failure-circuit.mjs`
-

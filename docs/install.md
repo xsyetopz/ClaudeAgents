@@ -111,7 +111,10 @@ Codex preset summary:
 - `openagentsbtw-codex-mini`: lightweight helper profile; `gpt-5.3-codex-spark` is Pro-only and non-Pro installs use `gpt-5.4-mini` instead
 - `openagentsbtw-longrun`: patient long-running profile for builds and test suites with `unified_exec` and a higher background terminal timeout
 
-Installed Codex helper command (after install):
+Installed Codex helper commands (after install):
+
+- PATH-managed shims: `oabtw-codex`, `openagentsbtw-codex`, `oabtw-codex-peer`, `openagentsbtw-codex-peer`
+- direct fallback path: `~/.codex/openagentsbtw/bin/...`
 
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex docs ...`
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex explore ...`
@@ -125,8 +128,18 @@ Installed Codex helper command (after install):
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex implement ...`
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex review ...`
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex longrun ...`
+- `~/.codex/openagentsbtw/bin/openagentsbtw-codex resume --last`
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex-peer batch ...`
 - `~/.codex/openagentsbtw/bin/openagentsbtw-codex-peer tmux ...`
+
+Codex installs also write global native continuity defaults into the managed `~/.codex/config.toml` block:
+
+- `sqlite_home = "~/.codex/openagentsbtw/sqlite"`
+- saved cross-session `history`
+- enabled `memories` with MCP/web-search pollution protection
+- a production-shaped `compact_prompt`
+- `hide_agent_reasoning = true`
+- `tool_output_token_limit = 12000`
 
 ## RTK enforcement (Claude, Codex, OpenCode, Copilot)
 

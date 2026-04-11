@@ -10,7 +10,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-import { matchPlaceholders } from "../hooks/scripts/_lib.mjs";
+import {
+	matchPlaceholders,
+	matchPrototypeScaffolding,
+} from "../hooks/scripts/_lib.mjs";
 import { getRtkRewrite } from "../hooks/scripts/_rtk.mjs";
 
 describe("codex hook lib", () => {
@@ -38,6 +41,13 @@ describe("codex hook lib", () => {
 		]);
 		assert.equal(suppressed.hard.length, 0);
 		assert.equal(suppressed.soft.length, 0);
+	});
+
+	it("matches prototype scaffolding comments", () => {
+		const hits = matchPrototypeScaffolding("src/foo.ts", [
+			"// prototype implementation until the real service lands",
+		]);
+		assert.equal(hits.length, 1);
 	});
 });
 

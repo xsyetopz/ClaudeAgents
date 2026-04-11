@@ -21,6 +21,8 @@ The Codex port keeps only the Claude hook behavior that maps onto documented Cod
 
 Routine Codex hook status text is intentionally omitted from the generated `hooks.json`. openagentsbtw only asks Codex to surface warning, error, or block conditions from these hooks, not normal success chatter.
 
+For wrapper-managed Codex sessions, openagentsbtw also ships a lightweight stream filter that strips only the known transient hook lifecycle lines. This is a managed wrapper workaround, not a replacement for upstream hook suppression.
+
 ## Memory Layer
 
 Codex already ships native SQLite-backed persistence. openagentsbtw uses that as the base layer, then stores project-specific recall in `~/.codex/openagentsbtw/state/memory.sqlite`. The hook flow uses documented Codex fields such as `session_id`, `transcript_path`, `cwd`, `prompt`, and `last_assistant_message`, so the memory feature stays inside the supported hook contract instead of scraping undocumented runtime state.
@@ -31,7 +33,7 @@ Codex hooks are useful guardrails, not a complete Claude-style permission layer.
 
 For RTK specifically, this means Codex can enforce only Bash forms that flow through hooks. It does not force non-Bash tools through RTK.
 
-As of the current Codex hooks docs, `statusMessage` is optional and `suppressOutput` is parsed but not implemented. That means openagentsbtw can remove its own routine status text, but generic Codex lifecycle lines such as `PreToolUse hook (completed)` may still appear until upstream suppression support exists.
+As of the current Codex hooks docs, `statusMessage` is optional and `suppressOutput` is parsed but not implemented. That means openagentsbtw can remove its own routine status text, but generic Codex lifecycle lines such as `PreToolUse hook (completed)` may still appear until upstream suppression support exists. Track upstream status at <https://github.com/openai/codex/issues/15497>.
 
 ## Hooks We Did Not Port
 

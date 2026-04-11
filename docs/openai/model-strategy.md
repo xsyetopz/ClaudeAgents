@@ -16,13 +16,13 @@ As of April 9, 2026, openagentsbtw treats ChatGPT/Codex plans as **framework pre
 ## Plan presets
 
 - `go`
-  Main profile on `gpt-5.4-mini`, implementation on `gpt-5.3-codex`, conservative swarming.
+  Main profile on `gpt-5.4-mini` with `high` reasoning, implementation on `gpt-5.3-codex`, conservative swarming.
 - `plus`
-  Main and implementation on `gpt-5.3-codex`, utility on `gpt-5.4-mini`, standard swarming.
+  Main and implementation on `gpt-5.3-codex`, with `xhigh` reasoning on the main route and `medium` utility reasoning, standard swarming.
 - `pro-5`
-  Main planning/review/orchestration on `gpt-5.2`, implementation on `gpt-5.3-codex`, utility on `gpt-5.3-codex-spark`.
+  Main planning/review/orchestration on `gpt-5.2` with `xhigh` reasoning, implementation on `gpt-5.3-codex`, utility on `gpt-5.3-codex-spark`.
 - `pro-20`
-  Same model family split as `pro-5`, with stronger reasoning on the main profile and more aggressive swarming.
+  Same model family split as `pro-5`, with `xhigh` main reasoning, `medium` utility reasoning, and more aggressive swarming.
 
 ## Agent mapping
 
@@ -41,6 +41,8 @@ Custom agent TOMLs are installed from this repo, then rewritten for the selected
   Use the stable `openagentsbtw` main profile for the selected plan.
 - `implement`, `accept`, `longrun`
   Use the implementation model.
+- `resume`
+  Uses native `codex resume` with the managed `openagentsbtw` profile and openagentsbtw continuity defaults still active.
 - `triage`, `explore`, `trace`, `debug`, `docs`, `desloppify`, `handoff`, `test`, `qa`
   Use `openagentsbtw-codex-mini`.
 

@@ -9,6 +9,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -21,6 +22,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -33,6 +35,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": "Recommended routing: `oabtw-codex docs \"<task>\"` for routine docs edits, or `oabtw-codex desloppify \"<task>\"` for cleanup-heavy passes. `openagentsbtw-codex` remains the canonical equivalent."
   },
   {
@@ -45,6 +48,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -57,6 +61,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": "Recommended routing: `oabtw-codex debug \"<failure or symptom>\"` for read-only bug investigation, or `oabtw-codex test \"<scope>\"` when you specifically need test execution evidence."
   },
   {
@@ -69,11 +74,12 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": "Recommended routing: `oabtw-codex explore \"<target>\"` for local repo exploration, or `oabtw-codex deepwiki \"<target>\"` for public GitHub repos when you want indexed background first."
   },
   {
     "name": "handoff",
-    "description": "Export session context as a structured handoff file for continuity between Claude Code sessions. Use when the user wants to save session progress, create a handoff, preserve context before ending, or mentions \"session export\", \"session handoff\", \"save session\", \"session continuity\".",
+    "description": "Export session context as a structured handoff file for explicit transfer or archival. Use when the user wants a handoff file, session export, cross-tool transfer artifact, or explicit saved summary before ending. Do not treat this as the default Claude continuity path.",
     "userInvocable": true,
     "platforms": [
       "claude",
@@ -81,6 +87,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": "Recommended routing: `oabtw-codex handoff \"<focus>\"` for compact session exports. `openagentsbtw-codex` remains the canonical equivalent."
   },
   {
@@ -93,6 +100,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -105,6 +113,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "execution-required",
     "codexLead": ""
   },
   {
@@ -117,6 +126,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -129,6 +139,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -141,6 +152,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -153,6 +165,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": ""
   },
   {
@@ -165,6 +178,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "execution-required",
     "codexLead": ""
   },
   {
@@ -177,6 +191,7 @@
       "opencode",
       "copilot"
     ],
+    "claudeContract": "readonly",
     "codexLead": "Recommended routing: `oabtw-codex trace \"<symbol or path>\"` for local dependency and data-flow tracing."
   }
 ]

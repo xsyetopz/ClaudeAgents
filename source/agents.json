@@ -23,6 +23,7 @@
       "maxTurns": 50,
       "effort": "high"
     },
+    "claudeContract": "readonly",
     "codex": {
       "description": "Architecture and planning agent for multi-file changes, sequencing, and tradeoff analysis.",
       "model": "gpt-5.3-codex",
@@ -56,6 +57,7 @@
       "maxTurns": 80,
       "effort": "high"
     },
+    "claudeContract": "edit-required",
     "codex": {
       "description": "Primary implementation agent for code changes, bug fixes, and refactors.",
       "model": "gpt-5.3-codex",
@@ -97,6 +99,7 @@
       "maxTurns": 60,
       "effort": "high"
     },
+    "claudeContract": "readonly",
     "codex": {
       "description": "Review and audit agent focused on correctness, regressions, security, and missing tests.",
       "model": "gpt-5.3-codex",
@@ -136,6 +139,7 @@
       "maxTurns": 40,
       "effort": "medium"
     },
+    "claudeContract": "execution-required",
     "codex": {
       "description": "Validation agent for running tests, parsing failures, and reporting exact root-cause evidence.",
       "model": "gpt-5.3-codex",
@@ -168,6 +172,7 @@
       "maxTurns": 40,
       "effort": "medium"
     },
+    "claudeContract": "readonly",
     "codex": {
       "description": "Documentation agent for READMEs, ADRs, changelogs, and precise handoff artifacts.",
       "model": "gpt-5.3-codex",
@@ -201,6 +206,7 @@
       "maxTurns": 50,
       "effort": "high"
     },
+    "claudeContract": "readonly",
     "codex": {
       "description": "Exploration agent for repo tracing, dependency analysis, and evidence-heavy read-only investigation.",
       "model": "gpt-5.3-codex",
@@ -247,6 +253,7 @@
       "maxTurns": 70,
       "effort": "high"
     },
+    "claudeContract": "edit-required",
     "codex": {
       "description": "Coordinator for multi-step work that benefits from explicit delegation across several agents.",
       "model": "gpt-5.3-codex",

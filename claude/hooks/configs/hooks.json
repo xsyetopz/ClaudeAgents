@@ -80,6 +80,18 @@
         ]
       }
     ],
+    "SubagentStart": [
+      {
+        "matcher": "athena|hephaestus|nemesis|atalanta|calliope|hermes|odysseus",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/session/subagent-route-context.mjs",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "matcher": "athena|hephaestus|nemesis|atalanta|calliope|hermes|odysseus",

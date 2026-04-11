@@ -812,6 +812,60 @@ function renderOpenCodeCommands(commands) {
 	].join("\n");
 }
 
+function expandClaudeContract(routeKind) {
+	switch (routeKind) {
+		case "edit-required":
+			return {
+				routeKind,
+				allowBlocked: true,
+				allowDocsOnly: false,
+				allowTestsOnly: false,
+				rejectPrototypeScaffolding: true,
+			};
+		case "execution-required":
+			return {
+				routeKind,
+				allowBlocked: true,
+				allowDocsOnly: true,
+				allowTestsOnly: true,
+				rejectPrototypeScaffolding: false,
+			};
+		default:
+			return {
+				routeKind: "readonly",
+				allowBlocked: true,
+				allowDocsOnly: true,
+				allowTestsOnly: true,
+				rejectPrototypeScaffolding: false,
+			};
+	}
+}
+
+function buildClaudeRouteContracts(skills, agents) {
+	return {
+		skills: Object.fromEntries(
+			skills
+				.filter((skill) => skill.platforms.includes("claude"))
+				.map((skill) => [
+					skill.name,
+					{
+						route: skill.name,
+						...expandClaudeContract(skill.claudeContract),
+					},
+				]),
+		),
+		agents: Object.fromEntries(
+			agents.map((agent) => [
+				agent.name,
+				{
+					route: agent.name,
+					...expandClaudeContract(agent.claudeContract),
+				},
+			]),
+		),
+	};
+}
+
 async function generateCommands(commandData) {
 	await writeFile(
 		path.join("opencode", "src", "commands.ts"),
@@ -836,6 +890,13 @@ async function generateCommands(commandData) {
 		path.join("bin", "oabtw-codex-peer"),
 		renderCodexPeerWrapper("oabtw-codex-peer"),
 		true,
+	);
+}
+
+async function generateClaudeRouteContracts(skills, agents) {
+	await writeFile(
+		path.join("claude", "hooks", "route-contracts.json"),
+		`${JSON.stringify(buildClaudeRouteContracts(skills, agents), null, 2)}\n`,
 	);
 }
 
@@ -951,6 +1012,7 @@ async function main() {
 	await generateSkills(skills);
 	await generateAgents(agents);
 	await generateHooks(policies);
+	await generateClaudeRouteContracts(skills, agents);
 	await generateCommands(commandData);
 	await generateProjectInstructionAssets();
 	await generateCopilotPromptFiles();

@@ -24,6 +24,15 @@ This package ports openagentsbtw onto Codex’s native extension surfaces: custo
 Wrapper command after install:
 
 ```bash
+oabtw-codex docs "tighten the README install section"
+oabtw-codex qa "reproduce this bug broadly and record the variants"
+oabtw-codex resume --last
+oabtw-codex-peer batch "investigate, implement, test, and review this change"
+```
+
+Direct fallback path:
+
+```bash
 ~/.codex/openagentsbtw/bin/oabtw-codex docs "tighten the README install section"
 ~/.codex/openagentsbtw/bin/oabtw-codex deepwiki "map the auth subsystem before editing it"
 ~/.codex/openagentsbtw/bin/oabtw-codex implement "fix the auth race in src/auth.ts"
@@ -44,9 +53,10 @@ The installer:
 - enables the plugin in `~/.codex/config.toml` under `[plugins."openagentsbtw@openagentsbtw-local"]` (if not already present)
 - installs custom agents into `~/.codex/agents/`
 - installs hook scripts into `~/.codex/openagentsbtw/hooks/` and merges `~/.codex/hooks.json`
+- installs PATH-managed wrapper shims into `~/.local/bin/` on Unix or `%APPDATA%\\openagentsbtw\\bin\\` on Windows
 - keeps openagentsbtw memory state in `~/.codex/openagentsbtw/state/`
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
-- appends a plan-aware `openagentsbtw` main profile, a matching `openagentsbtw-<plan>` alias, `openagentsbtw-codex-mini`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` to `~/.codex/config.toml`
+- appends global native continuity defaults (`sqlite_home`, `history`, `memories`, `compact_prompt`, `hide_agent_reasoning`, `tool_output_token_limit`) plus a plan-aware `openagentsbtw` main profile, a matching `openagentsbtw-<plan>` alias, `openagentsbtw-codex-mini`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` to `~/.codex/config.toml`
 - optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
 - optionally installs RTK and a managed `~/.config/openagentsbtw/RTK.md` policy
 
@@ -115,7 +125,7 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 
 ## Routing
 
-- `oabtw-codex explore|trace|debug|qa|plan|implement|review|longrun|orchestrate|deepwiki` is the short supported CLI routing layer.
+- `oabtw-codex explore|trace|debug|qa|plan|implement|review|longrun|orchestrate|deepwiki|resume` is the short supported CLI routing layer.
 - `oabtw-codex accept` is the sandboxed auto-accept implementation route.
 - `oabtw-codex-peer batch|tmux` is the openagentsbtw-managed peer-thread helper. It runs top-level Codex workers; it is not a native Codex subagent feature.
 - `oabtw-codex memory show|forget-project|prune` manages the openagentsbtw SQLite memory overlay.
@@ -134,6 +144,7 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 ## Memory
 
 - Codex already has native SQLite-backed state persistence and saved sessions.
+- openagentsbtw installs native continuity defaults so `codex resume` and `oabtw-codex resume` continue from the same persisted thread state by default.
 - openagentsbtw adds a second, explicit project-memory DB at `~/.codex/openagentsbtw/state/memory.sqlite`.
 - SessionStart loads the current project's recap and recent session notes.
 - UserPromptSubmit adds lightweight git context and a compact project-memory hint during active work.

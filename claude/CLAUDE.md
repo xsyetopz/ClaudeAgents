@@ -79,8 +79,9 @@ Lifecycle-organized in `hooks/scripts/{pre,post,session}/`.
 - `post/write-quality.mjs` — auto-format + placeholder + slop scan
 - `post/bash-redact.mjs` — redacts secrets from output
 - `post/failure-circuit.mjs` — retry loop detection
-- `post/subagent-scan.mjs` — placeholder scan on subagent stop
-- `post/stop-scan.mjs` — placeholder scan on session stop
+- `session/subagent-route-context.mjs` — injects subagent route contracts
+- `post/subagent-scan.mjs` — route-aware completion validation on subagent stop
+- `post/stop-scan.mjs` — route-aware completion validation on session stop
 - `session/start-budget.mjs` — line budget warnings
 - `session/stream-context.mjs` — streaming safety context injection
 - `session/prompt-git-context.mjs` — git context injection
@@ -90,14 +91,16 @@ Lifecycle-organized in `hooks/scripts/{pre,post,session}/`.
 
 Three plans, set at install time via `./install.sh --claude-plan <plus|pro-5|pro-20>`:
 
-| Role                       | Plus                | Pro 5x              | Pro 20x            |
-| -------------------------- | ------------------- | ------------------- | ------------------ |
-| Orchestrator (`CCA_MODEL`) | `claude-sonnet-4-6` | `opusplan`          | `opus[1m]`         |
-| Opus slot                  | `claude-sonnet-4-6` | `claude-opus-4-6`   | `claude-opus-4-6`  |
+| Role                       | Plus                | Pro 5x              | Pro 20x             |
+| -------------------------- | ------------------- | ------------------- | ------------------- |
+| Orchestrator (`CCA_MODEL`) | `claude-sonnet-4-6` | `opusplan`          | `opus[1m]`          |
+| Opus slot                  | `claude-sonnet-4-6` | `claude-opus-4-6`   | `claude-opus-4-6`   |
 | Sonnet slot                | `claude-sonnet-4-6` | `claude-sonnet-4-6` | `claude-sonnet-4-6` |
 | Haiku slot                 | `claude-haiku-4-5`  | `claude-haiku-4-5`  | `claude-sonnet-4-6` |
 
 Agent models use logical names (`opus`, `sonnet`, `haiku`) that resolve via env vars. Sonnet/haiku agents have 200K context windows and capped maxTurns — keep delegated payloads focused. Env vars pin model versions in `~/.claude/settings.json`. Output style: CCA. Statusline: model, context %, cost, git branch.
+
+Claude continuity should stay native: resume the session and rely on transcript persistence plus `.claude/memory/MEMORY.md`. `/cca:handoff` is for explicit export or cross-tool transfer, not the default continuity path.
 
 ## Development
 

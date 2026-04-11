@@ -33,6 +33,18 @@ export const PLACEHOLDER_SOFT = [
 	/\bdefer(?:red)?\b/i,
 ];
 
+export const PROTOTYPE_SCAFFOLDING = [
+	/\bprototype\b/i,
+	/\bdemo\b/i,
+	/\btoy\b/i,
+	/\bexample\b/i,
+	/\bsample app\b/i,
+	/for demonstration/i,
+	/\bmock implementation\b/i,
+	/simplified version/i,
+	/\bproof of concept\b/i,
+];
+
 export const AI_PROSE_SLOP = [
 	/\b(?:robust|seamless|comprehensive|cutting-edge|innovative|streamlined)\b/i,
 	/\b(?:leverage|utilize|facilitate|enhance|empower|foster)\b/i,
@@ -204,16 +216,33 @@ export function matchPlaceholders(filepath, lines, includeEmptyBody = false) {
 			return;
 		}
 		if (
-			(treatSoftAnywhere
+			treatSoftAnywhere
 				? PLACEHOLDER_SOFT.some((pattern) => pattern.test(line))
 				: isCommentLine(line) &&
-					PLACEHOLDER_SOFT.some((pattern) => pattern.test(line)))
+					PLACEHOLDER_SOFT.some((pattern) => pattern.test(line))
 		) {
 			soft.push(`  ${filepath}:${lineNumber}: ${line.trim().slice(0, 100)}`);
 		}
 	});
 
 	return { hard, soft };
+}
+
+export function matchPrototypeScaffolding(filepath, lines) {
+	const hits = [];
+	const treatAnywhere = isProseFile(filepath);
+
+	lines.forEach((line, index) => {
+		if (hasSuppression(line)) return;
+		if (
+			(treatAnywhere || isCommentLine(line)) &&
+			PROTOTYPE_SCAFFOLDING.some((pattern) => pattern.test(line))
+		) {
+			hits.push(`  ${filepath}:${index + 1}: ${line.trim().slice(0, 100)}`);
+		}
+	});
+
+	return hits;
 }
 
 export function matchCommentSlop(filepath, lines) {

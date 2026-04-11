@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadProjectMemory, renderMemoryContext } from "../_memory.mjs";
 import { passthrough, readStdin } from "../_lib.mjs";
+import { loadProjectMemory, renderMemoryContext } from "../_memory.mjs";
 
 const TARGETS = [
 	["AGENTS.md", 120],
@@ -49,10 +50,37 @@ function persistenceWarnings(pathname) {
 	}
 }
 
+function commandExists(command) {
+	try {
+		if (process.platform === "win32") {
+			return (
+				spawnSync("where", [command], { stdio: "ignore", shell: true })
+					.status === 0
+			);
+		}
+		return (
+			spawnSync("sh", ["-lc", `command -v ${command} >/dev/null 2>&1`], {
+				stdio: "ignore",
+			}).status === 0
+		);
+	} catch {
+		return false;
+	}
+}
+
 (async () => {
 	const data = await readStdin();
 	const cwd = data.cwd || process.cwd();
 	const warnings = [];
+	const managedBinDir =
+		process.platform === "win32"
+			? join(
+					process.env.APPDATA ||
+						join(process.env.HOME || "", "AppData", "Roaming"),
+					"openagentsbtw",
+					"bin",
+				)
+			: join(process.env.HOME || "", ".local", "bin");
 
 	for (const [target, limit] of TARGETS) {
 		const fullPath = target.startsWith("/") ? target : join(cwd, target);
@@ -78,6 +106,12 @@ function persistenceWarnings(pathname) {
 		if (existsSync(configPath)) {
 			warnings.push(...persistenceWarnings(configPath));
 		}
+	}
+
+	if (!commandExists("oabtw-codex")) {
+		warnings.push(
+			`oabtw-codex is not on PATH. Expected shim location: ${managedBinDir}. Direct fallback: ${join(process.env.HOME || "", ".codex", "openagentsbtw", "bin", "oabtw-codex")}`,
+		);
 	}
 
 	const memory = await loadProjectMemory(cwd);

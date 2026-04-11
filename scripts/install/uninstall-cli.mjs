@@ -367,6 +367,20 @@ async function removeCodex() {
 		recursive: true,
 		force: true,
 	});
+	for (const wrapper of [
+		"openagentsbtw-codex",
+		"oabtw-codex",
+		"openagentsbtw-codex-peer",
+		"oabtw-codex-peer",
+	]) {
+		await fs.rm(path.join(PATHS.managedBinDir, wrapper), { force: true });
+		await fs.rm(path.join(PATHS.managedBinDir, `${wrapper}.ps1`), {
+			force: true,
+		});
+		await fs.rm(path.join(PATHS.managedBinDir, `${wrapper}.cmd`), {
+			force: true,
+		});
+	}
 
 	for (const agent of [
 		"athena",

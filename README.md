@@ -119,7 +119,7 @@ Each platform also gets a generated “hook support map” so it’s explicit wh
 - OpenCode notes (rules/plugins): `docs/opencode/README.md`
 - “Nano BMAD” method notes: `docs/method/nano-bmad.md`
 
-Codex installs also include `oabtw-codex qa`, `oabtw-codex longrun`, and `oabtw-codex-peer batch|tmux` for evidence-heavy validation, patient long-running jobs, and openagentsbtw-managed peer threads.
+Codex installs also add PATH-managed `oabtw-codex`, `openagentsbtw-codex`, `oabtw-codex-peer`, and `openagentsbtw-codex-peer` shims, so `oabtw-codex qa`, `oabtw-codex longrun`, `oabtw-codex resume --last`, and `oabtw-codex-peer batch|tmux` are directly invocable after install on correctly configured shells.
 
 RTK enforcement is only active when both of the following are true:
 - `rtk` is installed

@@ -47,6 +47,10 @@ describe("shared install paths", () => {
 		assert.equal(paths.configDir, "/tmp/xdg/openagentsbtw");
 		assert.equal(paths.managedBinDir, "/home/krystian/.local/bin");
 		assert.equal(paths.ctx7Wrapper, "/home/krystian/.local/bin/ctx7");
+		assert.equal(
+			paths.codexWrapperBinDir,
+			"/home/krystian/.codex/openagentsbtw/bin",
+		);
 		assert.equal(paths.opencodeConfigDir, "/tmp/xdg/opencode");
 	});
 
@@ -92,6 +96,14 @@ describe("public entrypoints", () => {
 		assert.match(installer, /mergeClaudeSettings/);
 		assert.equal(installer.includes("jq "), false);
 		assert.equal(installer.includes("ensureJq("), false);
+	});
+
+	it("installs Codex wrapper shims into the managed PATH directory", () => {
+		const installer = readRepo("scripts/install/cli.mjs");
+		const uninstaller = readRepo("scripts/install/uninstall-cli.mjs");
+		assert.match(installer, /installCodexWrapperShims/);
+		assert.match(installer, /PATHS\.managedBinDir/);
+		assert.match(uninstaller, /PATHS\.managedBinDir/);
 	});
 
 	it("ships matching PowerShell wrappers for all root entrypoints", () => {

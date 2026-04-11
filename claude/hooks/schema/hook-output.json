@@ -50,6 +50,23 @@
 					"type": "object",
 					"additionalProperties": false,
 					"required": [
+						"hookEventName",
+						"additionalContext"
+					],
+					"properties": {
+						"hookEventName": {
+							"type": "string",
+							"const": "SubagentStart"
+						},
+						"additionalContext": {
+							"type": "string"
+						}
+					}
+				},
+				{
+					"type": "object",
+					"additionalProperties": false,
+					"required": [
 						"hookEventName"
 					],
 					"properties": {
