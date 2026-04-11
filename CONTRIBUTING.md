@@ -45,7 +45,7 @@ cd opencode && bun install --frozen-lockfile
 |------|----------|
 | `source/agents.json` | Agent definitions (7 agents) |
 | `source/agent-prompts.mjs` | Agent prompt templates |
-| `source/skills.json` | Skill metadata (15 skills) |
+| `source/skills.json` | Skill metadata (16 skills) |
 | `source/skills/*/body.md` | Skill content |
 | `source/commands.json` | Command definitions |
 | `source/hook-policies.json` | Hook policies (10 hooks) |
