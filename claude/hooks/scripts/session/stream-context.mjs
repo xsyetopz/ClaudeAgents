@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Stream Context — SessionStart hook (Layer 3)
+ * Stream Context -- SessionStart hook (Layer 3)
  *
  * When CCA_STREAM_MODE=1, injects safety instructions into the LLM context
  * so it avoids outputting secrets in text responses. No-op otherwise.

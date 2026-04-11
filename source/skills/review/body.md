@@ -37,18 +37,18 @@
 
 Check in this order. See `reference/anti-patterns.md` for language-specific examples.
 
-1. **Scope creep** — changes beyond what was requested
-2. **Behavior changes in refactors** — logic differences in restructured code
-3. **Placeholders** — stub implementations, "for now...", unimplemented branches
-4. **DRY violations** — duplicated constants, validation, error messages
-5. **Over-commenting** — headers, separators, docstrings on unchanged code
-6. **SRP violations** — modules with multiple reasons to change
-7. **Over-engineering** — abstractions used once, premature generalization
-8. **Bad naming** — generic names from the banned list above
-9. **Large functions** — 30+ lines without extraction
-10. **Missing error handling** — `unwrap()` in prod, swallowed errors
-11. **Ultimatum decisions** — single approach presented without alternatives for non-trivial decisions
-12. **Lint suppression** — silencing warnings without explanatory comment on verified false positive
+1. **Scope creep** -- changes beyond what was requested
+2. **Behavior changes in refactors** -- logic differences in restructured code
+3. **Placeholders** -- stub implementations, "for now...", unimplemented branches
+4. **DRY violations** -- duplicated constants, validation, error messages
+5. **Over-commenting** -- headers, separators, docstrings on unchanged code
+6. **SRP violations** -- modules with multiple reasons to change
+7. **Over-engineering** -- abstractions used once, premature generalization
+8. **Bad naming** -- generic names from the banned list above
+9. **Large functions** -- 30+ lines without extraction
+10. **Missing error handling** -- `unwrap()` in prod, swallowed errors
+11. **Ultimatum decisions** -- single approach presented without alternatives for non-trivial decisions
+12. **Lint suppression** -- silencing warnings without explanatory comment on verified false positive
 
 ## Frontend Review
 

@@ -89,7 +89,10 @@ describe("managed codex wrapper shims", () => {
 					},
 				);
 				assert.equal(result.code, 0);
-				assert.match(result.stdout.replace(/\r/g, ""), /oabtw-codex resume --last/);
+				assert.match(
+					result.stdout.replace(/\r/g, ""),
+					/oabtw-codex resume --last/,
+				);
 			} finally {
 				await rm(tmp, { recursive: true, force: true });
 			}

@@ -183,7 +183,7 @@ const results = items.flatMap(processItem);
 
 Node.js: high event loop lag (`clinic doctor` shows "Your process is unresponsive"). Python asyncio: warnings about long-running coroutines.
 
-### TypeScript — Sequential vs Parallel
+### TypeScript -- Sequential vs Parallel
 
 ```typescript
 // Problem: sequential when operations are independent
@@ -203,7 +203,7 @@ const users = await Promise.all(
 );
 ```
 
-### TypeScript — Sync work on event loop
+### TypeScript -- Sync work on event loop
 
 ```typescript
 // Problem: heavy CPU work blocks event loop
@@ -275,7 +275,7 @@ LIMIT 20;
 -- Single column (most common)
 CREATE INDEX idx_orders_customer_email ON orders(customer_email);
 
--- Composite (column order matters — put equality columns first)
+-- Composite (column order matters -- put equality columns first)
 CREATE INDEX idx_orders_user_status ON orders(user_id, status);
 -- Supports: WHERE user_id = ? AND status = ?
 -- Supports: WHERE user_id = ?

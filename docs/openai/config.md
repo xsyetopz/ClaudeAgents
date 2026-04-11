@@ -6,14 +6,14 @@ Codex uses `~/.codex/config.toml` for user defaults and `.codex/config.toml` for
 
 openagentsbtw appends a managed profile block to `~/.codex/config.toml`:
 
-| Profile | Purpose |
-|---------|---------|
-| `openagentsbtw` | Main route, model from selected plan |
-| `openagentsbtw-<plan>` | Plan alias (Codex: go/plus/pro-5/pro-20) |
-| `openagentsbtw-implement` | Stable implementation profile for wrapper routes |
-| `openagentsbtw-codex-mini` | Lightweight tasks (Spark on Pro, mini on go/plus) |
-| `openagentsbtw-accept-edits` | Sandboxed auto-approval |
-| `openagentsbtw-longrun` | Patient builds/tests with `unified_exec` and higher timeout |
+| Profile                      | Purpose                                                     |
+| ---------------------------- | ----------------------------------------------------------- |
+| `openagentsbtw`              | Main route, model from selected plan                        |
+| `openagentsbtw-<plan>`       | Plan alias (Codex: go/plus/pro-5/pro-20)                    |
+| `openagentsbtw-implement`    | Stable implementation profile for wrapper routes            |
+| `openagentsbtw-codex-mini`   | Lightweight tasks (Spark on Pro, mini on go/plus)           |
+| `openagentsbtw-accept-edits` | Sandboxed auto-approval                                     |
+| `openagentsbtw-longrun`      | Patient builds/tests with `unified_exec` and higher timeout |
 
 The plugin is enabled via config:
 
@@ -43,14 +43,14 @@ All managed profiles use:
 
 ### Wrapper Routing
 
-| Mode | Profile |
-|------|---------|
-| `plan`, `review`, `orchestrate` | `openagentsbtw` |
-| `implement` | `openagentsbtw-implement` |
-| `accept` | `openagentsbtw-accept-edits` |
-| `qa` | `openagentsbtw-codex-mini` |
-| `longrun` | `openagentsbtw-longrun` |
-| Bounded utility modes | `openagentsbtw-codex-mini` |
+| Mode                            | Profile                      |
+| ------------------------------- | ---------------------------- |
+| `plan`, `review`, `orchestrate` | `openagentsbtw`              |
+| `implement`                     | `openagentsbtw-implement`    |
+| `accept`                        | `openagentsbtw-accept-edits` |
+| `qa`                            | `openagentsbtw-codex-mini`   |
+| `longrun`                       | `openagentsbtw-longrun`      |
+| Bounded utility modes           | `openagentsbtw-codex-mini`   |
 
 ## Plan Mode
 

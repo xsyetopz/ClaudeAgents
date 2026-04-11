@@ -87,10 +87,10 @@ def test_webhook(url: str):
 
 Blocked ranges:
 
-- `169.254.169.254` — AWS/GCP/Azure instance metadata
-- `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` — RFC-1918 private
-- `127.0.0.0/8`, `::1` — loopback
-- `fd00::/8` — IPv6 unique local
+- `169.254.169.254` -- AWS/GCP/Azure instance metadata
+- `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` -- RFC-1918 private
+- `127.0.0.0/8`, `::1` -- loopback
+- `fd00::/8` -- IPv6 unique local
 
 ---
 
@@ -127,7 +127,7 @@ payload = Payload(**json.loads(request.get_data()))
 
 ---
 
-## GraphQL — Unbounded Depth and Batching
+## GraphQL -- Unbounded Depth and Batching
 
 **Severity**: HIGH
 
@@ -178,7 +178,7 @@ Attackers exhaust resources, enumerate data, or brute-force credentials by bypas
 
 **Common bypasses**:
 
-- IP rotation: rate limit by IP only → bypass with proxies
+- IP rotation: rate limit by IP only -> bypass with proxies
 - Account enumeration: limit per IP, not per account
 - Header spoofing: `X-Forwarded-For`, `X-Real-IP` manipulation
 
@@ -211,7 +211,7 @@ Endpoints requiring rate limits:
 
 | Attack              | Pattern                                   | Fix                                           |
 | ------------------- | ----------------------------------------- | --------------------------------------------- |
-| Algorithm confusion | `alg: none` or switching RS256 → HS256    | Explicitly specify algorithm, reject `none`   |
+| Algorithm confusion | `alg: none` or switching RS256 -> HS256   | Explicitly specify algorithm, reject `none`   |
 | Weak secret         | HS256 with short/guessable secret         | 256+ bit random secret, or use RS256/ES256    |
 | Missing expiry      | No `exp` claim                            | Set `exp`, reject tokens without it           |
 | No audience check   | Token for service A accepted by service B | Validate `aud` claim matches expected service |

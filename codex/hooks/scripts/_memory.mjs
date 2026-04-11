@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { mkdirSync, readFileSync, existsSync } from "node:fs";
-import { basename, isAbsolute, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { basename, isAbsolute, join, resolve } from "node:path";
 
 const MAX_PROMPT_CHARS = 280;
 const MAX_ASSISTANT_CHARS = 420;

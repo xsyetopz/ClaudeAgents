@@ -92,7 +92,7 @@ ecosystem, paradigm
 "testament"  "tapestry"  "paramount"  "pivotal"  "indispensable"
 ```
 
-**Placeholder Language** (hard-blocked by anti-placeholder hook — replace with complete implementation):
+**Placeholder Language** (hard-blocked by anti-placeholder hook -- replace with complete implementation):
 
 ```text
 "for now"  "simplified version"  "in a real implementation"  "placeholder"  "temporary"
@@ -216,9 +216,9 @@ SLOP:  "Built with developer experience in mind"
 CLEAN: [Delete. If the DX is good, the docs prove it.]
 ```
 
-**Padding Sections** — delete "Why X?", "Philosophy", "Our Vision" unless they contain concrete differentiators.
+**Padding Sections** -- delete "Why X?", "Philosophy", "Our Vision" unless they contain concrete differentiators.
 
-**Emoji Abuse** — strip emoji from headers and bullets unless established project style. Severity indicators are fine.
+**Emoji Abuse** -- strip emoji from headers and bullets unless established project style. Severity indicators are fine.
 
 ### Tier 5 -- Invisible Characters (always remove)
 
@@ -282,4 +282,4 @@ These are invisible but break string matching, URLs, and copy-paste. Always remo
 
 ## Output Format
 
-When reporting, use: `| Line | Tier | Original | Action |` table with AUTO-FIX/DELETE/REWRITE/FLAG actions. When directly editing files, skip the report — just make the changes.
+When reporting, use: `| Line | Tier | Original | Action |` table with AUTO-FIX/DELETE/REWRITE/FLAG actions. When directly editing files, skip the report -- just make the changes.

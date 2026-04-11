@@ -1,5 +1,5 @@
 #!/bin/bash
-# _run.sh — universal CCA hook runner
+# _run.sh -- universal CCA hook runner
 # Usage: _run.sh <hook-script.mjs>
 # Reads CLAUDE_PROJECT_DIR or CLAUDE_PLUGIN_ROOT to find the hook.
 # Falls back gracefully if hook file is missing (exit 0 = no-op).

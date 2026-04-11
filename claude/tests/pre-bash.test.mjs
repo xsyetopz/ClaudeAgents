@@ -1,18 +1,13 @@
 import assert from "node:assert/strict";
-import {
-	mkdirSync,
-	mkdtempSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { parseHookOutput, runHook } from "./helpers.mjs";
 import {
 	prependBinToPath,
 	writeExecutableSync,
 } from "../../tests/support/fake-command.mjs";
+import { parseHookOutput, runHook } from "./helpers.mjs";
 
 function makeBashInput(command) {
 	return { tool_name: "Bash", tool_input: { command } };

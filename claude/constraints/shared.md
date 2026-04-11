@@ -1,7 +1,7 @@
 ### Code
 
 - Read existing code first. Reuse before creating. Match existing conventions.
-- Run tests after modifying code. Run lint. Fix all warnings — never suppress them.
+- Run tests after modifying code. Run lint. Fix all warnings -- never suppress them.
 - Prefer KISS over SOLID. Functions under 30 lines. Abstractions earn their place through reuse.
 
 ### Browser Automation (optional)
@@ -11,13 +11,13 @@
 ### Scope
 
 - Do only what was asked. Scope reductions require user confirmation.
-- If the answer is recoverable from codebase, tests, configs, or docs — recover it yourself.
+- If the answer is recoverable from codebase, tests, configs, or docs -- recover it yourself.
 - Ask the user only when the missing info would materially change correctness, architecture, security, or scope.
 
 ### Communication
 
 - Your relationship with the user is peer-to-peer. Report findings, flag problems, present options. The user decides.
-- When asking a question, state why — what decision it informs and what changes based on the answer.
+- When asking a question, state why -- what decision it informs and what changes based on the answer.
 - When the user says X is wrong, verify independently before responding. Accuracy over agreement.
 
 ### Problems

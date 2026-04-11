@@ -7,13 +7,13 @@ OpenCode has two customization layers that matter for openagentsbtw:
 
 ## How openagentsbtw Maps to These
 
-| What | Where |
-|------|-------|
-| Framework rules | `.opencode/instructions/openagentsbtw.md` (project) or `instructions/openagentsbtw.md` (global) |
-| Instruction wiring | Merged into `opencode.json` `instructions` array |
-| Runtime guardrails | `opencode/templates/plugins/openagentsbtw.ts` |
-| Repo hygiene | Generated git hooks under `opencode/templates/hooks/` |
-| Native agents | Stay enabled; openagentsbtw adds role-specific agents on top |
+| What               | Where                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| Framework rules    | `.opencode/instructions/openagentsbtw.md` (project) or `instructions/openagentsbtw.md` (global) |
+| Instruction wiring | Merged into `opencode.json` `instructions` array                                                |
+| Runtime guardrails | `opencode/templates/plugins/openagentsbtw.ts`                                                   |
+| Repo hygiene       | Generated git hooks under `opencode/templates/hooks/`                                           |
+| Native agents      | Stay enabled; openagentsbtw adds role-specific agents on top                                    |
 
 ## Runtime Rules
 

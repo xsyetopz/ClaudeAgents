@@ -29,15 +29,15 @@ source/
 
 Each agent is a specialist. Route work to the right one:
 
-| Agent | Role | When to use |
-|-------|------|-------------|
-| **athena** | Architecture, planning, sequencing | Before non-trivial multi-file implementation |
-| **hephaestus** | Implementation, bug fixes, refactors | When the plan is clear and code needs writing |
-| **nemesis** | Review, security, risk finding | After implementation, before shipping |
-| **atalanta** | Test execution, failure diagnosis | When tests fail or need writing |
-| **calliope** | Documentation, changelogs | After implementation is stable |
-| **hermes** | Exploration, tracing, evidence gathering | When you need to understand before changing |
-| **odysseus** | Multi-step coordination | When work spans several agents or phases |
+| Agent          | Role                                     | When to use                                   |
+| -------------- | ---------------------------------------- | --------------------------------------------- |
+| **athena**     | Architecture, planning, sequencing       | Before non-trivial multi-file implementation  |
+| **hephaestus** | Implementation, bug fixes, refactors     | When the plan is clear and code needs writing |
+| **nemesis**    | Review, security, risk finding           | After implementation, before shipping         |
+| **atalanta**   | Test execution, failure diagnosis        | When tests fail or need writing               |
+| **calliope**   | Documentation, changelogs                | After implementation is stable                |
+| **hermes**     | Exploration, tracing, evidence gathering | When you need to understand before changing   |
+| **odysseus**   | Multi-step coordination                  | When work spans several agents or phases      |
 
 ## The Nano BMAD Workflow
 
@@ -98,12 +98,12 @@ Phase prompts live in `.github/prompts/`. Route through: research, plan, impleme
 
 These optional tools work across all four platforms:
 
-| Tool | What it does | Check availability |
-|------|-------------|-------------------|
-| **ctx7** | External library/API doc lookups | `which ctx7` |
-| **RTK** | Rewrites dangerous shell commands to safer forms | `which rtk` + `RTK.md` present |
-| **Playwright CLI** | Browser automation for debugging | `which playwright-cli` |
-| **DeepWiki** | Indexed GitHub repo exploration | Configured via MCP |
+| Tool               | What it does                                     | Check availability             |
+| ------------------ | ------------------------------------------------ | ------------------------------ |
+| **ctx7**           | External library/API doc lookups                 | `which ctx7`                   |
+| **RTK**            | Rewrites dangerous shell commands to safer forms | `which rtk` + `RTK.md` present |
+| **Playwright CLI** | Browser automation for debugging                 | `which playwright-cli`         |
+| **DeepWiki**       | Indexed GitHub repo exploration                  | Configured via MCP             |
 
 ## Safety Hooks
 
@@ -120,19 +120,19 @@ These are guardrails, not walls. They catch common mistakes but are not a securi
 
 ## Quick Reference
 
-| I want to... | Do this |
-|--------------|---------|
-| Understand a codebase | `@hermes` / `oabtw-codex explore` |
-| Plan an implementation | `@athena` / `oabtw-codex plan` |
-| Write code | `@hephaestus` / `oabtw-codex implement` |
-| Review changes | `@nemesis` / `oabtw-codex review` |
-| Run and fix tests | `@atalanta` / `oabtw-codex test` |
-| Write docs | `@calliope` / `oabtw-codex docs` |
-| Coordinate multi-step work | `@odysseus` / `oabtw-codex orchestrate` |
-| Clean up AI-sounding text | `/cca:desloppify` / `oabtw-codex desloppify` |
-| Make a technical decision | `/cca:decide` |
-| Commit and ship | `/cca:ship` |
-| Change your plan preset | `./config.sh --claude-plan max20` |
+| I want to...               | Do this                                      |
+| -------------------------- | -------------------------------------------- |
+| Understand a codebase      | `@hermes` / `oabtw-codex explore`            |
+| Plan an implementation     | `@athena` / `oabtw-codex plan`               |
+| Write code                 | `@hephaestus` / `oabtw-codex implement`      |
+| Review changes             | `@nemesis` / `oabtw-codex review`            |
+| Run and fix tests          | `@atalanta` / `oabtw-codex test`             |
+| Write docs                 | `@calliope` / `oabtw-codex docs`             |
+| Coordinate multi-step work | `@odysseus` / `oabtw-codex orchestrate`      |
+| Clean up AI-sounding text  | `/cca:desloppify` / `oabtw-codex desloppify` |
+| Make a technical decision  | `/cca:decide`                                |
+| Commit and ship            | `/cca:ship`                                  |
+| Change your plan preset    | `./config.sh --claude-plan max20`            |
 
 ## Further Reading
 

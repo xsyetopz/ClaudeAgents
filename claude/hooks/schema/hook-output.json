@@ -23,7 +23,7 @@
 				"approve",
 				"block"
 			],
-			"description": "Top-level decision (deprecated — use hookSpecificOutput)"
+			"description": "Top-level decision (deprecated -- use hookSpecificOutput)"
 		},
 		"reason": {
 			"type": "string",

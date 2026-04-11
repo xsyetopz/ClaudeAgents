@@ -4,8 +4,8 @@ Design decisions for the OpenCode integration. Researched against the OpenCode d
 
 ## Contents
 
-| Doc | Covers |
-|-----|--------|
+| Doc                    | Covers                                             |
+| ---------------------- | -------------------------------------------------- |
 | `rules-and-plugins.md` | Project guidance, runtime guardrails, repo hygiene |
 
 ## Canonical Sources

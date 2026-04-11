@@ -4,13 +4,13 @@ openagentsbtw packages four platform-specific surfaces from a single canonical s
 
 ## System Map
 
-| Directory | Contents |
-|-----------|----------|
-| `claude/` | Claude Code plugin, hooks, skills, templates, tests |
-| `codex/` | Codex plugin, custom agents, hooks, templates, research docs |
-| `opencode/` | OpenCode framework integration, templates |
-| `copilot/` | Copilot/VS Code assets, hook scripts |
-| `docs/openai/` | Codex/OpenAI research and porting decisions |
+| Directory      | Contents                                                     |
+| -------------- | ------------------------------------------------------------ |
+| `claude/`      | Claude Code plugin, hooks, skills, templates, tests          |
+| `codex/`       | Codex plugin, custom agents, hooks, templates, research docs |
+| `opencode/`    | OpenCode framework integration, templates                    |
+| `copilot/`     | Copilot/VS Code assets, hook scripts                         |
+| `docs/openai/` | Codex/OpenAI research and porting decisions                  |
 
 ## Codex Rules
 

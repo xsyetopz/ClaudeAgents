@@ -4,7 +4,7 @@ import { deny, passthrough, readStdin } from "../_lib.mjs";
 
 function validateWrite(toolInput) {
 	const fp = toolInput.file_path ?? "";
-	if (!fp || !fp.startsWith("/")) return "file_path must be an absolute path";
+	if (!fp?.startsWith("/")) return "file_path must be an absolute path";
 	const content = toolInput.content ?? "";
 	if (!content) return "content must be non-empty";
 	return null;
@@ -12,7 +12,7 @@ function validateWrite(toolInput) {
 
 function validateEdit(toolInput) {
 	const fp = toolInput.file_path ?? "";
-	if (!fp || !fp.startsWith("/")) return "file_path must be an absolute path";
+	if (!fp?.startsWith("/")) return "file_path must be an absolute path";
 	const oldStr = toolInput.old_string ?? "";
 	const newStr = toolInput.new_string ?? "";
 	if (!oldStr) return "old_string must be non-empty";
@@ -23,13 +23,13 @@ function validateEdit(toolInput) {
 
 function validateBash(toolInput) {
 	const cmd = toolInput.command ?? "";
-	if (!cmd || !cmd.trim()) return "command must be non-empty";
+	if (!cmd?.trim()) return "command must be non-empty";
 	return null;
 }
 
 function validateRead(toolInput) {
 	const fp = toolInput.file_path ?? "";
-	if (!fp || !fp.startsWith("/")) return "file_path must be an absolute path";
+	if (!fp?.startsWith("/")) return "file_path must be an absolute path";
 	return null;
 }
 

@@ -104,7 +104,7 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 ### Changed
 
 - Version `1.2.0` is now aligned across the Claude plugin, Codex plugin, and OpenCode package.
-- JS tooling preference order is now: `bun`/`bunx` → `pnpm`/`yarn` → `npm`/`npx`, with an automatic bun install attempt when none are present.
+- JS tooling preference order is now: `bun`/`bunx` -> `pnpm`/`yarn` -> `npm`/`npx`, with an automatic bun install attempt when none are present.
 - Codex sample config and managed guidance are aligned to the `gpt-5.2` / `gpt-5.3-codex` / `gpt-5.3-codex-spark` split (no managed `gpt-5.4` routing).
 
 ### Removed

@@ -17,11 +17,11 @@ Is this error expected (invalid input, not found, timeout)?
 
 ## Language Reference
 
-| Pattern | Languages | Reference |
-|---------|-----------|-----------|
-| Exception hierarchies | Python, TypeScript | `reference/exceptions.md` |
-| Result / error-as-value | Rust, Go, TypeScript (optional) | `reference/result-errors.md` |
-| Propagation with context | Rust, Go, Python, TypeScript | `reference/propagation.md` |
+| Pattern                  | Languages                       | Reference                    |
+| ------------------------ | ------------------------------- | ---------------------------- |
+| Exception hierarchies    | Python, TypeScript              | `reference/exceptions.md`    |
+| Result / error-as-value  | Rust, Go, TypeScript (optional) | `reference/result-errors.md` |
+| Propagation with context | Rust, Go, Python, TypeScript    | `reference/propagation.md`   |
 
 ## Anti-Patterns
 

@@ -6,15 +6,15 @@ Compact, tool-agnostic workflow that the openagentsbtw agents are built for:
 
 ## Agent Routing
 
-| Phase | Agent |
-|-------|-------|
-| Research / repo mapping / tracing | hermes |
-| Architecture + sequencing | athena |
-| Implementation | hephaestus |
-| Review + risk | nemesis |
-| Validation | atalanta |
-| Documentation | calliope |
-| Multi-step coordination | odysseus |
+| Phase                             | Agent      |
+| --------------------------------- | ---------- |
+| Research / repo mapping / tracing | hermes     |
+| Architecture + sequencing         | athena     |
+| Implementation                    | hephaestus |
+| Review + risk                     | nemesis    |
+| Validation                        | atalanta   |
+| Documentation                     | calliope   |
+| Multi-step coordination           | odysseus   |
 
 ## Hard Rules
 

@@ -87,6 +87,6 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "odysseus",
 		routeKind: "edit-required",
 		promptTemplate:
-			"End-to-end delivery of the following feature or fix:\n1. Read current state and confirm understanding of the specification\n2. Implement using @hephaestus\n3. Run tests using @atalanta — do not proceed if tests fail\n4. Review code using @nemesis — resolve all BLOCKING findings before proceeding\n5. Update documentation using @calliope\n6. Report: files changed, test status, review verdict, and any remaining manual steps\n7. Remind the user to commit manually — auto-commit is forbidden\n\nFeature or fix:",
+			"End-to-end delivery of the following feature or fix:\n1. Read current state and confirm understanding of the specification\n2. Implement using @hephaestus\n3. Run tests using @atalanta -- do not proceed if tests fail\n4. Review code using @nemesis -- resolve all BLOCKING findings before proceeding\n5. Update documentation using @calliope\n6. Report: files changed, test status, review verdict, and any remaining manual steps\n7. Remind the user to commit manually -- auto-commit is forbidden\n\nFeature or fix:",
 	},
 ];

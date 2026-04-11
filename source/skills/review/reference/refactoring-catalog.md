@@ -6,10 +6,10 @@ Complete catalog of refactoring moves. Cardinal rule: **refactoring changes stru
 
 ## Pre-Refactor Checklist
 
-1. Tests pass — run the full relevant suite before starting
-2. Scope defined — know exactly what changes and what doesn't
-3. Commit before starting — clean rollback point
-4. No behavior changes — if behavior must change, that's a separate task
+1. Tests pass -- run the full relevant suite before starting
+2. Scope defined -- know exactly what changes and what doesn't
+3. Commit before starting -- clean rollback point
+4. No behavior changes -- if behavior must change, that's a separate task
 
 ---
 
@@ -118,7 +118,7 @@ Rename type, function, and variable together when they refer to the same concept
 package utils
 func FormatUser(u domain.User) string { ... }
 
-// After: move to domain package — it belongs with User
+// After: move to domain package -- it belongs with User
 package domain
 func (u User) String() string { ... }
 ```
@@ -176,7 +176,7 @@ class Rect:
 def serialize(shape): return shape.serialize()
 ```
 
-**When NOT to apply**: two branches that won't grow. Simple data-switching (e.g., mapping status codes to messages) — a table is simpler.
+**When NOT to apply**: two branches that won't grow. Simple data-switching (e.g., mapping status codes to messages) -- a table is simpler.
 
 ---
 
@@ -224,7 +224,7 @@ After:
 
 ---
 
-## Code Smells → Refactoring Map
+## Code Smells -> Refactoring Map
 
 | Smell                                                      | Refactoring                           |
 | ---------------------------------------------------------- | ------------------------------------- |

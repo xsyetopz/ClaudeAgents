@@ -77,11 +77,11 @@ Installs the `xsyetopz@openagentsbtw` plugin, user-level hooks, and output style
 
 ### Claude Plan Details
 
-| Plan | Default Model | Opus Slot | Sonnet Slot | Haiku Slot | Swarm Threads |
-|------|--------------|-----------|-------------|------------|---------------|
-| `plus` | Sonnet 4.6 | Sonnet 4.6 | Sonnet 4.6 | Haiku 4.5 | 3 |
-| `max5` | Opus (plan mode) | Opus 4.6 (1M) | Sonnet 4.6 | Haiku 4.5 | 5 |
-| `max20` | Opus (1M) | Opus 4.6 (1M) | Sonnet 4.6 | Sonnet 4.6 | 6 |
+| Plan    | Default Model    | Opus Slot     | Sonnet Slot | Haiku Slot | Swarm Threads |
+| ------- | ---------------- | ------------- | ----------- | ---------- | ------------- |
+| `plus`  | Sonnet 4.6       | Sonnet 4.6    | Sonnet 4.6  | Haiku 4.5  | 3             |
+| `max5`  | Opus (plan mode) | Opus 4.6 (1M) | Sonnet 4.6  | Haiku 4.5  | 5             |
+| `max20` | Opus (1M)        | Opus 4.6 (1M) | Sonnet 4.6  | Sonnet 4.6 | 6             |
 
 - **plus**: Sonnet-only. No Opus routing. Keep payloads narrow.
 - **max5**: Default. Opus for planning/review, Sonnet for implementation. Balanced.
@@ -100,12 +100,12 @@ Installs the plugin into `~/.codex/plugins/openagentsbtw`, custom agents into `~
 
 ### Codex Plan Details
 
-| Plan | Main Model | Utility Model | Spark (Pro-only) | Swarm Threads |
-|------|-----------|---------------|------------------|---------------|
-| `go` | gpt-5.4-mini | gpt-5.4-mini | No | 3 |
-| `plus` | gpt-5.3-codex | gpt-5.4-mini | No | 4 |
-| `pro-5` | gpt-5.2 | gpt-5.3-codex-spark | Yes | 5 |
-| `pro-20` | gpt-5.2 | gpt-5.3-codex-spark | Yes | 6 |
+| Plan     | Main Model    | Utility Model       | Spark (Pro-only) | Swarm Threads |
+| -------- | ------------- | ------------------- | ---------------- | ------------- |
+| `go`     | gpt-5.4-mini  | gpt-5.4-mini        | No               | 3             |
+| `plus`   | gpt-5.3-codex | gpt-5.4-mini        | No               | 4             |
+| `pro-5`  | gpt-5.2       | gpt-5.3-codex-spark | Yes              | 5             |
+| `pro-20` | gpt-5.2       | gpt-5.3-codex-spark | Yes              | 6             |
 
 Agent routing on `pro-5`:
 - Athena, Nemesis, Odysseus: gpt-5.2 (xhigh reasoning)
@@ -125,23 +125,23 @@ Each plan installs these profiles into `~/.codex/config.toml`:
 
 Available on PATH after install:
 
-| Command | Purpose |
-|---------|---------|
-| `oabtw-codex plan` | Plan phase |
-| `oabtw-codex implement` | Implementation phase |
-| `oabtw-codex review` | Review phase |
-| `oabtw-codex test` | Test phase |
-| `oabtw-codex explore` | Codebase exploration |
-| `oabtw-codex docs` | Documentation lookup |
-| `oabtw-codex trace` | Execution tracing |
-| `oabtw-codex debug` | Debugging |
-| `oabtw-codex qa` | Quality assurance |
-| `oabtw-codex deepwiki` | DeepWiki exploration |
-| `oabtw-codex desloppify` | AI slop detection and cleanup |
-| `oabtw-codex longrun` | Long-running tasks |
-| `oabtw-codex resume --last` | Resume last session |
-| `oabtw-codex-peer batch` | Multi-worker batch |
-| `oabtw-codex-peer tmux` | Multi-worker tmux |
+| Command                     | Purpose                       |
+| --------------------------- | ----------------------------- |
+| `oabtw-codex plan`          | Plan phase                    |
+| `oabtw-codex implement`     | Implementation phase          |
+| `oabtw-codex review`        | Review phase                  |
+| `oabtw-codex test`          | Test phase                    |
+| `oabtw-codex explore`       | Codebase exploration          |
+| `oabtw-codex docs`          | Documentation lookup          |
+| `oabtw-codex trace`         | Execution tracing             |
+| `oabtw-codex debug`         | Debugging                     |
+| `oabtw-codex qa`            | Quality assurance             |
+| `oabtw-codex deepwiki`      | DeepWiki exploration          |
+| `oabtw-codex desloppify`    | AI slop detection and cleanup |
+| `oabtw-codex longrun`       | Long-running tasks            |
+| `oabtw-codex resume --last` | Resume last session           |
+| `oabtw-codex-peer batch`    | Multi-worker batch            |
+| `oabtw-codex-peer tmux`     | Multi-worker tmux             |
 
 Direct fallback path: `~/.codex/openagentsbtw/bin/openagentsbtw-codex ...`
 
@@ -183,10 +183,10 @@ Writes platform assets to project scope (`.github/`) or global scope (`~/.copilo
 
 ### Copilot Plan Details
 
-| Plan | Plan/Review Model | Build/Test Model | Implement Model | Swarm Threads |
-|------|------------------|-----------------|-----------------|---------------|
-| `pro` | gpt-5.2 | gpt-5-mini | gpt-5.2 | 3 |
-| `pro-plus` | gpt-5.2 | gpt-5.3-codex | gpt-5.3-codex | 5 |
+| Plan       | Plan/Review Model | Build/Test Model | Implement Model | Swarm Threads |
+| ---------- | ----------------- | ---------------- | --------------- | ------------- |
+| `pro`      | gpt-5.2           | gpt-5-mini       | gpt-5.2         | 3             |
+| `pro-plus` | gpt-5.2           | gpt-5.3-codex    | gpt-5.3-codex   | 5             |
 
 ### Copilot Install Locations
 

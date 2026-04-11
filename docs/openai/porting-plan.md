@@ -4,13 +4,13 @@ Mapping used for the openagentsbtw Codex split. Shared source content lives unde
 
 ## Source-to-Target Mapping
 
-| Claude | Codex |
-|--------|-------|
-| Plugin manifest | `codex/plugin/openagentsbtw/.codex-plugin/plugin.json` |
-| Skills | `codex/plugin/openagentsbtw/skills/` |
-| Agent markdown files | Custom agent TOMLs in `codex/agents/` |
-| `CLAUDE.md` | Real `AGENTS.md` files and templates |
-| Hooks | Subset of verified Codex hook events |
+| Claude               | Codex                                                  |
+| -------------------- | ------------------------------------------------------ |
+| Plugin manifest      | `codex/plugin/openagentsbtw/.codex-plugin/plugin.json` |
+| Skills               | `codex/plugin/openagentsbtw/skills/`                   |
+| Agent markdown files | Custom agent TOMLs in `codex/agents/`                  |
+| `CLAUDE.md`          | Real `AGENTS.md` files and templates                   |
+| Hooks                | Subset of verified Codex hook events                   |
 
 ## Behavior Changes
 

@@ -10,12 +10,12 @@ openagentsbtw hooks are guardrails, not walls. They catch common mistakes and en
 
 ### What Hooks Protect Against
 
-| Hook | Protects against |
-|------|-----------------|
-| `pre-bash.mjs` | Broad `rm -rf`, blanket `git add .`, DNS exfiltration patterns |
-| `post-bash.mjs` | Accidental secret leaks in command output |
-| `post-write.mjs` | Placeholder/stub code reaching production |
-| `subagent-scan.mjs` | Silent scope reduction by agents |
+| Hook                | Protects against                                               |
+| ------------------- | -------------------------------------------------------------- |
+| `pre-bash.mjs`      | Broad `rm -rf`, blanket `git add .`, DNS exfiltration patterns |
+| `post-bash.mjs`     | Accidental secret leaks in command output                      |
+| `post-write.mjs`    | Placeholder/stub code reaching production                      |
+| `subagent-scan.mjs` | Silent scope reduction by agents                               |
 
 ### What Hooks Do Not Protect Against
 
@@ -53,10 +53,10 @@ Mount only the project directory. Do not mount `~/.ssh`, `~/.aws`, or other cred
 
 ## Known CVE Mitigations
 
-| CVE | Impact | Fix |
-|-----|--------|-----|
-| CVE-2025-59536 | RCE via malicious project config | Fixed in Claude Code v1.0.111 |
-| CVE-2026-21852 | API key exfiltration | Fixed in Claude Code v2.0.65; pre-secrets hook adds extra protection |
+| CVE            | Impact                           | Fix                                                                  |
+| -------------- | -------------------------------- | -------------------------------------------------------------------- |
+| CVE-2025-59536 | RCE via malicious project config | Fixed in Claude Code v1.0.111                                        |
+| CVE-2026-21852 | API key exfiltration             | Fixed in Claude Code v2.0.65; pre-secrets hook adds extra protection |
 
 Always update to the latest Claude Code version.
 

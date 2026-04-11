@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Stream Guard — PreToolUse hook (Layer 1)
+ * Stream Guard -- PreToolUse hook (Layer 1)
  *
  * When CCA_STREAM_MODE=1, blocks commands and file operations that would
  * expose secrets during livestreams. No-op when streaming mode is off.

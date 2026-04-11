@@ -2,12 +2,12 @@
 
 openagentsbtw generates platform-specific artifacts for four targets from a single canonical source:
 
-| Target | Directory | What gets generated |
-|--------|-----------|-------------------|
-| Claude Code | `claude/` | Plugin, hooks, skills, templates, tests |
-| Codex CLI | `codex/` | Plugin, custom agents, hooks, templates |
-| OpenCode | `opencode/` | Framework integration, templates |
-| GitHub Copilot | `copilot/` | VS Code assets, hook scripts |
+| Target         | Directory   | What gets generated                     |
+| -------------- | ----------- | --------------------------------------- |
+| Claude Code    | `claude/`   | Plugin, hooks, skills, templates, tests |
+| Codex CLI      | `codex/`    | Plugin, custom agents, hooks, templates |
+| OpenCode       | `opencode/` | Framework integration, templates        |
+| GitHub Copilot | `copilot/`  | VS Code assets, hook scripts            |
 
 Canonical source lives in `source/`. Generation is handled by `scripts/generate.mjs`.
 
@@ -41,15 +41,15 @@ cd opencode && bun install --frozen-lockfile
 
 ### Canonical Sources
 
-| File | Controls |
-|------|----------|
-| `source/agents.json` | Agent definitions (7 agents) |
-| `source/agent-prompts.mjs` | Agent prompt templates |
-| `source/skills.json` | Skill metadata (16 skills) |
-| `source/skills/*/body.md` | Skill content |
-| `source/commands.json` | Command definitions |
-| `source/hook-policies.json` | Hook policies (10 hooks) |
-| `source/project-guidance.mjs` | Shared project guidance |
+| File                          | Controls                     |
+| ----------------------------- | ---------------------------- |
+| `source/agents.json`          | Agent definitions (7 agents) |
+| `source/agent-prompts.mjs`    | Agent prompt templates       |
+| `source/skills.json`          | Skill metadata (16 skills)   |
+| `source/skills/*/body.md`     | Skill content                |
+| `source/commands.json`        | Command definitions          |
+| `source/hook-policies.json`   | Hook policies (10 hooks)     |
+| `source/project-guidance.mjs` | Shared project guidance      |
 
 ### Generated Outputs
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { deny, passthrough, readStdin } from "../_lib.mjs";
 
 const LARGE_OUTPUT_RULES = [

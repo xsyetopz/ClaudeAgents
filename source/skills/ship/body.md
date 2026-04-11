@@ -52,7 +52,7 @@ ci(github): add cargo deny check to pipeline
 4. Body explains **why**, not what - the diff shows what changed
 5. Breaking changes: add `!` after scope - `feat(api)!: remove v1 endpoints`
 6. Reference issues in body or footer: `Closes #123`
-7. Start with an action verb: "Add", "Fix", "Remove" — not "Gracefully handle", "Elegantly refactor"
+7. Start with an action verb: "Add", "Fix", "Remove" -- not "Gracefully handle", "Elegantly refactor"
 8. No filler adjectives in the description: avoid "thorough", "clean", "proper" and similar padding
 
 ### Body and Footer

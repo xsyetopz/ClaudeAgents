@@ -4,7 +4,7 @@ Adding context when passing errors up the call stack. Use when: you can't handle
 
 ---
 
-## Rust — anyhow
+## Rust -- anyhow
 
 ```rust
 use anyhow::{Context, Result, bail};
@@ -28,7 +28,7 @@ fn load_config(path: &Path) -> Result<Config> {
 
 ---
 
-## Go — fmt.Errorf wrapping
+## Go -- fmt.Errorf wrapping
 
 ```go
 func processOrder(id string) error {
@@ -44,12 +44,12 @@ func processOrder(id string) error {
 ```
 
 - `%w` preserves the wrapped error for `errors.Is`/`errors.As` unwrapping
-- Add context only where it adds information — avoid repeating the same message
+- Add context only where it adds information -- avoid repeating the same message
 - At the top-level boundary: log with `%v`, return generic message to caller
 
 ---
 
-## Python — raise from
+## Python -- raise from
 
 ```python
 def load_config(path: str) -> Config:
@@ -63,13 +63,13 @@ def load_config(path: str) -> Config:
     return Config(**data)
 ```
 
-- `raise X from Y` — preserves cause in `__cause__`, shown in traceback
-- `raise X from None` — suppresses original when it's implementation detail
+- `raise X from Y` -- preserves cause in `__cause__`, shown in traceback
+- `raise X from None` -- suppresses original when it's implementation detail
 - Log at the top-level boundary (API handler / CLI main), not at every call site
 
 ---
 
-## TypeScript — rethrow with context
+## TypeScript -- rethrow with context
 
 ```typescript
 async function loadUserOrders(userId: string): Promise<Order[]> {
@@ -90,6 +90,6 @@ class DatabaseError extends AppError {
 }
 ```
 
-- Re-throw at each meaningful boundary — don't let raw DB/network errors reach API layer
+- Re-throw at each meaningful boundary -- don't let raw DB/network errors reach API layer
 - `{ cause: e }` preserves original for logging
-- Never `catch (e) {}` — always log, wrap, or rethrow
+- Never `catch (e) {}` -- always log, wrap, or rethrow

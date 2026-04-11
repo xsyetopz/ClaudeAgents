@@ -99,7 +99,7 @@
   },
   {
     "name": "openagentsbtw",
-    "description": "Use the openagentsbtw role system and nano workflow (Research → Plan → Execute → Review → Ship) when work benefits from explicit planning, implementation, review, testing, documentation, or multi-agent orchestration.",
+    "description": "Use the openagentsbtw role system and nano workflow (Research -> Plan -> Execute -> Review -> Ship) when work benefits from explicit planning, implementation, review, testing, documentation, or multi-agent orchestration.",
     "userInvocable": true,
     "platforms": [
       "claude",

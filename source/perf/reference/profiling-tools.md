@@ -6,7 +6,7 @@ Commands, flags, and output interpretation per language. Measure before optimizi
 
 ## Rust
 
-### CPU Profiling — cargo flamegraph
+### CPU Profiling -- cargo flamegraph
 
 ```bash
 cargo install flamegraph
@@ -16,7 +16,7 @@ cargo flamegraph --test mytest
 
 Output: `flamegraph.svg`. Wide frames = hot functions. Tall stacks = deep call chains.
 
-### CPU Profiling — perf (Linux)
+### CPU Profiling -- perf (Linux)
 
 ```bash
 perf record -g cargo run --release
@@ -25,7 +25,7 @@ perf report --stdio
 
 Look for functions with highest `% Self` time.
 
-### Memory — dhat
+### Memory -- dhat
 
 ```toml
 [profile.release]
@@ -48,7 +48,7 @@ cargo run --release
 
 Outputs `dhat-heap.json`. View at <https://nnethercote.github.io/dh_view/dh_view.html>. Key metrics: total bytes, peak bytes, top allocation sites.
 
-### Memory — heaptrack
+### Memory -- heaptrack
 
 ```bash
 heaptrack cargo run --release
@@ -60,7 +60,7 @@ heaptrack_gui heaptrack.*.gz
 
 ## TypeScript / Node.js
 
-### CPU Profiling — --prof
+### CPU Profiling -- --prof
 
 ```bash
 node --prof dist/server.js
@@ -70,7 +70,7 @@ cat profile.txt
 
 Sections in output: `[JavaScript]`, `[C++]`, `[Summary]`. Look for functions with highest ticks count.
 
-### CPU + Memory — clinic.js
+### CPU + Memory -- clinic.js
 
 ```bash
 bun install -g clinic
@@ -79,13 +79,13 @@ clinic heapprofiler -- node dist/server.js # heap
 clinic doctor -- node dist/server.js       # auto-detects: event loop lag, memory leak, I/O
 ```
 
-### Memory — --heap-prof
+### Memory -- --heap-prof
 
 ```bash
 node --heap-prof dist/server.js
 ```
 
-Generates `*.heapprofile`. Open in Chrome DevTools → Memory → Load profile. Key metrics: retained size, object counts, allocation traces.
+Generates `*.heapprofile`. Open in Chrome DevTools -> Memory -> Load profile. Key metrics: retained size, object counts, allocation traces.
 
 ### Chrome DevTools (for long-running processes)
 
@@ -93,19 +93,19 @@ Generates `*.heapprofile`. Open in Chrome DevTools → Memory → Load profile. 
 node --inspect dist/server.js
 ```
 
-Open `chrome://inspect`. Memory tab → Take heap snapshot. Compare two snapshots to find leaks.
+Open `chrome://inspect`. Memory tab -> Take heap snapshot. Compare two snapshots to find leaks.
 
 ---
 
 ## Python
 
-### CPU — cProfile
+### CPU -- cProfile
 
 ```bash
 python -m cProfile -s cumulative myapp.py
 ```
 
-Sort options: `cumulative` (time in function + callees — find entry points), `tottime` (function only — find bottleneck), `calls`.
+Sort options: `cumulative` (time in function + callees -- find entry points), `tottime` (function only -- find bottleneck), `calls`.
 
 ```bash
 python -m cProfile -o profile.out myapp.py
@@ -121,17 +121,17 @@ profiler.disable()
 profiler.print_stats(sort='cumulative')
 ```
 
-### CPU — py-spy (sampling, no code changes)
+### CPU -- py-spy (sampling, no code changes)
 
 ```bash
 pip install py-spy
 py-spy top --pid 12345                           # live top-like view
-py-spy record -o profile.svg -- python myapp.py # flame graph → profile.svg
+py-spy record -o profile.svg -- python myapp.py # flame graph -> profile.svg
 ```
 
-py-spy works on running processes without modification — useful for production debugging.
+py-spy works on running processes without modification -- useful for production debugging.
 
-### Memory — tracemalloc
+### Memory -- tracemalloc
 
 ```python
 import tracemalloc
@@ -145,7 +145,7 @@ for stat in top_stats[:10]:
 # Shows: file:line, size, count
 ```
 
-### Memory — memory-profiler
+### Memory -- memory-profiler
 
 ```bash
 pip install memory-profiler
@@ -165,7 +165,7 @@ python -m memory_profiler myapp.py
 
 ## Go
 
-### pprof — CPU
+### pprof -- CPU
 
 ```go
 import (
@@ -189,7 +189,7 @@ go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
 (pprof) list FuncName  # annotated source for function
 ```
 
-### pprof — Heap
+### pprof -- Heap
 
 ```bash
 go tool pprof http://localhost:6060/debug/pprof/heap

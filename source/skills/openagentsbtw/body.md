@@ -2,7 +2,7 @@
 
 Use this skill when the task benefits from explicit role routing plus a compact, repeatable workflow:
 
-Research → Plan → Execute → Review → Ship
+Research -> Plan -> Execute -> Review -> Ship
 
 ## Role Map
 
@@ -95,7 +95,7 @@ The `accept` route is an openagentsbtw convenience mode, not a native Codex coll
 ## Claude Code + OpenCode Mapping
 
 - Route to the matching role for the phase (`athena` for planning, `hephaestus` for implementation, `nemesis` for review, etc.).
-- Keep the same workflow shape (Research → Plan → Execute → Review → Ship) even if the UI differs.
+- Keep the same workflow shape (Research -> Plan -> Execute -> Review -> Ship) even if the UI differs.
 
 ## Default Flow
 

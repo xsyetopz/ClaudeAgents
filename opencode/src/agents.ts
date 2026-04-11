@@ -114,7 +114,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	build: {
 		greekName: "odysseus",
 		description:
-			"Senior engineering lead — end-to-end task ownership, multi-agent orchestration, and delivery",
+			"Senior engineering lead -- end-to-end task ownership, multi-agent orchestration, and delivery",
 		color: `"#1B5E4B"`,
 		mode: "primary",
 		routeKind: "edit-required",
@@ -123,7 +123,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	plan: {
 		greekName: "athena",
 		description:
-			"Senior solution architect — breaks goals into concrete, dependency-mapped implementation plans",
+			"Senior solution architect -- breaks goals into concrete, dependency-mapped implementation plans",
 		color: `"#2F5D8C"`,
 		mode: "primary",
 		routeKind: "readonly",
@@ -132,7 +132,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	implement: {
 		greekName: "hephaestus",
 		description:
-			"Precision code implementer — writes and modifies production code per specification",
+			"Precision code implementer -- writes and modifies production code per specification",
 		color: `"#8C4A2F"`,
 		mode: "subagent",
 		routeKind: "edit-required",
@@ -141,7 +141,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	review: {
 		greekName: "nemesis",
 		description:
-			"Code quality analyst — reviews correctness, security, and standards compliance",
+			"Code quality analyst -- reviews correctness, security, and standards compliance",
 		color: `"#4B2E83"`,
 		mode: "subagent",
 		routeKind: "readonly",
@@ -150,7 +150,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	test: {
 		greekName: "atalanta",
 		description:
-			"Test execution specialist — runs test suites and diagnoses failures",
+			"Test execution specialist -- runs test suites and diagnoses failures",
 		color: `"#0E1A2B"`,
 		mode: "subagent",
 		routeKind: "execution-required",
@@ -159,7 +159,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	document: {
 		greekName: "calliope",
 		description:
-			"Technical writer — creates and maintains documentation, changelogs, and API references",
+			"Technical writer -- creates and maintains documentation, changelogs, and API references",
 		color: `"#C76B7B"`,
 		mode: "subagent",
 		routeKind: "readonly",
@@ -168,7 +168,7 @@ export const AGENT_META: Record<AgentRole, AgentMeta> = {
 	explore: {
 		greekName: "hermes",
 		description:
-			"Research and exploration specialist — deep codebase analysis and information retrieval",
+			"Research and exploration specialist -- deep codebase analysis and information retrieval",
 		color: `"#1CA7A6"`,
 		mode: "subagent",
 		routeKind: "readonly",

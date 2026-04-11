@@ -47,7 +47,7 @@ function getStagedFiles(cwd) {
 	return stdout ? stdout.split("\n").filter(Boolean) : [];
 }
 
-function stagedEnvFile(cwd, files) {
+function stagedEnvFile(_cwd, files) {
 	for (const file of files) {
 		const basename = file.split("/").pop() || "";
 		if (

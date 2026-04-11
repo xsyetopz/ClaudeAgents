@@ -26,8 +26,8 @@ Logic differences in restructured code.
 def discount(price, rate):
     return price * (1 - rate)
 
-# After refactor (broken — order changed)
-def discount(rate, price):     # param order swapped — silent bug
+# After refactor (broken -- order changed)
+def discount(rate, price):     # param order swapped -- silent bug
     return price * (1 - rate)
 ```
 
@@ -82,7 +82,7 @@ for user in users:
         # Add to result list
         result.append(user)
 
-# GOOD — no comments needed; code is self-explanatory
+# GOOD -- no comments needed; code is self-explanatory
 for user in users:
     if user.is_active:
         result.append(user)
@@ -244,16 +244,16 @@ Acceptable only for verified false positives with an explanatory comment.
 
 ### TypeScript
 
-- `as any` to silence type errors — fix the type instead
+- `as any` to silence type errors -- fix the type instead
 - `// @ts-ignore` without explanation
 - Non-null assertion `!` without guard (`user!.email` when user can be null)
 - Returning `undefined` from async function implicitly
 
 ### Python
 
-- Bare `except:` — catches SystemExit and KeyboardInterrupt
-- Mutable default arguments: `def fn(items=[])` — shared across calls
-- `import *` from non-stdlib modules — pollutes namespace
+- Bare `except:` -- catches SystemExit and KeyboardInterrupt
+- Mutable default arguments: `def fn(items=[])` -- shared across calls
+- `import *` from non-stdlib modules -- pollutes namespace
 
 ### Go
 
@@ -263,6 +263,6 @@ Acceptable only for verified false positives with an explanatory comment.
 
 ### Rust
 
-- `.clone()` everywhere to avoid borrow checker — signals design issue
+- `.clone()` everywhere to avoid borrow checker -- signals design issue
 - `String` parameters when `&str` would do
-- Returning `Box<dyn Error>` from library code — use typed errors
+- Returning `Box<dyn Error>` from library code -- use typed errors

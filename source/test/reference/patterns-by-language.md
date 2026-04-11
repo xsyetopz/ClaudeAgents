@@ -22,7 +22,7 @@ func TestUserService_Create_ValidEmail(t *testing.T) {
 ```
 
 - `t.Parallel()` on all independent tests
-- `require` (stops test on failure) vs `assert` (continues) — use `require` for preconditions
+- `require` (stops test on failure) vs `assert` (continues) -- use `require` for preconditions
 - Testify: `github.com/stretchr/testify/require` + `assert`
 
 ### Table-Driven Tests
@@ -57,7 +57,7 @@ type UserRepo interface {
     Save(ctx context.Context, user *User) error
 }
 
-// Manual mock — clear, no magic
+// Manual mock -- clear, no magic
 type mockUserRepo struct {
     users map[string]*User
     err   error
@@ -86,7 +86,7 @@ admin := makeTestUser(t, func(u *User) { u.Role = "admin" })
 
 ---
 
-## TypeScript — Vitest
+## TypeScript -- Vitest
 
 ### Naming and Structure
 
@@ -129,7 +129,7 @@ const spy = vi.spyOn(service, 'sendEmail').mockResolvedValue(undefined);
 beforeEach(() => vi.clearAllMocks());
 ```
 
-Prefer `vi.fn()` over `jest.fn()` — same API, native to Vitest.
+Prefer `vi.fn()` over `jest.fn()` -- same API, native to Vitest.
 
 ### Factory Functions
 
@@ -172,7 +172,7 @@ vi.useRealTimers();
 
 ---
 
-## Python — pytest
+## Python -- pytest
 
 ### Naming and Structure
 

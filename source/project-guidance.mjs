@@ -128,7 +128,7 @@ Built-in subagents disabled: use @hermes (explore), @athena (plan), @odysseus (g
 			},
 			{
 				title: "Nano Workflow",
-				body: `Research → Plan → Execute → Review → Ship.
+				body: `Research -> Plan -> Execute -> Review -> Ship.
 
 Keep the tone neutral. If blocked, stop and ask; do not game tests or weaken requirements.
 Use native Copilot continuation with \`--continue\`, \`--resume\`, \`/resume\`, \`/instructions\`, and \`/fleet\` instead of handoff-style exports.`,

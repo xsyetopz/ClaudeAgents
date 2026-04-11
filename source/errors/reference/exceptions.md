@@ -8,7 +8,7 @@ Typed, matchable exceptions for Python and TypeScript. Use when: expected failur
 
 ```python
 class AppError(Exception):
-    """Base — catch this to catch all application errors."""
+    """Base -- catch this to catch all application errors."""
 
 class ValidationError(AppError):
     def __init__(self, field: str, message: str) -> None:
@@ -36,7 +36,7 @@ except ValidationError as e:
 
 Rules:
 
-- Never bare `except:` — catches `SystemExit`/`KeyboardInterrupt`
+- Never bare `except:` -- catches `SystemExit`/`KeyboardInterrupt`
 - `except Exception` only at top-level boundaries (API handlers, CLI main)
 - Chain: `raise NewError("context") from original` to preserve cause
 
@@ -77,6 +77,6 @@ try {
 
 Rules:
 
-- Never `catch (e) {}` — always log or rethrow
-- Set `this.name` in constructor — `instanceof` breaks across module boundaries without it
+- Never `catch (e) {}` -- always log or rethrow
+- Set `this.name` in constructor -- `instanceof` breaks across module boundaries without it
 - Narrow with `instanceof` before accessing typed fields

@@ -61,10 +61,10 @@ ${task.trim()}
 ## Fixed Role Order
 
 ${formatList([
-	"orchestrator — split work, define acceptance criteria, and decide ownership",
-	"qa — reproduce broadly, gather evidence, and enumerate variants",
-	"worker — implement against the orchestrator + QA handoff",
-	"review — audit the resulting diff, validation, and residual risk",
+	"orchestrator -- split work, define acceptance criteria, and decide ownership",
+	"qa -- reproduce broadly, gather evidence, and enumerate variants",
+	"worker -- implement against the orchestrator + QA handoff",
+	"review -- audit the resulting diff, validation, and residual risk",
 ])}
 `;
 }

@@ -84,11 +84,11 @@ Keep helpers close to the tests that use them.
 
 ## TDD Workflow
 
-For test-driven development with the agent system, see `reference/tdd-workflow.md` — red/green/refactor cycle, orchestrator rules, state tracking.
+For test-driven development with the agent system, see `reference/tdd-workflow.md` -- red/green/refactor cycle, orchestrator rules, state tracking.
 
 ## Language-Specific Patterns
 
-See `reference/patterns-by-language.md` for Go, TypeScript/Vitest, Python/pytest, and Rust — naming conventions, table-driven tests, factory functions, mocks, async patterns.
+See `reference/patterns-by-language.md` for Go, TypeScript/Vitest, Python/pytest, and Rust -- naming conventions, table-driven tests, factory functions, mocks, async patterns.
 
 ## Anti-Patterns
 

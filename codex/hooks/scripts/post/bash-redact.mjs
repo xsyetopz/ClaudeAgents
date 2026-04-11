@@ -2,9 +2,9 @@
 import { loadSecrets } from "../_env-loader.mjs";
 import {
 	PII_PATTERNS,
-	SECRET_PATTERNS,
 	passthrough,
 	readStdin,
+	SECRET_PATTERNS,
 	systemMessage,
 } from "../_lib.mjs";
 

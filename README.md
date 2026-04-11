@@ -46,27 +46,27 @@ Each platform has plan presets that control which models route to which agents. 
 
 **Claude Code:**
 
-| Plan | Flag | Subscription | What you get |
-|------|------|-------------|--------------|
-| `plus` | `--claude-plan plus` | Claude Plus | Sonnet-only. Budget-conscious, no Opus routing. |
-| `max5` | `--claude-plan max5` | Claude Pro | **Default.** Opus for planning/review, Sonnet for implementation. |
-| `max20` | `--claude-plan max20` | Claude Max | Full Opus orchestration, Sonnet for lightweight tasks, max parallelism. |
+| Plan    | Flag                  | Subscription | What you get                                                            |
+| ------- | --------------------- | ------------ | ----------------------------------------------------------------------- |
+| `plus`  | `--claude-plan plus`  | Claude Plus  | Sonnet-only. Budget-conscious, no Opus routing.                         |
+| `max5`  | `--claude-plan max5`  | Claude Pro   | **Default.** Opus for planning/review, Sonnet for implementation.       |
+| `max20` | `--claude-plan max20` | Claude Max   | Full Opus orchestration, Sonnet for lightweight tasks, max parallelism. |
 
 **Codex CLI:**
 
-| Plan | Flag | Subscription | What you get |
-|------|------|-------------|--------------|
-| `go` | `--codex-plan go` | Codex (free/budget) | Mini-only. Cheapest option. |
-| `plus` | `--codex-plan plus` | Codex Plus | Codex model for main work, Mini for utility. |
-| `pro-5` | `--codex-plan pro-5` | Codex Pro | **Default.** GPT-5.2 planning, Codex implementation, Spark utility. |
-| `pro-20` | `--codex-plan pro-20` | Codex Pro | Same models as pro-5, stronger reasoning and more aggressive swarming. |
+| Plan     | Flag                  | Subscription        | What you get                                                           |
+| -------- | --------------------- | ------------------- | ---------------------------------------------------------------------- |
+| `go`     | `--codex-plan go`     | Codex (free/budget) | Mini-only. Cheapest option.                                            |
+| `plus`   | `--codex-plan plus`   | Codex Plus          | Codex model for main work, Mini for utility.                           |
+| `pro-5`  | `--codex-plan pro-5`  | Codex Pro           | **Default.** GPT-5.2 planning, Codex implementation, Spark utility.    |
+| `pro-20` | `--codex-plan pro-20` | Codex Pro           | Same models as pro-5, stronger reasoning and more aggressive swarming. |
 
 **GitHub Copilot:**
 
-| Plan | Flag | What you get |
-|------|------|--------------|
-| `pro` | `--copilot-plan pro` | **Default.** GPT-5.2 for planning/review, Mini for build/test. |
-| `pro-plus` | `--copilot-plan pro-plus` | Codex for build/implement, heavier parallelism. |
+| Plan       | Flag                      | What you get                                                   |
+| ---------- | ------------------------- | -------------------------------------------------------------- |
+| `pro`      | `--copilot-plan pro`      | **Default.** GPT-5.2 for planning/review, Mini for build/test. |
+| `pro-plus` | `--copilot-plan pro-plus` | Codex for build/implement, heavier parallelism.                |
 
 **OpenCode:** No preset plans. Uses `--opencode-default-model <MODEL>` or per-role overrides with `--opencode-model <ROLE>=<MODEL>`.
 
@@ -109,12 +109,12 @@ No need to reinstall. Use `config.sh`:
 
 Optional tools available across all four platforms:
 
-| Surface | What it does | Install flag |
-|---------|-------------|--------------|
-| **ctx7** | CLI for external library/API doc lookups ([Context7](https://context7.com/)) | `--ctx7-cli` |
-| **RTK** | Rewrites dangerous shell commands to safer equivalents | `--rtk` / `--skip-rtk` |
-| **Playwright CLI** | Browser automation (screenshots, traces, DOM snapshots) | `--playwright-cli` |
-| **DeepWiki MCP** | Indexed exploration of public GitHub repos | `--deepwiki` |
+| Surface            | What it does                                                                 | Install flag           |
+| ------------------ | ---------------------------------------------------------------------------- | ---------------------- |
+| **ctx7**           | CLI for external library/API doc lookups ([Context7](https://context7.com/)) | `--ctx7-cli`           |
+| **RTK**            | Rewrites dangerous shell commands to safer equivalents                       | `--rtk` / `--skip-rtk` |
+| **Playwright CLI** | Browser automation (screenshots, traces, DOM snapshots)                      | `--playwright-cli`     |
+| **DeepWiki MCP**   | Indexed exploration of public GitHub repos                                   | `--deepwiki`           |
 
 Configure these post-install with `./config.sh --ctx7`, `./config.sh --deepwiki`, etc.
 
@@ -128,14 +128,14 @@ git pull && ./install.sh --all          # update
 
 ## Docs
 
-| Doc | Contents |
-|-----|----------|
-| `docs/install.md` | Full installer flags, per-platform options, model routing details |
-| `docs/openai/README.md` | Codex research: models, hooks, porting decisions |
-| `docs/opencode/README.md` | OpenCode rules and plugin integration |
-| `docs/method/nano-bmad.md` | Nano BMAD workflow (Research > Plan > Execute > Review > Ship) |
-| `CONTRIBUTING.md` | Development setup, workflow, contribution rules |
-| `CHANGELOG.md` | Release history |
+| Doc                        | Contents                                                          |
+| -------------------------- | ----------------------------------------------------------------- |
+| `docs/install.md`          | Full installer flags, per-platform options, model routing details |
+| `docs/openai/README.md`    | Codex research: models, hooks, porting decisions                  |
+| `docs/opencode/README.md`  | OpenCode rules and plugin integration                             |
+| `docs/method/nano-bmad.md` | Nano BMAD workflow (Research > Plan > Execute > Review > Ship)    |
+| `CONTRIBUTING.md`          | Development setup, workflow, contribution rules                   |
+| `CHANGELOG.md`             | Release history                                                   |
 
 ## Installer/generator decomposition
 

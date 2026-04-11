@@ -4,7 +4,7 @@ Errors returned as values, not thrown. Use when: caller must handle both cases; 
 
 ---
 
-## Rust — thiserror + Result
+## Rust -- thiserror + Result
 
 ```rust
 use thiserror::Error;
@@ -38,7 +38,7 @@ Rules:
 
 ---
 
-## Go — (T, error) returns
+## Go -- (T, error) returns
 
 ```go
 var (
@@ -71,14 +71,14 @@ if errors.As(err, &ve) { ... }           // type match
 
 Rules:
 
-- Always check returned errors — never `val, _ = fn()`
+- Always check returned errors -- never `val, _ = fn()`
 - `errors.Is` for sentinels, `errors.As` for structured types
 - Check `rows.Err()` after iterating `sql.Rows`
 - Error strings: lowercase, no trailing punctuation
 
 ---
 
-## TypeScript — explicit Result type
+## TypeScript -- explicit Result type
 
 Use when you want to force callers to handle both cases at the type level (no try/catch).
 

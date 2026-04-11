@@ -4,7 +4,7 @@ Per-category: what to look for, vulnerable pattern, fix pattern, verification.
 
 ---
 
-## A01 — Broken Access Control
+## A01 -- Broken Access Control
 
 **What to look for**: Resource ownership not verified at the data layer. Auth checked at route only.
 
@@ -29,7 +29,7 @@ def get_document(doc_id: int):
 
 ---
 
-## A02 — Cryptographic Failures
+## A02 -- Cryptographic Failures
 
 **What to look for**: Sensitive data unencrypted at rest, weak algorithms, secrets in transit.
 
@@ -53,7 +53,7 @@ verified = argon2.verify(input_password, password_hash)
 
 ---
 
-## A03 — Injection
+## A03 -- Injection
 
 ### SQL
 
@@ -106,7 +106,7 @@ if not candidate.startswith(safe_root + os.sep):
 
 ---
 
-## A04 — Insecure Design
+## A04 -- Insecure Design
 
 **What to look for**: Missing rate limits on sensitive operations. No account lockout. Password reset without secondary verification.
 
@@ -119,7 +119,7 @@ Checklist:
 
 ---
 
-## A05 — Security Misconfiguration
+## A05 -- Security Misconfiguration
 
 **What to look for**: Debug mode in production. Default credentials. Verbose error messages.
 
@@ -146,7 +146,7 @@ Checklist:
 
 ---
 
-## A06 — Vulnerable and Outdated Components
+## A06 -- Vulnerable and Outdated Components
 
 **Audit commands by ecosystem**:
 
@@ -167,7 +167,7 @@ Checklist:
 
 ---
 
-## A07 — Identification and Authentication Failures
+## A07 -- Identification and Authentication Failures
 
 ```typescript
 // Bad: predictable session token
@@ -188,7 +188,7 @@ Checklist:
 
 ---
 
-## A08 — Software and Data Integrity Failures
+## A08 -- Software and Data Integrity Failures
 
 **What to look for**: Deserializing untrusted data. CI/CD pipelines that run arbitrary code from third parties.
 
@@ -216,7 +216,7 @@ const validated = schema.parse(raw);  // zod/joi/yup
 
 ---
 
-## A09 — Security Logging and Monitoring Failures
+## A09 -- Security Logging and Monitoring Failures
 
 Checklist:
 
@@ -228,7 +228,7 @@ Checklist:
 
 ---
 
-## A10 — Server-Side Request Forgery (SSRF)
+## A10 -- Server-Side Request Forgery (SSRF)
 
 ```python
 # Vulnerable: user controls target URL

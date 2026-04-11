@@ -1,17 +1,17 @@
 # TDD Workflow
 
-Agent-assisted test-driven development cycle. Tests define behavior — code satisfies tests.
+Agent-assisted test-driven development cycle. Tests define behavior -- code satisfies tests.
 
 ## Philosophy
 
-- Red → Green → Refactor. Never skip phases.
+- Red -> Green -> Refactor. Never skip phases.
 - Orchestrator reads minimally: spec + state only. Implementation lives in subagents.
-- One cycle = one unit of behavior. Keep scope small — finish a cycle before expanding.
+- One cycle = one unit of behavior. Keep scope small -- finish a cycle before expanding.
 - Context is the bottleneck. Subagents carry the load; orchestrator tracks state.
 
 ## Cycle
 
-### Phase 1 — Red (failing tests)
+### Phase 1 -- Red (failing tests)
 
 Route to @hephaestus:
 > "Write tests for [behavior from spec]. Do NOT implement the feature. Tests must fail. Cover: happy path, edge cases, error conditions."
@@ -21,7 +21,7 @@ Route to @atalanta:
 
 Update `state.yaml`: `phase: red`, `tests_written: N`
 
-### Phase 2 — Green (minimal implementation)
+### Phase 2 -- Green (minimal implementation)
 
 Route to @hephaestus:
 > "Implement [feature] until these tests pass. Write the minimal code that makes them green. No gold-plating."
@@ -32,7 +32,7 @@ Route to @atalanta:
 If regressions: route back to @hephaestus with failure output.
 Update `state.yaml`: `phase: green`, `tests_passing: N`
 
-### Phase 3 — Refactor (clean while green)
+### Phase 3 -- Refactor (clean while green)
 
 Route to @hephaestus:
 > "Refactor [file/module] for clarity and maintainability. Tests must stay green. No behavior changes."
@@ -46,7 +46,7 @@ Update `state.yaml`: `phase: done`, `cycle: N+1`
 
 - Read ONLY: `spec.md` + `state.yaml`. Nothing else.
 - Do NOT read source files, test files, or architecture docs. Subagents read what they need.
-- Pass relevant spec excerpts in delegation prompts — do not tell subagents to find the spec themselves.
+- Pass relevant spec excerpts in delegation prompts -- do not tell subagents to find the spec themselves.
 - One delegation per phase. If a phase needs iteration, send the agent back with specific feedback.
 
 ## State File Format
@@ -72,10 +72,10 @@ When running multiple cycles:
 
 ## Context Discipline
 
-- `/clear` between unrelated features — never between phases of the same cycle.
+- `/clear` between unrelated features -- never between phases of the same cycle.
 - Subagent context windows are independent. Long suites belong in @atalanta.
 - If @hephaestus context bloats: scope is too large. Split the feature, restart the cycle.
-- Session logs in `~/.claude/` — analyze with @hermes if cycles consistently fail to complete.
+- Session logs in `~/.claude/` -- analyze with @hermes if cycles consistently fail to complete.
 
 ## Done Signal
 

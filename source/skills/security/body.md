@@ -4,12 +4,12 @@
 
 See `reference/owasp-checklist.md` for full injection patterns with code examples.
 
-| Vector         | Check                                                   |
-| -------------- | ------------------------------------------------------- |
-| SQL            | Parameterized statements — never concatenate user input |
-| Command        | No user input in shell — list args, `shell=False`       |
-| XSS            | All output escaped in HTML context                      |
-| Path traversal | Canonicalize paths, reject `..` sequences               |
+| Vector         | Check                                                    |
+| -------------- | -------------------------------------------------------- |
+| SQL            | Parameterized statements -- never concatenate user input |
+| Command        | No user input in shell -- list args, `shell=False`       |
+| XSS            | All output escaped in HTML context                       |
+| Path traversal | Canonicalize paths, reject `..` sequences                |
 
 ## Authentication & Authorization (OWASP A01, A07)
 

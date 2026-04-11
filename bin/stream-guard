@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Stream Guard — Terminal PTY Proxy (Layer 4)
+ * Stream Guard -- Terminal PTY Proxy (Layer 4)
  *
  * Wraps any command (typically `claude`) in a pseudo-terminal and redacts
  * secrets from stdout in real-time before they reach the terminal/OBS.
  *
- * Zero external dependencies — uses node:child_process with pipe-based
+ * Zero external dependencies -- uses node:child_process with pipe-based
  * interception and a flush timer to avoid buffering hangs.
  */
 
