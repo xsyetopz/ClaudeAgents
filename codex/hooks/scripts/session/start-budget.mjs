@@ -69,6 +69,14 @@ function commandExists(command) {
 	}
 }
 
+function isUsableExecutable(pathname) {
+	try {
+		return existsSync(pathname);
+	} catch {
+		return false;
+	}
+}
+
 (async () => {
 	const data = await readStdin();
 	const cwd = data.cwd || process.cwd();
@@ -82,6 +90,17 @@ function commandExists(command) {
 					"bin",
 				)
 			: join(process.env.HOME || "", ".local", "bin");
+	const fallbackWrapper = join(
+		process.env.HOME || "",
+		".codex",
+		"openagentsbtw",
+		"bin",
+		"oabtw-codex",
+	);
+	const managedShim =
+		process.platform === "win32"
+			? join(managedBinDir, "oabtw-codex.cmd")
+			: join(managedBinDir, "oabtw-codex");
 
 	for (const [target, limit] of TARGETS) {
 		const fullPath = target.startsWith("/") ? target : join(cwd, target);
@@ -109,9 +128,13 @@ function commandExists(command) {
 		}
 	}
 
-	if (!commandExists("oabtw-codex")) {
+	const wrapperAvailable =
+		commandExists("oabtw-codex") ||
+		isUsableExecutable(managedShim) ||
+		isUsableExecutable(fallbackWrapper);
+	if (!wrapperAvailable) {
 		warnings.push(
-			`oabtw-codex is not on PATH. Expected shim location: ${managedBinDir}. Direct fallback: ${join(process.env.HOME || "", ".codex", "openagentsbtw", "bin", "oabtw-codex")}`,
+			`oabtw-codex wrapper is unavailable. Expected shim location: ${managedBinDir}. Direct fallback: ${fallbackWrapper}`,
 		);
 	}
 

@@ -33,10 +33,11 @@ afterEach(() => {
 });
 
 describe("codex UserPromptSubmit injection", () => {
-	it("injects git/memory context by default (no $openagentsbtw token)", () => {
+	it("injects git context by default without prompt-time memory", () => {
 		const result = runHook({ prompt: "hello", cwd: process.cwd() });
 		assert.equal(result.status, 0);
 		assert.ok(result.stdout.includes("openagentsbtw git context:"));
+		assert.equal(result.stdout.includes("openagentsbtw memory:"), false);
 		assert.equal(result.stdout.trimStart().startsWith("$openagentsbtw"), false);
 		assert.equal(
 			result.stdout

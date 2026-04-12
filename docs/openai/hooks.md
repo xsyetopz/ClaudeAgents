@@ -7,7 +7,7 @@ Codex supports project and user hook config at `.codex/hooks.json` and `~/.codex
 | Hook                             | Event            | What it does                                                                                 |
 | -------------------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
 | `session/start-budget.mjs`       | SessionStart     | Checks AGENTS.md size, warns if Fast mode or persistence is disabled, injects project memory |
-| `session/prompt-git-context.mjs` | UserPromptSubmit | Injects git context + project-memory hint. Prefix with `!raw` to skip for one turn           |
+| `session/prompt-git-context.mjs` | UserPromptSubmit | Injects git context. Prefix with `!raw` to skip for one turn                                 |
 | `pre/bash-guard.mjs`             | PreToolUse       | Blocks broad `rm -rf`, blanket `git add`, noisy shell, unsafe DNS patterns                   |
 | `pre/rtk-enforce.mjs`            | PreToolUse       | Enforces RTK-prefixed Bash when `rtk` is installed and `RTK.md` policy is present            |
 | `post/bash-redact.mjs`           | PostToolUse      | Warns when Bash output contains secrets or PII                                               |
@@ -15,7 +15,7 @@ Codex supports project and user hook config at `.codex/hooks.json` and `~/.codex
 
 Hook status text is intentionally suppressed. Only warn/error/block conditions surface from openagentsbtw hooks.
 
-For wrapper-managed sessions, a lightweight stream filter strips known transient hook lifecycle lines (managed workaround, not upstream suppression).
+For wrapper-managed sessions, a lightweight stream filter strips known transient hook lifecycle lines and multiline hook-context dumps (managed workaround, not upstream suppression).
 
 ## Memory Layer
 

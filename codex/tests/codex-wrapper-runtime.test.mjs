@@ -63,14 +63,14 @@ describe("generated codex wrapper", () => {
 			);
 			await chmod(wrapperPath, 0o755);
 
-			const codexStub = writeExecutableSync(binDir, "codex", {
+			const nodeStub = writeExecutableSync(binDir, "node", {
 				unix: `#!/bin/bash
 set -euo pipefail
 printf '%s\\n' "$@"
 `,
 				windows: "@echo off\r\n",
 			});
-			await chmod(codexStub, 0o755);
+			await chmod(nodeStub, 0o755);
 
 			const env = { PATH: prependBinToPath(binDir, process.env.PATH ?? "") };
 
@@ -78,6 +78,7 @@ printf '%s\\n' "$@"
 				env,
 			});
 			assert.equal(orchestrate.code, 0);
+			assert.match(orchestrate.stdout, /run-codex-filtered\.mjs$/m);
 			assert.match(orchestrate.stdout, /^exec$/m);
 			assert.match(orchestrate.stdout, /^--profile$/m);
 			assert.match(orchestrate.stdout, /^openagentsbtw$/m);
@@ -91,6 +92,7 @@ printf '%s\\n' "$@"
 				env,
 			});
 			assert.equal(fast.code, 0);
+			assert.match(fast.stdout, /run-codex-filtered\.mjs$/m);
 			assert.match(fast.stdout, /^-c$/m);
 			assert.match(fast.stdout, /^features\.fast_mode = true$/m);
 			assert.match(fast.stdout, /^OPENAGENTSBTW_ROUTE=implement-fast$/m);

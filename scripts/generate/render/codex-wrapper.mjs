@@ -125,9 +125,9 @@ Task:
 $PROMPT"
 
 if [[ \${#CODEX_CONFIG_ARGS[@]} -gt 0 ]]; then
-    exec codex exec --profile "$PROFILE" "\${CODEX_CONFIG_ARGS[@]}" "$FULL_PROMPT"
+    exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/run-codex-filtered.mjs" exec --profile "$PROFILE" "\${CODEX_CONFIG_ARGS[@]}" "$FULL_PROMPT"
 fi
 
-exec codex exec --profile "$PROFILE" "$FULL_PROMPT"
+exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/run-codex-filtered.mjs" exec --profile "$PROFILE" "$FULL_PROMPT"
 `;
 }

@@ -2,6 +2,18 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.3.2] - 2026-04-12
+
+### Fixed
+
+- Codex: wrapper-managed sessions now filter multiline hook-context dumps on first turn instead of leaking raw hook output into normal conversation flow.
+- Codex: startup now warns about `oabtw-codex` only when wrapper resolution is actually broken, not merely when the shim is absent from PATH in the hook process.
+
+### Changed
+
+- Codex: `SessionStart` now owns project-memory recap while `UserPromptSubmit` stays limited to lightweight git context during active work.
+- Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `1.3.2`.
+
 ## [1.3.1] - 2026-04-11
 
 ### Changed

@@ -80,7 +80,7 @@ openagentsbtw layers project-specific recall on top of native Codex SQLite persi
 
 Hook flow:
 - SessionStart: loads project recap + recent session notes
-- UserPromptSubmit: adds project-memory hint during active work
+- UserPromptSubmit: adds lightweight git context during active work
 - Stop: persists bounded session summary
 
 If native SQLite or history persistence is disabled, the startup hook warns that cross-session recall will be weakened.

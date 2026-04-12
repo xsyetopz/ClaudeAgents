@@ -13,6 +13,7 @@ const HOOK_LINE_PATTERNS = [
 	/^\s*hook:\s*(?:UserPromptSubmit|SessionStart|PreToolUse|PostToolUse|Stop)(?:\s+(?:Completed|Running|Failed|Blocked|Stopped))?\s*$/u,
 	/^\s*hook context:\s*/u,
 ];
+const WARNING_LINE_PATTERNS = [/^\s*warning:/iu, /^\s*error:/iu];
 
 function shouldDropLine(line) {
 	if (!filterEnabled) return false;
@@ -22,18 +23,35 @@ function shouldDropLine(line) {
 
 function pipeStream(stream, sink) {
 	let buffer = "";
+	let droppingHookContext = false;
 	stream.setEncoding("utf8");
 	stream.on("data", (chunk) => {
 		buffer += chunk;
 		const lines = buffer.split(/\r?\n/u);
 		buffer = lines.pop() ?? "";
 		for (const line of lines) {
+			if (droppingHookContext) {
+				if (!line.trim()) {
+					droppingHookContext = false;
+				} else if (
+					WARNING_LINE_PATTERNS.some((pattern) => pattern.test(line))
+				) {
+					droppingHookContext = false;
+					sink.write(`${line}\n`);
+				}
+				continue;
+			}
+			if (/^\s*hook context:\s*/u.test(line)) {
+				droppingHookContext = filterEnabled;
+				continue;
+			}
 			if (!shouldDropLine(line)) {
 				sink.write(`${line}\n`);
 			}
 		}
 	});
 	stream.on("end", () => {
+		if (droppingHookContext) return;
 		if (buffer && !shouldDropLine(buffer)) {
 			sink.write(buffer);
 		}
