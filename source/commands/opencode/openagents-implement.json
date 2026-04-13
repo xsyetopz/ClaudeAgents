@@ -3,5 +3,5 @@
   "description": "Implement a feature from a spec",
   "agent": "hephaestus",
   "routeKind": "edit-required",
-  "promptTemplate": "Implement the following feature or change according to the specification. Read existing code first and follow project conventions.\n\nSpec:"
+  "promptTemplate": "Implement the following feature or change according to the specification. Read existing code first and follow project conventions. If the spec conflicts with repo evidence, stop and name the contradiction before editing.\n\nSpec:"
 }

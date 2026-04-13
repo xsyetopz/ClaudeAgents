@@ -4,5 +4,5 @@
   "routeKind": "readonly",
   "description": "openagentsbtw review (Nemesis)",
   "title": "Review",
-  "body": "Audit for correctness, regressions, and security issues."
+  "body": "Audit for correctness, regressions, and security issues. Lead with findings, then name the strongest missing evidence and any user premise that conflicts with repo evidence."
 }

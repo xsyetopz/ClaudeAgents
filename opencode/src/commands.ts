@@ -15,7 +15,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "hermes",
 		routeKind: "readonly",
 		promptTemplate:
-			"Debug the following failure or symptom. Reproduce the likely path from available evidence, narrow the root cause, and report the strongest verified or suspected explanation without changing code.\n\nFailure:",
+			"Debug the following failure or symptom. Reproduce the likely path from available evidence, narrow the root cause, and report the strongest verified or suspected explanation without changing code. Explicitly separate verified evidence, assumptions, contradictory signals, and the single best next check.\n\nFailure:",
 	},
 	{
 		name: "openagents-document",
@@ -39,7 +39,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "hephaestus",
 		routeKind: "edit-required",
 		promptTemplate:
-			"Implement the following feature or change according to the specification. Read existing code first and follow project conventions.\n\nSpec:",
+			"Implement the following feature or change according to the specification. Read existing code first and follow project conventions. If the spec conflicts with repo evidence, stop and name the contradiction before editing.\n\nSpec:",
 	},
 	{
 		name: "openagents-orchestrate",
@@ -47,7 +47,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "odysseus",
 		routeKind: "edit-required",
 		promptTemplate:
-			"Coordinate the following multi-step task. Keep each delegated action bounded, preserve single-responsibility boundaries, and report exact ownership, verification, and remaining blockers.\n\nTask:",
+			"Coordinate the following multi-step task. Keep each delegated action bounded, preserve single-responsibility boundaries, and report exact ownership, verification, and remaining blockers. Name any assumption that affects delegation shape, and stop with BLOCKED if task framing conflicts with repo evidence.\n\nTask:",
 	},
 	{
 		name: "openagents-plan-feature",
@@ -55,7 +55,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "athena",
 		routeKind: "readonly",
 		promptTemplate:
-			"Break down the following feature into concrete implementation tasks. Include dependencies, risks, and complexity assessment.\n\nFeature:",
+			"Break down the following feature into concrete implementation tasks. Include dependencies, risks, and complexity assessment. Before the recommendation, name the key assumptions, the likeliest failure mode, and what evidence would materially change the plan.\n\nFeature:",
 	},
 	{
 		name: "openagents-plan-refactor",
@@ -63,7 +63,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "athena",
 		routeKind: "readonly",
 		promptTemplate:
-			"Plan the following refactoring. Analyze impact, identify affected files, and outline a migration path with rollback strategy.\n\nRefactoring:",
+			"Plan the following refactoring. Analyze impact, identify affected files, and outline a migration path with rollback strategy. Before the recommendation, name the key assumptions, the likeliest failure mode, and what evidence would materially change the plan.\n\nRefactoring:",
 	},
 	{
 		name: "openagents-review",
@@ -71,7 +71,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
 		agent: "nemesis",
 		routeKind: "readonly",
 		promptTemplate:
-			"Perform a comprehensive code review on the following file or path. Check for correctness, security vulnerabilities, performance issues, and style problems.\n\nTarget:",
+			"Perform a comprehensive code review on the following file or path. Check for correctness, security vulnerabilities, performance issues, and style problems. Before the verdict, name the main assumptions, the strongest missing evidence, and what fact would change the conclusion. If the user's premise conflicts with repo evidence, say so directly.\n\nTarget:",
 	},
 	{
 		name: "openagents-test",

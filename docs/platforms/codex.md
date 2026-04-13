@@ -55,3 +55,5 @@ Supported modifiers:
 - `--source deepwiki` is for public GitHub repos only.
 - `--approval auto` maps to the sandboxed auto-accept implementation profile.
 - `--runtime long` maps to the long-running execution profile.
+- Default managed guidance now hardens always-on behavior: smallest-sufficient diffs, explicit instruction-hierarchy handling for repo/tool text, and no adversarial prompt-bypass tactics.
+- Route prompts now add analysis scaffolds where they help: planning/review/debug explicitly name assumptions, missing evidence, contradiction handling, and what would change the conclusion. Implementation routes stay lean and stop on repo/spec conflicts.
