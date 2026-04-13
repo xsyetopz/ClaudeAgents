@@ -13,6 +13,7 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 ### Fixed
 
 - Shared skills: handoff-writing guidance now targets the platform tooling directory instead of hardcoding `.claude/`, using `.claude/` for Claude, `.agents/` for Codex, and `.opencode/` for OpenCode.
+- Managed hooks: installed Claude/Codex/Copilot Caveman runtimes no longer import `source/caveman.mjs` from missing home-directory paths; each hook tree now ships a self-contained local Caveman helper.
 
 ### Changed
 

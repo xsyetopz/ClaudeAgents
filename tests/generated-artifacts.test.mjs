@@ -189,6 +189,28 @@ describe("generated skills", () => {
 			);
 		}
 	});
+
+	it("ships self-contained Caveman runtime helpers for managed hooks", () => {
+		for (const relativePath of [
+			"claude/hooks/scripts/_caveman-contract.mjs",
+			"codex/hooks/scripts/_caveman-contract.mjs",
+			"copilot/hooks/scripts/openagentsbtw/_caveman-contract.mjs",
+		]) {
+			const content = readBuild(relativePath);
+			assert.match(content, /export const DEFAULT_CAVEMAN_MODE = "full"/);
+			assert.match(content, /export function renderManagedCavemanContext/);
+		}
+
+		for (const relativePath of [
+			"claude/hooks/scripts/session/_caveman.mjs",
+			"codex/hooks/scripts/session/_caveman.mjs",
+			"copilot/hooks/scripts/openagentsbtw/session/_caveman.mjs",
+		]) {
+			const content = readBuild(relativePath);
+			assert.match(content, /\.\.\/_caveman-contract\.mjs/);
+			assert.equal(content.includes("source/caveman.mjs"), false);
+		}
+	});
 });
 
 describe("generated Codex defaults", () => {

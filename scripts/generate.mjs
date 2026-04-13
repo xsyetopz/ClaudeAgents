@@ -2,7 +2,10 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AGENT_PROMPTS } from "../source/agent-prompts.mjs";
-import { renderCavemanPromptBullet } from "../source/caveman.mjs";
+import {
+	renderCavemanPromptBullet,
+	renderCavemanRuntimeModule,
+} from "../source/caveman.mjs";
 import { PROJECT_GUIDANCE } from "../source/project-guidance.mjs";
 import { renderCodexPeerWrapper } from "./generate/render/codex-peer-wrapper.mjs";
 import { renderCodexWrapper } from "./generate/render/codex-wrapper.mjs";
@@ -1194,6 +1197,23 @@ Task:
 	}
 }
 
+async function generateCavemanRuntimeHelpers() {
+	const runtimeModule = `${renderCavemanRuntimeModule().trim()}\n`;
+	for (const relativePath of [
+		path.join("claude", "hooks", "scripts", "_caveman-contract.mjs"),
+		path.join("codex", "hooks", "scripts", "_caveman-contract.mjs"),
+		path.join(
+			"copilot",
+			"hooks",
+			"scripts",
+			"openagentsbtw",
+			"_caveman-contract.mjs",
+		),
+	]) {
+		await writeFile(relativePath, runtimeModule);
+	}
+}
+
 async function main() {
 	const outIdx = process.argv.indexOf("--out");
 	if (outIdx !== -1 && process.argv[outIdx + 1]) {
@@ -1219,6 +1239,7 @@ async function main() {
 	await generateProjectInstructionAssets();
 	await generateCopilotInstructionFiles();
 	await generateCopilotPromptFiles(commandData);
+	await generateCavemanRuntimeHelpers();
 
 	console.log(
 		"Generated Claude, Copilot, Codex, and OpenCode artifacts from source/",

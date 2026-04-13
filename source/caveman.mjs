@@ -100,3 +100,35 @@ export function renderCavemanSkillBoundaries() {
 		`- ${CAVEMAN_CLARITY_OVERRIDE_LINE}`,
 	].join("\n");
 }
+
+export function renderCavemanRuntimeModule() {
+	return `export const DEFAULT_CAVEMAN_MODE = ${JSON.stringify(DEFAULT_CAVEMAN_MODE)};
+
+const CAVEMAN_MODES = ${JSON.stringify(CAVEMAN_MODES, null, 2)};
+const CAVEMAN_MODE_ALIASES = ${JSON.stringify(CAVEMAN_MODE_ALIASES, null, 2)};
+const CAVEMAN_RULE_LINES = ${JSON.stringify(CAVEMAN_RULE_LINES, null, 2)};
+const CAVEMAN_PROTECTED_SURFACE_LINE = ${JSON.stringify(CAVEMAN_PROTECTED_SURFACE_LINE)};
+const CAVEMAN_CLARITY_OVERRIDE_LINE = ${JSON.stringify(CAVEMAN_CLARITY_OVERRIDE_LINE)};
+
+export function resolveCavemanMode(value = "") {
+\tconst normalized = String(value || "")
+\t\t.trim()
+\t\t.toLowerCase();
+\tif (!normalized) return "";
+\tif (CAVEMAN_MODES.includes(normalized)) return normalized;
+\treturn CAVEMAN_MODE_ALIASES[normalized] ?? "";
+}
+
+export function renderManagedCavemanContext(mode = DEFAULT_CAVEMAN_MODE) {
+\tconst normalized = resolveCavemanMode(mode) || DEFAULT_CAVEMAN_MODE;
+\tif (normalized === "off") return "";
+\treturn [
+\t\t\`OPENAGENTSBTW_CAVEMAN_MODE=\${normalized}\`,
+\t\t\`Caveman mode active (\${normalized}).\`,
+\t\t...CAVEMAN_RULE_LINES,
+\t\tCAVEMAN_PROTECTED_SURFACE_LINE,
+\t\tCAVEMAN_CLARITY_OVERRIDE_LINE,
+\t].join("\\n");
+}
+`;
+}

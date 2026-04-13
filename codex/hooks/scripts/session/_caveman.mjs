@@ -11,7 +11,7 @@ import {
 	DEFAULT_CAVEMAN_MODE,
 	renderManagedCavemanContext,
 	resolveCavemanMode,
-} from "../../../../source/caveman.mjs";
+} from "../_caveman-contract.mjs";
 
 const DEFAULT_MODE = DEFAULT_CAVEMAN_MODE;
 const HOME = process.env.HOME || process.env.USERPROFILE || "";
