@@ -69,5 +69,11 @@ describe("codex UserPromptSubmit injection", () => {
 		);
 		assert.equal(result.status, 0);
 		assert.match(result.stdout, /OPENAGENTSBTW_CAVEMAN_MODE=lite/);
+		assert.match(result.stdout, /Terse like caveman\./);
+		assert.match(result.stdout, /Active every response while mode stays on\./);
+		assert.match(
+			result.stdout,
+			/Code, commands, paths, URLs, inline code, fenced code, exact errors, commit messages, review findings, docs, comments, and file contents stay normal/,
+		);
 	});
 });

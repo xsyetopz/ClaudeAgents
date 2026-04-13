@@ -105,6 +105,24 @@ describe("generated skills", () => {
 		}
 	});
 
+	it("renders handoff skill paths relative to each platform tooling directory", () => {
+		const claudeHandoff = readBuild("claude/skills/handoff/SKILL.md");
+		const codexHandoff = readBuild(
+			"codex/plugin/openagentsbtw/skills/handoff/SKILL.md",
+		);
+		const opencodeHandoff = readBuild(
+			"opencode/templates/skills/handoff/SKILL.md",
+		);
+		assert.match(claudeHandoff, /`\.claude\/session-handoff\.md`/);
+		assert.match(codexHandoff, /`\.agents\/session-handoff\.md`/);
+		assert.match(opencodeHandoff, /`\.opencode\/session-handoff\.md`/);
+		assert.equal(codexHandoff.includes("`.claude/session-handoff.md`"), false);
+		assert.equal(
+			opencodeHandoff.includes("`.claude/session-handoff.md`"),
+			false,
+		);
+	});
+
 	it("renders contrastive examples as diff blocks in generated skills", () => {
 		for (const relativePath of [
 			"claude/skills/security/reference/owasp-checklist.md",
@@ -141,7 +159,34 @@ describe("generated skills", () => {
 				assert.match(content, /(compressText|ALLOWED_EXTENSIONS|original\.md)/);
 				continue;
 			}
-			assert.match(content, /(Caveman|assistant prose|original\.md)/);
+			assert.match(
+				content,
+				/(Caveman|assistant prose|original\.md|Terse like caveman|No filler drift)/,
+			);
+		}
+	});
+
+	it("ships the stronger always-on Caveman contract across static instruction surfaces", () => {
+		const codexGuidance = readBuild("codex/templates/AGENTS.md");
+		const opencodeInstructions = readBuild(
+			"opencode/templates/instructions/openagentsbtw.md",
+		);
+		const copilotInstructions = readBuild(
+			"copilot/templates/.github/instructions/openagentsbtw-general.instructions.md",
+		);
+
+		for (const content of [
+			codexGuidance,
+			opencodeInstructions,
+			copilotInstructions,
+		]) {
+			assert.match(content, /Terse like caveman\./);
+			assert.match(content, /Technical substance exact\. Only fluff die\./);
+			assert.match(content, /No filler drift after many turns\./);
+			assert.match(
+				content,
+				/Code, commands, paths, URLs, inline code, fenced code, exact errors, commit messages, review findings, docs, comments, and file contents stay normal/,
+			);
 		}
 	});
 });

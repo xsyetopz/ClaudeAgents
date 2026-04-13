@@ -23,7 +23,7 @@ If `$ARGUMENTS` were provided, use them as focus areas to emphasize in the hando
 
 ### 3. Write Handoff File
 
-Write to `.claude/session-handoff.md` in the project root using this format:
+Write to `__TOOLING_DIR__/session-handoff.md` in the project root using this format:
 
 ```markdown
 # Session Handoff
@@ -55,10 +55,10 @@ Write to `.claude/session-handoff.md` in the project root using this format:
 
 ### 4. Ensure .gitignore Coverage
 
-Check that `.claude/session-handoff.md` is covered by `.gitignore`. If not, add it:
+Check that `__TOOLING_DIR__/session-handoff.md` is covered by `.gitignore`. If not, add it:
 
 ```bash
-echo ".claude/session-handoff.md" >> .gitignore
+echo "__TOOLING_DIR__/session-handoff.md" >> .gitignore
 ```
 
 ### Constraints

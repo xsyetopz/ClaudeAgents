@@ -71,6 +71,7 @@ describe("public entrypoints", () => {
 			/scripts\/install\/uninstall-cli\.mjs/,
 		);
 		assert.match(readRepo("build-plugin.sh"), /scripts\/build-plugin-cli\.mjs/);
+		assert.match(readRepo("version.sh"), /scripts\/version-cli\.mjs/);
 	});
 
 	it("exposes Caveman config flags through install and config entrypoints", () => {
@@ -128,7 +129,9 @@ describe("public entrypoints", () => {
 			readRepo("build-plugin.ps1"),
 			/scripts\/build-plugin-cli\.mjs/,
 		);
+		assert.match(readRepo("version.ps1"), /scripts\/version-cli\.mjs/);
 		assert.match(readRepo("install.ps1"), /Set-StrictMode -Version Latest/);
 		assert.match(readRepo("build-plugin.ps1"), /\$LASTEXITCODE/);
+		assert.match(readRepo("version.ps1"), /\$LASTEXITCODE/);
 	});
 });

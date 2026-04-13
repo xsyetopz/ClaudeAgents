@@ -75,6 +75,16 @@ async function copyStaticAssets(outDir, platform) {
 		path.join(REPO_ROOT, "bin", "stream-guard"),
 		out("bin/stream-guard"),
 	);
+	await fs.mkdir(out("source"), { recursive: true });
+	await fs.cp(
+		path.join(REPO_ROOT, "source", "caveman.mjs"),
+		out("source/caveman.mjs"),
+	);
+	await fs.cp(
+		path.join(REPO_ROOT, "source", "upstream", "caveman"),
+		out("source/upstream/caveman"),
+		{ recursive: true },
+	);
 
 	if (platform === "all" || platform === "claude") {
 		await copyTree("claude", out("claude"), [

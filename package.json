@@ -9,6 +9,7 @@
     "generate": "node scripts/build.mjs --out .build/generated",
     "generate:repo": "node scripts/generate.mjs",
     "check:generated": "node scripts/check-generated.mjs",
+    "version:repo": "node scripts/version-cli.mjs --print",
     "test": "bun test tests claude/tests codex/tests"
   },
   "devDependencies": {

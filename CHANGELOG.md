@@ -2,6 +2,24 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.3.3] - 2026-04-13
+
+### Added
+
+- Release tooling: added root `version.sh` / `version.ps1` wrappers plus `scripts/version-cli.mjs` to bump the shared Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions together with `maj|min|pat` aliases or `--set X.Y.Z`.
+- Release tooling: added regression coverage for the shared version bump workflow and drift detection across the tracked release surfaces.
+- Shared: added a pinned upstream Caveman mirror under `source/upstream/caveman/` plus a local sync helper for upstream-backed always-on Caveman semantics.
+
+### Fixed
+
+- Shared skills: handoff-writing guidance now targets the platform tooling directory instead of hardcoding `.claude/`, using `.claude/` for Claude, `.agents/` for Codex, and `.opencode/` for OpenCode.
+
+### Changed
+
+- Shared: Caveman enforcement now uses one stronger canonical contract across Claude, Codex, OpenCode, and Copilot static guidance plus managed session context, keeping code/commands/docs/reviews normal unless an explicit Caveman skill is invoked.
+- Build: generated/built outputs now ship the shared Caveman contract source and upstream mirror so hook/runtime imports stay consistent outside the repo tree.
+- Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `1.3.3`.
+
 ## [1.3.2] - 2026-04-12
 
 ### Fixed

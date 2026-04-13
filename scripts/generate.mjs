@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AGENT_PROMPTS } from "../source/agent-prompts.mjs";
+import { renderCavemanPromptBullet } from "../source/caveman.mjs";
 import { PROJECT_GUIDANCE } from "../source/project-guidance.mjs";
 import { renderCodexPeerWrapper } from "./generate/render/codex-peer-wrapper.mjs";
 import { renderCodexWrapper } from "./generate/render/codex-wrapper.mjs";
@@ -131,15 +132,19 @@ async function generateSkills(skills) {
 		claude: {
 			SHIP_COMMIT_FOOTER_BLOCK:
 				"Co-Authored-By: Claude <claude@users.noreply.github.com>",
+			TOOLING_DIR: ".claude",
 		},
 		codex: {
 			SHIP_COMMIT_FOOTER_BLOCK: "",
+			TOOLING_DIR: ".agents",
 		},
 		opencode: {
 			SHIP_COMMIT_FOOTER_BLOCK: "",
+			TOOLING_DIR: ".opencode",
 		},
 		copilot: {
 			SHIP_COMMIT_FOOTER_BLOCK: "",
+			TOOLING_DIR: ".github",
 		},
 	};
 
@@ -1078,9 +1083,7 @@ async function generateProjectInstructionAssets() {
 }
 
 function renderCopilotInstructionFile(description, body) {
-	return (
-		renderFrontmatter([["description", q(description)]]) + body.trim() + "\n"
-	);
+	return `${renderFrontmatter([["description", q(description)]]) + body.trim()}\n`;
 }
 
 async function generateCopilotInstructionFiles() {
@@ -1093,6 +1096,7 @@ async function generateCopilotInstructionFiles() {
 - Follow objective facts, explicit requirements, and repository evidence over user affect.
 - Complete real production work. Do not substitute demos, toy code, scaffolding, or tutorials.
 - If blocked, stop with a concrete blocker instead of weakening requirements or pretending the work is done.
+- ${renderCavemanPromptBullet()}
 - Prefer native continuation with \`--continue\`, \`--resume\`, \`/resume\`, and \`/instructions\`.`,
 		},
 		{

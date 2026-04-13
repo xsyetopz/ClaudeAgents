@@ -1,3 +1,9 @@
+import {
+	CAVEMAN_CLARITY_OVERRIDE_LINE,
+	CAVEMAN_PROTECTED_SURFACE_LINE,
+	CAVEMAN_RULE_LINES,
+} from "../../../source/caveman.mjs";
+
 function q(value) {
 	return JSON.stringify(value);
 }
@@ -597,7 +603,14 @@ const openAgentsPlugin = async () => ({
     );
     if (state.cavemanMode && state.cavemanMode !== "off") {
       output.context.push(
-        \`Active Caveman mode: \${state.cavemanMode}. Compress assistant prose only. Keep code, commands, docs, review findings, and commit messages normal unless an explicit Caveman skill was requested.\`,
+        \`Active Caveman mode: \${state.cavemanMode}.\`,
+        ${JSON.stringify(CAVEMAN_RULE_LINES[0])},
+        ${JSON.stringify(CAVEMAN_RULE_LINES[1])},
+        ${JSON.stringify(CAVEMAN_RULE_LINES[2])},
+        ${JSON.stringify(CAVEMAN_RULE_LINES[3])},
+        ${JSON.stringify(CAVEMAN_RULE_LINES[4])},
+        ${JSON.stringify(CAVEMAN_PROTECTED_SURFACE_LINE)},
+        ${JSON.stringify(CAVEMAN_CLARITY_OVERRIDE_LINE)},
       );
     }
     if (state.route && state.contract) {

@@ -83,6 +83,14 @@ describe("Claude route context hooks", () => {
 			output.hookSpecificOutput.additionalContext,
 			/OPENAGENTSBTW_CAVEMAN_MODE=ultra/,
 		);
+		assert.match(
+			output.hookSpecificOutput.additionalContext,
+			/Terse like caveman\./,
+		);
+		assert.match(
+			output.hookSpecificOutput.additionalContext,
+			/Active every response while mode stays on\./,
+		);
 	});
 
 	it("emits hidden route markers for openagentsbtw subagents", () => {

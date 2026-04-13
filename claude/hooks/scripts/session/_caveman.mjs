@@ -7,18 +7,13 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import {
+	DEFAULT_CAVEMAN_MODE,
+	renderManagedCavemanContext,
+	resolveCavemanMode,
+} from "../../../../source/caveman.mjs";
 
-const DEFAULT_MODE = "full";
-const VALID_MODES = new Set([
-	"off",
-	"lite",
-	"full",
-	"ultra",
-	"wenyan-lite",
-	"wenyan",
-	"wenyan-ultra",
-]);
-const MODE_ALIASES = { "wenyan-full": "wenyan", normal: "off" };
+const DEFAULT_MODE = DEFAULT_CAVEMAN_MODE;
 const SESSION_FILE = join(
 	process.env.HOME || "",
 	".claude",
@@ -31,12 +26,7 @@ const CONFIG_FILE = join(
 );
 
 function normalizeMode(value = "") {
-	const normalized = String(value || "")
-		.trim()
-		.toLowerCase();
-	if (!normalized) return "";
-	if (VALID_MODES.has(normalized)) return normalized;
-	return MODE_ALIASES[normalized] ?? "";
+	return resolveCavemanMode(value);
 }
 
 function readConfigEnvValue(key) {
@@ -105,13 +95,5 @@ export function updateSessionMode(prompt = "") {
 }
 
 export function renderCavemanContext(mode = readSessionMode()) {
-	const normalized = normalizeMode(mode) || getDefaultMode();
-	if (normalized === "off") return "";
-	return [
-		`OPENAGENTSBTW_CAVEMAN_MODE=${normalized}`,
-		`Caveman mode active (${normalized}). Compress assistant prose only. Keep technical substance exact.`,
-		"Do not rewrite code, commands, paths, URLs, inline code, fenced code, commit messages, review findings, docs, or comments unless the matching explicit Caveman skill was invoked.",
-		"Drop filler, pleasantries, hedging, and emotional mirroring.",
-		"Temporarily answer normally for security warnings, destructive confirmations, and ambiguity-sensitive multi-step instructions.",
-	].join("\n");
+	return renderManagedCavemanContext(mode || getDefaultMode());
 }
