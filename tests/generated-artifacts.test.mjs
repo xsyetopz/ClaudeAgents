@@ -71,12 +71,14 @@ describe("generated prompts", () => {
 });
 
 describe("generated skills", () => {
-	it("renders platform-specific ship co-author trailers", () => {
-		const claudeShip = readBuild("claude/skills/ship/SKILL.md");
+	it("renders platform-specific git-workflow co-author trailers", () => {
+		const claudeShip = readBuild("claude/skills/git-workflow/SKILL.md");
 		const codexShip = readBuild(
-			"codex/plugin/openagentsbtw/skills/ship/SKILL.md",
+			"codex/plugin/openagentsbtw/skills/git-workflow/SKILL.md",
 		);
-		const opencodeShip = readBuild("opencode/templates/skills/ship/SKILL.md");
+		const opencodeShip = readBuild(
+			"opencode/templates/skills/git-workflow/SKILL.md",
+		);
 		assert.match(
 			claudeShip,
 			/Co-Authored-By: Claude <claude@users\.noreply\.github\.com>/,
@@ -233,19 +235,19 @@ describe("generated Codex defaults", () => {
 			config,
 			/compact_prompt = """[\s\S]*Follow objective task requirements and repo facts, not the user's emotional tone\./,
 		);
-		assert.match(config, /\[profiles\.openagentsbtw-go\]/);
-		assert.match(config, /\[profiles\.openagentsbtw-plus\]/);
-		assert.match(config, /\[profiles\.openagentsbtw-pro-5\]/);
-		assert.match(config, /\[profiles\.openagentsbtw-pro-20\]/);
-		assert.match(config, /model = "gpt-5\.2"/);
+		assert.equal(config.includes("[profiles.openagentsbtw-go]"), false);
+		assert.equal(config.includes("[profiles.openagentsbtw-plus]"), false);
+		assert.equal(config.includes("[profiles.openagentsbtw-pro-5]"), false);
+		assert.equal(config.includes("[profiles.openagentsbtw-pro-20]"), false);
 		assert.match(config, /model = "gpt-5\.3-codex"/);
-		assert.match(config, /model = "gpt-5\.3-codex-spark"/);
 		assert.match(config, /model = "gpt-5\.4-mini"/);
+		assert.match(config, /model_instructions_file = "~\/\.codex\/AGENTS\.md"/);
 		assert.match(config, /personality = "none"/);
 		assert.equal(config.includes('personality = "pragmatic"'), false);
 		assert.match(config, /\[profiles\.openagentsbtw-implement\]/);
-		assert.match(config, /\[profiles\.openagentsbtw-accept-edits\]/);
-		assert.match(config, /\[profiles\.openagentsbtw-longrun\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-utility\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-approval-auto\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-runtime-long\]/);
 		assert.match(config, /agents\.max_threads = 6/);
 		assert.match(config, /background_terminal_max_timeout = 7200/);
 		assert.match(config, /unified_exec = true/);
@@ -255,19 +257,15 @@ describe("generated Codex defaults", () => {
 		assert.equal(config.includes('model_verbosity = "medium"'), false);
 		assert.match(
 			config,
-			/\[profiles\.openagentsbtw-go\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "high"/,
+			/\[profiles\.openagentsbtw\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "high"/,
 		);
 		assert.match(
 			config,
-			/\[profiles\.openagentsbtw-plus\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "xhigh"/,
+			/\[profiles\.openagentsbtw-approval-auto\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "high"/,
 		);
 		assert.match(
 			config,
-			/\[profiles\.openagentsbtw-accept-edits\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "xhigh"/,
-		);
-		assert.match(
-			config,
-			/\[profiles\.openagentsbtw-longrun\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "xhigh"/,
+			/\[profiles\.openagentsbtw-runtime-long\][\s\S]*?model_reasoning_effort = "medium"[\s\S]*?plan_mode_reasoning_effort = "high"/,
 		);
 	});
 
@@ -277,7 +275,7 @@ describe("generated Codex defaults", () => {
 		assert.match(guidance, /If something is uncertain, say `UNKNOWN`/);
 		assert.match(guidance, /Use the active Codex plan preset\./);
 		assert.match(guidance, /oabtw-codex explore/);
-		assert.match(guidance, /`deepwiki`/);
+		assert.match(guidance, /--source deepwiki/);
 		assert.match(guidance, /Default to role routing:/);
 		assert.match(guidance, /Multi-agent safety:/);
 		assert.match(
@@ -300,28 +298,22 @@ describe("generated Codex defaults", () => {
 	it("ships wrapper prompts that route through explicit specialist paths", () => {
 		const wrapper = readBuild("bin/openagentsbtw-codex");
 		const shortWrapper = readBuild("bin/oabtw-codex");
-		assert.match(wrapper, /deepwiki\s+Generated openagentsbtw Codex route/);
+		assert.match(
+			wrapper,
+			/design-polish\s+Generated openagentsbtw Codex route/,
+		);
+		assert.match(wrapper, /document\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /deslop\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /explore\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /trace\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /debug\s+Generated openagentsbtw Codex route/);
-		assert.match(wrapper, /qa\s+Generated openagentsbtw Codex route/);
+		assert.match(wrapper, /validate\s+Generated openagentsbtw Codex route/);
 		assert.match(wrapper, /resume\s+Generated openagentsbtw Codex route/);
-		assert.match(wrapper, /plan-fast\s+Generated openagentsbtw Codex route/);
-		assert.match(
-			wrapper,
-			/implement-fast\s+Generated openagentsbtw Codex route/,
-		);
-		assert.match(wrapper, /review-fast\s+Generated openagentsbtw Codex route/);
-		assert.match(wrapper, /longrun\s+Generated openagentsbtw Codex route/);
-		assert.match(wrapper, /swarm\s+Generated openagentsbtw Codex route/);
 		assert.match(
 			wrapper,
 			/CODEX_CONFIG_ARGS\+=\(-c "features\.fast_mode = true"\)/,
 		);
-		assert.match(
-			wrapper,
-			/CODEX_CONFIG_ARGS\+=\(-c "service_tier = \\"fast\\""\)/,
-		);
+		assert.match(wrapper, /CODEX_CONFIG_ARGS\+=\(-c 'service_tier = "fast"'\)/);
 		assert.match(
 			wrapper,
 			/Route planning through athena-style architecture analysis/,
@@ -337,30 +329,22 @@ describe("generated Codex defaults", () => {
 		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=implement/);
 		assert.match(wrapper, /OPENAGENTSBTW_CONTRACT=edit-required/);
 		assert.match(wrapper, /OPENAGENTSBTW_REJECT_PROTOTYPE_SCAFFOLDING=true/);
-		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=qa/);
+		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=validate/);
 		assert.match(wrapper, /OPENAGENTSBTW_CONTRACT=execution-required/);
 		assert.match(
 			wrapper,
 			/run-codex-filtered\.mjs" resume --profile "\$PROFILE" "\$@"/,
 		);
 		assert.match(
-			wrapper,
-			/Route this through patient long-run execution on the longrun profile/,
-		);
-		assert.match(shortWrapper, /accept\s+Generated openagentsbtw Codex route/);
-		assert.match(
 			shortWrapper,
 			/memory\s+Inspect or manage openagentsbtw Codex memory/,
 		);
 		assert.match(shortWrapper, /memory show \[path\]/);
 		assert.match(shortWrapper, /resume\s+Generated openagentsbtw Codex route/);
-		assert.match(
-			shortWrapper,
-			/Route implementation through hephaestus-style execution on the sandboxed auto-accept implementation profile/,
-		);
 		assert.match(shortWrapper, /PROFILE="openagentsbtw-implement"/);
-		assert.equal(shortWrapper.includes("gpt-5.3-codex-spark"), false);
-		assert.match(shortWrapper, /DeepWiki is not configured/);
+		assert.match(shortWrapper, /--source deepwiki/);
+		assert.match(shortWrapper, /--approval auto/);
+		assert.match(shortWrapper, /--runtime long/);
 		assert.match(shortWrapper, /Usage: oabtw-codex <mode> \[prompt\.\.\.\]/);
 		assert.match(
 			shortWrapper,
@@ -368,7 +352,7 @@ describe("generated Codex defaults", () => {
 		);
 		const peerWrapper = readBuild("bin/oabtw-codex-peer");
 		assert.match(peerWrapper, /Usage: oabtw-codex-peer <batch\|tmux>/);
-		assert.match(peerWrapper, /Run orchestrator, QA, worker, and review/);
+		assert.match(peerWrapper, /Run orchestrator, validate, worker, and review/);
 		assert.match(
 			peerWrapper,
 			/if \[\[ "\$1" == "--help" \|\| "\$1" == "help" \]\]/,
@@ -501,39 +485,35 @@ describe("generated Copilot assets", () => {
 
 describe("generated Codex docs", () => {
 	it("documents hook limitations and RTK activation rules", () => {
-		const hooks = readRepo("docs/openai/hooks.md");
-		assert.match(hooks, /PreToolUse` and `PostToolUse` only intercept `Bash`/);
-		assert.match(hooks, /not a complete Claude-style permission layer/);
-		assert.match(hooks, /pre\/rtk-enforce\.mjs/);
-		assert.match(hooks, /`RTK\.md` policy is present/);
+		const codex = readRepo("docs/platforms/codex.md");
+		assert.match(codex, /documented Codex surfaces only/);
+		assert.match(codex, /model_instructions_file/);
+		assert.match(codex, /--source deepwiki/);
 	});
 
 	it("documents peer threads as openagentsbtw-managed instead of native Codex behavior", () => {
-		const plugins = readRepo("docs/openai/plugins-skills-subagents.md");
-		assert.match(plugins, /Peer Threads/);
-		assert.match(plugins, /not a native Codex feature/);
-		assert.match(plugins, /\.openagentsbtw\/codex-peer\/<run-id>\//);
+		const codex = readRepo("docs/platforms/codex.md");
+		assert.match(codex, /resume/);
+		assert.match(codex, /--approval auto/);
 	});
 });
 
 describe("installer docs", () => {
-	it("documents shared cross-platform optional surfaces", () => {
-		const install = readRepo("docs/install.md");
-		assert.match(install, /Shared cross-platform surfaces/);
-		assert.match(install, /`ctx7` CLI/);
-		assert.match(install, /RTK enforcement/);
-		assert.match(install, /Playwright CLI/);
-		assert.match(install, /DeepWiki MCP/);
-		assert.match(install, /explicit `deepwiki` exploration routing/);
+	it("documents consolidated architecture and platform surfaces", () => {
+		const readme = readRepo("README.md");
+		const architecture = readRepo("docs/architecture.md");
+		assert.match(readme, /What Changed In 2\.0/);
+		assert.match(readme, /design-polish/);
+		assert.match(architecture, /source\/agents\/<agent>/);
+		assert.match(architecture, /source\/commands\/codex/);
+		assert.match(architecture, /--speed fast/);
 	});
 
-	it("documents installer decomposition", () => {
-		const install = readRepo("docs/install.md");
+	it("documents the thin generator and canonical source layout", () => {
 		const readme = readRepo("README.md");
-		assert.match(readme, /Installer\/generator decomposition/);
-		assert.match(install, /Installer\/generator decomposition/);
-		assert.match(readme, /thin Bash compatibility wrapper/);
-		assert.match(install, /thin Bash wrapper/);
+		const architecture = readRepo("docs/architecture.md");
+		assert.match(readme, /One canonical source tree/);
+		assert.match(architecture, /thin orchestrator/);
 	});
 });
 

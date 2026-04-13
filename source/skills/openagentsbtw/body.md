@@ -21,7 +21,7 @@ Research -> Plan -> Execute -> Review -> Ship
 - If blocked, stop and ask for constraints/clarification instead of pushing through.
 - Do not “make it pass” by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
 
-Reference workflow: `docs/method/nano-bmad.md`
+Reference workflow: `docs/architecture.md`
 
 ## Codex Mapping
 
@@ -40,36 +40,28 @@ Use these wrappers when you want consistent profile selection plus explicit role
 Short alias: `oabtw-codex`
 Canonical equivalent: `openagentsbtw-codex`
 
-- `oabtw-codex triage`
-  `hermes`-shaped routing on the utility profile for bounded search, classification, and evidence gathering.
 - `oabtw-codex explore`
   `hermes`-shaped routing on the utility profile for repo mapping, architecture reading, and evidence-first exploration.
 - `oabtw-codex trace`
   `hermes`-shaped routing on the utility profile for dependency, call-path, and data-flow tracing.
 - `oabtw-codex debug`
   `hermes`-shaped routing on the utility profile for read-only failure investigation and root-cause narrowing.
-- `oabtw-codex deepwiki`
-  `hermes`-shaped routing on the utility profile for public GitHub repo exploration through DeepWiki MCP first, with local repo verification before making exact file or line claims.
-- `oabtw-codex docs`
+- `oabtw-codex document`
   `calliope`-shaped routing on the utility profile for documentation-only edits.
-- `oabtw-codex desloppify`
+- `oabtw-codex deslop`
   `calliope`-shaped routing on the utility profile for prose cleanup, comment cleanup, and anti-slop passes.
-- `oabtw-codex handoff`
-  compact handoff writing on the utility profile.
+- `oabtw-codex design-polish`
+  UI and frontend refinement routing for cleaning up generic AI-looking interface work.
 - `oabtw-codex test`
   `atalanta`-shaped routing on the utility profile for targeted validation.
-- `oabtw-codex qa`
+- `oabtw-codex validate`
   `atalanta`-shaped routing on the utility profile for broader repro, variant testing, evidence capture, and integration-test-first validation.
 - `oabtw-codex plan`
   `athena`-shaped routing on `openagentsbtw`.
-- `oabtw-codex accept`
-  sandboxed auto-accept implementation routing on `openagentsbtw-accept-edits`.
 - `oabtw-codex implement`
   `hephaestus`-shaped routing on `openagentsbtw-implement`.
 - `oabtw-codex review`
   `nemesis`-shaped routing on `openagentsbtw`.
-- `oabtw-codex longrun`
-  patient long-running command supervision on `openagentsbtw-longrun` for builds, test suites, and other jobs that should not be killed just because they are still running.
 - `oabtw-codex orchestrate`
   `odysseus`-shaped routing on `openagentsbtw`.
 - `oabtw-codex-peer batch|tmux`
@@ -83,14 +75,19 @@ Canonical equivalent: `openagentsbtw-codex`
 
 These wrappers do not hard-bind a native Codex mode like `/plan` to a custom agent. The reliable contract is profile selection plus a strong system prompt, while the custom agent TOMLs hold the actual model pinning for each specialist.
 
-Prefer the specific research routes (`explore`, `trace`, `debug`, `deepwiki`) when the intent is known. Keep `triage` as the generic fallback for bounded search that does not yet fit one of the narrower research patterns.
+Prefer the specific research routes (`explore`, `trace`, `debug`) when the intent is known.
 
-The `accept` route is an openagentsbtw convenience mode, not a native Codex collaboration mode. It maps to `approval_policy = "never"` plus `sandbox_mode = "workspace-write"` so edits auto-apply inside the sandbox without turning on full access.
+Use wrapper modifiers instead of overloaded extra routes:
+
+- `--source deepwiki`
+- `--approval auto`
+- `--speed fast`
+- `--runtime long`
 
 ## Copilot Mapping
 
 - Repo installs generate `.github/agents/`, `.github/skills/`, `.github/prompts/`, and `.github/hooks/`.
-- Prefer the phase prompts in `.github/prompts/` (research/plan/implement/review/test/docs/orchestrate) to keep runs task-shaped and low-pressure.
+- Prefer the phase prompts in `.github/prompts/` (research/plan/implement/review/test/document/orchestrate) to keep runs task-shaped and low-pressure.
 
 ## Claude Code + OpenCode Mapping
 

@@ -1,0 +1,11 @@
+{
+  "id": "protected-branch-confirm",
+  "opencode": {
+    "gitHooks": [
+      {
+        "hook": "pre-push",
+        "kind": "branch-confirm"
+      }
+    ]
+  }
+}

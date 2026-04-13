@@ -41,15 +41,15 @@ cd opencode && bun install --frozen-lockfile
 
 ### Canonical Sources
 
-| File                          | Controls                     |
-| ----------------------------- | ---------------------------- |
-| `source/agents.json`          | Agent definitions (7 agents) |
-| `source/agent-prompts.mjs`    | Agent prompt templates       |
-| `source/skills.json`          | Skill metadata (16 skills)   |
-| `source/skills/*/body.md`     | Skill content                |
-| `source/commands.json`        | Command definitions          |
-| `source/hook-policies.json`   | Hook policies (10 hooks)     |
-| `source/project-guidance.mjs` | Shared project guidance      |
+| File                           | Controls                     |
+| ------------------------------ | ---------------------------- |
+| `source/agents/*/agent.json`   | Agent definitions (7 agents) |
+| `source/agents/*/prompt.md`    | Agent prompt templates       |
+| `source/skills/*/skill.json`   | Skill metadata               |
+| `source/skills/*/body.md`      | Skill content                |
+| `source/commands/*/*.json`     | Command definitions          |
+| `source/hooks/policies/*.json` | Hook policies                |
+| `source/guidance/*.md`         | Shared project guidance      |
 
 ### Generated Outputs
 
@@ -81,7 +81,7 @@ CI runs Linux validation for generated outputs, tests, and release packaging. Bo
 
 ## Adding an Agent
 
-1. Add the entry in `source/agents.json` and prompt in `source/agent-prompts.mjs`.
+1. Add `agent.json` and `prompt.md` under `source/agents/<name>/`.
 2. Adjust platform overlays only when a system needs different wording or constraints.
 3. Run `bun run generate`.
 4. Add or update tests if the generated behavior changes.
@@ -89,14 +89,20 @@ CI runs Linux validation for generated outputs, tests, and release packaging. Bo
 
 ## Adding a Skill
 
-1. Add the entry in `source/skills.json`.
-2. Add the body in `source/skills/<name>/body.md`.
-3. Add any references under `source/skills/<name>/reference/`.
+1. Add `skill.json` and `body.md` under `source/skills/<name>/`.
+2. Add any references under `source/skills/<name>/reference/`.
+3. Run `bun run generate`.
+
+## Adding a Command
+
+1. Add the entry in the relevant platform catalog under `source/commands/`.
+2. Keep the command single-purpose. Do not overload it with unrelated flow.
+3. Prefer explicit modifiers over special-case mode names when the behavior is orthogonal.
 4. Run `bun run generate`.
 
 ## Adding a Hook
 
-1. Add or update the policy in `source/hook-policies.json`.
+1. Add or update the policy file under `source/hooks/policies/`.
 2. Update the renderer in `scripts/generate.mjs` only if the policy model needs a new surface.
 3. Regenerate and confirm the platform hook manifests changed as expected.
 4. Add tests for the new behavior.
@@ -148,8 +154,8 @@ Open an issue at [github.com/xsyetopz/openagentsbtw/issues](https://github.com/x
 
 - Do not hand-edit generated files without also updating the source or generator.
 - Keep platform differences honest. Shared policy is centralized; emitted artifacts may differ when the underlying CLIs expose different surfaces.
-- When changing Codex behavior, update `codex/` and `docs/openai/`.
-- When changing OpenCode behavior, update `opencode/` and `docs/opencode/`.
+- When changing Codex behavior, update `codex/` and `docs/platforms/codex.md`.
+- When changing OpenCode behavior, update `opencode/` and `docs/platforms/opencode.md`.
 - When changing Copilot behavior, update `copilot/` and relevant `.github/` assets.
 - If you change hook behavior, check both the shared policy source and the generated hook mappings.
 - If you change contributor-facing workflow, keep `.github/`, this file, and `AGENTS.md` aligned.

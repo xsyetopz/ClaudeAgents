@@ -8,8 +8,8 @@ usage() {
 Usage: ${commandName} <batch|tmux> [--dry-run] [task...]
 
 Modes:
-  batch       Run orchestrator, QA, worker, and review as top-level Codex exec jobs
-  tmux        Create a tmux session with orchestrator, QA, worker, and review panes
+  batch       Run orchestrator, validate, worker, and review as top-level Codex exec jobs
+  tmux        Create a tmux session with orchestrator, validate, worker, and review panes
 
 Options:
   --dry-run   Print the generated peer-run plan without launching it

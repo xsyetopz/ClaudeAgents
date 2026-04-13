@@ -4,13 +4,13 @@ openagentsbtw packages four platform-specific surfaces from a single canonical s
 
 ## System Map
 
-| Directory      | Contents                                                     |
-| -------------- | ------------------------------------------------------------ |
-| `claude/`      | Claude Code plugin, hooks, skills, templates, tests          |
-| `codex/`       | Codex plugin, custom agents, hooks, templates, research docs |
-| `opencode/`    | OpenCode framework integration, templates                    |
-| `copilot/`     | Copilot/VS Code assets, hook scripts                         |
-| `docs/openai/` | Codex/OpenAI research and porting decisions                  |
+| Directory         | Contents                                                     |
+| ----------------- | ------------------------------------------------------------ |
+| `claude/`         | Claude Code plugin, hooks, skills, templates, tests          |
+| `codex/`          | Codex plugin, custom agents, hooks, templates, research docs |
+| `opencode/`       | OpenCode framework integration, templates                    |
+| `copilot/`        | Copilot/VS Code assets, hook scripts                         |
+| `docs/platforms/` | Platform-specific research and porting decisions             |
 
 ## Codex Rules
 
@@ -26,7 +26,7 @@ openagentsbtw packages four platform-specific surfaces from a single canonical s
 ## Workflow
 
 - Preserve the split architecture. Platform assets stay isolated by directory.
-- When changing Codex support, update both `codex/` and `docs/openai/`.
-- When changing OpenCode support, update both `opencode/` and `docs/opencode/`.
+- When changing Codex support, update both `codex/` and `docs/platforms/codex.md`.
+- When changing OpenCode support, update both `opencode/` and `docs/platforms/opencode.md`.
 - When changing Copilot support, update `copilot/` and relevant `.github/` assets.
 - Reuse existing role prompts and safety logic where it ports cleanly. Adjust to each platform's documented surfaces rather than copying platform-specific assumptions.

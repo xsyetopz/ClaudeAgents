@@ -24,22 +24,11 @@ export function renderCodexWrapper(commandName, modes) {
 			]
 				.map((line) => `        CONTRACT_LINES+=(${q(line)})`)
 				.join("\n");
-			const deepwikiGuard = mode.requiresDeepwiki
-				? `        if ! grep -Eq '^[[:space:]]*\\[mcp_servers\\.deepwiki\\]' "$HOME/.codex/config.toml" 2>/dev/null; then
-            echo "DeepWiki is not configured. Reinstall with --deepwiki-mcp or use triage." >&2
-            exit 1
-        fi
-        if [[ ! -d .git ]] || ! git remote get-url origin 2>/dev/null | grep -Eq '^https://github\\.com/|^git@github\\.com:'; then
-            echo "DeepWiki mode expects a GitHub repository. Use triage for local-only or non-GitHub repos." >&2
-            exit 1
-        fi
-`
-				: "";
 			return `    ${mode.mode})
         PROFILE=${q(mode.profile)}
         SYSTEM_PROMPT=${q(mode.prompt)}
 ${contractLines}
-${configOverrides ? `${configOverrides}\n` : ""}${deepwikiGuard}        ;;`;
+${configOverrides ? `${configOverrides}\n` : ""}        ;;`;
 		})
 		.join("\n");
 	const utilityModes =
@@ -57,6 +46,7 @@ set -euo pipefail
 usage() {
     cat <<'EOF' >&2
 Usage: ${commandName} <mode> [prompt...]
+       ${commandName} <mode> [--source deepwiki] [--approval auto] [--speed fast] [--runtime long] [prompt...]
 
 Modes:
 ${modeLines}
@@ -88,18 +78,53 @@ ${cases}
     esac
 fi
 
-if [[ "$MODE" != "resume" && $# -gt 0 ]]; then
-    PROMPT="$*"
-elif [[ "$MODE" != "resume" && ! -t 0 ]]; then
-    PROMPT="$(cat)"
-elif [[ "$MODE" != "resume" ]]; then
-    usage
-fi
-
 PROFILE="openagentsbtw"
 SYSTEM_PROMPT=""
 CODEX_CONFIG_ARGS=()
 CONTRACT_LINES=()
+SOURCE_MODE=""
+APPROVAL_MODE=""
+SPEED_MODE=""
+RUNTIME_MODE=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --source)
+            SOURCE_MODE="\${2:-}"
+            shift 2
+            ;;
+        --approval)
+            APPROVAL_MODE="\${2:-}"
+            shift 2
+            ;;
+        --speed)
+            SPEED_MODE="\${2:-}"
+            shift 2
+            ;;
+        --runtime)
+            RUNTIME_MODE="\${2:-}"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        --*)
+            usage
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+if [[ $# -gt 0 ]]; then
+    PROMPT="$*"
+elif [[ ! -t 0 ]]; then
+    PROMPT="$(cat)"
+else
+    usage
+fi
 
 case "$MODE" in
 ${cases}
@@ -107,6 +132,33 @@ ${cases}
         usage
         ;;
 esac
+
+if [[ "$APPROVAL_MODE" == "auto" ]]; then
+    PROFILE="openagentsbtw-approval-auto"
+fi
+
+if [[ "$SPEED_MODE" == "fast" ]]; then
+    CODEX_CONFIG_ARGS+=(-c "features.fast_mode = true")
+    CODEX_CONFIG_ARGS+=(-c 'service_tier = "fast"')
+fi
+
+if [[ "$RUNTIME_MODE" == "long" ]]; then
+    PROFILE="openagentsbtw-runtime-long"
+fi
+
+if [[ "$SOURCE_MODE" == "deepwiki" ]]; then
+    if ! grep -Eq '^[[:space:]]*\\[mcp_servers\\.deepwiki\\]' "$HOME/.codex/config.toml" 2>/dev/null; then
+        echo "DeepWiki is not configured. Reinstall with --deepwiki-mcp or drop --source deepwiki." >&2
+        exit 1
+    fi
+    if [[ ! -d .git ]] || ! git remote get-url origin 2>/dev/null | grep -Eq '^https://github\\.com/|^git@github\\.com:'; then
+        echo "DeepWiki source expects a GitHub repository." >&2
+        exit 1
+    fi
+    SYSTEM_PROMPT="$SYSTEM_PROMPT
+
+Use DeepWiki MCP tools first for public GitHub repository understanding, then verify exact local file or line claims with repo reads before stating them."
+fi
 
 PROMPT_HEADER=""
 if [[ \${#CONTRACT_LINES[@]} -gt 0 ]]; then

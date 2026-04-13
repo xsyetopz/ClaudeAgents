@@ -29,7 +29,7 @@ For production use, combine hooks with:
 
 1. **OS-level sandboxing** -- macOS Seatbelt, Linux bubblewrap, or Docker containers
 2. **Permission deny rules** -- settings template blocks access to `~/.ssh`, `~/.aws`, credentials
-3. **Code review** -- `@nemesis` should review changes before committing via `/cca:ship`
+3. **Code review** -- `@nemesis` should review changes before committing; use `/cca:git-workflow` for Git hygiene
 4. **Minimal permissions** -- only grant tools each agent needs (enforced via agent frontmatter)
 
 ## Sandboxing

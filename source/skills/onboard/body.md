@@ -12,9 +12,9 @@ One source of truth, four platform targets. Edit once, regenerate, and every pla
 
 ```mermaid
 graph TD
-    A["agents.json<br/>(7 agents)"]
-    B["skills.json<br/>(see source/skills.json)"]
-    C["hook-policies.json<br/>(safety hooks)"]
+    A["source/agents/<agent>/<br/>(agent.json + prompt.md)"]
+    B["source/skills/<skill>/<br/>(skill.json + body.md)"]
+    C["source/hooks/policies/<br/>(1 file per hook)"]
     D["scripts/generate.mjs"]
     E["claude/<br/>(Claude Code plugin)"]
     F["codex/<br/>(Codex CLI plugin)"]
@@ -44,9 +44,9 @@ Each agent is a specialist. Route work to the right one:
 | **hermes**     | Exploration, tracing, evidence gathering | When you need to understand before changing   |
 | **odysseus**   | Multi-step coordination                  | When work spans several agents or phases      |
 
-## The Nano BMAD Workflow
+## The Workflow
 
-**Research -> Plan -> Execute -> Review -> Ship**
+**Research -> Plan -> Execute -> Review**
 
 This is the default workflow. Not every task needs all phases -- small fixes can skip straight to Execute. But for non-trivial work:
 
@@ -54,7 +54,7 @@ This is the default workflow. Not every task needs all phases -- small fixes can
 2. **Plan** (`athena`) -- design the approach, identify risks
 3. **Execute** (`hephaestus`) -- write the code
 4. **Review** (`nemesis`) -- check for regressions, security, quality
-5. **Ship** -- commit, test, document
+5. **Close out** -- verify, document, and hand over cleanly
 
 ## Platform-Specific Usage
 
@@ -67,9 +67,10 @@ Available skills (invoke with `/cca:<name>`):
 - `/cca:review` -- code review
 - `/cca:test` -- test execution
 - `/cca:debug` -- structured debugging
-- `/cca:ship` -- git workflow
-- `/cca:docs` -- documentation standards
-- `/cca:desloppify` -- remove AI writing patterns
+- `/cca:git-workflow` -- git workflow
+- `/cca:document` -- documentation standards
+- `/cca:deslop` -- remove AI writing patterns
+- `/cca:design-polish` -- frontend and UI refinement
 - `/cca:decide` -- decision protocol for tradeoffs
 - `/cca:onboard` -- this guide
 
@@ -83,9 +84,9 @@ oabtw-codex plan "<goal>"          # athena
 oabtw-codex implement "<task>"     # hephaestus
 oabtw-codex review "<scope>"       # nemesis
 oabtw-codex test "<scope>"         # atalanta
-oabtw-codex docs "<task>"          # calliope
-oabtw-codex qa "<scope>"           # atalanta (broader)
-oabtw-codex longrun "<task>"       # patient builds/tests
+oabtw-codex document "<task>"      # calliope
+oabtw-codex validate "<scope>"     # atalanta (broader)
+oabtw-codex design-polish "<ui>"   # UI/frontend refinement
 oabtw-codex resume --last          # resume previous session
 ```
 
@@ -97,7 +98,7 @@ Same role split. Default templates ship role prompts and shared skills. Use nati
 
 ### GitHub Copilot
 
-Phase prompts live in `.github/prompts/`. Route through: research, plan, implement, review, test, docs, orchestrate.
+Phase prompts live in `.github/prompts/`. Route through: research, plan, implement, review, test, document, orchestrate.
 
 ## Shared Surfaces
 
@@ -125,23 +126,23 @@ These are guardrails, not walls. They catch common mistakes but are not a securi
 
 ## Quick Reference
 
-| I want to...               | Do this                                      |
-| -------------------------- | -------------------------------------------- |
-| Understand a codebase      | `@hermes` / `oabtw-codex explore`            |
-| Plan an implementation     | `@athena` / `oabtw-codex plan`               |
-| Write code                 | `@hephaestus` / `oabtw-codex implement`      |
-| Review changes             | `@nemesis` / `oabtw-codex review`            |
-| Run and fix tests          | `@atalanta` / `oabtw-codex test`             |
-| Write docs                 | `@calliope` / `oabtw-codex docs`             |
-| Coordinate multi-step work | `@odysseus` / `oabtw-codex orchestrate`      |
-| Clean up AI-sounding text  | `/cca:desloppify` / `oabtw-codex desloppify` |
-| Make a technical decision  | `/cca:decide`                                |
-| Commit and ship            | `/cca:ship`                                  |
-| Change your plan preset    | `./config.sh --claude-plan max-20`           |
+| I want to...               | Do this                                            |
+| -------------------------- | -------------------------------------------------- |
+| Understand a codebase      | `@hermes` / `oabtw-codex explore`                  |
+| Plan an implementation     | `@athena` / `oabtw-codex plan`                     |
+| Write code                 | `@hephaestus` / `oabtw-codex implement`            |
+| Review changes             | `@nemesis` / `oabtw-codex review`                  |
+| Run and fix tests          | `@atalanta` / `oabtw-codex test`                   |
+| Write docs                 | `@calliope` / `oabtw-codex document`               |
+| Coordinate multi-step work | `@odysseus` / `oabtw-codex orchestrate`            |
+| Clean up AI-sounding text  | `/cca:deslop` / `oabtw-codex deslop`               |
+| Polish AI-looking UI       | `/cca:design-polish` / `oabtw-codex design-polish` |
+| Make a technical decision  | `/cca:decide`                                      |
+| Git workflow rules         | `/cca:git-workflow`                                |
+| Change your plan preset    | `./config.sh --claude-plan max-20`                 |
 
 ## Further Reading
 
-- `docs/install.md` -- full installer flags and plan details
-- `docs/method/nano-bmad.md` -- workflow reference
+- `docs/architecture.md` -- source layout and workflow reference
 - `CONTRIBUTING.md` -- how to contribute to this repo
 - `SECURITY.md` -- security model and sandboxing

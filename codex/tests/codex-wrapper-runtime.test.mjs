@@ -53,11 +53,10 @@ describe("generated codex wrapper", () => {
 						prompt: "orchestrate prompt",
 					},
 					{
-						mode: "implement-fast",
+						mode: "implement",
 						profile: "openagentsbtw-implement",
 						routeKind: "edit-required",
 						prompt: "implement prompt",
-						configOverrides: ["features.fast_mode = true"],
 					},
 				]),
 			);
@@ -88,14 +87,19 @@ printf '%s\\n' "$@"
 				/^OPENAGENTSBTW_CONTRACT=edit-required$/m,
 			);
 
-			const fast = await run(wrapperPath, ["implement-fast", "fix stars"], {
-				env,
-			});
+			const fast = await run(
+				wrapperPath,
+				["implement", "--speed", "fast", "fix stars"],
+				{
+					env,
+				},
+			);
 			assert.equal(fast.code, 0);
 			assert.match(fast.stdout, /run-codex-filtered\.mjs$/m);
 			assert.match(fast.stdout, /^-c$/m);
 			assert.match(fast.stdout, /^features\.fast_mode = true$/m);
-			assert.match(fast.stdout, /^OPENAGENTSBTW_ROUTE=implement-fast$/m);
+			assert.match(fast.stdout, /^service_tier = "fast"$/m);
+			assert.match(fast.stdout, /^OPENAGENTSBTW_ROUTE=implement$/m);
 			assert.match(fast.stdout, /^OPENAGENTSBTW_CONTRACT=edit-required$/m);
 		} finally {
 			await rm(tmp, { recursive: true, force: true });

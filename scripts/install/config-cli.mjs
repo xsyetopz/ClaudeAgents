@@ -9,7 +9,6 @@ import {
 	DEFAULT_CODEX_PLAN,
 	DEFAULT_COPILOT_PLAN,
 	getClaudePlan,
-	migrateClaudePlan,
 	resolveClaudePlan,
 	resolveCodexPlan,
 	resolveCopilotPlan,
@@ -470,7 +469,7 @@ function parseArgs(argv) {
 }
 
 function resolveStoredClaudePlan(value = "") {
-	return migrateClaudePlan(value) || "";
+	return resolveClaudePlan(value) || "";
 }
 
 async function main() {

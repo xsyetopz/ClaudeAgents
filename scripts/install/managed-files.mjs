@@ -43,6 +43,7 @@ model_reasoning_effort = "${config.modelReasoning}"
 plan_mode_reasoning_effort = "${config.planReasoning}"
 model_verbosity = "${config.verbosity}"
 personality = "none"
+model_instructions_file = "~/.codex/AGENTS.md"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"${extra}
 
@@ -97,44 +98,42 @@ function buildManagedCodexBody({
 	const deepwikiBlock = deepwiki
 		? '\n[mcp_servers.deepwiki]\nurl = "https://mcp.deepwiki.com/mcp"\nenabled = true\n'
 		: "";
-	const aliasProfile = renderCodexProfile(
-		`openagentsbtw-${plan.id}`,
-		plan.profiles.main,
-	);
 	const mainProfile = renderCodexProfile("openagentsbtw", plan.profiles.main);
 	const implementProfile = renderCodexProfile(
 		"openagentsbtw-implement",
-		plan.profiles.acceptEdits,
+		plan.profiles.implementation,
 	);
 	const utilityProfile = renderCodexProfile(
-		"openagentsbtw-codex-mini",
+		"openagentsbtw-utility",
 		plan.profiles.utility,
 	);
-	const acceptEditsProfile = `[profiles.openagentsbtw-accept-edits]
-model = "${plan.profiles.acceptEdits.model}"
-model_reasoning_effort = "${plan.profiles.acceptEdits.modelReasoning}"
-plan_mode_reasoning_effort = "${plan.profiles.acceptEdits.planReasoning}"
-model_verbosity = "${plan.profiles.acceptEdits.verbosity}"
+	const approvalAutoProfile = `[profiles.openagentsbtw-approval-auto]
+model = "${plan.profiles.approvalAuto.model}"
+model_reasoning_effort = "${plan.profiles.approvalAuto.modelReasoning}"
+plan_mode_reasoning_effort = "${plan.profiles.approvalAuto.planReasoning}"
+model_verbosity = "${plan.profiles.approvalAuto.verbosity}"
 personality = "none"
+model_instructions_file = "~/.codex/AGENTS.md"
 approval_policy = "never"
 sandbox_mode = "workspace-write"
 
-[profiles.openagentsbtw-accept-edits.features]
+[profiles.openagentsbtw-approval-auto.features]
 codex_hooks = true
 sqlite = true
 multi_agent = true
 fast_mode = false`;
-	const longrunProfile = `[profiles.openagentsbtw-longrun]
-model = "${plan.profiles.longrun.model}"
-model_reasoning_effort = "${plan.profiles.longrun.modelReasoning}"
-plan_mode_reasoning_effort = "${plan.profiles.longrun.planReasoning}"
-model_verbosity = "${plan.profiles.longrun.verbosity}"
+	const runtimeLongProfile = `[profiles.openagentsbtw-runtime-long]
+model = "${plan.profiles.runtimeLong.model}"
+model_reasoning_effort = "${plan.profiles.runtimeLong.modelReasoning}"
+plan_mode_reasoning_effort = "${plan.profiles.runtimeLong.planReasoning}"
+model_verbosity = "${plan.profiles.runtimeLong.verbosity}"
 personality = "none"
+model_instructions_file = "~/.codex/AGENTS.md"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 background_terminal_max_timeout = 7200
 
-[profiles.openagentsbtw-longrun.features]
+[profiles.openagentsbtw-runtime-long.features]
 codex_hooks = true
 sqlite = true
 multi_agent = true
@@ -150,6 +149,7 @@ prevent_idle_sleep = true`;
 		"hide_agent_reasoning = true",
 		'model_reasoning_summary = "none"',
 		"tool_output_token_limit = 12000",
+		'model_instructions_file = "~/.codex/AGENTS.md"',
 		"",
 		"[history]",
 		'persistence = "save-all"',
@@ -168,17 +168,15 @@ prevent_idle_sleep = true`;
 		`agents.max_threads = ${plan.swarm.maxThreads}`,
 		"agents.max_depth = 1",
 		"",
-		aliasProfile,
-		"",
 		mainProfile,
 		"",
 		implementProfile,
 		"",
 		utilityProfile,
 		"",
-		acceptEditsProfile,
+		approvalAutoProfile,
 		"",
-		longrunProfile,
+		runtimeLongProfile,
 		deepwikiBlock,
 		pluginEntry,
 	]
@@ -384,12 +382,12 @@ async function main() {
 			await mergeCodexConfig({
 				target: arg("--target"),
 				profileAction: arg("--profile-action") || "auto",
-				profileName: arg("--profile-name") || "openagentsbtw-pro-5",
+				profileName: arg("--profile-name") || "openagentsbtw",
 				planName: arg("--plan-name") || "pro-5",
 				deepwiki: arg("--deepwiki") === "true",
 			});
 			break;
-		case "toggle-codex-deepwiki":
+		case "toggle-deepwiki":
 			await toggleCodexDeepwiki({
 				target: arg("--target"),
 				enabled: arg("--enabled") === "true",

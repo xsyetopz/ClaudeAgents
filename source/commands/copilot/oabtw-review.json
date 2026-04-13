@@ -1,0 +1,8 @@
+{
+  "name": "oabtw-review",
+  "agent": "nemesis",
+  "routeKind": "readonly",
+  "description": "openagentsbtw review (Nemesis)",
+  "title": "Review",
+  "body": "Audit for correctness, regressions, and security issues."
+}

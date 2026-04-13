@@ -153,7 +153,7 @@ describe("codex stop scan", () => {
 			const result = await invokeHook(root, {
 				cwd: root,
 				prompt:
-					"OPENAGENTSBTW_ROUTE=qa\nOPENAGENTSBTW_CONTRACT=execution-required",
+					"OPENAGENTSBTW_ROUTE=validate\nOPENAGENTSBTW_CONTRACT=execution-required",
 				last_assistant_message: "I would run the test suite next.",
 			});
 			const payload = JSON.parse(result.stdout);
@@ -175,7 +175,7 @@ describe("codex stop scan", () => {
 			const result = await invokeHook(root, {
 				cwd: root,
 				prompt:
-					"OPENAGENTSBTW_ROUTE=qa\nOPENAGENTSBTW_CONTRACT=execution-required",
+					"OPENAGENTSBTW_ROUTE=validate\nOPENAGENTSBTW_CONTRACT=execution-required",
 				last_assistant_message: "PASS: bun test",
 				transcript_path: transcriptPath,
 			});

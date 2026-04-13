@@ -1,12 +1,17 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { AGENT_PROMPTS } from "../source/agent-prompts.mjs";
+import {
+	loadAgents,
+	loadCommands,
+	loadHookPolicies,
+	loadProjectGuidance,
+	loadSkills,
+} from "../source/catalog/loaders.mjs";
 import {
 	renderCavemanPromptBullet,
 	renderCavemanRuntimeModule,
 } from "../source/caveman.mjs";
-import { PROJECT_GUIDANCE } from "../source/project-guidance.mjs";
 import { renderCodexPeerWrapper } from "./generate/render/codex-peer-wrapper.mjs";
 import { renderCodexWrapper } from "./generate/render/codex-wrapper.mjs";
 import { renderOpenCodePlugin } from "./generate/render/opencode-plugin.mjs";
@@ -443,11 +448,10 @@ async function generateAgents(agents) {
 	);
 
 	for (const agent of agents) {
-		const schema = AGENT_PROMPTS[agent.name];
-		if (!schema) {
-			throw new Error(`Missing prompt schema for agent ${agent.name}`);
-		}
-		const prompt = renderPromptSections(schema.sections, sharedConstraints);
+		const prompt = renderPromptSections(
+			agent.promptSections,
+			sharedConstraints,
+		);
 
 		await writeFile(
 			path.join("claude", "agents", `${agent.name}.md`),
@@ -1062,26 +1066,26 @@ async function generateCopilotRouteContracts(skills, agents) {
 	);
 }
 
-async function generateProjectInstructionAssets() {
+async function generateProjectInstructionAssets(projectGuidance) {
 	await writeFile(
 		path.join("claude", "templates", "CLAUDE.md"),
-		renderProjectGuidance(PROJECT_GUIDANCE.claude),
+		renderProjectGuidance(projectGuidance.claude),
 	);
 	await writeFile(
 		path.join("codex", "templates", "AGENTS.md"),
-		renderProjectGuidance(PROJECT_GUIDANCE.codex),
+		renderProjectGuidance(projectGuidance.codex),
 	);
 	await writeFile(
 		path.join("opencode", "templates", "instructions", "openagentsbtw.md"),
-		renderProjectGuidance(PROJECT_GUIDANCE.opencode),
+		renderProjectGuidance(projectGuidance.opencode),
 	);
 	await writeFile(
 		path.join("copilot", "templates", ".github", "copilot-instructions.md"),
-		renderProjectGuidance(PROJECT_GUIDANCE.copilot),
+		renderProjectGuidance(projectGuidance.copilot),
 	);
 	await writeFile(
 		path.join("copilot", "templates", ".copilot", "copilot-instructions.md"),
-		renderProjectGuidance(PROJECT_GUIDANCE.copilot),
+		renderProjectGuidance(projectGuidance.copilot),
 	);
 }
 
@@ -1224,10 +1228,11 @@ async function main() {
 		OUTPUT_ROOT = path.resolve(process.argv[outShortIdx + 1]);
 	}
 
-	const skills = await readJson("skills.json");
-	const agents = await readJson("agents.json");
-	const commandData = await readJson("commands.json");
-	const policies = await readJson("hook-policies.json");
+	const skills = await loadSkills();
+	const agents = await loadAgents();
+	const commandData = await loadCommands();
+	const policies = await loadHookPolicies();
+	const projectGuidance = await loadProjectGuidance();
 
 	await cleanGeneratedDirs();
 	await generateSkills(skills);
@@ -1236,7 +1241,7 @@ async function main() {
 	await generateClaudeRouteContracts(skills, agents);
 	await generateCopilotRouteContracts(skills, agents);
 	await generateCommands(commandData);
-	await generateProjectInstructionAssets();
+	await generateProjectInstructionAssets(projectGuidance);
 	await generateCopilotInstructionFiles();
 	await generateCopilotPromptFiles(commandData);
 	await generateCavemanRuntimeHelpers();

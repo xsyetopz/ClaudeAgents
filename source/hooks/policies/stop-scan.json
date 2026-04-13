@@ -1,0 +1,21 @@
+{
+  "id": "stop-scan",
+  "script": "post/stop-scan.mjs",
+  "claude": {
+    "event": "Stop",
+    "timeout": 15
+  },
+  "codex": {
+    "event": "Stop",
+    "timeout": 15
+  },
+  "copilot": {
+    "event": "agentStop",
+    "timeout": 15
+  },
+  "opencode": {
+    "plugin": {
+      "event": "experimental.text.complete"
+    }
+  }
+}

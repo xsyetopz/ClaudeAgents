@@ -17,11 +17,6 @@ const CONTRAST_REFERENCE_FILES = [
 	"source/skills/perf/reference/bottleneck-patterns.md",
 	"source/skills/review/reference/anti-patterns.md",
 	"source/skills/review/reference/refactoring-catalog.md",
-	"source/security/reference/api-attacks.md",
-	"source/security/reference/owasp-checklist.md",
-	"source/perf/reference/bottleneck-patterns.md",
-	"source/review/reference/anti-patterns.md",
-	"source/review/reference/refactoring-catalog.md",
 ];
 
 const FORBIDDEN_PATTERNS = [

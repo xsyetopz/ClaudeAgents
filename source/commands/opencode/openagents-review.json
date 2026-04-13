@@ -1,0 +1,7 @@
+{
+  "name": "openagents-review",
+  "description": "Perform code review on a file or path",
+  "agent": "nemesis",
+  "routeKind": "readonly",
+  "promptTemplate": "Perform a comprehensive code review on the following file or path. Check for correctness, security vulnerabilities, performance issues, and style problems.\n\nTarget:"
+}

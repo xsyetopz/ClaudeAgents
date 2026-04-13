@@ -60,12 +60,12 @@ ${task.trim()}
 
 ## Fixed Role Order
 
-${formatList([
-	"orchestrator -- split work, define acceptance criteria, and decide ownership",
-	"qa -- reproduce broadly, gather evidence, and enumerate variants",
-	"worker -- implement against the orchestrator + QA handoff",
-	"review -- audit the resulting diff, validation, and residual risk",
-])}
+	${formatList([
+		"orchestrator -- split work, define acceptance criteria, and decide ownership",
+		"validate -- reproduce broadly, gather evidence, and enumerate variants",
+		"worker -- implement against the orchestrator + QA handoff",
+		"review -- audit the resulting diff, validation, and residual risk",
+	])}
 `;
 }
 
@@ -89,8 +89,8 @@ Produce:
 3. the exact next handoff the QA worker should use
 
 Write no code. Keep the result concise, operational, and decision-complete.`;
-		case "qa":
-			return `Use openagentsbtw. Route this through atalanta-style QA.
+		case "validate":
+			return `Use openagentsbtw. Route this through atalanta-style validation.
 
 ${common}
 
@@ -111,7 +111,7 @@ ${common}
 
 Read:
 - ${path.join(paths.resultsDir, "orchestrator.md")}
-- ${path.join(paths.resultsDir, "qa.md")}
+- ${path.join(paths.resultsDir, "validate.md")}
 
 Implement the smallest cohesive fix that satisfies the orchestrator acceptance criteria and the QA evidence. Avoid big rewrites and god-object files.`;
 		case "review":
@@ -121,7 +121,7 @@ ${common}
 
 Read:
 - ${path.join(paths.resultsDir, "orchestrator.md")}
-- ${path.join(paths.resultsDir, "qa.md")}
+- ${path.join(paths.resultsDir, "validate.md")}
 - ${path.join(paths.resultsDir, "worker.md")}
 
 Audit correctness, regressions, missing tests, and residual risk. Lead with findings and evidence.`;
@@ -142,11 +142,11 @@ export function buildBatchSteps({ cwd, runId, home = homeDir() }) {
 			output: path.join(paths.resultsDir, "orchestrator.md"),
 		},
 		{
-			id: "qa",
-			mode: "qa",
+			id: "validate",
+			mode: "validate",
 			command: wrapper,
-			args: ["qa", rolePrompt({ role: "qa", paths })],
-			output: path.join(paths.resultsDir, "qa.md"),
+			args: ["validate", rolePrompt({ role: "validate", paths })],
+			output: path.join(paths.resultsDir, "validate.md"),
 		},
 		{
 			id: "worker",
@@ -194,7 +194,7 @@ export function buildTmuxPlan({ cwd, runId, home = homeDir() }) {
 	const sessionName = `oabtw-${runId}`;
 	const panes = [
 		{ id: "orchestrator", mode: "orchestrate" },
-		{ id: "qa", mode: "qa" },
+		{ id: "validate", mode: "validate" },
 		{ id: "worker", mode: "implement" },
 		{ id: "review", mode: "review" },
 	].map((pane) => ({

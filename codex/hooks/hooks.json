@@ -1,5 +1,39 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/pre/bash-guard.mjs\"",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/pre/rtk-enforce.mjs\"",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/post/bash-redact.mjs\"",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -21,40 +55,6 @@
           }
         ],
         "matcher": "startup|resume"
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/pre/rtk-enforce.mjs\"",
-            "timeout": 10
-          }
-        ],
-        "matcher": "Bash"
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/pre/bash-guard.mjs\"",
-            "timeout": 10
-          }
-        ],
-        "matcher": "Bash"
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/post/bash-redact.mjs\"",
-            "timeout": 10
-          }
-        ],
-        "matcher": "Bash"
       }
     ],
     "Stop": [

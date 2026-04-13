@@ -25,8 +25,8 @@ This package ports openagentsbtw onto Codex’s native extension surfaces: custo
 Wrapper command after install:
 
 ```bash
-oabtw-codex docs "tighten the README install section"
-oabtw-codex qa "reproduce this bug broadly and record the variants"
+oabtw-codex document "tighten the README install section"
+oabtw-codex validate "reproduce this bug broadly and record the variants"
 oabtw-codex resume --last
 oabtw-codex-peer batch "investigate, implement, test, and review this change"
 ```
@@ -34,13 +34,13 @@ oabtw-codex-peer batch "investigate, implement, test, and review this change"
 Direct fallback path:
 
 ```bash
-~/.codex/openagentsbtw/bin/oabtw-codex docs "tighten the README install section"
-~/.codex/openagentsbtw/bin/oabtw-codex deepwiki "map the auth subsystem before editing it"
+~/.codex/openagentsbtw/bin/oabtw-codex document "tighten the README install section"
+~/.codex/openagentsbtw/bin/oabtw-codex explore --source deepwiki "map the auth subsystem before editing it"
 ~/.codex/openagentsbtw/bin/oabtw-codex implement "fix the auth race in src/auth.ts"
 ~/.codex/openagentsbtw/bin/oabtw-codex review "audit the current diff for regressions"
-~/.codex/openagentsbtw/bin/oabtw-codex qa "reproduce this bug broadly and record the variants"
-~/.codex/openagentsbtw/bin/oabtw-codex longrun "run the full integration suite and wait for it cleanly"
-~/.codex/openagentsbtw/bin/oabtw-codex swarm "investigate, implement, test, and review this change"
+~/.codex/openagentsbtw/bin/oabtw-codex validate "reproduce this bug broadly and record the variants"
+~/.codex/openagentsbtw/bin/oabtw-codex test --runtime long "run the full integration suite and wait for it cleanly"
+~/.codex/openagentsbtw/bin/oabtw-codex orchestrate "investigate, implement, test, and review this change"
 ~/.codex/openagentsbtw/bin/oabtw-codex-peer batch "investigate, implement, test, and review this change"
 ~/.codex/openagentsbtw/bin/oabtw-codex memory show
 ```
@@ -57,7 +57,7 @@ The installer:
 - installs PATH-managed wrapper shims into `~/.local/bin/` on Unix or `%APPDATA%\\openagentsbtw\\bin\\` on Windows
 - keeps openagentsbtw memory state in `~/.codex/openagentsbtw/state/`
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
-- appends global native continuity defaults (`sqlite_home`, `history`, `memories`, `compact_prompt`, `hide_agent_reasoning`, `tool_output_token_limit`) plus a plan-aware `openagentsbtw` main profile, a matching `openagentsbtw-<plan>` alias, `openagentsbtw-codex-mini`, `openagentsbtw-accept-edits`, and `openagentsbtw-longrun` to `~/.codex/config.toml`
+- appends global native continuity defaults (`sqlite_home`, `history`, `memories`, `compact_prompt`, `hide_agent_reasoning`, `tool_output_token_limit`) plus the managed `openagentsbtw`, `openagentsbtw-implement`, `openagentsbtw-utility`, `openagentsbtw-approval-auto`, and `openagentsbtw-runtime-long` profiles to `~/.codex/config.toml`
 - optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
 - optionally installs RTK and a managed `~/.config/openagentsbtw/RTK.md` policy
 
@@ -106,14 +106,14 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 - `plus`
   Code-specialized preset. Uses `gpt-5.3-codex` for the main route and `gpt-5.4-mini` for bounded utility work.
 - `pro-5`
-  High-reasoning preset. Uses `gpt-5.2` for planning/review/orchestration, `gpt-5.3-codex` for implementation, and `gpt-5.3-codex-spark` for Pro-only utility work.
+  High-reasoning preset. Uses `gpt-5.3-codex` for the main working routes and `gpt-5.4-mini` for bounded utility work.
 - `pro-20`
-  Same model split as `pro-5`, with stronger reasoning on the main route and more aggressive swarming.
-- `openagentsbtw-codex-mini`
-  A separate lightweight profile for narrow high-volume tasks. It uses Spark on the Pro plans and `gpt-5.4-mini` on `go` / `plus`.
-- `openagentsbtw-accept-edits`
+  Same model split as `pro-5`, with more aggressive swarming.
+- `openagentsbtw-utility`
+  A lightweight profile for bounded utility tasks. It uses `gpt-5.4-mini`.
+- `openagentsbtw-approval-auto`
   A sandboxed auto-accept profile for implementation work. It keeps `sandbox_mode = "workspace-write"` but switches to `approval_policy = "never"`.
-- `openagentsbtw-longrun`
+- `openagentsbtw-runtime-long`
   A patient long-running execution profile. It keeps the implementation route, enables `unified_exec`, prevents idle sleep, and raises the background terminal timeout for long builds and test suites.
 
 ## Behavior Policy
@@ -128,13 +128,13 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 
 ## Routing
 
-- `oabtw-codex explore|trace|debug|qa|plan|implement|review|longrun|orchestrate|deepwiki|resume` is the short supported CLI routing layer.
-- `oabtw-codex accept` is the sandboxed auto-accept implementation route.
+- `oabtw-codex explore|trace|debug|validate|plan|implement|review|test|document|design-polish|orchestrate|resume` is the short supported CLI routing layer.
+- `--approval auto`, `--speed fast`, `--runtime long`, and `--source deepwiki` are orthogonal wrapper modifiers.
 - `oabtw-codex-peer batch|tmux` is the openagentsbtw-managed peer-thread helper. It runs top-level Codex workers; it is not a native Codex subagent feature.
 - `oabtw-codex memory show|forget-project|prune` manages the openagentsbtw SQLite memory overlay.
 - `openagentsbtw-codex` remains supported as the canonical full-form command.
 - Wrapper modes select the managed profile, add per-mode model overrides where needed, and reinforce the intended specialist path.
-- `deepwiki` is explicit and opt-in. It is for GitHub repo exploration through the configured DeepWiki MCP server, not a replacement for normal local repo reads.
+- `--source deepwiki` is explicit and opt-in. It is for GitHub repo exploration through the configured DeepWiki MCP server, not a replacement for normal local repo reads.
 - Native `/plan` still helps with reasoning depth, but it does not guarantee `athena` selection.
 - Specialist model pinning lives in the installed custom agent TOMLs, not in the plugin manifest.
 
@@ -158,4 +158,4 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 
 - The Codex plugin is packaged with the official `.codex-plugin/plugin.json` manifest and local marketplace metadata.
 - The hook port intentionally keeps only what Codex’s documented hook events can support today: Bash command guardrails, Bash output redaction, session guidance, and completion checks.
-- Research and source links for the Codex port live in `docs/openai/`.
+- Research and source links for the Codex port live in `docs/platforms/codex.md`.

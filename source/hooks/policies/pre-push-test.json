@@ -1,0 +1,13 @@
+{
+  "id": "pre-push-test",
+  "opencode": {
+    "gitHooks": [
+      {
+        "hook": "pre-push",
+        "kind": "package-test",
+        "label": "Running tests before push...",
+        "message": "Tests failed. Fix them before pushing."
+      }
+    ]
+  }
+}

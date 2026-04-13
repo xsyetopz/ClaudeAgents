@@ -204,14 +204,14 @@ async function removeOpenCode(scope) {
 		"openagents-review",
 		"openagents-test",
 		"openagents-implement",
-		"openagents-docs",
+		"openagents-document",
 		"openagents-explore",
 		"openagents-trace",
 		"openagents-debug",
 		"openagents-plan-feature",
 		"openagents-plan-refactor",
 		"openagents-audit",
-		"openagents-ship",
+		"openagents-orchestrate",
 	]) {
 		await fs.rm(path.join(target, "commands", `${command}.md`), {
 			force: true,
@@ -260,8 +260,9 @@ async function removeCopilot(scope) {
 				.map((entry) => entry.name)
 		: [
 				"decide",
-				"desloppify",
-				"docs",
+				"deslop",
+				"document",
+				"design-polish",
 				"errors",
 				"debug",
 				"explore",
@@ -270,7 +271,7 @@ async function removeCopilot(scope) {
 				"perf",
 				"review",
 				"security",
-				"ship",
+				"git-workflow",
 				"style",
 				"test",
 				"trace",
@@ -405,18 +406,6 @@ async function removeCopilot(scope) {
 				"<!-- <<< openagentsbtw copilot <<< -->",
 			);
 			await writeText(instructionsTarget, next);
-		}
-		const legacyInstructionsTarget = path.join(
-			workspacePaths.workspaceRoot,
-			"copilot-instructions.md",
-		);
-		if (await pathExists(legacyInstructionsTarget)) {
-			const next = removeManagedBlock(
-				await readText(legacyInstructionsTarget, ""),
-				"<!-- >>> openagentsbtw copilot >>> -->",
-				"<!-- <<< openagentsbtw copilot <<< -->",
-			);
-			await writeText(legacyInstructionsTarget, next);
 		}
 		logInfo("Removed Copilot repo assets from .github/");
 	}

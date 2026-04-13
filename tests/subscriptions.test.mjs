@@ -5,13 +5,12 @@ import {
 	getClaudePlan,
 	getCodexPlan,
 	getCopilotPlan,
-	migrateClaudePlan,
 	resolveClaudePlan,
 	resolveCodexPlan,
 } from "../source/subscriptions.mjs";
 
 describe("subscription presets", () => {
-	it("rejects legacy Claude CLI aliases and keeps the Codex alias", () => {
+	it("accepts only current plan ids", () => {
 		assert.equal(resolveClaudePlan("plus"), "");
 		assert.equal(resolveClaudePlan("max5"), "");
 		assert.equal(resolveClaudePlan("max20"), "");
@@ -19,22 +18,14 @@ describe("subscription presets", () => {
 		assert.equal(resolveClaudePlan("20x"), "");
 		assert.equal(resolveClaudePlan("pro-5"), "");
 		assert.equal(resolveClaudePlan("pro-20"), "");
-		assert.equal(resolveCodexPlan("pro"), "pro-5");
+		assert.equal(resolveCodexPlan("pro"), "");
 	});
 
-	it("migrates legacy stored Claude plan values to the canonical ids", () => {
-		assert.equal(migrateClaudePlan("plus"), "pro");
-		assert.equal(migrateClaudePlan("max5"), "max-5");
-		assert.equal(migrateClaudePlan("max20"), "max-20");
-		assert.equal(migrateClaudePlan("5x"), "max-5");
-		assert.equal(migrateClaudePlan("20x"), "max-20");
-	});
-
-	it("keeps Spark on Pro-only Codex plans", () => {
+	it("keeps utility work on the small profile across Codex plans", () => {
 		assert.equal(getCodexPlan("go").utility.model, "gpt-5.4-mini");
 		assert.equal(getCodexPlan("plus").utility.model, "gpt-5.4-mini");
-		assert.equal(getCodexPlan("pro-5").utility.model, "gpt-5.3-codex-spark");
-		assert.equal(getCodexPlan("pro-20").utility.model, "gpt-5.3-codex-spark");
+		assert.equal(getCodexPlan("pro-5").utility.model, "gpt-5.4-mini");
+		assert.equal(getCodexPlan("pro-20").utility.model, "gpt-5.4-mini");
 	});
 
 	it("uses low verbosity across all managed Codex profiles", () => {
@@ -56,18 +47,18 @@ describe("subscription presets", () => {
 		for (const planName of ["go", "plus", "pro-5", "pro-20"]) {
 			const plan = getCodexPlan(planName);
 			assert.equal(plan.profiles.main.modelReasoning, "medium");
-			assert.equal(plan.profiles.acceptEdits.modelReasoning, "medium");
-			assert.equal(plan.profiles.longrun.modelReasoning, "medium");
+			assert.equal(plan.profiles.approvalAuto.modelReasoning, "medium");
+			assert.equal(plan.profiles.runtimeLong.modelReasoning, "medium");
 		}
 		assert.equal(getCodexPlan("go").profiles.main.planReasoning, "high");
 		assert.equal(getCodexPlan("plus").profiles.main.planReasoning, "xhigh");
 		assert.equal(
-			getCodexPlan("pro-5").profiles.acceptEdits.planReasoning,
-			"xhigh",
+			getCodexPlan("pro-5").profiles.approvalAuto.planReasoning,
+			"high",
 		);
 		assert.equal(
-			getCodexPlan("pro-20").profiles.longrun.planReasoning,
-			"xhigh",
+			getCodexPlan("pro-20").profiles.runtimeLong.planReasoning,
+			"high",
 		);
 	});
 

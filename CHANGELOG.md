@@ -2,6 +2,47 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.0.0] - 2026-04-13
+
+### Added
+
+- Canonical per-agent source directories under `source/agents/<agent>/` with colocated `agent.json` and `prompt.md`.
+- Canonical per-skill source directories under `source/skills/<skill>/` with colocated `skill.json`, `body.md`, references, and helper scripts.
+- Canonical per-hook policy files under `source/hooks/policies/`.
+- Canonical per-platform guidance files under `source/guidance/`.
+- Cross-platform `design-polish` skill as a first-class v2 surface in the canonical source tree.
+
+### Changed
+
+- Released the breaking v2 architecture cut with no backward-compatibility shims for retired v1 routes, source paths, or compatibility aliases.
+- Generator now reads only the colocated v2 source layout; skill `bodyDir` indirection is gone.
+- Codex internal managed profile ids now match the wrapper modifier model:
+  - `openagentsbtw-utility`
+  - `openagentsbtw-approval-auto`
+  - `openagentsbtw-runtime-long`
+- Codex wrapper and managed config now use those internal profile ids everywhere.
+- Canonical skill folder names now match public v2 names exactly: `deslop`, `document`, and `git-workflow`.
+- Docs, contributor guidance, and generated assets now describe only the v2 source layout and route model.
+- `CHANGELOG.md` historical wording was normalized so retired v1 route/profile names no longer appear as live terminology.
+
+### Removed
+
+- Old source monoliths and duplicate authorship surfaces:
+  - `source/agent-prompts.mjs`
+  - `source/project-guidance.mjs`
+  - `source/hook-policies.json`
+  - legacy registry JSON files
+  - duplicate top-level reference trees under `source/errors`, `source/perf`, `source/review`, `source/security`, and `source/test`
+- Remaining compatibility behavior for retired installer/config aliases and legacy plan migration paths.
+- Legacy repo-root Copilot instruction cleanup path.
+- Old scattered platform docs replaced by the consolidated v2 docs layout.
+
+### Verified
+
+- `bun run check:generated`
+- `bun test tests claude/tests codex/tests`
+- `cd opencode && bun test && bun run typecheck`
+
 ## [1.3.3] - 2026-04-13
 
 ### Added
@@ -37,7 +78,7 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 
 ### Changed
 
-- Claude: renamed the supported plan contract to `pro`, `max-5`, and `max-20`, with installer/config migration for legacy stored values and updated references to Claude Pro, Claude Max 5x, and Claude Max 20x.
+- Claude: renamed the supported plan contract to `pro`, `max-5`, and `max-20`, with installer/config updates aligned to the current preset names.
 - Copilot: normalized human-facing plan references to `Pro` and `Pro+` while keeping the CLI/config flags `pro` and `pro-plus`.
 - Codex: split managed config reasoning so `model_reasoning_effort` stays `medium` on all managed profiles while `plan_mode_reasoning_effort` remains plan-shaped.
 - Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `1.3.1`.
@@ -69,13 +110,13 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 
 ### Added
 
-- Installer/config: added shared subscription preset policy for ChatGPT/Codex (`go`, `plus`, `pro-5`, `pro-20`), Claude (`plus`, `pro-5`, `pro-20`), and Copilot (`pro`, `pro-plus`).
+- Installer/config: added shared subscription preset policy for Codex (`go`, `plus`, `pro-5`, `pro-20`), Claude (`pro`, `max-5`, `max-20`), and Copilot (`pro`, `pro-plus`).
 - Config: added in-place plan switching via `./config.sh --claude-plan`, `--codex-plan`, and `--copilot-plan`.
 
 ### Changed
 
-- Codex: main, implementation, utility, accept-edits, and longrun routing is now plan-aware, with `gpt-5.3-codex-spark` reserved for Pro plans only.
-- Claude: replaced the public `5x` / `20x` wording with `plus` / `pro-5` / `pro-20`, while keeping legacy aliases for install compatibility.
+- Codex: main, implementation, utility, approval-auto, and runtime-long routing is now plan-aware, with lighter utility routing separated from the main profile.
+- Claude: standardized the public plan wording on the current preset names.
 - Copilot/OpenCode: added heavier `pro-plus` defaults and routed OpenCode’s Copilot-backed installs through the shared preset layer.
 - Docs: refreshed install, config, and model-strategy docs around the new preset matrix and swarm policy.
 
@@ -104,10 +145,10 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 
 ### Added
 
-- Codex: `plan-fast`, `implement-fast`, and `review-fast` wrapper modes (Fast mode enabled per-run).
-- Codex: `swarm` wrapper mode (explicit subagent spawning by default).
+- Codex: fast routing is available through the `--speed fast` modifier.
+- Codex: multi-step coordination routes through explicit orchestration instead of a catch-all mode.
 - Codex guidance: prompt contracts, reasoning-activation scaffolding, and explicit anti–god-object rules.
-- Codex guidance: swarm-by-default instruction in `AGENTS.md` (Codex only spawns subagents when explicitly asked).
+- Codex guidance: explicit subagent-spawning instruction in `AGENTS.md` (Codex only spawns subagents when explicitly asked).
 
 ### Changed
 
@@ -163,11 +204,11 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 
 - Version `1.1.10` is now aligned across the Claude plugin, Codex plugin, and OpenCode package.
 - Codex model presets and routing:
-  - `openagentsbtw-pro` now defaults to `gpt-5.2` for the main high-reasoning route.
-  - `openagentsbtw-plus` stays on `gpt-5.3-codex` for implementation-heavy code work.
-  - `openagentsbtw-codex-mini` now uses `gpt-5.3-codex-spark` for the lightweight route.
-  - the stable `openagentsbtw` profile is pinned to `gpt-5.2` instead of mirroring the selected tier.
-- Codex install defaults now prefer the `pro` preset when no `--codex-tier` is supplied.
+  - the main high-reasoning route now defaults to `gpt-5.2`.
+  - the implementation-heavy route stays on `gpt-5.3-codex`.
+  - the utility route now uses `gpt-5.3-codex-spark`.
+  - the stable `openagentsbtw` profile is pinned to `gpt-5.2` instead of mirroring the selected preset.
+- Codex install defaults now prefer the current high-reasoning preset when no explicit Codex plan is supplied.
 - Managed Codex guidance and research docs now describe the `gpt-5.2` / `gpt-5.3-codex` / `gpt-5.3-codex-spark` split and remove full `gpt-5.4` from managed routing.
 
 ## [1.1.9] - 2026-04-02
@@ -181,9 +222,9 @@ All notable changes to openagentsbtw are documented here. Format follows [Keep a
 
 - Version `1.1.9` is now aligned across the Claude plugin, Codex plugin, and OpenCode package.
 - Codex model presets and routing:
-  - `openagentsbtw-plus` defaults to `gpt-5.3-codex` as the daily driver.
-  - `openagentsbtw-pro` defaults to `gpt-5.4` for the flagship route.
-  - `openagentsbtw-codex-mini` is a lightweight profile (low reasoning/verbosity) without requiring a "mini" model.
+  - the daily-driver implementation route defaults to `gpt-5.3-codex`.
+  - the flagship main route defaults to `gpt-5.4`.
+  - the utility profile is a lightweight route (low reasoning/verbosity) without requiring a "mini" model.
 - Codex completion check is now focused on unfinished-work signals:
   - hard placeholders block only for non-prose files
   - hedges (e.g. "for now", "for simplicity") are warnings

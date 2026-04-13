@@ -22,20 +22,6 @@ export const DEFAULT_CLAUDE_PLAN = "max-5";
 export const DEFAULT_CODEX_PLAN = "pro-5";
 export const DEFAULT_COPILOT_PLAN = "pro";
 
-export const LEGACY_CLAUDE_PLAN_MIGRATIONS = {
-	plus: "pro",
-	max5: "max-5",
-	max20: "max-20",
-	"5x": "max-5",
-	"20x": "max-20",
-	"pro-5": "max-5",
-	"pro-20": "max-20",
-};
-
-export const CODEX_PLAN_ALIASES = {
-	pro: "pro-5",
-};
-
 const commonFeatureFlags = {
 	codexHooks: true,
 	sqlite: true,
@@ -76,7 +62,16 @@ export const CODEX_PLANS = {
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			acceptEdits: {
+			implementation: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "medium",
+				planReasoning: "high",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			approvalAuto: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "high",
@@ -85,7 +80,7 @@ export const CODEX_PLANS = {
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			longrun: {
+			runtimeLong: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "high",
@@ -133,7 +128,16 @@ export const CODEX_PLANS = {
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			acceptEdits: {
+			implementation: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "medium",
+				planReasoning: "xhigh",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			approvalAuto: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "xhigh",
@@ -142,7 +146,7 @@ export const CODEX_PLANS = {
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			longrun: {
+			runtimeLong: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "xhigh",
@@ -163,26 +167,26 @@ export const CODEX_PLANS = {
 		displayName: "Pro 5x",
 		swarmPolicy: "aggressive",
 		agentAssignments: {
-			athena: ["gpt-5.2", "xhigh"],
+			athena: ["gpt-5.3-codex", "high"],
 			hephaestus: ["gpt-5.3-codex", "high"],
-			nemesis: ["gpt-5.2", "xhigh"],
-			odysseus: ["gpt-5.2", "xhigh"],
-			hermes: ["gpt-5.3-codex-spark", "medium"],
-			atalanta: ["gpt-5.3-codex-spark", "medium"],
-			calliope: ["gpt-5.3-codex-spark", "medium"],
+			nemesis: ["gpt-5.3-codex", "high"],
+			odysseus: ["gpt-5.3-codex", "high"],
+			hermes: ["gpt-5.4-mini", "medium"],
+			atalanta: ["gpt-5.4-mini", "medium"],
+			calliope: ["gpt-5.4-mini", "medium"],
 		},
 		profiles: {
 			main: {
-				model: "gpt-5.2",
+				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
-				planReasoning: "xhigh",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
 			utility: {
-				model: "gpt-5.3-codex-spark",
+				model: "gpt-5.4-mini",
 				modelReasoning: "medium",
 				planReasoning: "medium",
 				verbosity: "low",
@@ -190,19 +194,28 @@ export const CODEX_PLANS = {
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			acceptEdits: {
+			implementation: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
-				planReasoning: "xhigh",
+				planReasoning: "high",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			approvalAuto: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "medium",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "never",
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			longrun: {
+			runtimeLong: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
-				planReasoning: "xhigh",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
@@ -220,26 +233,26 @@ export const CODEX_PLANS = {
 		displayName: "Pro 20x",
 		swarmPolicy: "max",
 		agentAssignments: {
-			athena: ["gpt-5.2", "xhigh"],
+			athena: ["gpt-5.3-codex", "high"],
 			hephaestus: ["gpt-5.3-codex", "high"],
-			nemesis: ["gpt-5.2", "xhigh"],
-			odysseus: ["gpt-5.2", "xhigh"],
-			hermes: ["gpt-5.3-codex-spark", "medium"],
-			atalanta: ["gpt-5.3-codex-spark", "medium"],
-			calliope: ["gpt-5.3-codex-spark", "medium"],
+			nemesis: ["gpt-5.3-codex", "high"],
+			odysseus: ["gpt-5.3-codex", "high"],
+			hermes: ["gpt-5.4-mini", "medium"],
+			atalanta: ["gpt-5.4-mini", "medium"],
+			calliope: ["gpt-5.4-mini", "medium"],
 		},
 		profiles: {
 			main: {
-				model: "gpt-5.2",
+				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
-				planReasoning: "xhigh",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
 			utility: {
-				model: "gpt-5.3-codex-spark",
+				model: "gpt-5.4-mini",
 				modelReasoning: "medium",
 				planReasoning: "medium",
 				verbosity: "low",
@@ -247,19 +260,28 @@ export const CODEX_PLANS = {
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			acceptEdits: {
+			implementation: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
-				planReasoning: "xhigh",
+				planReasoning: "high",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			approvalAuto: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "medium",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "never",
 				sandbox: "workspace-write",
 				features: commonFeatureFlags,
 			},
-			longrun: {
+			runtimeLong: {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
-				planReasoning: "xhigh",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
@@ -357,18 +379,11 @@ export const COPILOT_PLANS = {
 };
 
 export function normalizeClaudePlan(value = "") {
-	const normalized = value ?? "";
-	return CLAUDE_PLANS[normalized] ? normalized : "";
-}
-
-export function migrateClaudePlan(value = "") {
-	const normalized = LEGACY_CLAUDE_PLAN_MIGRATIONS[value] ?? value ?? "";
-	return CLAUDE_PLANS[normalized] ? normalized : "";
+	return CLAUDE_PLANS[value] ? value : "";
 }
 
 export function normalizeCodexPlan(value = "") {
-	const normalized = CODEX_PLAN_ALIASES[value] ?? value ?? "";
-	return CODEX_PLANS[normalized] ? normalized : "";
+	return CODEX_PLANS[value] ? value : "";
 }
 
 export function normalizeCopilotPlan(value = "") {
@@ -389,9 +404,10 @@ export function getCodexPlan(value = "") {
 		agentAssignments: plan.agentAssignments,
 		profiles: plan.profiles,
 		main: profileToRoute(plan.profiles.main),
-		implement: profileToRoute(plan.profiles.acceptEdits),
+		implement: profileToRoute(plan.profiles.implementation),
 		utility: profileToRoute(plan.profiles.utility),
-		longrun: profileToRoute(plan.profiles.longrun),
+		approvalAuto: profileToRoute(plan.profiles.approvalAuto),
+		runtimeLong: profileToRoute(plan.profiles.runtimeLong),
 	};
 }
 

@@ -50,15 +50,16 @@ Important:
 | Skill        | Command           | Status |
 | ------------ | ----------------- | ------ |
 | `review`     | `/cca:review`     | Active |
-| `desloppify` | `/cca:desloppify` | Active |
-| `ship`       | `/cca:ship`       | Active |
+| `deslop`     | `/cca:deslop`     | Active |
+| `git-workflow` | `/cca:git-workflow` | Active |
 | `decide`     | `/cca:decide`     | Active |
 | `explore`    | `/cca:explore`    | Active |
 | `trace`      | `/cca:trace`      | Active |
 | `debug`      | `/cca:debug`      | Active |
 | `security`   | `/cca:security`   | Active |
 | `test`       | `/cca:test`       | Active |
-| `docs`       | `/cca:docs`       | Active |
+| `document`   | `/cca:document`   | Active |
+| `design-polish` | `/cca:design-polish` | Active |
 | `perf`       | `/cca:perf`       | Active |
 | `errors`     | `/cca:errors`     | Active |
 | `handoff`    | `/cca:handoff`    | Active |
@@ -117,7 +118,7 @@ make validate  # lint + test + build
 .claude-plugin/  plugin.json (marketplace manifest)
 .github/         workflows/ (ci.yml, release.yml), ISSUE_TEMPLATE/, CONTRIBUTING.md
 agents/          7 agent definitions (athena, hephaestus, nemesis, atalanta, calliope, hermes, odysseus)
-skills/          19 skill directories (review, explore, trace, debug, caveman, ship, test, etc.)
+skills/          22 skill directories (review, explore, trace, debug, caveman, git-workflow, design-polish, test, etc.)
 hooks/           configs/ (base.json)
                  user/ (pre-secrets.mjs, rtk-rewrite.sh)
                  scripts/ (_lib.mjs, pre/, post/, session/)

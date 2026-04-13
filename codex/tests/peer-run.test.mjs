@@ -20,7 +20,7 @@ describe("codex peer runner", () => {
 			steps.map((step) => [step.id, step.mode]),
 			[
 				["orchestrator", "orchestrate"],
-				["qa", "qa"],
+				["validate", "validate"],
 				["worker", "implement"],
 				["review", "review"],
 			],
@@ -43,7 +43,7 @@ describe("codex peer runner", () => {
 		assert.equal(plan.panes.length, 4);
 		assert.deepEqual(
 			plan.panes.map((pane) => pane.id),
-			["orchestrator", "qa", "worker", "review"],
+			["orchestrator", "validate", "worker", "review"],
 		);
 		const commands = buildTmuxCommands(plan, cwd);
 		assert.deepEqual(commands[0], [
@@ -70,7 +70,7 @@ describe("codex peer runner", () => {
 			root: runPaths({ cwd: "/repo", runId: "run-123" }).root,
 			results: [
 				{ id: "orchestrator", status: "ok", exitCode: 0 },
-				{ id: "qa", status: "ok", exitCode: 0 },
+				{ id: "validate", status: "ok", exitCode: 0 },
 				{ id: "worker", status: "failed", exitCode: 1 },
 			],
 		});

@@ -8,7 +8,6 @@ import {
 } from "../../source/caveman.mjs";
 import {
 	getClaudePlan,
-	migrateClaudePlan,
 	resolveClaudePlan,
 	resolveCodexPlan,
 	resolveCopilotPlan,
@@ -147,12 +146,10 @@ Options:
   --no-caveman            Alias for --caveman-mode off
   --codex-plan go|plus|pro-5|pro-20
                           Codex capability preset (default: pro-5)
-  --codex-tier plus|pro   Legacy alias for --codex-plan
   --codex-set-top-profile Force setting top-level Codex profile in the managed Codex config
   --no-codex-set-top-profile
                           Do not set top-level Codex profile in the managed Codex config
   --deepwiki-mcp          Configure DeepWiki MCP where supported
-  --codex-deepwiki        Alias for --deepwiki-mcp
   --ctx7-cli              Install Context7 CLI support
   --no-ctx7-cli           Do not install Context7 CLI support
   --playwright-cli        Install Playwright CLI (browser automation)
@@ -241,10 +238,6 @@ function parseArgs(argv) {
 				args.cavemanMode = "off";
 				args.cavemanModeSet = true;
 				break;
-			case "--codex-tier":
-				args.codexPlan = resolveCodexPlan(argv[++index] ?? "");
-				args.codexPlanSet = true;
-				break;
 			case "--codex-plan":
 				args.codexPlan = argv[++index] ?? "";
 				args.codexPlanSet = true;
@@ -256,7 +249,6 @@ function parseArgs(argv) {
 				args.codexSetTopProfile = "false";
 				break;
 			case "--deepwiki-mcp":
-			case "--codex-deepwiki":
 				args.deepwikiMcp = true;
 				args.deepwikiMcpSet = true;
 				break;
@@ -378,7 +370,7 @@ async function promptOptionalSurfaces(args, existingEnv) {
 				"pro-5";
 	}
 	if (args.installCodex && args.codexSetTopProfile === "auto" && !isCi()) {
-		const profileName = `openagentsbtw-${args.codexPlan}`;
+		const profileName = "openagentsbtw";
 		args.codexSetTopProfile = (await promptToggle(
 			`Set Codex default profile at top-level in ${PATHS.codexConfig} to ${profileName}?`,
 			true,
@@ -987,17 +979,6 @@ async function writeCopilotDeepwiki(target) {
 	await writeText(target, JSON.stringify(payload, null, 2));
 }
 
-async function removeManagedCopilotLegacyInstruction(workspaceRoot) {
-	const legacyTarget = path.join(workspaceRoot, "copilot-instructions.md");
-	if (!(await pathExists(legacyTarget))) return;
-	const next = removeManagedBlock(
-		await readText(legacyTarget, ""),
-		"<!-- >>> openagentsbtw copilot >>> -->",
-		"<!-- <<< openagentsbtw copilot <<< -->",
-	);
-	await writeText(legacyTarget, next);
-}
-
 function runVersionCheck(command, args) {
 	try {
 		const result = spawnSync(command, args, {
@@ -1138,7 +1119,6 @@ async function installCopilot(args, artifacts) {
 	if (args.copilotScope === "project" || args.copilotScope === "both") {
 		const workspacePaths = resolveWorkspacePaths();
 		const githubRoot = workspacePaths.projectGithubDir;
-		await removeManagedCopilotLegacyInstruction(workspacePaths.workspaceRoot);
 		await fs.mkdir(path.join(githubRoot, "hooks", "scripts"), {
 			recursive: true,
 		});
@@ -1408,5 +1388,5 @@ await main().catch((error) => {
 	process.exitCode = 1;
 });
 function resolveStoredClaudePlan(value = "") {
-	return migrateClaudePlan(value) || "";
+	return resolveClaudePlan(value) || "";
 }
