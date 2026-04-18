@@ -36,7 +36,7 @@ function readRepo(relativePath) {
 }
 
 before(async () => {
-	const preset = process.env["OABTW_TEST_BUILD_ROOT"];
+	const preset = process.env.OABTW_TEST_BUILD_ROOT;
 	if (preset) {
 		BUILD_ROOT = preset;
 		CLEANUP_BUILD_ROOT = false;
@@ -53,6 +53,126 @@ after(() => {
 		return;
 	}
 	rmSync(BUILD_ROOT, { recursive: true, force: true });
+});
+
+describe("generated agentic IDE assets", () => {
+	it("ships rules-first adapters for supported IDEs and CLIs", () => {
+		const expectedFiles = [
+			"agentic-ides/templates/project/cursor/.cursor/rules/openagentsbtw.mdc",
+			"agentic-ides/templates/project/junie/.junie/AGENTS.md",
+			"agentic-ides/templates/project/shared/AGENTS.md",
+			"agentic-ides/templates/project/gemini-cli/GEMINI.md",
+			"agentic-ides/templates/project/kiro/.kiro/steering/openagentsbtw.md",
+			"agentic-ides/templates/project/kilo/.kilocode/rules/openagentsbtw.md",
+			"agentic-ides/templates/project/roo/.roo/rules/openagentsbtw.md",
+			"agentic-ides/templates/project/cline/.clinerules/openagentsbtw.md",
+			"agentic-ides/templates/project/augment/.augment/rules/openagentsbtw.md",
+			"agentic-ides/templates/global/gemini-cli/GEMINI.md",
+			"agentic-ides/templates/global/kiro/steering/openagentsbtw.md",
+			"agentic-ides/templates/global/kilo/rules/openagentsbtw.md",
+			"agentic-ides/templates/global/kilo/AGENTS.md",
+			"agentic-ides/templates/global/roo/rules/openagentsbtw.md",
+			"agentic-ides/templates/global/cline/Rules/openagentsbtw.md",
+			"agentic-ides/templates/global/amp/AGENTS.md",
+			"agentic-ides/templates/global/augment/rules/openagentsbtw.md",
+		];
+		for (const relativePath of expectedFiles) {
+			const content = readBuild(relativePath);
+			assert.match(content, /openagentsbtw/);
+			assert.match(content, /Role Map|Gemini CLI Instructions/);
+		}
+	});
+
+	it("ships opt-in native agentic IDE artifacts", () => {
+		const expectedFiles = [
+			"agentic-ides/templates/native/project/gemini-cli/.gemini/agents/openagentsbtw-athena.md",
+			"agentic-ides/templates/native/project/gemini-cli/.gemini/commands/oabtw/openagents-explore.toml",
+			"agentic-ides/templates/native/project/augment/.augment/agents/openagentsbtw-hephaestus.md",
+			"agentic-ides/templates/native/project/augment/.augment/commands/oabtw/openagents-review.md",
+			"agentic-ides/templates/native/project/augment/.augment/skills/review/SKILL.md",
+			"agentic-ides/templates/native/project/kiro/.kiro/agents/openagentsbtw-nemesis.json",
+			"agentic-ides/templates/native/project/kilo/.kilocode/skills/test/SKILL.md",
+			"agentic-ides/templates/native/project/cline/.cline/skills/debug/SKILL.md",
+			"agentic-ides/templates/native/project/roo/.roo/rules-code/openagentsbtw.md",
+			"agentic-ides/templates/native/project/cursor/.cursorignore",
+			"agentic-ides/templates/native/global/gemini-cli/.gemini/agents/openagentsbtw-athena.md",
+		];
+		for (const relativePath of expectedFiles) {
+			assert.match(
+				readBuild(relativePath),
+				/openagentsbtw|Athena|hephaestus|review|debug|Explore|Test|\.env/,
+			);
+		}
+
+		const geminiCommand = readBuild(
+			"agentic-ides/templates/native/project/gemini-cli/.gemini/commands/oabtw/openagents-explore.toml",
+		);
+		assert.doesNotMatch(geminiCommand, /!\{|shell|bash -lc/);
+
+		const kiroAgent = JSON.parse(
+			readBuild(
+				"agentic-ides/templates/native/project/kiro/.kiro/agents/openagentsbtw-nemesis.json",
+			),
+		);
+		assert.equal(kiroAgent.name, "nemesis");
+		assert.equal(kiroAgent.includeMcpJson, false);
+	});
+
+	it("ships opt-in full agentic IDE artifacts", () => {
+		const expectedFiles = [
+			"agentic-ides/templates/full/project/cursor/.cursor/mcp.json",
+			"agentic-ides/templates/full/project/gemini-cli/.gemini/settings.json",
+			"agentic-ides/templates/full/project/kiro/.kiro/settings/mcp.json",
+			"agentic-ides/templates/full/project/kiro/hooks/openagentsbtw.json",
+			"agentic-ides/templates/full/project/cline/workflows/openagents-review.md",
+			"agentic-ides/templates/full/project/augment/settings.json",
+			"agentic-ides/templates/full/project/augment/hooks/openagentsbtw.json",
+			"agentic-ides/templates/full/project/amp/skills/review/SKILL.md",
+			"agentic-ides/templates/full/project/amp/checks/openagentsbtw.md",
+			"agentic-ides/templates/full/project/air/review-prompt.md",
+			"agentic-ides/templates/full/hooks/openagentsbtw-agentic-guard.mjs",
+		];
+		for (const relativePath of expectedFiles) {
+			assert.match(
+				readBuild(relativePath),
+				/openagentsbtw|deepwiki|ctx7|review|Review/,
+			);
+		}
+
+		const hook = readBuild(
+			"agentic-ides/templates/full/hooks/openagentsbtw-agentic-guard.mjs",
+		);
+		assert.match(hook, /rm -rf \/|cat \.env|printenv/);
+		assert.doesNotMatch(hook, /bun test|npm test|prettier|biome/);
+
+		for (const relativePath of [
+			"agentic-ides/templates/full/project/antigravity/settings.json",
+			"agentic-ides/templates/full/global/antigravity/settings.json",
+		]) {
+			assert.throws(() => readBuild(relativePath), /ENOENT/);
+		}
+	});
+
+	it("keeps Antigravity warning-only until rule paths are verified", () => {
+		for (const relativePath of [
+			"agentic-ides/templates/project/antigravity/AGENTS.md",
+			"agentic-ides/templates/project/antigravity/GEMINI.md",
+			"agentic-ides/templates/global/antigravity/AGENTS.md",
+		]) {
+			assert.throws(() => readBuild(relativePath), /ENOENT/);
+		}
+	});
+
+	it("renders native rule metadata for Cursor and Kiro", () => {
+		const cursor = readBuild(
+			"agentic-ides/templates/project/cursor/.cursor/rules/openagentsbtw.mdc",
+		);
+		const kiro = readBuild(
+			"agentic-ides/templates/project/kiro/.kiro/steering/openagentsbtw.md",
+		);
+		assert.match(cursor, /^alwaysApply: true$/m);
+		assert.match(kiro, /^inclusion: always$/m);
+	});
 });
 
 describe("generated prompts", () => {

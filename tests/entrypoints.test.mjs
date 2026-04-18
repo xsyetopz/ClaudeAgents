@@ -49,6 +49,15 @@ describe("shared install paths", () => {
 		assert.equal(paths.claudeHome, "C:\\Users\\krystian\\.claude");
 		assert.equal(paths.codexHome, "C:\\Users\\krystian\\.codex");
 		assert.equal(paths.copilotHome, "C:\\Users\\krystian\\.copilot");
+		assert.equal(paths.geminiHome, "C:\\Users\\krystian\\.gemini");
+		assert.equal(
+			paths.kiloConfigDir,
+			"C:\\Users\\krystian\\AppData\\Roaming\\kilo",
+		);
+		assert.equal(
+			paths.ampConfigDir,
+			"C:\\Users\\krystian\\AppData\\Roaming\\amp",
+		);
 	});
 
 	it("keeps Unix managed paths under XDG plus ~/.local/bin", () => {
@@ -65,6 +74,9 @@ describe("shared install paths", () => {
 			"/home/krystian/.codex/openagentsbtw/bin",
 		);
 		assert.equal(paths.opencodeConfigDir, "/tmp/xdg/opencode");
+		assert.equal(paths.geminiHome, "/home/krystian/.gemini");
+		assert.equal(paths.kiloConfigDir, "/tmp/xdg/kilo");
+		assert.equal(paths.ampConfigDir, "/tmp/xdg/amp");
 	});
 
 	it("resolves project-scoped outputs under the caller workspace", () => {
@@ -72,6 +84,15 @@ describe("shared install paths", () => {
 		assert.equal(paths.projectOpenCodeDir, "/tmp/consumer-repo/.opencode");
 		assert.equal(paths.projectGithubDir, "/tmp/consumer-repo/.github");
 		assert.equal(paths.projectVscodeMcp, "/tmp/consumer-repo/.vscode/mcp.json");
+		assert.equal(
+			paths.projectCursorRulesDir,
+			"/tmp/consumer-repo/.cursor/rules",
+		);
+		assert.equal(
+			paths.projectKiroSteeringDir,
+			"/tmp/consumer-repo/.kiro/steering",
+		);
+		assert.equal(paths.projectRooRulesDir, "/tmp/consumer-repo/.roo/rules");
 	});
 });
 
@@ -215,6 +236,18 @@ describe("public entrypoints", () => {
 		);
 		assert.match(readRepo("build-plugin.sh"), /scripts\/build-plugin-cli\.mjs/);
 		assert.match(readRepo("version.sh"), /scripts\/version-cli\.mjs/);
+	});
+
+	it("exposes agentic IDE install flags through install and uninstall entrypoints", () => {
+		const installer = readRepo("scripts/install/cli.mjs");
+		const uninstaller = readRepo("scripts/install/uninstall-cli.mjs");
+		assert.match(installer, /--agentic-ides/);
+		assert.match(installer, /--agentic-ide-scope project\|global\|both/);
+		assert.match(installer, /--agentic-ide-depth rules\|native\|full/);
+		assert.match(installer, /--cursor/);
+		assert.match(installer, /--antigravity/);
+		assert.match(uninstaller, /--agentic-ides/);
+		assert.match(uninstaller, /--agentic-ide-scope project\|global\|both/);
 	});
 
 	it("exposes Caveman config flags through install and config entrypoints", () => {

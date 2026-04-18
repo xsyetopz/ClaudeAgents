@@ -1,0 +1,2 @@
+description = "Generate or update documentation"
+prompt = "Generate or update documentation for the following target. Documentation must accurately reflect actual code behavior.\n\nTarget:\n\n{{args}}"

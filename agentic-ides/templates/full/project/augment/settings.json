@@ -1,0 +1,16 @@
+{
+	"mcpServers": {
+		"deepwiki": {
+			"type": "http",
+			"url": "https://mcp.deepwiki.com/mcp"
+		},
+		"ctx7": {
+			"command": "__CTX7_WRAPPER__"
+		}
+	},
+	"openagentsbtw": {
+		"managed": true,
+		"depth": "full",
+		"managedMcpServers": ["deepwiki", "ctx7"]
+	}
+}

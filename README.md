@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Cross-platform agent scaffolding for Claude Code, Codex CLI, OpenCode, and GitHub Copilot.
+Cross-platform agent scaffolding for Claude Code, Codex CLI, OpenCode, GitHub Copilot, and rules-first agentic IDE integrations.
 
 One canonical source tree. Generated platform artifacts. Tight prompts, strict routing, and fewer chances for models to drift into garbage architecture or generic AI UI.
 
@@ -23,6 +23,7 @@ Canonical authored source lives under `source/`:
 - `source/skills/<skill>/` -- skill metadata and body
 - `source/skills/<skill>/` -- skill bodies, references, scripts
 - `source/commands/{codex,copilot,opencode}/` -- command catalogs per surface
+- `source/guidance/agentic-ides.md` -- rules-first IDE instruction source
 - `source/catalog/loaders.mjs` -- canonical catalog loader
 - `scripts/generate.mjs` -- thin generation entrypoint
 
@@ -32,6 +33,7 @@ Generated targets:
 - `codex/`
 - `opencode/`
 - `copilot/`
+- `agentic-ides/`
 
 More detail: [docs/architecture.md](docs/architecture.md)
 
@@ -50,6 +52,10 @@ Common presets:
 ./install.sh --claude --claude-plan max-5
 ./install.sh --copilot --copilot-plan pro
 ./install.sh --all --caveman-mode full
+./install.sh --agentic-ides --agentic-ide-scope project
+./install.sh --cursor --gemini-cli --kiro --agentic-ide-scope both
+./install.sh --agentic-ides --agentic-ide-scope both --agentic-ide-depth native
+./install.sh --agentic-ides --agentic-ide-scope both --agentic-ide-depth full --deepwiki-mcp --ctx7-cli
 ```
 
 ## Codex Surface
@@ -80,6 +86,12 @@ oabtw-codex validate --runtime long "<suite>"
 ```
 
 More detail: [docs/platforms/codex.md](docs/platforms/codex.md)
+
+## Agentic IDEs
+
+Rules-first adapters are available for Cursor, Junie, JetBrains Air, Gemini CLI, Kiro, Kilo Code, Roo Code, Cline, Amp, and Augment/Auggie. `--agentic-ide-depth native` adds verified declarative agents, commands, skills, mode rules, and ignore blocks for supported tools; `--agentic-ide-depth full` also adds managed MCP settings, workflows, checks, hook configs, and Air review prompt blocks where supported. Google Antigravity is documented as experimental warning-only until official rule paths are confirmed.
+
+More detail: [docs/platforms/agentic-ides.md](docs/platforms/agentic-ides.md)
 
 ## Development
 

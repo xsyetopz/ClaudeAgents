@@ -2,6 +2,15 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.0] - 2026-04-19
+
+### Added
+
+- Agentic IDE integrations: added rules-first project/global installer support for Cursor, Junie, JetBrains Air, Gemini CLI, Kiro, Kilo Code, Roo Code, Cline, Amp, and Augment/Auggie, with Google Antigravity documented as experimental warning-only.
+- Agentic IDE native depth: added opt-in `--agentic-ide-depth native` for declarative Gemini CLI agents/commands, Kiro agents, Kilo/Cline/Augment skills, Augment commands/agents, Roo mode-specific rules, and verified project ignore blocks.
+- Agentic IDE full depth: added opt-in `--agentic-ide-depth full` for managed MCP settings, Kiro/Augment hook configs, Cline workflows, Amp skills/checks/settings, and Air review prompt blocks while keeping auth, credentials, Antigravity files, and unverified executable automation manual.
+- Docs: added `docs/platforms/agentic-ides.md` with verified rule paths, unsupported-global warnings, opt-in native surfaces, and explicit non-goals for executable hooks, MCP/auth setup, and native mode overwrites.
+
 ## [2.1.0] - 2026-04-18
 
 ### Added

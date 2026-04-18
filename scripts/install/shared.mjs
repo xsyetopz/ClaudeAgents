@@ -38,6 +38,15 @@ export function resolvePaths({
 					env.XDG_CONFIG_HOME ?? pathLib.join(homeDir, ".config"),
 					"opencode",
 				);
+	const geminiHome = pathLib.join(homeDir, ".gemini");
+	const kiroHome = pathLib.join(homeDir, ".kiro");
+	const rooHome = pathLib.join(homeDir, ".roo");
+	const augmentHome = pathLib.join(homeDir, ".augment");
+	const clineHome = pathLib.join(homeDir, "Documents", "Cline");
+	const kiloConfigDir = pathLib.join(appDataDir, "kilo");
+	const kiloRulesHome = pathLib.join(homeDir, ".kilocode");
+	const ampConfigDir = pathLib.join(appDataDir, "amp");
+	const clineRulesDir = pathLib.join(clineHome, "Rules");
 	const vscodeUserMcp =
 		platform === "darwin"
 			? pathLib.join(
@@ -76,6 +85,15 @@ export function resolvePaths({
 		agentsHome,
 		copilotHome,
 		opencodeConfigDir,
+		geminiHome,
+		kiroHome,
+		rooHome,
+		augmentHome,
+		clineHome,
+		kiloConfigDir,
+		kiloRulesHome,
+		ampConfigDir,
+		clineRulesDir,
 		vscodeUserMcp,
 	};
 }
@@ -92,6 +110,13 @@ export function resolveWorkspacePaths(
 		projectOpenCodeDir: pathLib.join(workspaceRoot, ".opencode"),
 		projectGithubDir: pathLib.join(workspaceRoot, ".github"),
 		projectVscodeMcp: pathLib.join(workspaceRoot, ".vscode", "mcp.json"),
+		projectCursorRulesDir: pathLib.join(workspaceRoot, ".cursor", "rules"),
+		projectJunieDir: pathLib.join(workspaceRoot, ".junie"),
+		projectKiroSteeringDir: pathLib.join(workspaceRoot, ".kiro", "steering"),
+		projectKiloRulesDir: pathLib.join(workspaceRoot, ".kilocode", "rules"),
+		projectRooRulesDir: pathLib.join(workspaceRoot, ".roo", "rules"),
+		projectClineRulesDir: pathLib.join(workspaceRoot, ".clinerules"),
+		projectAugmentRulesDir: pathLib.join(workspaceRoot, ".augment", "rules"),
 	};
 }
 
