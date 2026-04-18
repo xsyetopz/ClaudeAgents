@@ -39,6 +39,15 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/session/prompt-queue.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "node \"$HOME/.codex/openagentsbtw/hooks/scripts/session/prompt-git-context.mjs\"",
             "timeout": 10
           }

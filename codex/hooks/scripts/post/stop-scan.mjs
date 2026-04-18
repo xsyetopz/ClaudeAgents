@@ -13,6 +13,10 @@ import {
 	systemMessage,
 } from "../_lib.mjs";
 import { persistTurnMemory } from "../_memory.mjs";
+import {
+	summarizePendingQueue,
+	takeNextAutoEntry,
+} from "../session/_queue.mjs";
 
 const ROUTE_MARKER_RE = /^OPENAGENTSBTW_([A-Z_]+)=(.+)$/gm;
 const BLOCKED_RE = /(?:^|\n)BLOCKED:\s+\S/m;
@@ -179,6 +183,13 @@ function hasExecutionEvidence(data, transcript) {
 	return TOOL_EVENT_RE.test(transcript);
 }
 
+function continueWithQueuedTask(message) {
+	process.stdout.write(
+		`${JSON.stringify({ continue: false, stopReason: "openagentsbtw queue dispatch", systemMessage: message })}\n`,
+	);
+	process.exit(0);
+}
+
 function isExplanationOnly(data, transcript) {
 	const combined = [
 		String(data?.last_assistant_message ?? ""),
@@ -298,6 +309,17 @@ function buildDiffFailure(contract, buckets) {
 		systemMessage(
 			"openagentsbtw memory skipped this turn because Codex did not expose a transcript path. Ephemeral or non-persistent sessions will not be recalled later.",
 		);
+	}
+
+	const autoEntry = takeNextAutoEntry({ cwd });
+	if (autoEntry?.record) {
+		continueWithQueuedTask(
+			`Dispatch queued openagentsbtw message ${autoEntry.record.id}. Treat this as the next user task after the completed task.\n\nTask:\n${autoEntry.record.message}`,
+		);
+	}
+	const queueSummary = summarizePendingQueue({ cwd });
+	if (queueSummary) {
+		systemMessage(queueSummary);
 	}
 
 	passthrough();

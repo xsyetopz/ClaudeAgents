@@ -2,6 +2,19 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.1.0] - 2026-04-18
+
+### Added
+
+- Codex/Claude: added an experimental deferred prompt queue with `/queue`, `queue:`, `/queue --auto`, and queue management commands so follow-up prompts can be stored outside the repo without interrupting active work.
+- Codex: added `oabtw-codex queue list|add|next|clear|retry` for shell-level deferred queue management.
+
+### Changed
+
+- Codex/Claude: Stop hooks now surface pending queue entries after completion gates pass and dispatch one `--auto` entry only after existing stop-scan validation succeeds.
+- Prompt policy: kept `BLOCKED:` as the canonical blocker contract and documented always-on `TOOLING BLOCK`-style sentinels as non-default local diagnostics.
+- Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `2.1.0`.
+
 ## [2.0.0] - 2026-04-13
 
 ### Added

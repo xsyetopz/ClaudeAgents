@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { runHook } from "./helpers.mjs";
+import { parseHookOutput, runHook } from "./helpers.mjs";
 
 describe("UserPromptSubmit", () => {
 	it("should run without error", () => {
@@ -91,5 +91,25 @@ describe("AuditLogging", () => {
 		assert.equal(result.status, 0);
 		const logFile = join(tmpDir, "cca-hooks.jsonl");
 		assert.ok(!existsSync(logFile));
+	});
+});
+
+describe("PromptQueue", () => {
+	it("blocks queue prompts after storing them", () => {
+		const tmpDir = mkdtempSync(join(tmpdir(), "cca-queue-"));
+		const cwd = join(tmpDir, "repo");
+		const home = join(tmpDir, "home");
+		mkdirSync(cwd, { recursive: true });
+		mkdirSync(home, { recursive: true });
+		const result = runHook(
+			"session/prompt-queue.mjs",
+			{ cwd, prompt: "/queue inspect docs later" },
+			{ HOME: home },
+			{ cwd },
+		);
+		assert.equal(result.status, 2);
+		const output = parseHookOutput(result);
+		assert.equal(output.decision, "block");
+		assert.match(output.reason, /Queued q-0001/);
 	});
 });

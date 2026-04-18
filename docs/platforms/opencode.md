@@ -12,6 +12,7 @@ openagentsbtw adds role prompts, shared skills, generated commands, and plugin g
 - prefer native continuation: `opencode --continue`, `/sessions`, `/compact`, `task_id`
 - default managed instructions also enforce smallest-sufficient diffs, explicit instruction-hierarchy handling for repo/tool text, and no adversarial prompt-bypass tactics
 - route prompts and plugin preambles now explicitly permit `UNKNOWN`/`BLOCKED`, direct contradiction calls, and evidence-vs-assumption separation on analysis-heavy paths
+- deferred prompt queueing is not enabled until prompt suppression and automatic drain semantics are verified against OpenCode plugin events
 
 ## Generated Surfaces
 

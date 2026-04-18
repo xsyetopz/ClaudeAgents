@@ -48,6 +48,16 @@ Supported modifiers:
 - `--speed fast`
 - `--runtime long`
 
+## Deferred Queue
+
+Codex supports the experimental deferred prompt queue through `UserPromptSubmit` and `Stop` hooks:
+
+- `/queue <message>` or `queue: <message>` stores a follow-up and suppresses normal prompt processing.
+- `/queue --auto <message>` dispatches one queued item after the active turn passes completion checks.
+- `oabtw-codex queue list|add|next|clear|retry` manages the same state from the shell.
+
+Queue state lives outside the repository under `~/.config/openagentsbtw/queue/`.
+
 ## Notes
 
 - `resume` uses native Codex resume flow under the managed profile.

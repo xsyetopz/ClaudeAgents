@@ -29,3 +29,7 @@ Install support is implemented in the root installer:
 ./install.sh --copilot --copilot-scope project
 ./install.sh --copilot --copilot-scope both
 ```
+
+## Deferred Queue Status
+
+openagentsbtw does not enable prompt queue suppression for Copilot yet. Current Copilot hook docs state `userPromptSubmitted` output is not processed, so `/queue` cannot reliably prevent the prompt from entering the active task. Native continuation remains the supported path.

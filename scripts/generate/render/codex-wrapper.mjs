@@ -31,8 +31,10 @@ ${contractLines}
 ${configOverrides ? `${configOverrides}\n` : ""}        ;;`;
 		})
 		.join("\n");
-	const utilityModes =
-		"  memory      Inspect or manage openagentsbtw Codex memory";
+	const utilityModes = [
+		"  memory      Inspect or manage openagentsbtw Codex memory",
+		"  queue       Inspect or manage deferred openagentsbtw prompts",
+	].join("\n");
 	const modeLines = [
 		...modes.map(
 			(mode) => `  ${mode.mode.padEnd(11)} Generated openagentsbtw Codex route`,
@@ -55,6 +57,13 @@ Memory commands:
   ${commandName} memory show [path]
   ${commandName} memory forget-project [path]
   ${commandName} memory prune
+
+Queue commands:
+  ${commandName} queue list
+  ${commandName} queue add <message>
+  ${commandName} queue next
+  ${commandName} queue clear
+  ${commandName} queue retry <id>
 EOF
     exit 1
 }
@@ -67,6 +76,11 @@ shift
 if [[ "$MODE" == "memory" ]]; then
     [[ $# -ge 1 ]] || usage
     exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/memory-manage.mjs" "$@"
+fi
+
+if [[ "$MODE" == "queue" ]]; then
+    [[ $# -ge 1 ]] || usage
+    exec node "$HOME/.codex/openagentsbtw/hooks/scripts/session/queue-manage.mjs" "$@"
 fi
 
 if [[ "$MODE" == "resume" ]]; then

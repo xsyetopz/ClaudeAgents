@@ -47,23 +47,23 @@ Important:
 - That refreshes plugin files, hooks, generated assets, and managed user-level setup.
 - Even if Claude refreshes plugin state on its own, users should still rerun `install.sh` after pulling changes here.
 
-| Skill        | Command           | Status |
-| ------------ | ----------------- | ------ |
-| `review`     | `/cca:review`     | Active |
-| `deslop`     | `/cca:deslop`     | Active |
-| `git-workflow` | `/cca:git-workflow` | Active |
-| `decide`     | `/cca:decide`     | Active |
-| `explore`    | `/cca:explore`    | Active |
-| `trace`      | `/cca:trace`      | Active |
-| `debug`      | `/cca:debug`      | Active |
-| `security`   | `/cca:security`   | Active |
-| `test`       | `/cca:test`       | Active |
-| `document`   | `/cca:document`   | Active |
+| Skill           | Command              | Status |
+| --------------- | -------------------- | ------ |
+| `review`        | `/cca:review`        | Active |
+| `deslop`        | `/cca:deslop`        | Active |
+| `git-workflow`  | `/cca:git-workflow`  | Active |
+| `decide`        | `/cca:decide`        | Active |
+| `explore`       | `/cca:explore`       | Active |
+| `trace`         | `/cca:trace`         | Active |
+| `debug`         | `/cca:debug`         | Active |
+| `security`      | `/cca:security`      | Active |
+| `test`          | `/cca:test`          | Active |
+| `document`      | `/cca:document`      | Active |
 | `design-polish` | `/cca:design-polish` | Active |
-| `perf`       | `/cca:perf`       | Active |
-| `errors`     | `/cca:errors`     | Active |
-| `handoff`    | `/cca:handoff`    | Active |
-| `style`      | `/cca:style`      | Active |
+| `perf`          | `/cca:perf`          | Active |
+| `errors`        | `/cca:errors`        | Active |
+| `handoff`       | `/cca:handoff`       | Active |
+| `style`         | `/cca:style`         | Active |
 
 ## Hooks
 
@@ -102,6 +102,8 @@ Three plans, set at install time via `./install.sh --claude-plan <pro|max-5|max-
 Agent models use logical names (`opus`, `sonnet`, `haiku`) that resolve via env vars. Sonnet/haiku agents have 200K context windows and capped maxTurns -- keep delegated payloads focused. Env vars pin model versions in `~/.claude/settings.json`. Output style: CCA. Statusline: model, context %, cost, git branch.
 
 Claude continuity should stay native: resume the session and rely on transcript persistence plus `.claude/memory/MEMORY.md`. `/cca:handoff` is for explicit export or cross-tool transfer, not the default continuity path.
+
+Deferred queue: `/queue <message>` or `queue: <message>` stores a follow-up outside the repo without letting it interrupt the active task. `/queue --auto <message>` dispatches one queued item after the active turn passes stop checks.
 
 ## Development
 

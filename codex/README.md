@@ -43,6 +43,8 @@ Direct fallback path:
 ~/.codex/openagentsbtw/bin/oabtw-codex orchestrate "investigate, implement, test, and review this change"
 ~/.codex/openagentsbtw/bin/oabtw-codex-peer batch "investigate, implement, test, and review this change"
 ~/.codex/openagentsbtw/bin/oabtw-codex memory show
+oabtw-codex queue add "follow up after the current task"
+oabtw-codex queue list
 ```
 
 `oabtw-codex` is the short alias. `openagentsbtw-codex` remains the canonical equivalent and is installed alongside it.
@@ -132,6 +134,7 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 - `--approval auto`, `--speed fast`, `--runtime long`, and `--source deepwiki` are orthogonal wrapper modifiers.
 - `oabtw-codex-peer batch|tmux` is the openagentsbtw-managed peer-thread helper. It runs top-level Codex workers; it is not a native Codex subagent feature.
 - `oabtw-codex memory show|forget-project|prune` manages the openagentsbtw SQLite memory overlay.
+- `oabtw-codex queue list|add|next|clear|retry` manages deferred prompt queue entries outside the repo.
 - `openagentsbtw-codex` remains supported as the canonical full-form command.
 - Wrapper modes select the managed profile, add per-mode model overrides where needed, and reinforce the intended specialist path.
 - `--source deepwiki` is explicit and opt-in. It is for GitHub repo exploration through the configured DeepWiki MCP server, not a replacement for normal local repo reads.
@@ -154,6 +157,12 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 - UserPromptSubmit adds lightweight git context during active work.
 - Stop writes a bounded deterministic summary for later recall.
 - If Codex does not expose a transcript path, the turn still runs, but openagentsbtw warns that memory was skipped for that turn.
+
+## Deferred Prompt Queue
+
+Use `/queue <message>` or `queue: <message>` to store a follow-up without letting it interrupt the active task. Use `/queue --auto <message>` only when the queued task should dispatch once after the current turn passes completion checks.
+
+Queue state is stored outside the repo under `~/.config/openagentsbtw/queue/`, keyed by project identity. Existing stop-scan validation runs before queue drain, so rejected or blocked completions do not dispatch queued work.
 
 ## Notes
 

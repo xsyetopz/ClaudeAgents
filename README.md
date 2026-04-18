@@ -67,6 +67,7 @@ oabtw-codex deslop "<target>"
 oabtw-codex design-polish "<ui task>"
 oabtw-codex orchestrate "<task>"
 oabtw-codex resume --last
+oabtw-codex queue add "follow up after the current task"
 ```
 
 Modifiers:

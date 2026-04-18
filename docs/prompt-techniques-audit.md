@@ -29,3 +29,9 @@
 - Anthropic prompt engineering and guardrail docs
 - OpenAI instruction hierarchy and prompt injection security docs
 - Repo-local community research notes under `docs/reddit-*`
+
+## Drift sentinels and deferred queues
+
+- `BLOCKED:` remains the portable openagentsbtw failure contract for missing tools, permissions, sandbox limits, ambiguous scope, or repo/spec contradictions.
+- Always-on magic phrases such as `TOOLING BLOCK` / `ALL CLEAR` are rejected as default recovery mechanisms. They can act as local drift canaries, but compaction can summarize away the sentinel and make recovery unreliable.
+- Deferred prompt queueing should be harness-backed, not skill-only. A skill cannot prevent the current prompt from interrupting the model; queue commands need prompt-submit interception plus persistent state.
