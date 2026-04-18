@@ -5,12 +5,25 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOKS_DIR = resolve(__dirname, "..", "hooks", "scripts");
 
-export function runHook(scriptName, inputJson, env = {}, options = {}) {
-	const script = resolve(HOOKS_DIR, scriptName);
-	const merged = { ...process.env, ...env };
+function mergeHookEnv(env) {
+	const merged = { ...process.env };
+	if (Object.hasOwn(env, "PATH")) {
+		for (const key of Object.keys(merged)) {
+			if (key.toLowerCase() === "path") {
+				delete merged[key];
+			}
+		}
+	}
+	Object.assign(merged, env);
 	if (!Object.hasOwn(env, "CCA_HOOK_LOG_DIR")) {
 		delete merged.CCA_HOOK_LOG_DIR;
 	}
+	return merged;
+}
+
+export function runHook(scriptName, inputJson, env = {}, options = {}) {
+	const script = resolve(HOOKS_DIR, scriptName);
+	const merged = mergeHookEnv(env);
 	return spawnSync("node", [script], {
 		input: JSON.stringify(inputJson),
 		encoding: "utf8",
