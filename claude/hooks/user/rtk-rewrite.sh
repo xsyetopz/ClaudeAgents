@@ -38,12 +38,15 @@ if [ -z "$CMD" ]; then
 fi
 
 # Delegate all rewrite logic to the Rust binary.
-# rtk rewrite exits 1 when there's no rewrite -- hook passes through silently.
-REWRITTEN=$(rtk rewrite "$CMD" 2>/dev/null) || exit 0
+REWRITTEN=$(rtk rewrite "$CMD" 2>/dev/null || true)
 
-# No change -- nothing to do.
-if [ "$CMD" = "$REWRITTEN" ]; then
-  exit 0
+if [ -z "$REWRITTEN" ] || [ "$CMD" = "$REWRITTEN" ] || ! printf '%s' "$REWRITTEN" | grep -Eq '^rtk\b'; then
+  if command -v bash >/dev/null 2>&1; then
+    QUOTED_CMD=$(printf "%s" "$CMD" | sed "s/'/'\\''/g")
+    REWRITTEN="rtk proxy -- bash -lc '$QUOTED_CMD'"
+  else
+    REWRITTEN="rtk proxy -- $CMD"
+  fi
 fi
 
 ORIGINAL_INPUT=$(echo "$INPUT" | jq -c '.tool_input')

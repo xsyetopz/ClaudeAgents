@@ -45,7 +45,7 @@ if [ "$1" = "rewrite" ]; then
 ${rewriteCases}
     *) exit 1 ;;
   esac
-  exit 0
+  exit ${options.rewriteStatus ?? 0}
 fi
 exit 1
 `,
@@ -164,6 +164,48 @@ describe("RTK enforce", () => {
 				command: "rtk cargo test",
 				description: "Run tests",
 			});
+		} finally {
+			fixture.cleanup();
+		}
+	});
+
+	it("should auto-rewrite when rtk exits nonzero with rewritten stdout", () => {
+		const fixture = withFakeRtk({
+			repoRtk: false,
+			homeRtk: true,
+			rewriteStatus: 3,
+		});
+		try {
+			const result = runHook(
+				"pre/rtk-enforce.mjs",
+				makeBashInput("cargo test"),
+				fixture.env,
+			);
+			const output = parseHookOutput(result);
+			assert.equal(output?.hookSpecificOutput?.permissionDecision, "allow");
+			assert.equal(
+				output?.hookSpecificOutput?.updatedInput.command,
+				"rtk cargo test",
+			);
+		} finally {
+			fixture.cleanup();
+		}
+	});
+
+	it("should proxy unsupported commands when RTK policy is active", () => {
+		const fixture = withFakeRtk({ repoRtk: false, homeRtk: true });
+		try {
+			const result = runHook(
+				"pre/rtk-enforce.mjs",
+				makeBashInput("sed -n '1,5p' README.md"),
+				fixture.env,
+			);
+			const output = parseHookOutput(result);
+			assert.equal(output?.hookSpecificOutput?.permissionDecision, "allow");
+			assert.match(
+				output?.hookSpecificOutput?.updatedInput.command,
+				/^rtk proxy -- /,
+			);
 		} finally {
 			fixture.cleanup();
 		}

@@ -137,6 +137,43 @@ describe("codex RTK helper", () => {
 		}
 	});
 
+	it("accepts rtk rewrite stdout when rtk exits nonzero", () => {
+		const fixture = withFakeRtk({ rewriteStatus: 3 });
+		const originalHome = process.env.HOME;
+		const originalPath = process.env.PATH;
+		process.env.HOME = fixture.homeDir;
+		process.env.PATH = prependBinToPath(fixture.binDir, originalPath || "");
+		try {
+			const rewrite = getRtkRewrite("cargo test", fixture.repoDir);
+			assert.deepEqual(rewrite, {
+				policyPath: join(fixture.repoDir, "RTK.md"),
+				rewritten: "rtk cargo test",
+			});
+		} finally {
+			process.env.HOME = originalHome;
+			process.env.PATH = originalPath;
+			fixture.cleanup();
+		}
+	});
+
+	it("falls back to rtk proxy for unsupported commands", () => {
+		const fixture = withFakeRtk();
+		const originalHome = process.env.HOME;
+		const originalPath = process.env.PATH;
+		process.env.HOME = fixture.homeDir;
+		process.env.PATH = prependBinToPath(fixture.binDir, originalPath || "");
+		try {
+			const rewrite = getRtkRewrite("sed -n '1,5p' README.md", fixture.repoDir);
+			assert.equal(rewrite.policyPath, join(fixture.repoDir, "RTK.md"));
+			assert.match(rewrite.rewritten, /^rtk proxy -- /);
+			assert.match(rewrite.rewritten, /sed -n/);
+		} finally {
+			process.env.HOME = originalHome;
+			process.env.PATH = originalPath;
+			fixture.cleanup();
+		}
+	});
+
 	it("falls back to the managed home RTK policy", () => {
 		const fixture = withFakeRtk({ repoRtk: false, homeRtk: true });
 		const originalHome = process.env.HOME;

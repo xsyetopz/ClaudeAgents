@@ -8,6 +8,11 @@ import {
 } from "./agentic-ide-surfaces.mjs";
 import { removeManagedBlock } from "./managed-files.mjs";
 import {
+	removeRtkSurfaces,
+	rtkPolicyPathMap,
+	rtkReferenceTargets,
+} from "./rtk-surfaces.mjs";
+import {
 	commandExists,
 	logInfo,
 	logWarn,
@@ -15,6 +20,7 @@ import {
 	pathExists,
 	ROOT,
 	readText,
+	removeCodexPluginCaches,
 	resolveWorkspacePaths,
 	run,
 	writeText,
@@ -191,6 +197,11 @@ async function writeJson(target, payload) {
 
 async function removeClaude() {
 	console.log("\n\x1b[0;32mRemoving Claude Code support\x1b[0m");
+	const rtkPaths = rtkPolicyPathMap();
+	await removeRtkSurfaces({
+		policyTargets: [rtkPaths.claude],
+		referenceTargets: rtkReferenceTargets({ claude: true }),
+	});
 	if (commandExists("claude")) {
 		await run(
 			"claude",
@@ -252,6 +263,15 @@ async function removeClaude() {
 async function removeOpenCode(scope) {
 	console.log("\n\x1b[0;32mRemoving OpenCode support\x1b[0m");
 	const workspacePaths = resolveWorkspacePaths();
+	const rtkPaths = rtkPolicyPathMap();
+	await removeRtkSurfaces({
+		policyTargets: [rtkPaths.opencode],
+		referenceTargets: rtkReferenceTargets({
+			opencodeGlobal: scope === "global",
+			opencodeProject: scope === "project",
+			workspacePaths,
+		}),
+	});
 	const target =
 		scope === "global"
 			? PATHS.opencodeConfigDir
@@ -323,6 +343,16 @@ async function removeOpenCode(scope) {
 
 async function removeCopilot(scope) {
 	console.log("\n\x1b[0;32mRemoving GitHub Copilot support\x1b[0m");
+	const workspacePaths = resolveWorkspacePaths();
+	const rtkPaths = rtkPolicyPathMap();
+	await removeRtkSurfaces({
+		policyTargets: [rtkPaths.copilot],
+		referenceTargets: rtkReferenceTargets({
+			copilotGlobal: scope === "global" || scope === "both",
+			copilotProject: scope === "project" || scope === "both",
+			workspacePaths,
+		}),
+	});
 	const repoTemplateRoot = path.join(ROOT, "copilot", "templates", ".github");
 	const userTemplateRoot = path.join(ROOT, "copilot", "templates", ".copilot");
 	const skillsRoot = path.join(repoTemplateRoot, "skills");
@@ -951,10 +981,16 @@ async function removeAgenticIdes(args) {
 
 async function removeCodex() {
 	console.log("\n\x1b[0;32mRemoving Codex support\x1b[0m");
+	const rtkPaths = rtkPolicyPathMap();
+	await removeRtkSurfaces({
+		policyTargets: [rtkPaths.codex],
+		referenceTargets: rtkReferenceTargets({ codex: true }),
+	});
 	await fs.rm(path.join(PATHS.codexHome, "plugins", "openagentsbtw"), {
 		recursive: true,
 		force: true,
 	});
+	await removeCodexPluginCaches(PATHS.codexHome);
 	await fs.rm(path.join(PATHS.codexHome, "openagentsbtw"), {
 		recursive: true,
 		force: true,

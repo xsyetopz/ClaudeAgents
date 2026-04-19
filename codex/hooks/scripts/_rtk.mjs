@@ -7,6 +7,8 @@ const LEGACY_HOME_PATHS = [
 	".config/openagentsbtw/RTK.md",
 	".codex/RTK.md",
 	".claude/RTK.md",
+	".copilot/RTK.md",
+	".config/opencode/RTK.md",
 ];
 
 function homeDir() {
@@ -31,9 +33,15 @@ function findRepoRtkMd(startCwd) {
 
 function findHomeRtkMd() {
 	const home = homeDir();
-	if (!home) return "";
-	for (const relativePath of LEGACY_HOME_PATHS) {
-		const candidate = join(home, relativePath);
+	if (home) {
+		for (const relativePath of LEGACY_HOME_PATHS) {
+			const candidate = join(home, relativePath);
+			if (pathExists(candidate)) return candidate;
+		}
+	}
+	const appData = process.env.APPDATA || "";
+	if (appData) {
+		const candidate = join(appData, "opencode", "RTK.md");
 		if (pathExists(candidate)) return candidate;
 	}
 	return "";
@@ -57,13 +65,25 @@ export function hasRtkBinary() {
 	}
 }
 
+function shellQuote(command) {
+	return `'${String(command).replaceAll("'", "'\\''")}'`;
+}
+
+function proxyRewrite(command) {
+	if (process.platform === "win32") {
+		return `rtk proxy -- ${command}`;
+	}
+	return `rtk proxy -- bash -lc ${shellQuote(command)}`;
+}
+
 export function getRtkRewrite(command, cwd = process.cwd()) {
-	if (!command || /^\s*rtk\b/.test(command)) return null;
+	const normalized = String(command || "").trim();
+	if (!normalized || /^\s*rtk\b/.test(normalized)) return null;
 	const policyPath = findRtkMd(cwd);
 	if (!policyPath || !hasRtkBinary()) return null;
 
 	try {
-		const result = spawnSync("rtk", ["rewrite", command], {
+		const result = spawnSync("rtk", ["rewrite", normalized], {
 			cwd,
 			env: process.env,
 			encoding: "utf8",
@@ -71,12 +91,12 @@ export function getRtkRewrite(command, cwd = process.cwd()) {
 			shell: process.platform === "win32",
 		});
 		const rewritten = (result.stdout || "").trim();
-		if (result.status === 0 && rewritten && rewritten !== command) {
+		if (/^rtk\b/.test(rewritten) && rewritten !== normalized) {
 			return { policyPath, rewritten };
 		}
 	} catch {
-		// Best-effort only.
+		// Fall back to proxy rewrite below.
 	}
 
-	return null;
+	return { policyPath, rewritten: proxyRewrite(normalized) };
 }

@@ -239,6 +239,26 @@ describe("generated skills", () => {
 		}
 	});
 
+	it("ships the plain-language skill, references, and Codex metadata across generated outputs", () => {
+		for (const relativePath of [
+			"claude/skills/plain-language/SKILL.md",
+			"claude/skills/plain-language/reference/a2-b1-english.md",
+			"claude/skills/plain-language/reference/localization-ready.md",
+			"codex/plugin/openagentsbtw/skills/plain-language/SKILL.md",
+			"codex/plugin/openagentsbtw/skills/plain-language/reference/examples.md",
+			"codex/plugin/openagentsbtw/skills/plain-language/openai.yaml",
+			"opencode/templates/skills/plain-language/SKILL.md",
+			"opencode/templates/skills/plain-language/reference/a2-b1-english.md",
+			"copilot/templates/.github/skills/plain-language/SKILL.md",
+			"copilot/templates/.github/skills/plain-language/reference/localization-ready.md",
+		]) {
+			assert.match(
+				readBuild(relativePath),
+				/plain language|A2-B1|non-native|localization-ready|translation-ready/i,
+			);
+		}
+	});
+
 	it("ships the elegance skill, references, and Codex metadata across generated outputs", () => {
 		for (const relativePath of [
 			"claude/skills/elegance/SKILL.md",

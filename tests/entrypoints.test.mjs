@@ -294,13 +294,17 @@ describe("public entrypoints", () => {
 		assert.match(uninstaller, /PATHS\.managedBinDir/);
 	});
 
-	it("keeps Claude and Codex RTK helpers Windows-safe", () => {
+	it("keeps RTK helpers Windows-safe", () => {
 		for (const relativePath of [
 			"claude/hooks/scripts/_rtk.mjs",
 			"codex/hooks/scripts/_rtk.mjs",
+			"copilot/hooks/scripts/openagentsbtw/_rtk.mjs",
 		]) {
 			const helper = readRepo(relativePath);
 			assert.match(helper, /process\.env\.USERPROFILE/);
+			assert.match(helper, /\.copilot\/RTK\.md/);
+			assert.match(helper, /\.config\/opencode\/RTK\.md/);
+			assert.match(helper, /process\.env\.APPDATA/);
 			assert.match(helper, /env: process\.env/);
 			assert.match(helper, /shell: process\.platform === "win32"/);
 		}

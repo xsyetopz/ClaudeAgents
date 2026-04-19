@@ -2,6 +2,26 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.1] - 2026-04-20
+
+### Added
+
+- Added the shared `plain-language` skill for website copy, docs wording, UI labels, status copy, localization-ready prose, A2-B1 English, and non-native reader copy across Claude, Codex, OpenCode, and Copilot.
+
+### Fixed
+
+- Shared RTK enforcement now accepts valid `rtk rewrite` stdout even when RTK exits nonzero, preventing missed rewrites on Claude, Codex, Copilot, and OpenCode.
+- Shared RTK enforcement now falls back to `rtk proxy -- bash -lc ...` for unsupported shell commands when RTK policy is active, so raw shell commands do not silently bypass RTK.
+- Managed Caveman mode now has runtime completion checks that reject obvious verbose drift while preserving code, commands, exact errors, docs, review findings, and commit messages.
+- Codex install now writes managed root config before existing TOML tables and sets the `openagentsbtw` profile by default unless explicitly disabled.
+- Installer validation now checks installed skills, hooks, wrappers, marketplace/config entries, Codex plugin source/cache payloads, per-tool `RTK.md` policy files, instruction references, and Caveman config across supported surfaces.
+- RTK setup now writes platform-local policy files such as `~/.claude/RTK.md`, `~/.codex/RTK.md`, `~/.copilot/RTK.md`, and the OpenCode config `RTK.md`, with managed instruction references including Claude Code `@RTK.md`.
+
+### Changed
+
+- Codex install now stages the plugin into both `~/.codex/plugins/openagentsbtw` and the active Codex cache path before pruning stale versions, so installed skills are available after install without manual plugin reinstall.
+- Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `2.2.1`.
+
 ## [2.2.0] - 2026-04-19
 
 ### Added

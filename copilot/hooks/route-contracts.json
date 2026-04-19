@@ -144,6 +144,14 @@
       "allowTestsOnly": true,
       "rejectPrototypeScaffolding": false
     },
+    "plain-language": {
+      "route": "plain-language",
+      "routeKind": "readonly",
+      "allowBlocked": true,
+      "allowDocsOnly": true,
+      "allowTestsOnly": true,
+      "rejectPrototypeScaffolding": false
+    },
     "review": {
       "route": "review",
       "routeKind": "readonly",

@@ -19,6 +19,15 @@ import {
 	toggleCodexDeepwiki,
 	updateCodexAgents,
 } from "./managed-files.mjs";
+
+import {
+	removeRtkSurfaces,
+	rtkPolicyPathMap,
+	rtkReferenceTargets,
+	writeRtkPolicyFiles,
+	writeRtkReferences,
+} from "./rtk-surfaces.mjs";
+
 import {
 	commandExists,
 	ctx7RunnerCommand,
@@ -29,6 +38,7 @@ import {
 	pathExists,
 	promptText,
 	ROOT,
+	resolveWorkspacePaths,
 	run,
 	writeConfigEnv,
 	writeText,
@@ -146,31 +156,71 @@ async function ensureRtkBinary() {
 	]);
 }
 
-async function writeGlobalRtkMd() {
-	await writeText(
-		PATHS.globalRtkMd,
-		`# RTK - Rust Token Killer
-
-Always prefix RTK-supported shell commands with \`rtk\`.
-
-Examples:
-
-\`\`\`bash
-rtk git status
-rtk cargo test
-rtk npm run build
-rtk pytest -q
-\`\`\`
-
-When \`RTK.md\` is present and \`rtk\` is installed, openagentsbtw will enforce RTK-prefixed forms where RTK can rewrite the command.
-`,
-	);
-	logInfo(`Installed managed RTK policy at ${PATHS.globalRtkMd}`);
+async function installedRtkPolicyTargets() {
+	const map = rtkPolicyPathMap();
+	const targets = [map.canonical];
+	for (const [tool, target] of Object.entries(map)) {
+		if (tool === "canonical") continue;
+		if (await pathExists(path.dirname(target))) {
+			targets.push(target);
+		}
+	}
+	return [...new Set(targets)];
 }
 
-async function removeGlobalRtkMd() {
-	await fs.rm(PATHS.globalRtkMd, { force: true });
-	logInfo("Removed managed RTK policy");
+async function installedRtkReferenceTargets() {
+	const workspacePaths = resolveWorkspacePaths();
+	const targets = [];
+	if (await pathExists(PATHS.claudeHome)) {
+		targets.push(...rtkReferenceTargets({ claude: true }));
+	}
+	if (await pathExists(PATHS.codexHome)) {
+		targets.push(...rtkReferenceTargets({ codex: true }));
+	}
+	if (await pathExists(PATHS.copilotHome)) {
+		targets.push(...rtkReferenceTargets({ copilotGlobal: true }));
+	}
+	if (await pathExists(workspacePaths.projectGithubDir)) {
+		targets.push(
+			...rtkReferenceTargets({ copilotProject: true, workspacePaths }),
+		);
+	}
+	if (await pathExists(PATHS.opencodeConfigDir)) {
+		targets.push(...rtkReferenceTargets({ opencodeGlobal: true }));
+	}
+	if (await pathExists(workspacePaths.projectOpenCodeDir)) {
+		targets.push(
+			...rtkReferenceTargets({ opencodeProject: true, workspacePaths }),
+		);
+	}
+	return targets;
+}
+
+async function writeManagedRtkSurfaces() {
+	const policyTargets = await installedRtkPolicyTargets();
+	await writeRtkPolicyFiles(policyTargets);
+	await writeRtkReferences(await installedRtkReferenceTargets());
+	for (const target of policyTargets) {
+		logInfo(`Installed managed RTK policy at ${target}`);
+	}
+}
+
+async function removeManagedRtkSurfaces() {
+	const map = rtkPolicyPathMap();
+	const workspacePaths = resolveWorkspacePaths();
+	await removeRtkSurfaces({
+		policyTargets: Object.values(map),
+		referenceTargets: rtkReferenceTargets({
+			claude: true,
+			codex: true,
+			copilotGlobal: true,
+			copilotProject: true,
+			opencodeGlobal: true,
+			opencodeProject: true,
+			workspacePaths,
+		}),
+	});
+	logInfo("Removed managed RTK policies and instruction references");
 }
 
 function parseJsonc(text) {
@@ -593,10 +643,10 @@ async function main() {
 	}
 	if (args.rtk) {
 		await ensureRtkBinary();
-		await writeGlobalRtkMd();
+		await writeManagedRtkSurfaces();
 	}
 	if (args.noRtk) {
-		await removeGlobalRtkMd();
+		await removeManagedRtkSurfaces();
 	}
 
 	if (

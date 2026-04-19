@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, it } from "node:test";
@@ -112,6 +112,23 @@ describe("Claude route context hooks", () => {
 });
 
 describe("Claude stop gates", () => {
+	it("blocks obvious non-Caveman assistant prose when mode is active", () => {
+		const dir = makeRepo();
+		const result = runHook(
+			"post/stop-scan.mjs",
+			{
+				cwd: dir,
+				last_assistant_message:
+					"Sure, I can help with a robust implementation.",
+			},
+			{},
+			{ cwd: dir },
+		);
+		assert.equal(result.status, 2);
+		const output = JSON.parse(result.stdout.trim());
+		assert.match(output.reason, /Caveman mode/);
+	});
+
 	it("blocks edit-required completion when no production code changed", () => {
 		const dir = makeRepo();
 		const transcriptPath = makeTranscript(dir, {

@@ -23,6 +23,11 @@ import {
 	renderClaudeSettingsTemplate,
 } from "./claude-settings.mjs";
 import {
+	installCodexPluginPayload,
+	validateCodexPluginPayload,
+} from "./codex-plugin-install.mjs";
+
+import {
 	CODEX_WRAPPER_NAMES,
 	renderCodexWrapperCmd,
 	renderCodexWrapperPs1,
@@ -35,6 +40,15 @@ import {
 	updateCodexAgents,
 	updateCodexMarketplace,
 } from "./managed-files.mjs";
+
+import {
+	installSelectionToRtkReferences,
+	rtkPolicyPathMap,
+	selectedRtkPolicyTargets,
+	writeRtkPolicyFiles,
+	writeRtkReferences,
+} from "./rtk-surfaces.mjs";
+
 import {
 	commandExists,
 	ctx7RunnerCommand,
@@ -51,7 +65,6 @@ import {
 	readText,
 	removeChildrenWithMarker,
 	removeClaudePluginCache,
-	removeCodexPluginCaches,
 	removeCopilotPluginCaches,
 	replaceManagedTree,
 	resolveWorkspacePaths,
@@ -456,14 +469,8 @@ async function promptOptionalSurfaces(args, existingEnv) {
 				existingEnv.OABTW_CODEX_PLAN ||
 				"pro-5";
 	}
-	if (args.installCodex && args.codexSetTopProfile === "auto" && !isCi()) {
-		const profileName = "openagentsbtw";
-		args.codexSetTopProfile = (await promptToggle(
-			`Set Codex default profile at top-level in ${PATHS.codexConfig} to ${profileName}?`,
-			true,
-		))
-			? "true"
-			: "false";
+	if (args.installCodex && args.codexSetTopProfile === "auto") {
+		args.codexSetTopProfile = "true";
 	}
 	if (args.installCopilot && !args.copilotPlanSet && !isCi()) {
 		args.copilotPlan =
@@ -902,9 +909,7 @@ async function maybeInstallRtk(args) {
 			logWarn(
 				"RTK not found on Windows; skipping binary bootstrap and leaving configure-only mode",
 			);
-			return;
-		}
-		if (commandExists("brew")) {
+		} else if (commandExists("brew")) {
 			await run("brew", ["install", "rtk-ai/tap/rtk"]);
 		} else {
 			await run("sh", [
@@ -915,25 +920,15 @@ async function maybeInstallRtk(args) {
 	} else {
 		logInfo("RTK already installed");
 	}
-	await writeText(
-		PATHS.globalRtkMd,
-		`# RTK - Rust Token Killer
-
-Always prefix RTK-supported shell commands with \`rtk\`.
-
-Examples:
-
-\`\`\`bash
-rtk git status
-rtk cargo test
-rtk npm run build
-rtk pytest -q
-\`\`\`
-
-When \`RTK.md\` is present and \`rtk\` is installed, openagentsbtw will enforce RTK-prefixed forms where RTK can rewrite the command.
-`,
+	const workspacePaths = resolveWorkspacePaths();
+	const policyTargets = selectedRtkPolicyTargets(args);
+	await writeRtkPolicyFiles(policyTargets);
+	await writeRtkReferences(
+		installSelectionToRtkReferences(args, workspacePaths),
 	);
-	logInfo(`RTK policy -> ${PATHS.globalRtkMd}`);
+	for (const target of policyTargets) {
+		logInfo(`RTK policy -> ${target}`);
+	}
 }
 
 async function installClaude(args, artifacts) {
@@ -1921,23 +1916,22 @@ async function installCodex(args, artifacts) {
 	const configTarget = path.join(codexHome, "config.toml");
 	const agentsMdTarget = path.join(codexHome, "AGENTS.md");
 
-	await removeCodexPluginCaches(codexHome);
-	await fs.rm(pluginTarget, { recursive: true, force: true });
+	const pluginSource = path.join(artifacts.codexDir, "plugin", "openagentsbtw");
+	const pluginInstall = await installCodexPluginPayload({
+		source: pluginSource,
+		pluginTarget,
+		codexHome,
+	});
 	await fs.rm(path.join(codexHome, "agents"), { recursive: true, force: true });
 	await fs.rm(path.join(hooksRoot, "scripts"), {
 		recursive: true,
 		force: true,
 	});
-	await fs.mkdir(pluginTarget, { recursive: true });
 	await fs.mkdir(path.join(codexHome, "agents"), { recursive: true });
 	await fs.mkdir(path.join(hooksRoot, "scripts"), { recursive: true });
 	await fs.mkdir(binRoot, { recursive: true });
 	await fs.mkdir(path.dirname(marketplaceTarget), { recursive: true });
 
-	await replaceManagedTree(
-		path.join(artifacts.codexDir, "plugin", "openagentsbtw"),
-		pluginTarget,
-	);
 	await replaceManagedTree(
 		path.join(artifacts.codexDir, "agents"),
 		path.join(codexHome, "agents"),
@@ -1963,7 +1957,10 @@ async function installCodex(args, artifacts) {
 		await fs.chmod(path.join(binRoot, wrapper), 0o755);
 	}
 	await installCodexWrapperShims();
-	await updateCodexMarketplace({ target: marketplaceTarget });
+	await updateCodexMarketplace({
+		target: marketplaceTarget,
+		pluginPath: pluginTarget,
+	});
 	await mergeCodexHooks({
 		source: path.join(artifacts.codexDir, "hooks", "hooks.json"),
 		target: hooksTarget,
@@ -1995,61 +1992,331 @@ async function installCodex(args, artifacts) {
 		);
 	}
 	logInfo(`Codex profile merged into ${configTarget}`);
-	logInfo("Codex plugin cache refreshed");
+	logInfo(`Codex plugin source -> ${pluginInstall.pluginTarget}`);
+	logInfo(`Codex plugin cache -> ${pluginInstall.cacheTarget}`);
 }
 
 async function validateInstall(args) {
 	let errors = 0;
-	if (args.installClaude && commandExists("jq")) {
-		try {
-			await run("jq", ["empty", path.join(PATHS.claudeHome, "settings.json")], {
-				stdio: "ignore",
-			});
-			logInfo(`${path.join(PATHS.claudeHome, "settings.json")} is valid JSON`);
-		} catch {
-			errors += 1;
+	const required = async (filepath, label = filepath) => {
+		if (await pathExists(filepath)) {
+			logInfo(`${label} installed`);
+			return;
+		}
+		errors += 1;
+		logWarn(`${label} missing: ${filepath}`);
+	};
+	const requiredText = async (filepath, pattern, label = filepath) => {
+		const text = await readText(filepath, "");
+		if (pattern.test(text)) {
+			logInfo(`${label} configured`);
+			return;
+		}
+		errors += 1;
+		logWarn(`${label} not configured in ${filepath}`);
+	};
+
+	if (args.installClaude) {
+		await required(
+			path.join(PATHS.claudeHome, "settings.json"),
+			"Claude settings",
+		);
+		await required(
+			path.join(PATHS.claudeHome, "hooks", "pre-secrets.mjs"),
+			"Claude pre-secrets hook",
+		);
+		await required(
+			path.join(PATHS.claudeHome, "hooks", "rtk-rewrite.sh"),
+			"Claude RTK hook",
+		);
+		await required(
+			path.join(PATHS.claudeHome, "output-styles", "cca.md"),
+			"Claude output style",
+		);
+		await requiredText(
+			path.join(PATHS.claudeHome, "settings.json"),
+			/openagentsbtw@openagentsbtw|openagentsbtw/,
+			"Claude openagentsbtw plugin",
+		);
+		if (commandExists("jq")) {
+			try {
+				await run(
+					"jq",
+					["empty", path.join(PATHS.claudeHome, "settings.json")],
+					{
+						stdio: "ignore",
+					},
+				);
+				logInfo(
+					`${path.join(PATHS.claudeHome, "settings.json")} is valid JSON`,
+				);
+			} catch {
+				errors += 1;
+			}
 		}
 	}
+
 	if (args.installOpenCode) {
 		const workspacePaths = resolveWorkspacePaths();
 		const target =
 			args.opencodeScope === "global"
 				? PATHS.opencodeConfigDir
 				: workspacePaths.projectOpenCodeDir;
-		if (await pathExists(path.join(target, "plugins", "openagentsbtw.ts"))) {
-			logInfo("OpenCode plugin installed");
-		} else {
-			errors += 1;
+		await required(
+			path.join(target, "plugins", "openagentsbtw.ts"),
+			"OpenCode plugin",
+		);
+		await required(
+			path.join(target, "instructions", "openagentsbtw.md"),
+			"OpenCode instructions",
+		);
+		await required(
+			path.join(target, "skills", "caveman", "SKILL.md"),
+			"OpenCode Caveman skill",
+		);
+		await required(
+			path.join(target, "skills", "review", "SKILL.md"),
+			"OpenCode review skill",
+		);
+		await requiredText(
+			path.join(target, "plugins", "openagentsbtw.ts"),
+			/rtk-rewrite|Caveman mode/,
+			"OpenCode RTK/Caveman plugin logic",
+		);
+	}
+
+	if (args.installCopilot) {
+		const workspacePaths = resolveWorkspacePaths();
+		const targets = [];
+		if (args.copilotScope === "global" || args.copilotScope === "both") {
+			targets.push(PATHS.copilotHome);
+		}
+		if (args.copilotScope === "project" || args.copilotScope === "both") {
+			targets.push(workspacePaths.projectGithubDir);
+		}
+		for (const target of targets) {
+			await required(
+				path.join(target, "agents", "hephaestus.agent.md"),
+				"Copilot hephaestus agent",
+			);
+			await required(
+				path.join(target, "skills", "caveman", "SKILL.md"),
+				"Copilot Caveman skill",
+			);
+			await required(
+				path.join(target, "hooks", "openagentsbtw.json"),
+				"Copilot hooks config",
+			);
+			await required(
+				path.join(target, "hooks", "route-contracts.json"),
+				"Copilot route contracts",
+			);
 		}
 	}
+
 	const agenticTargets = selectedAgenticIdes(args);
 	if (agenticTargets.length > 0) {
 		const workspacePaths = resolveWorkspacePaths();
-		if (
-			(args.agenticIdeScope === "project" || args.agenticIdeScope === "both") &&
-			agenticTargets.includes("cursor") &&
-			!(await pathExists(
-				path.join(workspacePaths.projectCursorRulesDir, "openagentsbtw.mdc"),
-			))
-		) {
-			errors += 1;
+		if (args.agenticIdeScope === "project" || args.agenticIdeScope === "both") {
+			if (agenticTargets.includes("cursor")) {
+				await required(
+					path.join(workspacePaths.projectCursorRulesDir, "openagentsbtw.mdc"),
+					"Cursor project rule",
+				);
+			}
+			if (agenticTargets.includes("gemini-cli")) {
+				await required(
+					path.join(workspacePaths.workspaceRoot, "GEMINI.md"),
+					"Gemini project instructions",
+				);
+			}
+			if (agenticTargets.includes("amp")) {
+				await required(
+					path.join(workspacePaths.workspaceRoot, "AGENTS.md"),
+					"Amp project AGENTS.md",
+				);
+			}
 		}
 	}
+
 	if (args.installCodex) {
-		for (const filepath of [
-			path.join(
-				PATHS.codexHome,
-				"plugins",
-				"openagentsbtw",
-				".codex-plugin",
-				"plugin.json",
-			),
+		const codexPluginTarget = path.join(
+			PATHS.codexHome,
+			"plugins",
+			"openagentsbtw",
+		);
+		await required(
+			path.join(codexPluginTarget, ".codex-plugin", "plugin.json"),
+			"Codex plugin source manifest",
+		);
+		await required(
+			path.join(codexPluginTarget, "skills", "caveman", "SKILL.md"),
+			"Codex source Caveman skill",
+		);
+		await required(
+			path.join(codexPluginTarget, "skills", "review", "SKILL.md"),
+			"Codex source review skill",
+		);
+		try {
+			const cacheValidation = await validateCodexPluginPayload({
+				pluginTarget: codexPluginTarget,
+				codexHome: PATHS.codexHome,
+			});
+			if (cacheValidation.missing.length === 0) {
+				logInfo(
+					`Codex plugin cache installed at ${cacheValidation.cacheTarget}`,
+				);
+			} else {
+				errors += cacheValidation.missing.length;
+				for (const missing of cacheValidation.missing) {
+					logWarn(`Codex plugin cache missing: ${missing}`);
+				}
+			}
+		} catch (error) {
+			errors += 1;
+			logWarn(`Codex plugin payload invalid: ${error.message}`);
+		}
+		await required(
 			path.join(PATHS.codexHome, "agents", "athena.toml"),
+			"Codex athena agent",
+		);
+		await required(
 			path.join(PATHS.codexHome, "hooks.json"),
-		]) {
-			if (!(await pathExists(filepath))) errors += 1;
+			"Codex hooks config",
+		);
+		await required(
+			path.join(PATHS.codexWrapperBinDir, "oabtw-codex"),
+			"Codex fallback wrapper",
+		);
+		await required(
+			path.join(
+				PATHS.managedBinDir,
+				process.platform === "win32" ? "oabtw-codex.cmd" : "oabtw-codex",
+			),
+			"Codex PATH shim",
+		);
+		await requiredText(
+			PATHS.codexConfig,
+			/^profile\s*=\s*"openagentsbtw"/m,
+			"Codex default profile",
+		);
+		await requiredText(
+			PATHS.codexConfig,
+			/\[plugins\."openagentsbtw@openagentsbtw-local"\]\s*\nenabled\s*=\s*true/m,
+			"Codex plugin enablement",
+		);
+		const marketplaceFile = path.join(
+			PATHS.agentsHome,
+			"plugins",
+			"marketplace.json",
+		);
+		await requiredText(
+			marketplaceFile,
+			/"name"\s*:\s*"openagentsbtw"[\s\S]*"path"\s*:/,
+			"Codex marketplace entry",
+		);
+		try {
+			const marketplace = JSON.parse(await readText(marketplaceFile, "{}"));
+			const entry = (
+				Array.isArray(marketplace.plugins) ? marketplace.plugins : []
+			).find((plugin) => plugin?.name === "openagentsbtw");
+			const marketplacePath = entry?.source?.path || "";
+			if (
+				marketplacePath === codexPluginTarget &&
+				(await pathExists(marketplacePath))
+			) {
+				logInfo("Codex marketplace path resolves");
+			} else {
+				errors += 1;
+				logWarn(
+					`Codex marketplace path invalid: ${marketplacePath || "missing"}`,
+				);
+			}
+		} catch (error) {
+			errors += 1;
+			logWarn(`Codex marketplace invalid: ${error.message}`);
 		}
 	}
+
+	if (
+		!args.skipRtk &&
+		(args.installClaude ||
+			args.installOpenCode ||
+			args.installCodex ||
+			args.installCopilot) &&
+		!isCi()
+	) {
+		if (commandExists("rtk")) {
+			const workspacePaths = resolveWorkspacePaths();
+			const rtkPaths = rtkPolicyPathMap();
+			for (const target of selectedRtkPolicyTargets(args)) {
+				await required(target, "managed RTK policy");
+			}
+			if (args.installClaude) {
+				await requiredText(
+					path.join(PATHS.claudeHome, "CLAUDE.md"),
+					/@RTK\.md/,
+					"Claude RTK instruction reference",
+				);
+			}
+			if (args.installCodex) {
+				await requiredText(
+					path.join(PATHS.codexHome, "AGENTS.md"),
+					/RTK\.md|openagentsbtw rtk/,
+					"Codex RTK instruction reference",
+				);
+			}
+			if (args.installCopilot) {
+				const targets = [];
+				if (["global", "both"].includes(args.copilotScope)) {
+					targets.push(path.join(PATHS.copilotHome, "copilot-instructions.md"));
+				}
+				if (["project", "both"].includes(args.copilotScope)) {
+					targets.push(
+						path.join(
+							workspacePaths.projectGithubDir,
+							"copilot-instructions.md",
+						),
+					);
+				}
+				for (const target of targets) {
+					await requiredText(
+						target,
+						/RTK\.md|openagentsbtw rtk/,
+						"Copilot RTK instruction reference",
+					);
+				}
+			}
+			if (args.installOpenCode) {
+				const target =
+					args.opencodeScope === "global"
+						? path.join(
+								PATHS.opencodeConfigDir,
+								"instructions",
+								"openagentsbtw.md",
+							)
+						: path.join(
+								workspacePaths.projectOpenCodeDir,
+								"instructions",
+								"openagentsbtw.md",
+							);
+				await requiredText(
+					target,
+					/RTK\.md|openagentsbtw rtk/,
+					"OpenCode RTK instruction reference",
+				);
+				await required(rtkPaths.opencode, "OpenCode RTK policy");
+			}
+		} else {
+			logWarn("RTK binary not found; managed RTK policy validation skipped");
+		}
+	}
+
+	await requiredText(
+		PATHS.configEnvFile,
+		/OABTW_CAVEMAN_MODE=/,
+		"managed Caveman config",
+	);
 	return errors;
 }
 

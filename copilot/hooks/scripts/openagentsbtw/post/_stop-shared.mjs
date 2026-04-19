@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { matchCavemanViolations } from "../_caveman-contract.mjs";
 import {
 	isMetaFile,
 	isProseFile,
@@ -10,6 +11,7 @@ import {
 	matchPrototypeScaffolding,
 	resolveTranscriptPath,
 } from "../_lib.mjs";
+import { readSessionMode } from "../session/_caveman.mjs";
 import { parseRouteMarkers } from "../session/_route-context.mjs";
 
 const BLOCKED_RE = /(?:^|\n)BLOCKED:\s+\S/m;
@@ -113,12 +115,16 @@ function scanFiles(files, rejectPrototypeScaffolding) {
 }
 
 function hasBlockedResult(data, transcript) {
-	const assistant = String(data.finalResponse ?? data.response ?? "");
+	const assistant = String(
+		data.finalResponse ?? data.response ?? data.last_assistant_message ?? "",
+	);
 	return BLOCKED_RE.test(assistant) || BLOCKED_RE.test(transcript);
 }
 
 function hasExecutionEvidence(data, transcript) {
-	const assistant = String(data.finalResponse ?? data.response ?? "");
+	const assistant = String(
+		data.finalResponse ?? data.response ?? data.last_assistant_message ?? "",
+	);
 	return (
 		EXECUTION_SIGNAL_RE.test(assistant) ||
 		EXECUTION_SIGNAL_RE.test(transcript) ||
@@ -128,7 +134,9 @@ function hasExecutionEvidence(data, transcript) {
 
 function isExplanationOnly(data, transcript) {
 	const combined = [
-		String(data.finalResponse ?? data.response ?? ""),
+		String(
+			data.finalResponse ?? data.response ?? data.last_assistant_message ?? "",
+		),
 		transcript.split("\n").slice(-80).join("\n"),
 	]
 		.join("\n")
@@ -157,10 +165,25 @@ export function runStopChecks(data) {
 	const blocked = hasBlockedResult(data, transcript);
 	const executionEvidence = hasExecutionEvidence(data, transcript);
 	const explanationOnly = isExplanationOnly(data, transcript);
+	const cavemanMode = readSessionMode();
+	const assistantText = String(
+		data.finalResponse ?? data.response ?? data.last_assistant_message ?? "",
+	);
+	const cavemanHits =
+		cavemanMode === "off" ? [] : matchCavemanViolations(assistantText);
 	const { hard, soft, prototypeHits } = scanFiles(
 		files,
 		contract.rejectPrototypeScaffolding,
 	);
+
+	if (cavemanHits.length > 0) {
+		return {
+			type: "block",
+			message:
+				`openagentsbtw Caveman mode (${cavemanMode}) rejected verbose assistant prose:\n` +
+				cavemanHits.slice(0, 6).join("\n"),
+		};
+	}
 
 	if (hard.length > 0) {
 		return {

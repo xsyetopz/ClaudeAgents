@@ -51,8 +51,8 @@ oabtw-codex queue list
 
 The installer:
 
-- copies the plugin payload into `~/.codex/plugins/openagentsbtw`
-- registers a personal plugin marketplace entry in `~/.agents/plugins/marketplace.json`
+- copies the plugin payload into `~/.codex/plugins/openagentsbtw` and the active Codex plugin cache under `~/.codex/plugins/cache/openagentsbtw-local/openagentsbtw/<version>`
+- registers a personal plugin marketplace entry in `~/.agents/plugins/marketplace.json` pointing at the concrete local plugin path
 - enables the plugin in `~/.codex/config.toml` under `[plugins."openagentsbtw@openagentsbtw-local"]` (if not already present)
 - installs custom agents into `~/.codex/agents/`
 - installs hook scripts into `~/.codex/openagentsbtw/hooks/` and merges `~/.codex/hooks.json`
@@ -61,7 +61,7 @@ The installer:
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
 - appends global native continuity defaults (`sqlite_home`, `history`, `memories`, `compact_prompt`, `hide_agent_reasoning`, `tool_output_token_limit`) plus the managed `openagentsbtw`, `openagentsbtw-implement`, `openagentsbtw-utility`, `openagentsbtw-approval-auto`, and `openagentsbtw-runtime-long` profiles to `~/.codex/config.toml`
 - optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
-- optionally installs RTK and a managed `~/.config/openagentsbtw/RTK.md` policy
+- optionally installs RTK, managed policy files at `~/.config/openagentsbtw/RTK.md` and `~/.codex/RTK.md`, and a managed `~/.codex/AGENTS.md` RTK reference
 
 ## Updating
 

@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { matchCavemanViolations } from "../_caveman-contract.mjs";
 import {
 	isMetaFile,
 	isProseFile,
@@ -8,6 +9,7 @@ import {
 	matchPlaceholders,
 	matchPrototypeScaffolding,
 } from "../_lib.mjs";
+import { readSessionMode } from "../session/_caveman.mjs";
 
 const ROUTE_MARKER_RE = /^OPENAGENTSBTW_([A-Z_]+)=(.+)$/gm;
 const BLOCKED_RE = /(?:^|\n)BLOCKED:\s+\S/m;
@@ -215,10 +217,25 @@ export function runStopChecks(data) {
 	const blocked = hasBlockedResult(data, transcript);
 	const executionEvidence = hasExecutionEvidence(data, transcript);
 	const explanationOnly = isExplanationOnly(data, transcript);
+	const cavemanMode = readSessionMode();
+	const assistantText = String(
+		data.finalResponse ?? data.response ?? data.last_assistant_message ?? "",
+	);
+	const cavemanHits =
+		cavemanMode === "off" ? [] : matchCavemanViolations(assistantText);
 	const { hard, soft, prototypeHits } = scanFiles(
 		files,
 		contract.rejectPrototypeScaffolding,
 	);
+
+	if (cavemanHits.length > 0) {
+		return {
+			type: "block",
+			message:
+				`openagentsbtw Caveman mode (${cavemanMode}) rejected verbose assistant prose:\n` +
+				cavemanHits.slice(0, 6).join("\n"),
+		};
+	}
 
 	if (hard.length > 0) {
 		return {

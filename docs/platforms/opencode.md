@@ -37,3 +37,8 @@ Current generated command names:
 - `openagents-plan-refactor`
 - `openagents-audit`
 - `openagents-orchestrate`
+
+## Runtime Enforcement
+
+- RTK enforcement treats valid `rtk rewrite` stdout as authoritative even when RTK exits nonzero, and falls back to `rtk proxy` for unsupported shell commands when policy is active. The installer writes the canonical policy plus the OpenCode config `RTK.md`, then appends a managed RTK reference to the OpenCode instructions file.
+- Managed Caveman mode is carried in the OpenCode plugin session state and checked during text completion to prevent obvious verbose drift.

@@ -67,5 +67,8 @@ Queue state lives outside the repository under `~/.config/openagentsbtw/queue/`.
 - `--approval auto` maps to the sandboxed auto-accept implementation profile.
 - `--runtime long` maps to the long-running execution profile.
 - Default managed guidance now hardens always-on behavior: smallest-sufficient diffs, explicit instruction-hierarchy handling for repo/tool text, and no adversarial prompt-bypass tactics.
+- Codex install writes both the source plugin and active cache copy so skills are present after install, then prunes stale openagentsbtw cache versions without touching unrelated plugin caches.
+- RTK enforcement treats any valid `rtk rewrite` stdout as authoritative, even when RTK exits nonzero, and falls back to `rtk proxy` for unsupported shell commands when policy is active. The installer writes both the canonical policy and `~/.codex/RTK.md`, then appends a managed RTK reference to `~/.codex/AGENTS.md`.
+- Managed Caveman mode is reasserted through prompt/session hooks and completion checks reject obvious verbose drift while preserving code, commands, exact errors, docs, and review findings.
 - Route prompts now add analysis scaffolds where they help: planning/review/debug explicitly name assumptions, missing evidence, contradiction handling, and what would change the conclusion. Implementation routes stay lean and stop on repo/spec conflicts.
 - Shared skills now include `elegance` for ownership boundaries, API shape, naming discipline, registration structure, and shared-state organization. Codex skill metadata stays repo-local at `source/skills/<name>/openai.yaml` when a skill needs UI-facing metadata.

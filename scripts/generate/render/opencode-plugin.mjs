@@ -2,6 +2,7 @@ import {
 	CAVEMAN_CLARITY_OVERRIDE_LINE,
 	CAVEMAN_PROTECTED_SURFACE_LINE,
 	CAVEMAN_RULE_LINES,
+	CAVEMAN_VIOLATION_RULES,
 } from "../../../source/caveman.mjs";
 
 function q(value) {
@@ -139,8 +140,15 @@ const TEST_PATH_PATTERNS = [
   /(^|\\/)(__tests__|tests?|specs?)(\\/|$)/i,
   /(^|\\/).*\\.(test|spec)\\.[^/]+$/i,
 ];
-const RTK_HOME_PATHS = [".config/openagentsbtw/RTK.md", ".codex/RTK.md", ".claude/RTK.md"];
+const RTK_HOME_PATHS = [
+  ".config/openagentsbtw/RTK.md",
+  ".codex/RTK.md",
+  ".claude/RTK.md",
+  ".copilot/RTK.md",
+  ".config/opencode/RTK.md",
+];
 const DEFAULT_CAVEMAN_MODE = "full";
+const CAVEMAN_VIOLATION_RULES = ${JSON.stringify(CAVEMAN_VIOLATION_RULES, null, 2)};
 const VALID_CAVEMAN_MODES = new Set([
   "off",
   "lite",
@@ -405,28 +413,46 @@ function findRepoRtkMd(startCwd) {
 
 function findHomeRtkMd() {
   const home = process.env.HOME || "";
-  if (!home) return "";
-  for (const relativePath of RTK_HOME_PATHS) {
-    const candidate = join(home, relativePath);
+  if (home) {
+    for (const relativePath of RTK_HOME_PATHS) {
+      const candidate = join(home, relativePath);
+      if (existsSync(candidate)) return candidate;
+    }
+  }
+  const appData = process.env.APPDATA || "";
+  if (appData) {
+    const candidate = join(appData, "opencode", "RTK.md");
     if (existsSync(candidate)) return candidate;
   }
   return "";
 }
 
+function shellQuote(command) {
+  return "'" + String(command).replaceAll("'", "'\\''") + "'";
+}
+
+function proxyRewrite(command) {
+  if (process.platform === "win32") {
+    return "rtk proxy -- " + command;
+  }
+  return "rtk proxy -- bash -lc " + shellQuote(command);
+}
+
 function getRtkRewrite(command, cwd) {
-  if (!command || /^\\s*rtk\\b/.test(command)) return null;
+  const normalized = String(command || "").trim();
+  if (!normalized || /^\\s*rtk\\b/.test(normalized)) return null;
   if (!(findRepoRtkMd(cwd) || findHomeRtkMd())) return null;
   if (!hasRtkBinary()) return null;
   try {
-    const result = spawnSync("rtk", ["rewrite", command], {
+    const result = spawnSync("rtk", ["rewrite", normalized], {
       cwd,
       encoding: "utf8",
       timeout: 3000,
     });
     const rewritten = (result.stdout || "").trim();
-    return result.status === 0 && rewritten && rewritten !== command ? rewritten : null;
+    return /^rtk\\b/.test(rewritten) && rewritten !== normalized ? rewritten : proxyRewrite(normalized);
   } catch {
-    return null;
+    return proxyRewrite(normalized);
   }
 }
 
@@ -454,11 +480,31 @@ function blocked(reason) {
   return \`BLOCKED: \${reason}\`;
 }
 
+function matchCavemanViolations(text) {
+  const content = String(text || "").trim();
+  if (!content) return [];
+  const hits = [];
+  for (const rule of CAVEMAN_VIOLATION_RULES) {
+    const regex = new RegExp(rule.pattern, rule.flags);
+    const match = content.match(regex);
+    if (match) hits.push(rule.label + ": " + match[0].trim().slice(0, 80));
+  }
+  return hits;
+}
+
 function evaluateCompletion(sessionID, text) {
   const state = getSessionState(sessionID);
   const contract = state.contract;
   if (!contract) return text;
   if (/^BLOCKED:/m.test(text)) return text;
+  if (state.cavemanMode && state.cavemanMode !== "off") {
+    const cavemanHits = matchCavemanViolations(text);
+    if (cavemanHits.length > 0) {
+      return blocked(
+        "openagentsbtw Caveman mode (" + state.cavemanMode + ") rejected verbose assistant prose: " + cavemanHits.slice(0, 6).join("; "),
+      );
+    }
+  }
 
   const diff = gitChangedPaths(state.cwd);
   const classified = diff.paths.map(classifyPath);

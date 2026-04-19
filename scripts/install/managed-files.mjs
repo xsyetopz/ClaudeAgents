@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getCodexPlan } from "../../source/subscriptions.mjs";
+import { writeCodexMarketplace } from "./codex-plugin-install.mjs";
 import { pathExists, readText, writeText } from "./shared.mjs";
 
 export function mergeTaggedBlock(text, block, start, end) {
@@ -190,30 +191,11 @@ export async function updateCodexAgents({ agentsDir, tier }) {
 	}
 }
 
-export async function updateCodexMarketplace({ target }) {
-	let payload = {};
-	if (await pathExists(target)) {
-		try {
-			payload = JSON.parse(await readText(target));
-		} catch {}
-	}
-	payload.name ??= "openagentsbtw-local";
-	payload.interface ??= {};
-	payload.interface.displayName ??= "openagentsbtw Local Marketplace";
-	const plugins = Array.isArray(payload.plugins) ? payload.plugins : [];
-	payload.plugins = [
-		...plugins.filter(
-			(entry) =>
-				!(entry && typeof entry === "object" && entry.name === "openagentsbtw"),
-		),
-		{
-			name: "openagentsbtw",
-			source: { source: "local", path: "./.codex/plugins/openagentsbtw" },
-			policy: { installation: "AVAILABLE", authentication: "ON_INSTALL" },
-			category: "Productivity",
-		},
-	];
-	await writeText(target, JSON.stringify(payload, null, 2));
+export async function updateCodexMarketplace({
+	target,
+	pluginPath = "./.codex/plugins/openagentsbtw",
+}) {
+	await writeCodexMarketplace({ target, pluginPath });
 }
 
 export async function mergeCodexHooks({ source, target }) {
@@ -305,8 +287,8 @@ export async function mergeCodexConfig({
 		target,
 		[
 			prefixLines.join("\n").trim(),
-			restLines.join("\n").trim(),
 			`${start}\n${managedBody}\n${end}`,
+			restLines.join("\n").trim(),
 		]
 			.filter(Boolean)
 			.join("\n\n"),

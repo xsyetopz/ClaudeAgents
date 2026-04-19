@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { matchCavemanViolations } from "../_caveman-contract.mjs";
 import {
 	isMetaFile,
 	isProseFile,
@@ -13,6 +14,7 @@ import {
 	systemMessage,
 } from "../_lib.mjs";
 import { persistTurnMemory } from "../_memory.mjs";
+import { readSessionMode } from "../session/_caveman.mjs";
 import {
 	summarizePendingQueue,
 	takeNextAutoEntry,
@@ -236,10 +238,21 @@ function buildDiffFailure(contract, buckets) {
 	const blocked = hasBlockedResult(data, transcript);
 	const executionEvidence = hasExecutionEvidence(data, transcript);
 	const explanationOnly = isExplanationOnly(data, transcript);
+	const cavemanMode = readSessionMode();
+	const cavemanHits =
+		cavemanMode === "off"
+			? []
+			: matchCavemanViolations(data?.last_assistant_message ?? "");
 	const { hard, hardProse, soft, prototypeHits } = scanFiles(
 		files,
 		contract.rejectPrototypeScaffolding,
 	);
+
+	if (cavemanHits.length) {
+		stopBlock(
+			`openagentsbtw Caveman mode (${cavemanMode}) rejected verbose assistant prose:\n${cavemanHits.slice(0, 6).join("\n")}`,
+		);
+	}
 
 	if (hard.length) {
 		stopBlock(

@@ -71,6 +71,23 @@ async function invokeHook(root, payload) {
 }
 
 describe("codex stop scan", () => {
+	it("blocks obvious non-Caveman assistant prose when mode is active", async () => {
+		const root = await initRepo();
+		try {
+			const result = await invokeHook(root, {
+				cwd: root,
+				last_assistant_message:
+					"Sure, I can help with a robust implementation.",
+			});
+			assert.equal(result.code, 0);
+			const output = JSON.parse(result.stdout.trim());
+			assert.equal(output.continue, false);
+			assert.match(output.systemMessage, /Caveman mode/);
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
+	});
+
 	it("blocks edit-required completions without production edits", async () => {
 		const root = await initRepo();
 		try {

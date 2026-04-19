@@ -47,6 +47,39 @@ export const CAVEMAN_PROTECTED_SURFACE_LINE =
 export const CAVEMAN_CLARITY_OVERRIDE_LINE =
 	"Temporarily answer normally for security warnings, destructive confirmations, and ambiguity-sensitive instructions or repeated user confusion.";
 
+export const CAVEMAN_VIOLATION_RULES = [
+	{
+		label: "sycophantic opener",
+		pattern:
+			"(?:^|\\n)\\s*(?:sure|of course|absolutely|certainly|great question|good point|happy to)\\b",
+		flags: "i",
+	},
+	{
+		label: "optional-offer footer",
+		pattern:
+			"(?:let me know if|feel free to|if you(?:'|’)d like|happy to help)\\b",
+		flags: "i",
+	},
+	{
+		label: "AI filler",
+		pattern:
+			"\\b(?:robust|seamless|comprehensive|leverage|utilize|delve|moving forward)\\b",
+		flags: "i",
+	},
+];
+
+export function matchCavemanViolations(text = "") {
+	const content = String(text || "").trim();
+	if (!content) return [];
+	const hits = [];
+	for (const rule of CAVEMAN_VIOLATION_RULES) {
+		const regex = new RegExp(rule.pattern, rule.flags);
+		const match = content.match(regex);
+		if (match) hits.push(`${rule.label}: ${match[0].trim().slice(0, 80)}`);
+	}
+	return hits;
+}
+
 export const CAVEMAN_MODE_GUIDANCE = {
 	lite: "professional but tight; full sentences still OK",
 	full: "classic caveman terseness; fragments OK",
@@ -109,6 +142,7 @@ const CAVEMAN_MODE_ALIASES = ${JSON.stringify(CAVEMAN_MODE_ALIASES, null, 2)};
 const CAVEMAN_RULE_LINES = ${JSON.stringify(CAVEMAN_RULE_LINES, null, 2)};
 const CAVEMAN_PROTECTED_SURFACE_LINE = ${JSON.stringify(CAVEMAN_PROTECTED_SURFACE_LINE)};
 const CAVEMAN_CLARITY_OVERRIDE_LINE = ${JSON.stringify(CAVEMAN_CLARITY_OVERRIDE_LINE)};
+const CAVEMAN_VIOLATION_RULES = ${JSON.stringify(CAVEMAN_VIOLATION_RULES, null, 2)};
 
 export function resolveCavemanMode(value = "") {
 \tconst normalized = String(value || "")
@@ -129,6 +163,18 @@ export function renderManagedCavemanContext(mode = DEFAULT_CAVEMAN_MODE) {
 \t\tCAVEMAN_PROTECTED_SURFACE_LINE,
 \t\tCAVEMAN_CLARITY_OVERRIDE_LINE,
 \t].join("\\n");
+}
+
+export function matchCavemanViolations(text = "") {
+\tconst content = String(text || "").trim();
+\tif (!content) return [];
+\tconst hits = [];
+\tfor (const rule of CAVEMAN_VIOLATION_RULES) {
+\t\tconst regex = new RegExp(rule.pattern, rule.flags);
+\t\tconst match = content.match(regex);
+\t\tif (match) hits.push(\`\${rule.label}: \${match[0].trim().slice(0, 80)}\`);
+\t}
+\treturn hits;
 }
 `;
 }
