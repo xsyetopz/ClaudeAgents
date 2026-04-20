@@ -142,6 +142,9 @@ Human runs the commit, or AI runs it only after explicit approval. Apply the pla
 
 __SHIP_COMMIT_ATTRIBUTION_POLICY__
 
+If the trailer is missing, append the platform's canonical `Co-Authored-By` trailer automatically.
+If a known canonical domain is malformed (for example `noreply@openai`), block the commit command until fixed.
+
 ```bash
 git commit -m "$(cat <<'EOF'
 type(scope): description

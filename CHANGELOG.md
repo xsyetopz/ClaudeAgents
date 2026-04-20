@@ -2,6 +2,18 @@
 
 All notable changes to openagentsbtw are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.2] - 2026-04-20
+
+### Fixed
+
+- Git-workflow co-author policy now explicitly requires canonical AI commit trailers, auto-adds canonical trailers when missing on rewrite-capable surfaces, and blocks malformed canonical domains such as `noreply@openai` in favor of `noreply@openai.com`.
+- Codex, Claude, and Copilot pre-tool bash guards now enforce AI co-author trailer presence on `git commit`; Codex blocks with a corrected command hint, while Claude and Copilot auto-rewrite missing trailers to canonical defaults.
+
+### Changed
+
+- Updated generated git-workflow skill guidance for Codex/Claude/Copilot to document canonical trailer enforcement and malformed-domain blocking.
+- Release: aligned Claude plugin, Claude marketplace, Codex plugin, and OpenCode package versions to `2.2.2`.
+
 ## [2.2.1] - 2026-04-20
 
 ### Added

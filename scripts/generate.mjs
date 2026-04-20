@@ -144,13 +144,13 @@ async function generateSkills(skills) {
 	const skillBodyTokens = {
 		claude: {
 			SHIP_COMMIT_ATTRIBUTION_POLICY:
-				"- Claude: preserve the Claude/Claude CLI supplied model-specific `Co-Authored-By` trailer; do not invent or remove it.",
+				"- Claude: keep Claude model-specific attribution when present, canonicalize to Anthropic email domains, and auto-append fallback `Co-Authored-By: Claude <noreply@anthropic.com>` when missing.",
 			SHIP_COMMIT_FOOTER_BLOCK: "",
 			TOOLING_DIR: ".claude",
 		},
 		codex: {
 			SHIP_COMMIT_ATTRIBUTION_POLICY:
-				"- Codex: preserve Codex/OpenAI supplied model-specific attribution, such as `Co-Authored-By: GPT 5.4 <noreply@openai.com>`; do not set a fixed `commit_attribution` override.",
+				"- Codex: require OpenAI/Codex co-author trailers, canonicalize malformed OpenAI domains (for example `noreply@openai` -> `noreply@openai.com`), and block commit commands until a valid trailer is present (for example `Co-Authored-By: GPT 5.4 <noreply@openai.com>`). Do not set a fixed `commit_attribution` override.",
 			SHIP_COMMIT_FOOTER_BLOCK: "",
 			TOOLING_DIR: ".agents",
 		},
@@ -161,7 +161,7 @@ async function generateSkills(skills) {
 		},
 		copilot: {
 			SHIP_COMMIT_ATTRIBUTION_POLICY:
-				"- Copilot: add the official GitHub Copilot trailer in the commit footer.",
+				"- Copilot: auto-append the official GitHub Copilot trailer when missing and keep canonical `copilot@github.com` attribution.",
 			SHIP_COMMIT_FOOTER_BLOCK:
 				"Co-Authored-By: GitHub Copilot <copilot@github.com>",
 			TOOLING_DIR: ".github",

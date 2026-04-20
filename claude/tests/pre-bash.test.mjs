@@ -144,6 +144,34 @@ describe("AllowedCommands", () => {
 		const result = runHook("pre/bash-guard.mjs", makeBashInput("make test"));
 		assert.notEqual(result.status, 2);
 	});
+
+	it("auto-adds Claude co-author trailer when git commit is missing one", () => {
+		const result = runHook(
+			"pre/bash-guard.mjs",
+			makeBashInput("git commit -m 'feat: add x'"),
+		);
+		const output = parseHookOutput(result);
+		assert.equal(output?.hookSpecificOutput?.permissionDecision, "allow");
+		assert.match(
+			output?.hookSpecificOutput?.updatedInput?.command || "",
+			/--trailer 'Co-Authored-By: Claude <noreply@anthropic\.com>'$/,
+		);
+	});
+
+	it("blocks malformed canonical co-author domains", () => {
+		const result = runHook(
+			"pre/bash-guard.mjs",
+			makeBashInput(
+				'git commit -m "feat: add x\n\nCo-Authored-By: GPT 5.4 <noreply@openai>"',
+			),
+		);
+		const output = parseHookOutput(result);
+		assert.equal(output?.hookSpecificOutput?.permissionDecision, "deny");
+		assert.match(
+			output?.hookSpecificOutput?.permissionDecisionReason || "",
+			/noreply@openai\.com/,
+		);
+	});
 });
 
 describe("RTK enforce", () => {

@@ -63,6 +63,7 @@ Queue state lives outside the repository under `~/.config/openagentsbtw/queue/`.
 - `resume` uses native Codex resume flow under the managed profile.
 - Codex plan presets (`go`, `plus`, `pro-5`, `pro-20`) rewrite the managed `openagentsbtw*` profiles and keep the default profile name `openagentsbtw`.
 - Managed Codex profiles do not set `commit_attribution`; Codex/OpenAI-native model attribution should remain provider-determined.
+- Codex pre-tool commit guard now enforces AI co-author trailers on `git commit`: missing trailers are blocked with a corrected command hint, and malformed canonical domains such as `noreply@openai` are rejected in favor of `noreply@openai.com`.
 - `--source deepwiki` is for public GitHub repos only.
 - `--approval auto` maps to the sandboxed auto-accept implementation profile.
 - `--runtime long` maps to the long-running execution profile.

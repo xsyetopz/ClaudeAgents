@@ -3,6 +3,7 @@ import "../suppress-stderr.mjs";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import {
+	allow,
 	deny,
 	HOOK_STRICT,
 	isMetaFile,
@@ -37,6 +38,12 @@ const DNS_EXFIL = /\b(ping|nslookup|dig|traceroute|host|drill)\b/;
 const BLANKET_STAGE = /\bgit\s+add\s+(?:\.\s*$|-A\b)/m;
 const BROAD_RM =
 	/\brm\s+-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*\s+(?:\/\s|~\/|"\$HOME"|\.\.?\s|\/\*)/;
+const CO_AUTHOR_TRAILER_RE = /Co-Authored-By:\s*([^\n<]+?)\s*<([^>\n]+)>/gi;
+const MALFORMED_CANONICAL_EMAILS = new Map([
+	["noreply@openai", "noreply@openai.com"],
+	["noreply@anthropic", "noreply@anthropic.com"],
+]);
+const CLAUDE_DEFAULT_TRAILER = "Co-Authored-By: Claude <noreply@anthropic.com>";
 
 function getStagedFiles() {
 	try {
@@ -138,6 +145,31 @@ function precommitCheck(cmd) {
 	return { blockers: allBlockers, warnings: allWarnings };
 }
 
+function shellQuote(value) {
+	return `'${String(value).replaceAll("'", `'"'"'`)}'`;
+}
+
+function malformedTrailerEmail(command) {
+	for (const match of command.matchAll(CO_AUTHOR_TRAILER_RE)) {
+		const email = String(match[2] || "")
+			.trim()
+			.toLowerCase();
+		const fixed = MALFORMED_CANONICAL_EMAILS.get(email);
+		if (fixed) {
+			return { invalid: email, fixed };
+		}
+	}
+	return null;
+}
+
+function hasCoAuthorTrailer(command) {
+	return /Co-Authored-By:/i.test(command);
+}
+
+function withDefaultClaudeTrailer(command) {
+	return `${command} --trailer ${shellQuote(CLAUDE_DEFAULT_TRAILER)}`;
+}
+
 (async () => {
 	try {
 		const data = await readStdin();
@@ -174,6 +206,21 @@ function precommitCheck(cmd) {
 						.join("\n") +
 					"\nFix these issues before committing.",
 			);
+		}
+
+		if (/\bgit\s+commit\b(?!-tree)/.test(command)) {
+			const malformed = malformedTrailerEmail(command);
+			if (malformed) {
+				deny(
+					`Malformed Co-Authored-By trailer email: ${malformed.invalid}. Use ${malformed.fixed}.`,
+				);
+			}
+			if (!hasCoAuthorTrailer(command)) {
+				allow("Added canonical AI Co-Authored-By trailer.", "PreToolUse", {
+					...data.tool_input,
+					command: withDefaultClaudeTrailer(command),
+				});
+			}
 		}
 
 		if (DNS_EXFIL.test(command)) {

@@ -148,6 +148,9 @@ Human runs the commit, or AI runs it only after explicit approval. Apply the pla
 
 - Preserve the current tool's official attribution behavior; do not invent fixed commit trailers.
 
+If the trailer is missing, append the platform's canonical `Co-Authored-By` trailer automatically.
+If a known canonical domain is malformed (for example `noreply@openai`), block the commit command until fixed.
+
 ```bash
 git commit -m "$(cat <<'EOF'
 type(scope): description

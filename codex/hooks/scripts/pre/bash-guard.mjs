@@ -22,6 +22,12 @@ const DNS_EXFIL = /\b(ping|nslookup|dig|traceroute|host|drill)\b/;
 const BLANKET_STAGE = /\bgit\s+add\s+(?:\.\s*$|-A\b)/m;
 const BROAD_RM =
 	/\brm\s+-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*\s+(?:\/\s|~\/|"\$HOME"|\.\.?\s|\/\*)/;
+const CO_AUTHOR_TRAILER_RE = /Co-Authored-By:\s*([^\n<]+?)\s*<([^>\n]+)>/gi;
+const MALFORMED_CANONICAL_EMAILS = new Map([
+	["noreply@openai", "noreply@openai.com"],
+	["noreply@anthropic", "noreply@anthropic.com"],
+]);
+const CODEX_DEFAULT_TRAILER = "Co-Authored-By: Codex <noreply@openai.com>";
 
 function getStagedFiles() {
 	try {
@@ -63,6 +69,31 @@ function checkLargeOutput(command) {
 	return null;
 }
 
+function shellQuote(value) {
+	return `'${String(value).replaceAll("'", `'"'"'`)}'`;
+}
+
+function malformedTrailerEmail(command) {
+	for (const match of command.matchAll(CO_AUTHOR_TRAILER_RE)) {
+		const email = String(match[2] || "")
+			.trim()
+			.toLowerCase();
+		const fixed = MALFORMED_CANONICAL_EMAILS.get(email);
+		if (fixed) {
+			return { invalid: email, fixed };
+		}
+	}
+	return null;
+}
+
+function hasCoAuthorTrailer(command) {
+	return /Co-Authored-By:/i.test(command);
+}
+
+function withDefaultCodexTrailer(command) {
+	return `${command} --trailer ${shellQuote(CODEX_DEFAULT_TRAILER)}`;
+}
+
 (async () => {
 	const data = await readStdin();
 	if (data.tool_name !== "Bash") passthrough();
@@ -89,6 +120,17 @@ function checkLargeOutput(command) {
 		if (stagedIssue) {
 			deny(
 				`Commit blocked because staged content looks unsafe: ${stagedIssue}`,
+			);
+		}
+		const malformed = malformedTrailerEmail(command);
+		if (malformed) {
+			deny(
+				`Malformed Co-Authored-By trailer email: ${malformed.invalid}. Use ${malformed.fixed}.`,
+			);
+		}
+		if (!hasCoAuthorTrailer(command)) {
+			deny(
+				`Co-Authored-By trailer is required for AI-authored commits. Use: ${withDefaultCodexTrailer(command)}`,
 			);
 		}
 	}

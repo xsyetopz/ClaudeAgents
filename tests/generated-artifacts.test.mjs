@@ -207,20 +207,26 @@ describe("generated skills", () => {
 		);
 		assert.match(
 			claudeShip,
-			/Claude\/Claude CLI supplied model-specific `Co-Authored-By` trailer/,
+			/auto-append fallback `Co-Authored-By: Claude <noreply@anthropic\.com>` when missing/,
 		);
+		assert.match(claudeShip, /known canonical domain is malformed/);
 		assert.equal(claudeShip.includes("claude@users.noreply.github.com"), false);
+		assert.match(codexShip, /noreply@openai` -> `noreply@openai\.com/);
 		assert.match(codexShip, /Co-Authored-By: GPT 5\.4 <noreply@openai\.com>/);
 		assert.equal(codexShip.includes("codex@users.noreply.github.com"), false);
 		assert.equal(opencodeShip.includes("Co-Authored-By:"), false);
 		assert.match(
 			copilotRepoShip,
-			/Co-Authored-By: GitHub Copilot <copilot@github\.com>/,
+			/auto-append the official GitHub Copilot trailer when missing/,
 		);
 		assert.match(
 			copilotGlobalShip,
-			/Co-Authored-By: GitHub Copilot <copilot@github\.com>/,
+			/auto-append the official GitHub Copilot trailer when missing/,
 		);
+		assert.equal(claudeShip.includes("noreply@openai>"), false);
+		assert.equal(codexShip.includes("noreply@openai>"), false);
+		assert.equal(copilotRepoShip.includes("noreply@openai>"), false);
+		assert.equal(copilotGlobalShip.includes("noreply@openai>"), false);
 	});
 
 	it("ships the shared research skills across all platforms", () => {
