@@ -1,71 +1,122 @@
 # Codex config export
 
-openagentsbtw exports a managed subset of Codex `config.toml` keys. This is not a full mirror of upstream Codex config; it is the repo-owned profile and safety layer.
+openagentsbtw now renders Codex config from one canonical source:
+
+- checked-in sample: `codex/templates/config.toml`
+- installer-managed merge block in `~/.codex/config.toml`
+
+Sample config adds schema header plus commented advanced examples. Managed merge blocks omit those sample-only extras.
 
 Official reference: https://developers.openai.com/codex/config-reference
 
 ## Exported top-level keys
 
-| Key                       |                          `plus` | `pro-5` | `pro-20` | Why                                                                           |
-| ------------------------- | ------------------------------: | ------: | -------: | ----------------------------------------------------------------------------- |
-| `sqlite_home`             | `~/.codex/openagentsbtw/sqlite` |    same |     same | Keep managed Codex state isolated.                                            |
-| `project_doc_max_bytes`   |                         `12000` | `16000` |  `24000` | Reddit tweak adapted by tier; higher tiers keep more `AGENTS.md` context.     |
-| `hide_agent_reasoning`    |                          `true` |    same |     same | Keep raw reasoning hidden.                                                    |
-| `model_reasoning_summary` |                        `"none"` |    same |     same | Avoid summary overhead.                                                       |
-| `tool_output_token_limit` |                          `1200` |  `4000` |   `8000` | Reddit tweak adapted by tier; higher tiers preserve more validation evidence. |
-| `model_instructions_file` |            `~/.codex/AGENTS.md` |    same |     same | Route managed global guidance through Codex-native config.                    |
+| Key                              | `plus`               | `pro-5`     | `pro-20`    | Why                                                            |
+| -------------------------------- | -------------------- | ----------- | ----------- | -------------------------------------------------------------- |
+| `profile`                        | sample only          | sample only | sample only | Make the checked-in sample boot straight into `openagentsbtw`. |
+| `sqlite_home`                    | same                 | same        | same        | Keep openagentsbtw SQLite state isolated.                      |
+| `project_doc_max_bytes`          | `12000`              | `16000`     | `24000`     | Tier-shaped `AGENTS.md` budget.                                |
+| `hide_agent_reasoning`           | `true`               | same        | same        | Keep reasoning events hidden.                                  |
+| `model_reasoning_summary`        | `"none"`             | same        | same        | Avoid summary overhead.                                        |
+| `tool_output_token_limit`        | `1200`               | `4000`      | `8000`      | Tier-shaped evidence budget for tool output.                   |
+| `model_instructions_file`        | `~/.codex/AGENTS.md` | same        | same        | Keep guidance on the Codex-native instructions surface.        |
+| `review_model`                   | `gpt-5.3-codex`      | same        | same        | Align built-in `/review` with the managed review split.        |
+| `approvals_reviewer`             | `"user"`             | same        | same        | Keep approvals interactive by default.                         |
+| `allow_login_shell`              | `true`               | same        | same        | Preserve current shell/login semantics.                        |
+| `web_search`                     | `"cached"`           | same        | same        | Safe global default for docs/search.                           |
+| `project_doc_fallback_filenames` | `["CLAUDE.md"]`      | same        | same        | Still find repo guidance outside migrated `AGENTS.md` repos.   |
 
 ## Exported shared sections
 
+- `[tools]`
+  - `view_image = true`
+- `[features]`
+  - `codex_hooks = true`
+  - `multi_agent = true`
+  - `fast_mode = false`
+  - `memories = true`
+  - `shell_tool = true`
+  - `shell_snapshot = true`
+  - `skill_mcp_dependency_install = true`
+  - `unified_exec = true`
 - `[history]`
   - `persistence = "save-all"`
   - `max_bytes = 134217728`
 - `[memories]`
   - `generate_memories = true`
   - `use_memories = true`
-  - `no_memories_if_mcp_or_web_search = true`
+  - `disable_on_external_context = true`
   - `min_rollout_idle_hours = 12`
 - `compact_prompt`
   - Managed continuation prompt for terse, evidence-first compaction.
-- `agents.max_threads`
-  - Tier-shaped swarm cap.
-- `agents.max_depth = 1`
+
+## Agent metadata export
+
+Managed config now emits `[agents.<name>]` for all shipped Codex roles:
+
+- `description`
+- `config_file = "agents/<name>.toml"`
+- `nickname_candidates = [...]`
+
+The metadata comes from the same canonical `source/agents/*/agent.json` records that generate the shipped Codex agent TOMLs.
+
+Swarm defaults are tier-shaped:
+
+| Plan     | `agents.max_threads` | `agents.max_depth` | `agents.job_max_runtime_seconds` |
+| -------- | -------------------- | ------------------ | -------------------------------- |
+| `plus`   | `4`                  | `1`                | `1800`                           |
+| `pro-5`  | `5`                  | `2`                | `2700`                           |
+| `pro-20` | `6`                  | `2`                | `3600`                           |
 
 ## Exported profiles
 
 ### `openagentsbtw`
-- `model = "gpt-5.4"`
+- `model = "gpt-5.5"`
 - `model_reasoning_effort = "high"`
 - `plan_mode_reasoning_effort = "high"`
-- `model_verbosity = "low"`
-- `personality = "pragmatic"`
 
 ### `openagentsbtw-implement`
 - `model = "gpt-5.3-codex"`
 - `model_reasoning_effort = "medium"`
 - `plan_mode_reasoning_effort = "medium"`
-- `model_verbosity = "low"`
-- `personality = "pragmatic"`
+
+### `openagentsbtw-review`
+- `model = "gpt-5.3-codex"`
+- `model_reasoning_effort = "high"`
+- `plan_mode_reasoning_effort = "high"`
 
 ### `openagentsbtw-utility`
 - `model = "gpt-5.4-mini"`
 - `model_reasoning_effort = "high"`
 - `plan_mode_reasoning_effort = "high"`
-- `model_verbosity = "low"`
-- `personality = "pragmatic"`
+- `web_search = "live"`
 
 ### `openagentsbtw-approval-auto`
-- Same model and reasoning split as `openagentsbtw-implement`
+- same model split as implementation
 - `approval_policy = "never"`
 
 ### `openagentsbtw-runtime-long`
-- Same model and reasoning split as `openagentsbtw-implement`
+- same model split as implementation
 - `background_terminal_max_timeout = 7200`
-- `features.unified_exec = true`
-- `features.prevent_idle_sleep = true`
+- `prevent_idle_sleep = true`
+
+## Sample-only extras
+
+`codex/templates/config.toml` also includes:
+
+- schema header:
+  - `#:schema https://developers.openai.com/codex/config-schema.json`
+- commented DeepWiki example
+- commented advanced examples for:
+  - named permissions profiles
+  - granular approval policy
+  - app defaults
+  - object-form web search tool config
+
+Installer-managed config does **not** merge those sample-only commented examples into the user’s live `~/.codex/config.toml`.
 
 ## Notes
 
 - openagentsbtw does not hard-code `service_tier = "flex"` in managed Codex config.
-- `xhigh` remains available manually, but the managed defaults follow the Reddit-derived split: high for plan/review/orchestration, medium for implementation, high for bounded utility work.
-- `fast_mode = false` stays default in managed profiles; wrapper flags can still opt into fast mode.
+- `xhigh` remains manual-only; managed defaults stay `high` for planning/review, `medium` for implementation, and `high` for bounded utility.
+- `plus|pro-5|pro-20` rewrite the contents of `openagentsbtw*` profiles. They do not create plan-specific profile names.

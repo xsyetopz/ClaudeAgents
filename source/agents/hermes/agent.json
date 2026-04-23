@@ -28,7 +28,12 @@
   "copilotContract": "readonly",
   "codex": {
     "description": "Exploration agent for repo tracing, dependency analysis, and evidence-heavy read-only investigation.",
-    "model": "gpt-5.3-codex",
+    "nicknameCandidates": [
+      "Hermes",
+      "Explorer",
+      "Tracer"
+    ],
+    "model": "gpt-5.4-mini",
     "reasoning": "medium",
     "sandboxMode": "read-only"
   }

@@ -36,6 +36,11 @@
   "copilotContract": "readonly",
   "codex": {
     "description": "Review and audit agent focused on correctness, regressions, security, and missing tests.",
+    "nicknameCandidates": [
+      "Nemesis",
+      "Reviewer",
+      "Auditor"
+    ],
     "model": "gpt-5.3-codex",
     "reasoning": "high",
     "sandboxMode": "read-only"

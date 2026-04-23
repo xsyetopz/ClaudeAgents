@@ -26,7 +26,12 @@
   "copilotContract": "readonly",
   "codex": {
     "description": "Architecture and planning agent for multi-file changes, sequencing, and tradeoff analysis.",
-    "model": "gpt-5.3-codex",
+    "nicknameCandidates": [
+      "Athena",
+      "Architect",
+      "Planner"
+    ],
+    "model": "gpt-5.5",
     "reasoning": "high",
     "sandboxMode": "read-only"
   }

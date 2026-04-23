@@ -27,8 +27,13 @@
   "copilotContract": "readonly",
   "codex": {
     "description": "Documentation agent for READMEs, ADRs, changelogs, and precise handoff artifacts.",
-    "model": "gpt-5.3-codex",
-    "reasoning": "medium",
+    "nicknameCandidates": [
+      "Calliope",
+      "Writer",
+      "Documenter"
+    ],
+    "model": "gpt-5.4-mini",
+    "reasoning": "high",
     "sandboxMode": "workspace-write"
   }
 }

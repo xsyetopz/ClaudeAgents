@@ -31,10 +31,11 @@ describe("subscription presets", () => {
 	});
 
 	it("uses reddit-derived model split across Codex plans", () => {
-		assert.equal(getCodexPlan("plus").main.model, "gpt-5.4");
-		assert.equal(getCodexPlan("pro-5").main.model, "gpt-5.4");
-		assert.equal(getCodexPlan("pro-20").main.model, "gpt-5.4");
+		assert.equal(getCodexPlan("plus").main.model, "gpt-5.5");
+		assert.equal(getCodexPlan("pro-5").main.model, "gpt-5.5");
+		assert.equal(getCodexPlan("pro-20").main.model, "gpt-5.5");
 		assert.equal(getCodexPlan("plus").implement.model, "gpt-5.3-codex");
+		assert.equal(getCodexPlan("pro-5").review.model, "gpt-5.3-codex");
 		assert.equal(getCodexPlan("pro-5").approvalAuto.model, "gpt-5.3-codex");
 		assert.equal(getCodexPlan("pro-20").runtimeLong.model, "gpt-5.3-codex");
 		assert.equal(getCodexPlan("plus").utility.model, "gpt-5.4-mini");
@@ -48,6 +49,7 @@ describe("subscription presets", () => {
 				plan.main,
 				plan.utility,
 				plan.implement,
+				plan.review,
 				plan.approvalAuto,
 				plan.runtimeLong,
 			]) {
@@ -78,12 +80,15 @@ describe("subscription presets", () => {
 		}
 	});
 
-	it("assigns planner and review specialists to gpt-5.4 and implementer to gpt-5.3-codex", () => {
+	it("assigns planner/orchestrator to gpt-5.5 and keeps review/implementation specialists on the cheaper split", () => {
 		for (const planName of ["plus", "pro-5", "pro-20"]) {
 			const plan = getCodexPlan(planName);
-			assert.deepEqual(plan.agentAssignments.athena, ["gpt-5.4", "high"]);
-			assert.deepEqual(plan.agentAssignments.nemesis, ["gpt-5.4", "high"]);
-			assert.deepEqual(plan.agentAssignments.odysseus, ["gpt-5.4", "high"]);
+			assert.deepEqual(plan.agentAssignments.athena, ["gpt-5.5", "high"]);
+			assert.deepEqual(plan.agentAssignments.odysseus, ["gpt-5.5", "high"]);
+			assert.deepEqual(plan.agentAssignments.nemesis, [
+				"gpt-5.3-codex",
+				"high",
+			]);
 			assert.deepEqual(plan.agentAssignments.hephaestus, [
 				"gpt-5.3-codex",
 				"medium",
@@ -130,6 +135,8 @@ describe("subscription presets", () => {
 			assert.equal(plan.profiles.main.planReasoning, "high");
 			assert.equal(plan.profiles.utility.modelReasoning, "high");
 			assert.equal(plan.profiles.utility.planReasoning, "high");
+			assert.equal(plan.profiles.review.modelReasoning, "high");
+			assert.equal(plan.profiles.review.planReasoning, "high");
 			assert.equal(plan.profiles.approvalAuto.modelReasoning, "medium");
 			assert.equal(plan.profiles.approvalAuto.planReasoning, "medium");
 			assert.equal(plan.profiles.runtimeLong.modelReasoning, "medium");
@@ -137,6 +144,18 @@ describe("subscription presets", () => {
 			assert.equal(plan.profiles.implementation.modelReasoning, "medium");
 			assert.equal(plan.profiles.implementation.planReasoning, "medium");
 		}
+	});
+
+	it("uses tier-aware swarm depth and worker runtime across Codex plans", () => {
+		assert.equal(getCodexPlan("plus").swarm.maxThreads, 4);
+		assert.equal(getCodexPlan("plus").swarm.maxDepth, 1);
+		assert.equal(getCodexPlan("plus").swarm.jobMaxRuntimeSeconds, 1800);
+		assert.equal(getCodexPlan("pro-5").swarm.maxThreads, 5);
+		assert.equal(getCodexPlan("pro-5").swarm.maxDepth, 2);
+		assert.equal(getCodexPlan("pro-5").swarm.jobMaxRuntimeSeconds, 2700);
+		assert.equal(getCodexPlan("pro-20").swarm.maxThreads, 6);
+		assert.equal(getCodexPlan("pro-20").swarm.maxDepth, 2);
+		assert.equal(getCodexPlan("pro-20").swarm.jobMaxRuntimeSeconds, 3600);
 	});
 
 	it("uses heavier Copilot defaults on Pro+", () => {

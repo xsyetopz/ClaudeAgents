@@ -34,8 +34,13 @@
   "copilotContract": "execution-required",
   "codex": {
     "description": "Validation agent for running tests, parsing failures, and reporting exact root-cause evidence.",
-    "model": "gpt-5.3-codex",
-    "reasoning": "medium",
+    "nicknameCandidates": [
+      "Atalanta",
+      "Tester",
+      "Validator"
+    ],
+    "model": "gpt-5.4-mini",
+    "reasoning": "high",
     "sandboxMode": "workspace-write"
   }
 }

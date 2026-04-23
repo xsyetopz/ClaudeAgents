@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadAgents } from "../../source/catalog/loaders.mjs";
 import { getCodexPlan } from "../../source/subscriptions.mjs";
 import { writeCodexMarketplace } from "./codex-plugin-install.mjs";
 import { pathExists, readText, writeText } from "./shared.mjs";
@@ -37,22 +38,98 @@ function buildCodexAgentProfiles(planName) {
 	};
 }
 
-function renderCodexProfile(name, config, extra = "") {
-	return `[profiles.${name}]
-model = "${config.model}"
-model_reasoning_effort = "${config.modelReasoning}"
-plan_mode_reasoning_effort = "${config.planReasoning}"
-model_verbosity = "${config.verbosity}"
-personality = "pragmatic"
-model_instructions_file = "~/.codex/AGENTS.md"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"${extra}
+const CODEX_AGENT_ORDER = [
+	"athena",
+	"hephaestus",
+	"nemesis",
+	"atalanta",
+	"calliope",
+	"hermes",
+	"odysseus",
+];
 
-[profiles.${name}.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false`;
+const FEATURE_KEY_MAP = {
+	codexHooks: "codex_hooks",
+	multiAgent: "multi_agent",
+	fastMode: "fast_mode",
+	memories: "memories",
+	shellTool: "shell_tool",
+	shellSnapshot: "shell_snapshot",
+	skillMcpDependencyInstall: "skill_mcp_dependency_install",
+	unifiedExec: "unified_exec",
+	preventIdleSleep: "prevent_idle_sleep",
+};
+
+const TOP_LEVEL_FEATURES = {
+	codexHooks: true,
+	multiAgent: true,
+	fastMode: false,
+	memories: true,
+	shellTool: true,
+	shellSnapshot: true,
+	skillMcpDependencyInstall: true,
+	unifiedExec: true,
+};
+
+function renderTomlArray(values) {
+	return `[${values.map((value) => JSON.stringify(value)).join(", ")}]`;
+}
+
+function renderFeatureBlock(tableName, features) {
+	return [
+		`[${tableName}]`,
+		...Object.entries(features).map(([key, value]) => {
+			const tomlKey = FEATURE_KEY_MAP[key];
+			if (!tomlKey) {
+				throw new Error(`Unsupported Codex feature key: ${key}`);
+			}
+			return `${tomlKey} = ${value}`;
+		}),
+	].join("\n");
+}
+
+async function loadCodexAgentMetadata() {
+	const catalogAgents = await loadAgents();
+	const byName = new Map(catalogAgents.map((agent) => [agent.name, agent]));
+	return CODEX_AGENT_ORDER.map((name) => byName.get(name)).filter(Boolean);
+}
+
+function renderAgentBlock(agent) {
+	const nicknameCandidates = agent.codex.nicknameCandidates ?? [
+		agent.claude.displayName,
+		agent.name,
+	];
+	return [
+		`[agents.${agent.name}]`,
+		`description = ${JSON.stringify(agent.codex.description)}`,
+		`config_file = ${JSON.stringify(`agents/${agent.name}.toml`)}`,
+		`nickname_candidates = ${renderTomlArray(nicknameCandidates)}`,
+	].join("\n");
+}
+
+function renderCodexProfile(name, config, { extraLines = [] } = {}) {
+	const profileLines = [
+		`[profiles.${name}]`,
+		`model = "${config.model}"`,
+		`model_reasoning_effort = "${config.modelReasoning}"`,
+		`plan_mode_reasoning_effort = "${config.planReasoning}"`,
+		`model_verbosity = "${config.verbosity}"`,
+		'personality = "pragmatic"',
+		'model_instructions_file = "~/.codex/AGENTS.md"',
+		`approval_policy = "${config.approval}"`,
+		`sandbox_mode = "${config.sandbox}"`,
+	];
+	if (config.backgroundTerminalMaxTimeout) {
+		profileLines.push(
+			`background_terminal_max_timeout = ${config.backgroundTerminalMaxTimeout}`,
+		);
+	}
+	profileLines.push(
+		...extraLines,
+		"",
+		renderFeatureBlock(`profiles.${name}.features`, config.features),
+	);
+	return profileLines.join("\n");
 }
 
 function renderCodexCompactPrompt() {
@@ -106,65 +183,84 @@ function codexExportBudgets(planName) {
 	}
 }
 
-function buildManagedCodexBody({ planName, deepwiki, includePluginEntry }) {
+function renderCodexAdvancedExamples() {
+	return `# Optional: lock default filesystem/network access behind a named permissions profile.
+#
+# default_permissions = "openagentsbtw-default"
+#
+# [permissions.openagentsbtw-default.filesystem]
+# ":project_roots"."." = "write"
+# "/tmp" = "write"
+#
+# [permissions.openagentsbtw-default.network]
+# enabled = true
+# mode = "limited"
+# domains."developers.openai.com" = "allow"
+#
+# Optional: switch from interactive approvals to granular approval routing.
+#
+# approval_policy = { granular = { sandbox_approval = true, rules = true, mcp_elicitations = false, request_permissions = true, skill_approval = true } }
+#
+# Optional: tighten app defaults unless explicitly enabled per connector/tool.
+#
+# [apps._default]
+# enabled = true
+# destructive_enabled = false
+# open_world_enabled = false
+#
+# Optional: replace simple search mode with object-form web search tool config.
+#
+# [tools]
+# web_search = { context_size = "medium", allowed_domains = ["developers.openai.com"] }`;
+}
+
+async function renderCodexConfig({
+	planName,
+	mode,
+	deepwiki = false,
+	includePluginEntry = true,
+	includeTopLevelProfile = false,
+}) {
 	const plan = getCodexPlan(planName);
 	const budgets = codexExportBudgets(planName);
 	const compactPrompt = renderCodexCompactPrompt();
+	const agentBlocks = (await loadCodexAgentMetadata()).map(renderAgentBlock);
 	const pluginEntry = includePluginEntry
 		? '\n[plugins."openagentsbtw@openagentsbtw-local"]\nenabled = true\n'
 		: "";
 	const deepwikiBlock = deepwiki
 		? '\n[mcp_servers.deepwiki]\nurl = "https://mcp.deepwiki.com/mcp"\nenabled = true\n'
 		: "";
-	const mainProfile = renderCodexProfile("openagentsbtw", plan.profiles.main);
-	const implementProfile = renderCodexProfile(
-		"openagentsbtw-implement",
-		plan.profiles.implementation,
-	);
-	const utilityProfile = renderCodexProfile(
-		"openagentsbtw-utility",
-		plan.profiles.utility,
-	);
-	const approvalAutoProfile = `[profiles.openagentsbtw-approval-auto]
-model = "${plan.profiles.approvalAuto.model}"
-model_reasoning_effort = "${plan.profiles.approvalAuto.modelReasoning}"
-plan_mode_reasoning_effort = "${plan.profiles.approvalAuto.planReasoning}"
-model_verbosity = "${plan.profiles.approvalAuto.verbosity}"
-personality = "pragmatic"
-model_instructions_file = "~/.codex/AGENTS.md"
-approval_policy = "never"
-sandbox_mode = "workspace-write"
-
-[profiles.openagentsbtw-approval-auto.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false`;
-	const runtimeLongProfile = `[profiles.openagentsbtw-runtime-long]
-model = "${plan.profiles.runtimeLong.model}"
-model_reasoning_effort = "${plan.profiles.runtimeLong.modelReasoning}"
-plan_mode_reasoning_effort = "${plan.profiles.runtimeLong.planReasoning}"
-model_verbosity = "${plan.profiles.runtimeLong.verbosity}"
-personality = "pragmatic"
-model_instructions_file = "~/.codex/AGENTS.md"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-background_terminal_max_timeout = 7200
-
-[profiles.openagentsbtw-runtime-long.features]
-codex_hooks = true
-sqlite = true
-multi_agent = true
-fast_mode = false
-unified_exec = true
-prevent_idle_sleep = true`;
+	const sampleHeader =
+		mode === "sample"
+			? [
+					"#:schema https://developers.openai.com/codex/config-schema.json",
+					"# openagentsbtw managed file. Generated from source/ via scripts/generate.mjs",
+				].join("\n")
+			: "";
+	const commentedDeepwikiBlock =
+		mode === "sample"
+			? '# Optional: enable only to use the DeepWiki exploration route.\n#\n# [mcp_servers.deepwiki]\n# url = "https://mcp.deepwiki.com/mcp"\n# enabled = true'
+			: "";
 	return [
+		sampleHeader,
+		includeTopLevelProfile ? 'profile = "openagentsbtw"' : "",
 		'sqlite_home = "~/.codex/openagentsbtw/sqlite"',
 		`project_doc_max_bytes = ${budgets.projectDocMaxBytes}`,
 		"hide_agent_reasoning = true",
 		'model_reasoning_summary = "none"',
 		`tool_output_token_limit = ${budgets.toolOutputTokenLimit}`,
 		'model_instructions_file = "~/.codex/AGENTS.md"',
+		'review_model = "gpt-5.3-codex"',
+		'approvals_reviewer = "user"',
+		"allow_login_shell = true",
+		'web_search = "cached"',
+		'project_doc_fallback_filenames = ["CLAUDE.md"]',
+		"",
+		"[tools]",
+		"view_image = true",
+		"",
+		renderFeatureBlock("features", TOP_LEVEL_FEATURES),
 		"",
 		"[history]",
 		'persistence = "save-all"',
@@ -173,7 +269,7 @@ prevent_idle_sleep = true`;
 		"[memories]",
 		"generate_memories = true",
 		"use_memories = true",
-		"no_memories_if_mcp_or_web_search = true",
+		"disable_on_external_context = true",
 		"min_rollout_idle_hours = 12",
 		"",
 		'compact_prompt = """',
@@ -181,22 +277,41 @@ prevent_idle_sleep = true`;
 		'"""',
 		"",
 		`agents.max_threads = ${plan.swarm.maxThreads}`,
-		"agents.max_depth = 1",
+		`agents.max_depth = ${plan.swarm.maxDepth}`,
+		`agents.job_max_runtime_seconds = ${plan.swarm.jobMaxRuntimeSeconds}`,
 		"",
-		mainProfile,
+		...agentBlocks.flatMap((block) => [block, ""]),
+		renderCodexProfile("openagentsbtw", plan.profiles.main),
 		"",
-		implementProfile,
+		renderCodexProfile("openagentsbtw-implement", plan.profiles.implementation),
 		"",
-		utilityProfile,
+		renderCodexProfile("openagentsbtw-review", plan.profiles.review),
 		"",
-		approvalAutoProfile,
+		renderCodexProfile("openagentsbtw-utility", plan.profiles.utility, {
+			extraLines: ['web_search = "live"'],
+		}),
 		"",
-		runtimeLongProfile,
+		renderCodexProfile(
+			"openagentsbtw-approval-auto",
+			plan.profiles.approvalAuto,
+		),
+		"",
+		renderCodexProfile("openagentsbtw-runtime-long", plan.profiles.runtimeLong),
 		deepwikiBlock,
 		pluginEntry,
+		commentedDeepwikiBlock,
+		mode === "sample" ? renderCodexAdvancedExamples() : "",
 	]
 		.filter(Boolean)
 		.join("\n");
+}
+
+export async function renderSampleCodexConfig(planName = "pro-5") {
+	return renderCodexConfig({
+		planName,
+		mode: "sample",
+		includeTopLevelProfile: true,
+	});
 }
 
 export async function updateCodexAgents({ agentsDir, tier }) {
@@ -299,8 +414,9 @@ export async function mergeCodexConfig({
 		while (prefixLines[0]?.trim() === "") prefixLines.shift();
 		prefixLines.unshift(`profile = "${profileName}"`);
 	}
-	const managedBody = buildManagedCodexBody({
+	const managedBody = await renderCodexConfig({
 		planName: planName || profileName.replace(/^openagentsbtw-/, ""),
+		mode: "managed",
 		deepwiki,
 		includePluginEntry:
 			!/\[plugins\."openagentsbtw@openagentsbtw-local"\]/.test(text),

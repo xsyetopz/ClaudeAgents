@@ -41,7 +41,12 @@
   "copilotContract": "edit-required",
   "codex": {
     "description": "Coordinator for multi-step work that benefits from explicit delegation across several agents.",
-    "model": "gpt-5.3-codex",
+    "nicknameCandidates": [
+      "Odysseus",
+      "Coordinator",
+      "Orchestrator"
+    ],
+    "model": "gpt-5.5",
     "reasoning": "high",
     "sandboxMode": "read-only"
   }

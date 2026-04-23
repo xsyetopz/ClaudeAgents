@@ -58,6 +58,35 @@ describe("managed Codex config", () => {
 			await rm(tmp, { recursive: true, force: true });
 		}
 	});
+
+	it("keeps sample-only schema and advanced examples out of merged managed blocks", async () => {
+		const tmp = await mkdtemp(path.join(os.tmpdir(), "oabtw-codex-config-"));
+		const target = path.join(tmp, "config.toml");
+		try {
+			await writeFile(target, "");
+			await mergeCodexConfig({
+				target,
+				profileAction: "false",
+				profileName: "openagentsbtw",
+				planName: "pro-5",
+				deepwiki: false,
+			});
+			const config = await readFile(target, "utf8");
+			assert.equal(config.includes("#:schema"), false);
+			assert.equal(config.includes("default_permissions = "), false);
+			assert.equal(config.includes("[apps._default]"), false);
+			assert.equal(config.includes("approval_policy = { granular = {"), false);
+			assert.match(config, /^review_model = "gpt-5\.3-codex"$/m);
+			assert.match(config, /^web_search = "cached"$/m);
+			assert.match(config, /^approvals_reviewer = "user"$/m);
+			assert.match(config, /^\[tools\]$/m);
+			assert.match(config, /^view_image = true$/m);
+			assert.match(config, /^agents\.job_max_runtime_seconds = 2700$/m);
+		} finally {
+			await rm(tmp, { recursive: true, force: true });
+		}
+	});
+
 	it("writes marketplace entries to the concrete local plugin path", async () => {
 		const tmp = await mkdtemp(path.join(os.tmpdir(), "oabtw-codex-market-"));
 		const target = path.join(tmp, "marketplace.json");

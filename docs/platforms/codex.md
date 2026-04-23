@@ -13,21 +13,22 @@ It does not rely on undocumented “override the hidden system prompt” hacks.
 
 ## Default Model Strategy
 
-Bias planning/review/orchestration toward `gpt-5.4`, deterministic implementation toward `gpt-5.3-codex`, and bounded utility work toward `gpt-5.4-mini`.
+Bias planning/orchestration toward `gpt-5.5`, implementation/review toward `gpt-5.3-codex`, and bounded utility work toward `gpt-5.4-mini`.
 
-Codex CLI 0.123.0 supported model set for openagentsbtw:
+Codex CLI 0.124.0 supported model set for openagentsbtw:
 
+- `gpt-5.5`
 - `gpt-5.4`
 - `gpt-5.4-mini`
 - `gpt-5.3-codex`
 - `gpt-5.3-codex-spark`
 - `gpt-5.2`
 
-| Codex plan | Top-level `openagentsbtw` | `model_reasoning_effort` | `plan_mode_reasoning_effort` | Implementation/auto/runtime | Utility        |
-| ---------- | ------------------------- | ------------------------ | ---------------------------- | --------------------------- | -------------- |
-| `plus`     | `gpt-5.4`                 | `high`                   | `high`                       | `gpt-5.3-codex`             | `gpt-5.4-mini` |
-| `pro-5`    | `gpt-5.4`                 | `high`                   | `high`                       | `gpt-5.3-codex`             | `gpt-5.4-mini` |
-| `pro-20`   | `gpt-5.4`                 | `high`                   | `high`                       | `gpt-5.3-codex`             | `gpt-5.4-mini` |
+| Codex plan | Top-level `openagentsbtw` | `model_reasoning_effort` | `plan_mode_reasoning_effort` | Review          | Implementation/auto/runtime | Utility        |
+| ---------- | ------------------------- | ------------------------ | ---------------------------- | --------------- | --------------------------- | -------------- |
+| `plus`     | `gpt-5.5`                 | `high`                   | `high`                       | `gpt-5.3-codex` | `gpt-5.3-codex`             | `gpt-5.4-mini` |
+| `pro-5`    | `gpt-5.5`                 | `high`                   | `high`                       | `gpt-5.3-codex` | `gpt-5.3-codex`             | `gpt-5.4-mini` |
+| `pro-20`   | `gpt-5.5`                 | `high`                   | `high`                       | `gpt-5.3-codex` | `gpt-5.3-codex`             | `gpt-5.4-mini` |
 
 Managed config export details live in [codex-config-export.md](codex-config-export.md).
 
@@ -84,6 +85,10 @@ Queue state lives outside the repository under `~/.config/openagentsbtw/queue/`.
 
 - `resume` uses native Codex resume flow under the managed profile.
 - Codex plan presets (`plus`, `pro-5`, `pro-20`) rewrite the managed `openagentsbtw*` profiles and keep the default profile name `openagentsbtw`.
+- Managed config is now rendered from one canonical source for both the checked-in sample `codex/templates/config.toml` and the installer-managed `~/.codex/config.toml` block.
+- Managed config now exports first-class `[agents.<name>]` metadata with `config_file` and `nickname_candidates`, plus tier-shaped `agents.job_max_runtime_seconds`.
+- Top-level managed search stays `web_search = "cached"` while `openagentsbtw-utility` overrides to `web_search = "live"` for exploration-heavy routes.
+- Managed memory config now uses the canonical `disable_on_external_context = true` key instead of the legacy alias.
 - Managed Codex profiles do not set `commit_attribution`; Codex/OpenAI-native model attribution should remain provider-determined.
 - Codex pre-tool commit guard now enforces AI co-author trailers on `git commit`: missing trailers are blocked with a corrected command hint, and malformed canonical domains such as `noreply@openai` are rejected in favor of `noreply@openai.com`.
 - `--source deepwiki` is for public GitHub repos only.

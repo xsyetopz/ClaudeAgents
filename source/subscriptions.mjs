@@ -2,18 +2,26 @@
 export const SWARM_POLICIES = {
 	conservative: {
 		maxThreads: 3,
+		maxDepth: 1,
+		jobMaxRuntimeSeconds: 1800,
 		label: "coordinator + up to 2 specialists",
 	},
 	standard: {
 		maxThreads: 4,
+		maxDepth: 1,
+		jobMaxRuntimeSeconds: 1800,
 		label: "coordinator + up to 3 specialists",
 	},
 	aggressive: {
 		maxThreads: 5,
+		maxDepth: 2,
+		jobMaxRuntimeSeconds: 2700,
 		label: "coordinator + up to 4 specialists",
 	},
 	max: {
 		maxThreads: 6,
+		maxDepth: 2,
+		jobMaxRuntimeSeconds: 3600,
 		label: "coordinator + up to 5 specialists",
 	},
 };
@@ -27,6 +35,7 @@ export const SUPPORTED_CLAUDE_MODEL_IDS = [
 	"claude-haiku-4-5",
 ];
 export const SUPPORTED_CODEX_MODEL_IDS = [
+	"gpt-5.5",
 	"gpt-5.4",
 	"gpt-5.4-mini",
 	"gpt-5.3-codex",
@@ -39,9 +48,13 @@ const SUPPORTED_CLAUDE_MODELS = new Set(SUPPORTED_CLAUDE_MODEL_IDS);
 
 const commonFeatureFlags = {
 	codexHooks: true,
-	sqlite: true,
 	multiAgent: true,
 	fastMode: false,
+	memories: true,
+	shellTool: true,
+	shellSnapshot: true,
+	skillMcpDependencyInstall: true,
+	unifiedExec: true,
 };
 
 export function isSupportedCodexModel(model) {
@@ -76,17 +89,17 @@ export const CODEX_PLANS = {
 		displayName: "Plus",
 		swarmPolicy: "standard",
 		agentAssignments: {
-			athena: ["gpt-5.4", "high"],
+			athena: ["gpt-5.5", "high"],
 			hephaestus: ["gpt-5.3-codex", "medium"],
-			nemesis: ["gpt-5.4", "high"],
-			odysseus: ["gpt-5.4", "high"],
+			nemesis: ["gpt-5.3-codex", "high"],
+			odysseus: ["gpt-5.5", "high"],
 			hermes: ["gpt-5.4-mini", "medium"],
 			atalanta: ["gpt-5.4-mini", "high"],
 			calliope: ["gpt-5.4-mini", "high"],
 		},
 		profiles: {
 			main: {
-				model: "gpt-5.4",
+				model: "gpt-5.5",
 				modelReasoning: "high",
 				planReasoning: "high",
 				verbosity: "low",
@@ -107,6 +120,15 @@ export const CODEX_PLANS = {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "medium",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			review: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "high",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
@@ -142,17 +164,17 @@ export const CODEX_PLANS = {
 		displayName: "Pro 5x",
 		swarmPolicy: "aggressive",
 		agentAssignments: {
-			athena: ["gpt-5.4", "high"],
+			athena: ["gpt-5.5", "high"],
 			hephaestus: ["gpt-5.3-codex", "medium"],
-			nemesis: ["gpt-5.4", "high"],
-			odysseus: ["gpt-5.4", "high"],
+			nemesis: ["gpt-5.3-codex", "high"],
+			odysseus: ["gpt-5.5", "high"],
 			hermes: ["gpt-5.4-mini", "medium"],
 			atalanta: ["gpt-5.4-mini", "high"],
 			calliope: ["gpt-5.4-mini", "high"],
 		},
 		profiles: {
 			main: {
-				model: "gpt-5.4",
+				model: "gpt-5.5",
 				modelReasoning: "high",
 				planReasoning: "high",
 				verbosity: "low",
@@ -173,6 +195,15 @@ export const CODEX_PLANS = {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "medium",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			review: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "high",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
@@ -208,17 +239,17 @@ export const CODEX_PLANS = {
 		displayName: "Pro 20x",
 		swarmPolicy: "max",
 		agentAssignments: {
-			athena: ["gpt-5.4", "high"],
+			athena: ["gpt-5.5", "high"],
 			hephaestus: ["gpt-5.3-codex", "medium"],
-			nemesis: ["gpt-5.4", "high"],
-			odysseus: ["gpt-5.4", "high"],
+			nemesis: ["gpt-5.3-codex", "high"],
+			odysseus: ["gpt-5.5", "high"],
 			hermes: ["gpt-5.4-mini", "medium"],
 			atalanta: ["gpt-5.4-mini", "high"],
 			calliope: ["gpt-5.4-mini", "high"],
 		},
 		profiles: {
 			main: {
-				model: "gpt-5.4",
+				model: "gpt-5.5",
 				modelReasoning: "high",
 				planReasoning: "high",
 				verbosity: "low",
@@ -239,6 +270,15 @@ export const CODEX_PLANS = {
 				model: "gpt-5.3-codex",
 				modelReasoning: "medium",
 				planReasoning: "medium",
+				verbosity: "low",
+				approval: "on-request",
+				sandbox: "workspace-write",
+				features: commonFeatureFlags,
+			},
+			review: {
+				model: "gpt-5.3-codex",
+				modelReasoning: "high",
+				planReasoning: "high",
 				verbosity: "low",
 				approval: "on-request",
 				sandbox: "workspace-write",
@@ -404,6 +444,7 @@ export function getCodexPlan(value = "") {
 		profiles: plan.profiles,
 		main: profileToRoute(plan.profiles.main),
 		implement: profileToRoute(plan.profiles.implementation),
+		review: profileToRoute(plan.profiles.review),
 		utility: profileToRoute(plan.profiles.utility),
 		approvalAuto: profileToRoute(plan.profiles.approvalAuto),
 		runtimeLong: profileToRoute(plan.profiles.runtimeLong),

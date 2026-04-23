@@ -415,18 +415,38 @@ describe("generated skills", () => {
 describe("generated Codex defaults", () => {
 	it("leaves native commit attribution unset and ships the plan-aware Codex profile split", () => {
 		const config = readBuild("codex/templates/config.toml");
+		assert.match(
+			config,
+			/^#:schema https:\/\/developers\.openai\.com\/codex\/config-schema\.json$/m,
+		);
 		assert.equal(config.includes("commit_attribution"), false);
 		assert.equal(config.includes("codex@users.noreply.github.com"), false);
+		assert.match(config, /^profile = "openagentsbtw"$/m);
 		assert.match(config, /sqlite_home = "~\/\.codex\/openagentsbtw\/sqlite"/);
 		assert.match(config, /project_doc_max_bytes = 16000/);
 		assert.match(config, /hide_agent_reasoning = true/);
 		assert.match(config, /model_reasoning_summary = "none"/);
 		assert.match(config, /tool_output_token_limit = 4000/);
+		assert.match(config, /review_model = "gpt-5\.3-codex"/);
+		assert.match(config, /approvals_reviewer = "user"/);
+		assert.match(config, /allow_login_shell = true/);
+		assert.match(config, /^web_search = "cached"$/m);
+		assert.match(config, /project_doc_fallback_filenames = \["CLAUDE\.md"\]/);
+		assert.match(config, /\[tools\][\s\S]*?view_image = true/);
+		assert.match(config, /\[features\][\s\S]*?memories = true/);
+		assert.match(config, /\[features\][\s\S]*?shell_tool = true/);
+		assert.match(config, /\[features\][\s\S]*?shell_snapshot = true/);
+		assert.match(
+			config,
+			/\[features\][\s\S]*?skill_mcp_dependency_install = true/,
+		);
+		assert.match(config, /\[features\][\s\S]*?unified_exec = true/);
 		assert.match(config, /\[history\]/);
 		assert.match(config, /persistence = "save-all"/);
 		assert.match(config, /max_bytes = 134217728/);
 		assert.match(config, /\[memories\]/);
-		assert.match(config, /no_memories_if_mcp_or_web_search = true/);
+		assert.match(config, /disable_on_external_context = true/);
+		assert.equal(config.includes("no_memories_if_mcp_or_web_search"), false);
 		assert.match(
 			config,
 			/compact_prompt = """[\s\S]*Follow objective task requirements and repo facts, not the user's emotional tone\./,
@@ -435,22 +455,46 @@ describe("generated Codex defaults", () => {
 		assert.equal(config.includes("[profiles.openagentsbtw-plus]"), false);
 		assert.equal(config.includes("[profiles.openagentsbtw-pro-5]"), false);
 		assert.equal(config.includes("[profiles.openagentsbtw-pro-20]"), false);
-		assert.match(config, /model = "gpt-5\.4"/);
+		assert.match(config, /model = "gpt-5\.5"/);
 		assert.match(config, /model = "gpt-5\.3-codex"/);
 		assert.match(config, /model = "gpt-5\.4-mini"/);
 		assert.match(config, /model_instructions_file = "~\/\.codex\/AGENTS\.md"/);
 		assert.match(config, /personality = "pragmatic"/);
 		assert.equal(config.includes('personality = "none"'), false);
 		assert.match(config, /\[profiles\.openagentsbtw-implement\]/);
+		assert.match(config, /\[profiles\.openagentsbtw-review\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-utility\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-approval-auto\]/);
 		assert.match(config, /\[profiles\.openagentsbtw-runtime-long\]/);
-		assert.match(config, /agents\.max_threads = 6/);
+		assert.match(config, /agents\.max_threads = 5/);
+		assert.match(config, /agents\.max_depth = 2/);
+		assert.match(config, /agents\.job_max_runtime_seconds = 2700/);
+		for (const agent of [
+			"athena",
+			"hephaestus",
+			"nemesis",
+			"atalanta",
+			"calliope",
+			"hermes",
+			"odysseus",
+		]) {
+			assert.match(
+				config,
+				new RegExp(
+					`\\[agents\\.${agent}\\][\\s\\S]*?config_file = "agents\\/${agent}\\.toml"`,
+				),
+			);
+			assert.match(
+				config,
+				new RegExp(
+					`\\[agents\\.${agent}\\][\\s\\S]*?nickname_candidates = \\[`,
+				),
+			);
+		}
 		assert.match(config, /background_terminal_max_timeout = 7200/);
 		assert.match(config, /unified_exec = true/);
 		assert.match(config, /prevent_idle_sleep = true/);
 		assert.match(config, /approval_policy = "never"/);
-		assert.match(config, /sqlite = true/);
 		assert.equal(config.includes('model_verbosity = "medium"'), false);
 		assert.match(
 			config,
@@ -458,7 +502,11 @@ describe("generated Codex defaults", () => {
 		);
 		assert.match(
 			config,
-			/\[profiles\.openagentsbtw\][\s\S]*?model = "gpt-5\.4"/,
+			/\[profiles\.openagentsbtw\][\s\S]*?model = "gpt-5\.5"/,
+		);
+		assert.match(
+			config,
+			/\[profiles\.openagentsbtw-review\][\s\S]*?model_reasoning_effort = "high"[\s\S]*?plan_mode_reasoning_effort = "high"/,
 		);
 		assert.match(
 			config,
@@ -472,6 +520,13 @@ describe("generated Codex defaults", () => {
 			config,
 			/\[profiles\.openagentsbtw-utility\][\s\S]*?model_reasoning_effort = "high"[\s\S]*?plan_mode_reasoning_effort = "high"/,
 		);
+		assert.match(
+			config,
+			/\[profiles\.openagentsbtw-utility\][\s\S]*?web_search = "live"/,
+		);
+		assert.match(config, /Optional: lock default filesystem\/network access/);
+		assert.match(config, /approval_policy = \{ granular = \{/);
+		assert.match(config, /\[apps\._default\]/);
 		const modelMatches = [...config.matchAll(/^model = "([^"]+)"$/gm)].map(
 			(match) => match[1],
 		);
@@ -491,6 +546,7 @@ describe("generated Codex defaults", () => {
 		assert.match(guidance, /Default to role routing:/);
 		assert.match(guidance, /Multi-agent safety:/);
 		assert.match(guidance, /gpt-5\.3-codex-spark/);
+		assert.match(guidance, /gpt-5\.5/);
 		assert.match(guidance, /gpt-5\.2/);
 		assert.doesNotMatch(guidance, /\bgpt-5\b(?![.-])/);
 		assert.match(
@@ -529,8 +585,29 @@ describe("generated Codex defaults", () => {
 				`${agent}: ${model}`,
 			);
 		}
+		const nemesis = readBuild("codex/agents/nemesis.toml");
+		const athena = readBuild("codex/agents/athena.toml");
+		const odysseus = readBuild("codex/agents/odysseus.toml");
+		const hermes = readBuild("codex/agents/hermes.toml");
+		const atalanta = readBuild("codex/agents/atalanta.toml");
+		const calliope = readBuild("codex/agents/calliope.toml");
+		const hephaestus = readBuild("codex/agents/hephaestus.toml");
+		assert.match(athena, /^model = "gpt-5\.5"$/m);
+		assert.match(athena, /^model_reasoning_effort = "high"$/m);
+		assert.match(odysseus, /^model = "gpt-5\.5"$/m);
+		assert.match(odysseus, /^model_reasoning_effort = "high"$/m);
+		assert.match(nemesis, /^model = "gpt-5\.3-codex"$/m);
+		assert.match(nemesis, /^model_reasoning_effort = "high"$/m);
+		assert.match(hephaestus, /^model = "gpt-5\.3-codex"$/m);
+		assert.match(hephaestus, /^model_reasoning_effort = "medium"$/m);
+		assert.match(hermes, /^model = "gpt-5\.4-mini"$/m);
+		assert.match(hermes, /^model_reasoning_effort = "medium"$/m);
+		assert.match(atalanta, /^model = "gpt-5\.4-mini"$/m);
+		assert.match(atalanta, /^model_reasoning_effort = "high"$/m);
+		assert.match(calliope, /^model = "gpt-5\.4-mini"$/m);
+		assert.match(calliope, /^model_reasoning_effort = "high"$/m);
 		const codexDocs = readRepo("docs/platforms/codex.md");
-		assert.match(codexDocs, /Codex CLI 0\.123\.0 supported model set/);
+		assert.match(codexDocs, /Codex CLI 0\.124\.0 supported model set/);
 		assert.doesNotMatch(codexDocs, /\bgpt-image-2\b/);
 		assert.doesNotMatch(codexDocs, /\bgpt-5\b(?![.-])/);
 	});
@@ -587,6 +664,12 @@ describe("generated Codex defaults", () => {
 		assert.match(wrapper, /OPENAGENTSBTW_REJECT_PROTOTYPE_SCAFFOLDING=true/);
 		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=validate/);
 		assert.match(wrapper, /OPENAGENTSBTW_CONTRACT=execution-required/);
+		assert.match(wrapper, /OPENAGENTSBTW_ROUTE=review/);
+		assert.match(wrapper, /PROFILE="openagentsbtw-review"/);
+		assert.match(
+			wrapper,
+			/Route review through nemesis-style analysis on the review profile/,
+		);
 		assert.match(
 			wrapper,
 			/run-codex-filtered\.mjs" resume --profile "\$PROFILE" "\$@"/,

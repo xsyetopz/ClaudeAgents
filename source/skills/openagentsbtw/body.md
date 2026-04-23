@@ -69,7 +69,7 @@ Canonical equivalent: `openagentsbtw-codex`
 - `oabtw-codex implement`
   `hephaestus`-shaped routing on `openagentsbtw-implement`.
 - `oabtw-codex review`
-  `nemesis`-shaped routing on `openagentsbtw`.
+  `nemesis`-shaped routing on `openagentsbtw-review`.
 - `oabtw-codex orchestrate`
   `odysseus`-shaped routing on `openagentsbtw`.
 - `oabtw-codex-peer batch|tmux`

@@ -1,22 +1,36 @@
-# openagentsbtw sample Codex profiles
-
+#:schema https://developers.openai.com/codex/config-schema.json
+# openagentsbtw managed file. Generated from source/ via scripts/generate.mjs
+profile = "openagentsbtw"
 sqlite_home = "~/.codex/openagentsbtw/sqlite"
 project_doc_max_bytes = 16000
 hide_agent_reasoning = true
 model_reasoning_summary = "none"
 tool_output_token_limit = 4000
 model_instructions_file = "~/.codex/AGENTS.md"
-
+review_model = "gpt-5.3-codex"
+approvals_reviewer = "user"
+allow_login_shell = true
+web_search = "cached"
+project_doc_fallback_filenames = ["CLAUDE.md"]
+[tools]
+view_image = true
+[features]
+codex_hooks = true
+multi_agent = true
+fast_mode = false
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
+unified_exec = true
 [history]
 persistence = "save-all"
 max_bytes = 134217728
-
 [memories]
 generate_memories = true
 use_memories = true
-no_memories_if_mcp_or_web_search = true
+disable_on_external_context = true
 min_rollout_idle_hours = 12
-
 compact_prompt = """
 You are compacting an openagentsbtw Codex session so work can continue after context pressure.
 
@@ -46,33 +60,39 @@ Do not include:
 
 Be terse, operational, and continuation-ready.
 """
-
+agents.max_threads = 5
+agents.max_depth = 2
+agents.job_max_runtime_seconds = 2700
 [agents.athena]
-description = "Architecture and planning agent. Produces decision-complete plans, sequencing, and tradeoff analysis."
-
+description = "Architecture and planning agent for multi-file changes, sequencing, and tradeoff analysis."
+config_file = "agents/athena.toml"
+nickname_candidates = ["Athena", "Architect", "Planner"]
 [agents.hephaestus]
-description = "Implementation agent. Makes focused code changes and refactors with minimal diffs."
-
+description = "Primary implementation agent for code changes, bug fixes, and refactors."
+config_file = "agents/hephaestus.toml"
+nickname_candidates = ["Hephaestus", "Builder", "Implementer"]
 [agents.nemesis]
-description = "Review agent. Audits correctness, regressions, security, and missing tests."
-
+description = "Review and audit agent focused on correctness, regressions, security, and missing tests."
+config_file = "agents/nemesis.toml"
+nickname_candidates = ["Nemesis", "Reviewer", "Auditor"]
 [agents.atalanta]
-description = "Test agent. Runs tests, analyzes failures, and reports evidence-heavy root causes."
-
+description = "Validation agent for running tests, parsing failures, and reporting exact root-cause evidence."
+config_file = "agents/atalanta.toml"
+nickname_candidates = ["Atalanta", "Tester", "Validator"]
 [agents.calliope]
-description = "Documentation agent. Updates docs precisely and avoids filler."
-
+description = "Documentation agent for READMEs, ADRs, changelogs, and precise handoff artifacts."
+config_file = "agents/calliope.toml"
+nickname_candidates = ["Calliope", "Writer", "Documenter"]
 [agents.hermes]
-description = "Exploration/tracing agent. Maps repo architecture and follows dependencies end-to-end."
-
+description = "Exploration agent for repo tracing, dependency analysis, and evidence-heavy read-only investigation."
+config_file = "agents/hermes.toml"
+nickname_candidates = ["Hermes", "Explorer", "Tracer"]
 [agents.odysseus]
-description = "Orchestration agent. Coordinates multi-step work and delegates bounded subtasks with disjoint ownership."
-
-agents.max_threads = 6
-agents.max_depth = 1
-
+description = "Coordinator for multi-step work that benefits from explicit delegation across several agents."
+config_file = "agents/odysseus.toml"
+nickname_candidates = ["Odysseus", "Coordinator", "Orchestrator"]
 [profiles.openagentsbtw]
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "low"
@@ -83,10 +103,13 @@ sandbox_mode = "workspace-write"
 
 [profiles.openagentsbtw.features]
 codex_hooks = true
-sqlite = true
 multi_agent = true
 fast_mode = false
-
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
+unified_exec = true
 [profiles.openagentsbtw-implement]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "medium"
@@ -99,10 +122,32 @@ sandbox_mode = "workspace-write"
 
 [profiles.openagentsbtw-implement.features]
 codex_hooks = true
-sqlite = true
 multi_agent = true
 fast_mode = false
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
+unified_exec = true
+[profiles.openagentsbtw-review]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
+model_verbosity = "low"
+personality = "pragmatic"
+model_instructions_file = "~/.codex/AGENTS.md"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
 
+[profiles.openagentsbtw-review.features]
+codex_hooks = true
+multi_agent = true
+fast_mode = false
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
+unified_exec = true
 [profiles.openagentsbtw-utility]
 model = "gpt-5.4-mini"
 model_reasoning_effort = "high"
@@ -112,13 +157,17 @@ personality = "pragmatic"
 model_instructions_file = "~/.codex/AGENTS.md"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
+web_search = "live"
 
 [profiles.openagentsbtw-utility.features]
 codex_hooks = true
-sqlite = true
 multi_agent = true
 fast_mode = false
-
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
+unified_exec = true
 [profiles.openagentsbtw-approval-auto]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "medium"
@@ -131,10 +180,13 @@ sandbox_mode = "workspace-write"
 
 [profiles.openagentsbtw-approval-auto.features]
 codex_hooks = true
-sqlite = true
 multi_agent = true
 fast_mode = false
-
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
+unified_exec = true
 [profiles.openagentsbtw-runtime-long]
 model = "gpt-5.3-codex"
 model_reasoning_effort = "medium"
@@ -148,9 +200,12 @@ background_terminal_max_timeout = 7200
 
 [profiles.openagentsbtw-runtime-long.features]
 codex_hooks = true
-sqlite = true
 multi_agent = true
 fast_mode = false
+memories = true
+shell_tool = true
+shell_snapshot = true
+skill_mcp_dependency_install = true
 unified_exec = true
 prevent_idle_sleep = true
 
@@ -162,3 +217,31 @@ enabled = true
 # [mcp_servers.deepwiki]
 # url = "https://mcp.deepwiki.com/mcp"
 # enabled = true
+# Optional: lock default filesystem/network access behind a named permissions profile.
+#
+# default_permissions = "openagentsbtw-default"
+#
+# [permissions.openagentsbtw-default.filesystem]
+# ":project_roots"."." = "write"
+# "/tmp" = "write"
+#
+# [permissions.openagentsbtw-default.network]
+# enabled = true
+# mode = "limited"
+# domains."developers.openai.com" = "allow"
+#
+# Optional: switch from interactive approvals to granular approval routing.
+#
+# approval_policy = { granular = { sandbox_approval = true, rules = true, mcp_elicitations = false, request_permissions = true, skill_approval = true } }
+#
+# Optional: tighten app defaults unless explicitly enabled per connector/tool.
+#
+# [apps._default]
+# enabled = true
+# destructive_enabled = false
+# open_world_enabled = false
+#
+# Optional: replace simple search mode with object-form web search tool config.
+#
+# [tools]
+# web_search = { context_size = "medium", allowed_domains = ["developers.openai.com"] }

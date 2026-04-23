@@ -14,6 +14,7 @@ import { renderCodexPeerWrapper } from "./generate/render/codex-peer-wrapper.mjs
 import { renderCodexWrapper } from "./generate/render/codex-wrapper.mjs";
 import { renderOpenCodePlugin } from "./generate/render/opencode-plugin.mjs";
 import { renderOptionalIdeFiles } from "./generate/render/optional-ides.mjs";
+import { renderSampleCodexConfig } from "./install/managed-files.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -196,7 +197,7 @@ async function generateSkills(skills) {
 					"",
 					"## GPT / Codex Image Generation Note",
 					"",
-					`- For Codex CLI 0.123.0, stay on supported Codex text models only: ${CODEX_SUPPORTED_MODEL_LIST}.`,
+					`- For Codex CLI 0.124.0, stay on supported Codex text models only: ${CODEX_SUPPORTED_MODEL_LIST}.`,
 					"- When using hosted image generation through Codex-compatible surfaces, keep the Responses `model` on one of those supported text models and use the hosted `image_generation` tool instead of switching to a separate image-only model id.",
 					"- For visual frontend work: generate the reference image, inspect it deeply, extract the layout/type/spacing/color/component system, then implement faithfully.",
 					"- If the tool cannot generate images, write the exact image-generation prompt/spec first, then implement from that spec.",
@@ -592,6 +593,13 @@ async function generateAgents(agents) {
 			renderOpenCodeAgent(prompt, opencodeOverlay),
 		);
 	}
+}
+
+async function generateCodexConfigTemplate() {
+	await writeFile(
+		"codex/templates/config.toml",
+		await renderSampleCodexConfig(),
+	);
 }
 
 function addHookGroup(hooks, event, group) {
@@ -1378,6 +1386,7 @@ async function main() {
 	await cleanGeneratedDirs();
 	await generateSkills(skills);
 	await generateAgents(agents);
+	await generateCodexConfigTemplate();
 	await generateHooks(policies, commandData, agents);
 	await generateClaudeRouteContracts(skills, agents);
 	await generateCopilotRouteContracts(skills, agents);

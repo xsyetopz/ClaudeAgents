@@ -28,8 +28,13 @@
   "copilotContract": "edit-required",
   "codex": {
     "description": "Primary implementation agent for code changes, bug fixes, and refactors.",
+    "nicknameCandidates": [
+      "Hephaestus",
+      "Builder",
+      "Implementer"
+    ],
     "model": "gpt-5.3-codex",
-    "reasoning": "high",
+    "reasoning": "medium",
     "sandboxMode": "workspace-write"
   }
 }
