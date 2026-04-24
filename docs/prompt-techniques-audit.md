@@ -13,8 +13,8 @@
 
 ## Rejected as always-on defaults
 
-- “Brutally honest” or combative global tone
-- flattery / “gas the model up”
+- "Brutally honest" or combative global tone
+- flattery / "gas the model up"
 - pressure tactics, authoritarian repetition, or stress framing
 - hidden prompt rewriting that silently changes user intent
 

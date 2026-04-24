@@ -26,7 +26,7 @@ Do not pile on decorative tricks to fake taste.
 - typography that carries structure, not filler labels
 - components that look like they belong to one system
 - motion used for state and flow, not attention-seeking
-- color used to clarify importance, not to signal “premium AI app”
+- color used to clarify importance, not to signal "premium AI app"
 
 ## Hard No
 
@@ -46,7 +46,7 @@ Do not pile on decorative tricks to fake taste.
 - If there is no strong system, build one small consistent set of rules for spacing, type, color, radius, borders, and motion.
 - Prefer editing existing components over adding sidecar one-off variants.
 - If a screen has multiple problems, fix structure first, then type, then spacing, then color, then motion.
-- Avoid “creative” layout choices that make implementation harder to reason about than the product needs.
+- Avoid "creative" layout choices that make implementation harder to reason about than the product needs.
 
 ## Output Discipline
 

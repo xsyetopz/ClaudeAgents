@@ -1,6 +1,6 @@
 # openagentsbtw Codex
 
-This package ports openagentsbtw onto Codex’s native extension surfaces: custom agents, plugins, hooks, `AGENTS.md`, config, and wrapper commands. The Codex-facing agent files, skill files, and hook manifest are generated from the shared root `source/` tree.
+This package ports openagentsbtw onto Codex's native extension surfaces: custom agents, plugins, hooks, `AGENTS.md`, config, and wrapper commands. The Codex-facing agent files, skill files, and hook manifest are generated from the shared root `source/` tree.
 
 ## Layout
 
@@ -60,7 +60,7 @@ The installer:
 - appends managed openagentsbtw guidance to `~/.codex/AGENTS.md`
 - appends managed Codex defaults (`sqlite_home`, `project_doc_max_bytes`, `history`, `memories`, `compact_prompt`, `hide_agent_reasoning`, `tool_output_token_limit`, `review_model`, `web_search`, tool/feature flags, and `[agents.<name>]` metadata) plus the managed `openagentsbtw`, `openagentsbtw-implement`, `openagentsbtw-review`, `openagentsbtw-utility`, `openagentsbtw-approval-auto`, and `openagentsbtw-runtime-long` profiles to `~/.codex/config.toml`
 - optionally appends a managed `mcp_servers.deepwiki` block to `~/.codex/config.toml`
-- optionally builds the bundled patched RTK source, installs the managed RTK binary, writes policy files at `~/.config/openagentsbtw/RTK.md` and `~/.codex/RTK.md`, and appends a managed `~/.codex/AGENTS.md` RTK reference
+- optionally builds the bundled patched RTK source, installs the managed RTK binary, adds the managed bin directory to Unix shell startup files, writes policy files at `~/.config/openagentsbtw/RTK.md` and `~/.codex/RTK.md`, and appends a managed `~/.codex/AGENTS.md` RTK reference. Restart the shell, or source the edited startup file, before running `rtk` directly.
 
 ## Updating
 
@@ -94,7 +94,7 @@ Important:
 
 The plugin package gives Codex the skills and install surface. Default behavior comes from `AGENTS.md`, the managed profiles, enabled hooks, and the `openagentsbtw-codex` wrapper.
 
-openagentsbtw installs a `UserPromptSubmit` hook that injects lightweight git context during active work. Project memory recap stays on `SessionStart`. Prefix a prompt with `!raw` to opt out for that one turn. Hooks do not “run” skills; reliable role routing comes from `AGENTS.md` guidance and the wrapper commands.
+openagentsbtw installs a `UserPromptSubmit` hook that injects lightweight git context during active work. Project memory recap stays on `SessionStart`. Prefix a prompt with `!raw` to opt out for that one turn. Hooks do not "run" skills; reliable role routing comes from `AGENTS.md` guidance and the wrapper commands.
 
 If managed Caveman mode is enabled, Codex also gets terse response shaping through the session hooks. That compression applies to assistant prose only; code, commands, docs, review findings, and commit messages stay normal unless the explicit Caveman skill is invoked. Change the shared default with `./config.sh --caveman-mode <mode>`, or disable future sessions with `./config.sh --caveman-mode off`.
 
@@ -149,7 +149,7 @@ Wrappers no longer prepend `$openagentsbtw`. The managed profiles enable the plu
 ## Safety Model
 
 - Codex safety is centered on sandboxing, approvals, writable roots, rules, project trust, and hooks.
-- This is similar in outcome to Claude Code’s permissions, but not the same implementation shape.
+- This is similar in outcome to Claude Code's permissions, but not the same implementation shape.
 - Current Codex hooks intercept Bash, not a broad built-in edit/write/read tool matrix.
 
 ## Memory
@@ -172,5 +172,5 @@ Queue state is stored outside the repo under `~/.config/openagentsbtw/queue/`, k
 ## Notes
 
 - The Codex plugin is packaged with the official `.codex-plugin/plugin.json` manifest and local marketplace metadata.
-- The hook port intentionally keeps only what Codex’s documented hook events can support today: Bash command guardrails, Bash output redaction, session guidance, and completion checks.
+- The hook port intentionally keeps only what Codex's documented hook events can support today: Bash command guardrails, Bash output redaction, session guidance, and completion checks.
 - Research and source links for the Codex port live in `docs/platforms/codex.md`.

@@ -282,7 +282,7 @@ mod tests {
 src/
   lib.rs
 tests/
-  user_integration_test.rs   ← integration tests in tests/ dir
+  user_integration_test.rs   <- integration tests in tests/ dir
 ```
 
 ```rust

@@ -12,6 +12,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+	ensureManagedBinOnPath,
 	removeChildrenWithMarker,
 	removeClaudePluginCache,
 	removeCodexPluginCaches,
@@ -19,6 +20,7 @@ import {
 	resolvePaths,
 	resolveWorkspacePaths,
 	syncManagedTree,
+	writeConfigEnv,
 } from "../scripts/install/shared.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -115,6 +117,114 @@ describe("shared install paths", () => {
 			paths.projectAntigravityDir,
 			"/tmp/consumer-repo/.antigravity",
 		);
+	});
+
+	it("installs managed PATH block into zshrc without mutating Windows PATH", async () => {
+		const root = mkdtempSync(path.join(os.tmpdir(), "oabtw-path-"));
+		try {
+			const paths = resolvePaths({
+				platform: "linux",
+				env: { XDG_CONFIG_HOME: path.join(root, "xdg") },
+				homeDir: root,
+			});
+			const first = await ensureManagedBinOnPath({
+				platform: "linux",
+				env: { SHELL: "/bin/zsh" },
+				paths,
+				log: false,
+			});
+			const zshrc = path.join(root, ".zshrc");
+			const text = readFileSync(zshrc, "utf8");
+			const second = await ensureManagedBinOnPath({
+				platform: "linux",
+				env: { SHELL: "/bin/zsh" },
+				paths,
+				log: false,
+			});
+			const winPaths = resolvePaths({
+				platform: "win32",
+				env: { APPDATA: path.join(root, "AppData", "Roaming") },
+				homeDir: path.join(root, "user"),
+			});
+			const windows = await ensureManagedBinOnPath({
+				platform: "win32",
+				env: {},
+				paths: winPaths,
+				log: false,
+			});
+
+			assert.equal(first.changed, true);
+			assert.deepEqual(first.targets, [zshrc]);
+			assert.equal(second.changed, false);
+			assert.equal(readFileSync(zshrc, "utf8"), text);
+			assert.match(
+				text,
+				/openagentsbtw_managed_bin="\$\{HOME\}\/\.local\/bin"/,
+			);
+			assert.equal(windows.changed, false);
+			assert.match(windows.command, /setx PATH/);
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
+	it("installs managed PATH block into bash startup files", async () => {
+		const root = mkdtempSync(path.join(os.tmpdir(), "oabtw-bash-path-"));
+		try {
+			const paths = resolvePaths({
+				platform: "linux",
+				env: { XDG_CONFIG_HOME: path.join(root, "xdg") },
+				homeDir: root,
+			});
+			const result = await ensureManagedBinOnPath({
+				platform: "linux",
+				env: { SHELL: "/bin/bash" },
+				paths,
+				log: false,
+			});
+
+			assert.deepEqual(result.targets, [
+				path.join(root, ".bashrc"),
+				path.join(root, ".profile"),
+			]);
+			for (const target of result.targets) {
+				assert.match(
+					readFileSync(target, "utf8"),
+					/openagentsbtw_managed_bin="\$\{HOME\}\/\.local\/bin"/,
+				);
+			}
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
+	it("preserves managed RTK env in config.env", async () => {
+		const root = mkdtempSync(path.join(os.tmpdir(), "oabtw-env-"));
+		try {
+			const paths = resolvePaths({
+				platform: "linux",
+				env: { XDG_CONFIG_HOME: path.join(root, "xdg") },
+				homeDir: root,
+			});
+			await writeConfigEnv(
+				{
+					OABTW_RTK_BIN: "/home/test-user/.local/bin/rtk",
+					OABTW_RTK_REPO: "/repo/vendor/rtk",
+					RTK_DB_PATH: "/db/history.db",
+				},
+				paths,
+			);
+			const text = readFileSync(paths.configEnvFile, "utf8");
+
+			assert.match(
+				text,
+				/^OABTW_RTK_BIN=\/home\/test-user\/\.local\/bin\/rtk$/m,
+			);
+			assert.match(text, /^OABTW_RTK_REPO=\/repo\/vendor\/rtk$/m);
+			assert.match(text, /^RTK_DB_PATH=\/db\/history\.db$/m);
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
 	});
 });
 

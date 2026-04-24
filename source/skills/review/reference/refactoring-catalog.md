@@ -189,10 +189,10 @@ Rename type, function, and variable together when they refer to the same concept
 **Smell**: Module has multiple reasons to change (SRP violation). Imports create unexpected coupling between unrelated areas.
 
 ```diff
-- services/user.ts  ← 600 lines: auth + profile + notifications
-+ services/auth.ts           ← session management, login/logout
-+ services/profile.ts        ← user data CRUD
-+ services/notifications.ts  ← email/push dispatch
+- services/user.ts  <- 600 lines: auth + profile + notifications
++ services/auth.ts           <- session management, login/logout
++ services/profile.ts        <- user data CRUD
++ services/notifications.ts  <- email/push dispatch
 ```
 
 ---

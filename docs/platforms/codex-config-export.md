@@ -116,7 +116,7 @@ Swarm defaults are tier-shaped:
   - app defaults
   - object-form web search tool config
 
-Installer-managed config does **not** merge those sample-only commented examples into the user’s live `~/.codex/config.toml`.
+Installer-managed config does **not** merge those sample-only commented examples into the user's live `~/.codex/config.toml`.
 
 ## Notes
 

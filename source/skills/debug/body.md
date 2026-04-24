@@ -33,5 +33,5 @@
 
 - Start by rewriting code
 - Present speculative fixes as if they were verified
-- Conflate “can reproduce” with “understand root cause”
+- Conflate "can reproduce" with "understand root cause"
 - Drift into implementation when the task is still investigation

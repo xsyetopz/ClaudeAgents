@@ -1259,7 +1259,7 @@ async function generateCopilotInstructionFiles() {
 
 - Prefer updating existing production paths over parallel implementations, sidecar rewrites, or throwaway scaffolding.
 - Modify existing production paths when possible; avoid sidecar architecture unless the repo already uses it.
-- Do not leave placeholders, mock implementations, tutorial comments, or “for now” scaffolding in real code.
+- Do not leave placeholders, mock implementations, tutorial comments, or "for now" scaffolding in real code.
 - Verify outcomes against explicit requirements with concrete evidence when the task requires execution.`,
 		},
 		{

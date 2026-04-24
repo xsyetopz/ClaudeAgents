@@ -25,7 +25,7 @@ Research -> Plan -> Execute -> Review -> Ship
   - `Attempted: <commands/steps already tried>`
   - `Evidence: <exact error/output/path:line>`
   - `Need: <specific missing dependency/input/decision>`
-- Do not “make it pass” by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
+- Do not "make it pass" by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
 
 Reference workflow: `docs/architecture.md`
 
@@ -37,7 +37,7 @@ Reference workflow: `docs/architecture.md`
 
 ## Optional Browser Automation
 
-Some installs also configure Playwright CLI. Do not assume it exists; if it is available, prefer it for browser automation and evidence capture (screenshots, traces, DOM snapshots) instead of “hand-waving” about UI state.
+Some installs also configure Playwright CLI. Do not assume it exists; if it is available, prefer it for browser automation and evidence capture (screenshots, traces, DOM snapshots) instead of "hand-waving" about UI state.
 
 ## Routing Matrix
 

@@ -30,6 +30,6 @@
 
 ## Do NOT
 
-- Collapse tracing into a vague “used in many places”
+- Collapse tracing into a vague "used in many places"
 - Mix architecture opinion into a trace report
 - Skip the downstream impact when the user asked about change risk

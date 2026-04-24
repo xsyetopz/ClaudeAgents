@@ -373,6 +373,114 @@ export function managedRtkBinaryPath({
 	);
 }
 
+const MANAGED_PATH_BLOCK_START = "# >>> openagentsbtw managed PATH >>>";
+const MANAGED_PATH_BLOCK_END = "# <<< openagentsbtw managed PATH <<<";
+const CONFIG_ENV_KEYS = [
+	"CONTEXT7_API_KEY",
+	"OABTW_CLAUDE_PLAN",
+	"OABTW_CODEX_PLAN",
+	"OABTW_COPILOT_PLAN",
+	"OABTW_RTK_BIN",
+	"OABTW_RTK_REPO",
+	"RTK_DB_PATH",
+];
+
+function shellSingleQuote(value) {
+	return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function managedBinShellValue(paths = PATHS) {
+	const normalizedHome = path.resolve(paths.homeDir);
+	const normalizedBin = path.resolve(paths.managedBinDir);
+	const relative = path.relative(normalizedHome, normalizedBin);
+	if (relative && !relative.startsWith("..") && !path.isAbsolute(relative)) {
+		return '"${HOME}/' + relative.split(path.sep).join("/") + '"';
+	}
+	return shellSingleQuote(paths.managedBinDir);
+}
+
+function renderManagedPathBlock(paths = PATHS) {
+	return `${MANAGED_PATH_BLOCK_START}
+openagentsbtw_managed_bin=${managedBinShellValue(paths)}
+case ":\${PATH}:" in
+  *":\${openagentsbtw_managed_bin}:"*) ;;
+  *) export PATH="\${openagentsbtw_managed_bin}:\${PATH}" ;;
+esac
+unset openagentsbtw_managed_bin
+${MANAGED_PATH_BLOCK_END}`;
+}
+
+function stripManagedPathBlock(text) {
+	const start = MANAGED_PATH_BLOCK_START.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const end = MANAGED_PATH_BLOCK_END.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	return text.replace(
+		new RegExp(`\\n?${start}[\\s\\S]*?${end}\\n?`, "g"),
+		"\n",
+	);
+}
+
+function mergeManagedPathBlock(existing, paths = PATHS) {
+	const cleaned = stripManagedPathBlock(existing).trimEnd();
+	const block = renderManagedPathBlock(paths);
+	return `${cleaned}${cleaned ? "\n\n" : ""}${block}\n`;
+}
+
+function managedPathShellFiles({
+	platform = process.platform,
+	env = process.env,
+	paths = PATHS,
+} = {}) {
+	if (platform === "win32") return [];
+	const shell = path.basename(env.SHELL || "");
+	if (shell === "zsh") return [path.join(paths.homeDir, ".zshrc")];
+	if (shell === "bash") {
+		return [
+			path.join(paths.homeDir, ".bashrc"),
+			path.join(paths.homeDir, ".profile"),
+		];
+	}
+	return [path.join(paths.homeDir, ".profile")];
+}
+
+function windowsPathCommand(paths = PATHS) {
+	return `setx PATH "%PATH%;${paths.managedBinDir}"`;
+}
+
+export async function ensureManagedBinOnPath({
+	platform = process.platform,
+	env = process.env,
+	paths = PATHS,
+	log = true,
+} = {}) {
+	if (platform === "win32") {
+		if (log) {
+			logWarn(
+				`Add ${paths.managedBinDir} to PATH for rtk.exe; for cmd.exe: ${windowsPathCommand(paths)}`,
+			);
+		}
+		return { changed: false, targets: [], command: windowsPathCommand(paths) };
+	}
+	const targets = managedPathShellFiles({ platform, env, paths });
+	const changed = [];
+	for (const target of targets) {
+		const existing = await readText(target, "");
+		const next = mergeManagedPathBlock(existing, paths);
+		if (next !== existing) {
+			await writeText(target, next);
+			changed.push(target);
+		}
+	}
+	if (log) {
+		for (const target of targets) {
+			logInfo(`RTK PATH -> ${target}`);
+		}
+		logInfo(
+			`Restart shell or run ${targets.map((target) => `source ${target}`).join(" && ")} to use rtk directly`,
+		);
+	}
+	return { changed: changed.length > 0, targets };
+}
+
 export async function installBundledRtkBinary() {
 	const repo = await resolveRtkSourceRepo();
 	if (!repo) {
@@ -397,6 +505,7 @@ export async function installBundledRtkBinary() {
 	if (process.platform !== "win32") await fs.chmod(target, 0o755);
 	await writeConfigEnv({ OABTW_RTK_BIN: target, OABTW_RTK_REPO: repo });
 	logInfo(`RTK bundled source -> ${target}`);
+	await ensureManagedBinOnPath();
 	return true;
 }
 
@@ -447,8 +556,8 @@ export function ctx7RunnerCommand() {
 	}
 }
 
-export async function loadConfigEnv() {
-	const text = await readText(PATHS.configEnvFile, "");
+export async function loadConfigEnv(paths = PATHS) {
+	const text = await readText(paths.configEnvFile, "");
 	const env = {};
 	for (const line of text.split("\n")) {
 		const trimmed = line.trim();
@@ -460,37 +569,20 @@ export async function loadConfigEnv() {
 	return env;
 }
 
-export async function writeConfigEnv(values) {
-	await ensureDir(PATHS.configDir);
-	const existing = await loadConfigEnv();
+export async function writeConfigEnv(values, paths = PATHS) {
+	await ensureDir(paths.configDir);
+	const existing = await loadConfigEnv(paths);
 	const next = { ...existing, ...values };
 	const lines = ["# Managed by openagentsbtw"];
-	for (const key of [
-		"CONTEXT7_API_KEY",
-		"OABTW_CLAUDE_PLAN",
-		"OABTW_CODEX_PLAN",
-		"OABTW_COPILOT_PLAN",
-		"RTK_DB_PATH",
-	]) {
-		switch (key) {
-			case "CONTEXT7_API_KEY":
-			case "OABTW_CLAUDE_PLAN":
-			case "OABTW_CODEX_PLAN":
-			case "OABTW_COPILOT_PLAN":
-			case "RTK_DB_PATH": {
-				if (next[key]) lines.push(`${key}=${next[key]}`);
-				break;
-			}
-			default:
-				break;
-		}
+	for (const key of CONFIG_ENV_KEYS) {
+		if (next[key]) lines.push(`${key}=${next[key]}`);
 	}
 	const cavemanMode =
 		resolveCavemanMode(next.OABTW_CAVEMAN_MODE || "") || DEFAULT_CAVEMAN_MODE;
 	if (cavemanMode) {
 		lines.push(`OABTW_CAVEMAN_MODE=${cavemanMode}`);
 	}
-	await writeText(PATHS.configEnvFile, `${lines.join("\n")}\n`);
+	await writeText(paths.configEnvFile, `${lines.join("\n")}\n`);
 }
 
 export async function promptToggle(

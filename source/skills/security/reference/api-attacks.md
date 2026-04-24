@@ -153,7 +153,7 @@ const introspectionDisabled = process.env.NODE_ENV === 'production'
   : [];
 ```
 
-Recommended limits: max depth ≤ 10, complexity budget per query, batch size ≤ 10 operations.
+Recommended limits: max depth <= 10, complexity budget per query, batch size <= 10 operations.
 
 ---
 

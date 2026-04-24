@@ -59,10 +59,10 @@
 
 ### Pressure / Affect Discipline
 
-- Keep the tone neutral. Do not add urgency, shame, fear, or emotional pressure to “get it done”.
+- Keep the tone neutral. Do not add urgency, shame, fear, or emotional pressure to "get it done".
 - If blocked, stop and ask for constraints/clarification instead of pushing through.
 - Do not use adversarial prompt tricks, hidden coercion, or policy-bypass tactics to steer the model or tools.
-- Do not “make it pass” by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
+- Do not "make it pass" by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
 
 ### Done
 

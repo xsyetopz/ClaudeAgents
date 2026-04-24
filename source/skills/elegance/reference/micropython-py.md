@@ -53,7 +53,7 @@ Use them when repeated registration or export code wants descriptor tables or a 
 
 ### `py/compile.c`
 
-Reference for “large file still acceptable” judgment.
+Reference for "large file still acceptable" judgment.
 
 Takeaway:
 

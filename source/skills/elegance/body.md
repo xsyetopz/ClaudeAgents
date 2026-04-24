@@ -27,7 +27,7 @@ Port principles, not syntax.
 
 - Public symbols should advertise the subsystem or owning concept.
 - Avoid generic names like `Manager`, `Helper`, `Utils`, `Common`, `Thing`.
-- Prefer names that answer “who owns this?”
+- Prefer names that answer "who owns this?"
 
 ```text
 Good: RuntimeHandlers, SurfaceTypeStore, ProjectWorkspaceGraph, BytecodeEmitter, ModuleRegistry
@@ -79,7 +79,7 @@ Do not replace useful types with stringly registries for aesthetics.
 - Access shared mutable state through a clear API.
 - If several files mutate the same logical state without one owning type, architecture rotting.
 
-Hidden ambient mutable state is a design smell even when the code still “works”.
+Hidden ambient mutable state is a design smell even when the code still "works".
 
 ## Large File Rule
 

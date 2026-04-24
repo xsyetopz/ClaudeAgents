@@ -4,15 +4,15 @@
 
 ## Role Map
 
-| Task                                | Route      |
-| ----------------------------------- | ---------- |
-| Architecture, planning, sequencing  | athena     |
-| Code changes and refactors          | hephaestus |
-| Review, security, regressions       | nemesis    |
-| Test execution and failure analysis | atalanta   |
-| Documentation                       | calliope   |
-| Codebase exploration                | hermes     |
-| Multi-step coordination             | odysseus   |
+| Task | Route |
+| --- | --- |
+| Architecture, planning, sequencing | athena |
+| Code changes and refactors | hephaestus |
+| Review, security, regressions | nemesis |
+| Test execution and failure analysis | atalanta |
+| Documentation | calliope |
+| Codebase exploration | hermes |
+| Multi-step coordination | odysseus |
 
 ## Execution Contract
 
