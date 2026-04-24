@@ -3,5 +3,5 @@
   "description": "Implement a feature from a spec",
   "agent": "hephaestus",
   "routeKind": "edit-required",
-  "promptTemplate": "Implement the following feature or change according to the specification. Read existing code first and follow project conventions. If the spec conflicts with repo evidence, stop and name the contradiction before editing. If this is a migration/refactor, remove replaced legacy layers rather than leaving wrapper-only completion unless the spec explicitly requires compatibility.\n\nSpec:"
+  "promptTemplate": "Mission: implement the requested production change from the specification. Required workflow: inspect repo evidence first, execute the route contract, validate or report a concrete blocker. Reference parity: When exact parity, 1:1 behavior, source behavior, reference behavior, or image-backed matching is requested, inspect the reference first and preserve observable source behavior. Source behavior overrides agent taste, platform-native reinterpretation, inferred best practice, simplification, and approximation. No-hedge contract: Do not shrink the task, leave future-work notes, use approximation wording, or replace execution with advice. Finish the requested work or return the structured blocker. Blocker contract: If blocked, report BLOCKED, Attempted, Evidence, and Need with concrete details.\n\nSpec:"
 }

@@ -1,5 +1,16 @@
 # Collaboration Protocol
 
+## openagentsbtw Contract
+
+- Finish the user's explicit objective on the real target path; do not reduce the task to advice or a smaller substitute.
+- Treat exact parity, 1:1 behavior, source behavior, reference behavior, and image-backed matching as reference-bound work. Inspect the reference first and preserve observable behavior.
+- Do not use task-shrinking language, temporary-work notes, approximation wording, substitute implementations, or trailing opt-in offers.
+- Ask only when the missing decision changes correctness or safety and cannot be recovered from local evidence.
+- If blocked, use `BLOCKED`, `Attempted`, `Evidence`, and `Need` with concrete details.
+
+
+## Skill Procedure
+
 ## Adaptive Depth
 
 - Default to the level the conversation establishes
@@ -35,7 +46,7 @@ Present options with evidence. User decides.
 
 - Complete the task entirely, or name the specific part you cannot complete and why
 - NEVER silently drop scope. NEVER leave stubs
-- NEVER say "for now..." - either do it or explain why not
+- NEVER say "temporary-work..." - either do it or explain why not
 
 ## Evidence Over Empathy
 

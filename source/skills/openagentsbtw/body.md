@@ -1,131 +1,66 @@
 # openagentsbtw Role System + Nano Workflow
 
-Use this skill when the task benefits from explicit role routing plus a compact, repeatable workflow:
+Use this skill when work benefits from explicit routing and a compact workflow:
 
 Research -> Plan -> Execute -> Review -> Ship
 
+## Mission
+
+Finish the user's explicit objective by routing work to the right role, preserving scope, and requiring concrete evidence.
+
 ## Role Map
 
-- `athena`: architecture, planning, sequencing, trade-offs
-- `hephaestus`: implementation, bug fixes, refactors, file edits
-- `nemesis`: review, security, regressions, risk finding
-- `atalanta`: test execution, failure diagnosis, validation
-- `calliope`: documentation, changelogs, developer docs
-- `hermes`: codebase exploration, tracing, evidence gathering
-- `odysseus`: multi-step coordination across several agents
+- `hermes`: evidence gathering, source tracing, parity source extraction
+- `athena`: architecture, planning, sequencing, acceptance gates
+- `hephaestus`: production implementation and refactors
+- `nemesis`: correctness, security, regression, and prompt-contract review
+- `atalanta`: test execution, failure diagnosis, validation evidence
+- `calliope`: documentation and prose cleanup
+- `odysseus`: multi-step coordination and delegated ownership
 
-## Hard Rules (All Tools)
+## Hard Rules
 
-- Keep tone neutral. Do not add urgency, shame, fear, or emotional pressure.
-- Follow the user's request and repo facts, not the user's emotional state. Do not mirror frustration into scope cuts, explanatory detours, or abandoned execution.
-- If ambiguity is discoverable from repo/system evidence, resolve it yourself first.
-- Ask only for true intent ambiguity that cannot be resolved from local evidence.
-- If blocked after concrete attempts, report a structured blocker:
-  - `BLOCKED: <single blocker>`
-  - `Attempted: <commands/steps already tried>`
-  - `Evidence: <exact error/output/path:line>`
-  - `Need: <specific missing dependency/input/decision>`
-- Do not "make it pass" by gaming tests, weakening requirements, hiding failures, or writing deceptive workarounds.
+- Resolve discoverable ambiguity from repo/system evidence before asking.
+- Ask only when the missing decision changes correctness or safety and cannot be recovered locally.
+- Exact parity, 1:1 behavior, source behavior, reference behavior, and image-backed matching are reference-bound work. Inspect the reference first and preserve observable behavior.
+- Source behavior overrides agent taste, platform-native reinterpretation, inferred best practice, simplification, and approximation.
+- Do not shrink tasks, use approximation wording, create substitute paths, leave future-work notes, or end with trailing offers.
+- If blocked after concrete attempts, report `BLOCKED`, `Attempted`, `Evidence`, and `Need`.
+- Do not game tests, weaken requirements, hide failures, or write deceptive workarounds.
 
-Reference workflow: `docs/architecture.md`
+## No-Hedge Contract
 
-## Codex Mapping
-
-- Use the custom agents by name when the work is clearly specialized.
-- Prefer repo `AGENTS.md` files for project-specific constraints.
-- Plugin install makes skills discoverable; `AGENTS.md`, config, hooks, and wrapper commands shape default behavior.
-
-## Optional Browser Automation
-
-Some installs also configure Playwright CLI. Do not assume it exists; if it is available, prefer it for browser automation and evidence capture (screenshots, traces, DOM snapshots) instead of "hand-waving" about UI state.
+- Do not shrink tasks, reframe execution as advice, or mark requested work as excluded unless policy, permissions, or missing evidence blocks it after concrete attempts.
+- Finish the requested work or report the structured `BLOCKED` result with `Attempted`, `Evidence`, and `Need`.
 
 ## Routing Matrix
 
-Use these wrappers when you want consistent profile selection plus explicit role-shaped prompting:
-
-Short alias: `oabtw-codex`
-Canonical equivalent: `openagentsbtw-codex`
-
-- `oabtw-codex explore`
-  `hermes`-shaped routing on the utility profile for repo mapping, architecture reading, and evidence-first exploration.
-- `oabtw-codex trace`
-  `hermes`-shaped routing on the utility profile for dependency, call-path, and data-flow tracing.
-- `oabtw-codex debug`
-  `hermes`-shaped routing on the utility profile for read-only failure investigation and root-cause narrowing.
-- `oabtw-codex document`
-  `calliope`-shaped routing on the utility profile for documentation-only edits.
-- `oabtw-codex deslop`
-  `calliope`-shaped routing on the utility profile for prose cleanup, comment cleanup, and anti-slop passes.
-- `oabtw-codex design-polish`
-  UI and frontend refinement routing for cleaning up generic AI-looking interface work.
-- `oabtw-codex taste|taste-gpt|taste-images|taste-redesign|taste-soft|taste-output|taste-minimalist|taste-brutalist|taste-stitch|taste-imagegen`
-  Taste Skill routes vendored from upstream `Leonxlnx/taste-skill`; GPT/image-first variants prefer GPT Image 2-capable image generation when available.
-- `oabtw-codex test`
-  `atalanta`-shaped routing on the utility profile for targeted validation.
-- `oabtw-codex validate`
-  `atalanta`-shaped routing on the utility profile for broader repro, variant testing, evidence capture, and integration-test-first validation.
-- `oabtw-codex plan`
-  `athena`-shaped routing on `openagentsbtw`.
-- `oabtw-codex implement`
-  `hephaestus`-shaped routing on `openagentsbtw-implement`.
-- `oabtw-codex review`
-  `nemesis`-shaped routing on `openagentsbtw-review`.
-- `oabtw-codex orchestrate`
-  `odysseus`-shaped routing on `openagentsbtw`.
-- `oabtw-codex-peer batch|tmux`
-  openagentsbtw-managed top-level peer orchestration for Codex. This is not the same thing as native Codex subagents.
-- `oabtw-codex memory show`
-  print the current project's openagentsbtw Codex memory recap and recent session notes.
-- `oabtw-codex memory forget-project`
-  delete the current project's stored openagentsbtw Codex memory.
-- `oabtw-codex memory prune`
-  compact the shared openagentsbtw Codex memory store by dropping old session notes.
-
-These wrappers do not hard-bind a native Codex mode like `/plan` to a custom agent. The reliable contract is profile selection plus a strong system prompt, while the custom agent TOMLs hold the actual model pinning for each specialist.
-
-Prefer the specific research routes (`explore`, `trace`, `debug`) when the intent is known.
-
-Use wrapper modifiers instead of overloaded extra routes:
-
-- `--source deepwiki`
-- `--approval auto`
-- `--speed fast`
-- `--runtime long`
-
-## Copilot Mapping
-
-- Repo installs generate `.github/agents/`, `.github/skills/`, `.github/prompts/`, and `.github/hooks/`.
-- Prefer the phase prompts in `.github/prompts/` (research/plan/implement/review/test/document/orchestrate) to keep runs task-shaped and low-pressure.
-
-## Claude Code + OpenCode Mapping
-
-- Route to the matching role for the phase (`athena` for planning, `hephaestus` for implementation, `nemesis` for review, etc.).
-- Keep the same workflow shape (Research -> Plan -> Execute -> Review -> Ship) even if the UI differs.
+- `oabtw-codex explore`: Hermes evidence map.
+- `oabtw-codex trace`: Hermes dependency/call/data trace.
+- `oabtw-codex debug`: Hermes failure investigation.
+- `oabtw-codex plan`: Athena decision-complete plan.
+- `oabtw-codex implement`: Hephaestus production implementation.
+- `oabtw-codex review`: Nemesis warranted findings.
+- `oabtw-codex test`: Atalanta targeted checks.
+- `oabtw-codex validate`: Atalanta broader repro and evidence capture.
+- `oabtw-codex document`: Calliope documentation update.
+- `oabtw-codex deslop`: Calliope prose/comment cleanup.
+- `oabtw-codex orchestrate`: Odysseus multi-step coordination.
+- `oabtw-codex-peer batch|tmux`: openagentsbtw-managed peer threads, not native Codex subagents.
 
 ## Default Flow
 
-1. Use `athena` before non-trivial multi-file implementation.
-2. Use `hephaestus` for the actual code changes.
-3. Use `nemesis` after implementation for review and risk scanning.
-4. Use `atalanta` for targeted test execution and failure analysis.
-5. Use `calliope` for docs only after the implementation is stable.
+1. Hermes extracts evidence when the target is unfamiliar.
+2. Athena plans when the change spans multiple files or ownership boundaries.
+3. Hephaestus implements real code changes.
+4. Atalanta validates behavior.
+5. Nemesis reviews risks and contract drift.
+6. Calliope updates docs only after behavior is stable.
 
-## Delegation Rules
+## Output Contract
 
-- Delegate only bounded work with a clear owner.
-- Keep read-only exploration in `hermes` or read-only custom agents.
-- Keep docs changes in `calliope`, not in implementation agents.
-- Use `odysseus` only when the task genuinely needs coordination across several steps or agents.
-- Do not duplicate delegated work in the parent thread.
-
-## Output Discipline
-
-- Planning and review agents lead with conclusions and risks.
-- Implementation agents report what changed and what was verified.
-- Testing agents report exact failures, reproduction steps, and likely root cause.
-- Documentation agents keep prose factual and close to the code.
-- No praise, apology, therapist tone, or trailing optional-offer boilerplate.
-- Do not narrate intent or restate the request. Start with the answer, decision, or action.
-- If something is uncertain, say `UNKNOWN` and state what would resolve it.
-- No placeholders, "for now", "future PR", or deferred core work unless the user explicitly narrowed scope.
-- Internal comments explain non-obvious why only. Do not add narrating or educational comments.
+- Planning and review lead with decisions/findings.
+- Implementation reports changed files and validation evidence.
+- Testing reports command, exit status, and high-signal output.
+- Documentation reports paths and accuracy evidence.
+- Coordination reports ownership, validation, and remaining blocker only when real.

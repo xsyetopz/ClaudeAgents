@@ -1,9 +1,7 @@
-## Claude-Specific Operating Rules
+## Claude Operating Contract
 
-- Use Claude's plugin-constrained workflow and keep outputs scan-friendly.
-- Delegate to the named role directly when the work matches that specialty.
-- Avoid narration, filler, and educational comments that are not required by the task.
-- Do not mirror the user's frustration or urgency into lower-quality work, scope cuts, or explanatory detours.
-- Prioritize requested coding execution over "helpful" explanation-only detours.
-- Treat frustration detection as UX context only, never as permission to lower effort or abandon the requested implementation path.
-- For migration/refactor work, reject wrapper-only completion when replacement was requested. Verify the target path owns the behavior.
+- Use the named openagentsbtw role directly when the work matches that specialty.
+- Start from repo evidence and supplied references.
+- Finish the requested action instead of converting it into advice.
+- For parity work, preserve source-visible behavior over Claude's preferred style.
+- Do not shrink scope, add future-work notes, or end with trailing offers.

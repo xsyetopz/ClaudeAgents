@@ -565,15 +565,40 @@ function normalizeRtkRewrite(rewritten) {
   return rewritten.replace(/^rtk\\b/, "rtk --ultra-compact");
 }
 
+function parseCommandStart(command) {
+  const text = String(command || "").trim();
+  if (!text) return null;
+  if (text.startsWith("'")) {
+    const end = text.indexOf("'", 1);
+    if (end > 0) return { executable: text.slice(1, end), rest: text.slice(end + 1).trim() };
+  }
+  if (text.startsWith('"')) {
+    const end = text.indexOf('"', 1);
+    if (end > 0) return { executable: text.slice(1, end), rest: text.slice(end + 1).trim() };
+  }
+  const match = text.match(/^(\\S+)(?:\\s+(.*))?$/);
+  if (!match) return null;
+  return { executable: match[1], rest: (match[2] || "").trim() };
+}
+
+function rtkInvocationRewrite(command, binary) {
+  const parsed = parseCommandStart(command);
+  if (!parsed) return undefined;
+  if (parsed.executable !== "rtk" && parsed.executable !== binary) return undefined;
+  if (/^--ultra-compact\\b/.test(parsed.rest)) return null;
+  const prefix = parsed.executable === "rtk" ? "rtk" : shellQuote(binary);
+  return (prefix + " --ultra-compact " + parsed.rest).trim();
+}
+
 function getRtkRewrite(command, cwd) {
   const normalized = String(command || "").trim();
-  if (!normalized || /^rtk\\s+--ultra-compact\\b/.test(normalized)) return null;
+  if (!normalized) return null;
   if (!(findRepoRtkMd(cwd) || findHomeRtkMd())) return null;
   const binary = rtkBinary();
   if (!binary) return null;
-  if (/^rtk\\b/.test(normalized)) {
-    const rewritten = normalizeRtkRewrite(normalized);
-    if (rewritten && rewritten !== normalized) return rewritten;
+  const rtkInvocation = rtkInvocationRewrite(normalized, binary);
+  if (rtkInvocation !== undefined) {
+    if (rtkInvocation && rtkInvocation !== normalized) return rtkInvocation;
     return null;
   }
   const highGain = highGainRewrite(normalized);

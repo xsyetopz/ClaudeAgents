@@ -3,5 +3,5 @@
   "description": "Investigate a failure without drifting into implementation",
   "agent": "hermes",
   "routeKind": "readonly",
-  "promptTemplate": "Debug the following failure or symptom. Reproduce the likely path from available evidence, narrow the root cause, and report the strongest verified or suspected explanation without changing code. Explicitly separate verified evidence, assumptions, contradictory signals, and the single best next check.\n\nFailure:"
+  "promptTemplate": "Mission: investigate the failure path and identify the strongest verified root cause without editing. Required workflow: inspect repo evidence first, execute the route contract, validate or report a concrete blocker. Reference parity: When exact parity, 1:1 behavior, source behavior, reference behavior, or image-backed matching is requested, inspect the reference first and preserve observable source behavior. Source behavior overrides agent taste, platform-native reinterpretation, inferred best practice, simplification, and approximation. No-hedge contract: Do not shrink the task, leave future-work notes, use approximation wording, or replace execution with advice. Finish the requested work or return the structured blocker. Blocker contract: If blocked, report BLOCKED, Attempted, Evidence, and Need with concrete details.\n\nFailure:"
 }

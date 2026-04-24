@@ -270,8 +270,10 @@ describe("codex RTK helper", () => {
 		const fixture = withFakeRtk();
 		const originalHome = process.env.HOME;
 		const originalPath = process.env.PATH;
+		const originalRtkBin = process.env.OABTW_RTK_BIN;
 		process.env.HOME = fixture.homeDir;
 		process.env.PATH = prependBinToPath(fixture.binDir, originalPath || "");
+		process.env.OABTW_RTK_BIN = join(fixture.binDir, "rtk");
 		try {
 			assert.deepEqual(getRtkRewrite("rtk grep -n foo src", fixture.repoDir), {
 				policyPath: join(fixture.repoDir, "RTK.md"),
@@ -285,9 +287,31 @@ describe("codex RTK helper", () => {
 				getRtkRewrite("rtk --ultra-compact grep -n foo src", fixture.repoDir),
 				null,
 			);
+			assert.equal(
+				getRtkRewrite(
+					`${join(fixture.binDir, "rtk")} --ultra-compact cargo check -p musi_vm`,
+					fixture.repoDir,
+				),
+				null,
+			);
+			assert.deepEqual(
+				getRtkRewrite(
+					`${join(fixture.binDir, "rtk")} cargo check -p musi_vm`,
+					fixture.repoDir,
+				),
+				{
+					policyPath: join(fixture.repoDir, "RTK.md"),
+					rewritten: `'${join(fixture.binDir, "rtk")}' --ultra-compact cargo check -p musi_vm`,
+				},
+			);
 		} finally {
 			process.env.HOME = originalHome;
 			process.env.PATH = originalPath;
+			if (originalRtkBin === undefined) {
+				delete process.env.OABTW_RTK_BIN;
+			} else {
+				process.env.OABTW_RTK_BIN = originalRtkBin;
+			}
 			fixture.cleanup();
 		}
 	});

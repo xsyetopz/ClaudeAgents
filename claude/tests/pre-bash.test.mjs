@@ -245,6 +245,21 @@ describe("RTK enforce", () => {
 		}
 	});
 
+	it("should not recurse on managed absolute rtk commands", () => {
+		const fixture = withFakeRtk({ repoRtk: false, homeRtk: true });
+		const rtkBin = join(fixture.env.HOME, "..", "bin", "rtk");
+		try {
+			const result = runHook(
+				"pre/rtk-enforce.mjs",
+				makeBashInput(`${rtkBin} --ultra-compact cargo check -p musi_vm`),
+				{ ...fixture.env, OABTW_RTK_BIN: rtkBin },
+			);
+			assert.equal(result.stdout.trim(), "");
+		} finally {
+			fixture.cleanup();
+		}
+	});
+
 	it("should apply high-gain rewrites when RTK policy is active", () => {
 		const fixture = withFakeRtk({ repoRtk: false, homeRtk: true });
 		try {

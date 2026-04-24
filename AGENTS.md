@@ -20,7 +20,7 @@ openagentsbtw packages four platform-specific surfaces from a single canonical s
 - Do not hard-code `service_tier = "flex"` in managed profiles; leave unset unless explicitly overridden.
 - Use real `AGENTS.md` files. Do not symlink `CLAUDE.md`.
 - Terse, peer-level, task-shaped responses. No praise, apologies, therapy tone, or trailing boilerplate.
-- No placeholders, "for now", "future PR", "out of scope", or deferred core work unless the user explicitly narrows scope.
+- No placeholders, future-work notes, or task-shrinking language unless the user explicitly narrows the task.
 - Comments explain non-obvious "why" only. No narrating or educational comments.
 
 ## Workflow
@@ -30,4 +30,3 @@ openagentsbtw packages four platform-specific surfaces from a single canonical s
 - When changing OpenCode support, update both `opencode/` and `docs/platforms/opencode.md`.
 - When changing Copilot support, update `copilot/` and relevant `.github/` assets.
 - Reuse existing role prompts and safety logic where it ports cleanly. Adjust to each platform's documented surfaces rather than copying platform-specific assumptions.
-

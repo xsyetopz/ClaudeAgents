@@ -4,9 +4,9 @@ Language-specific anti-patterns with before/after examples. Check in priority or
 
 ---
 
-## 1. Scope Creep
+## 1. Unrequested Drift
 
-Changes beyond what was requested. Finishing what WAS requested is not scope creep.
+Changes beyond what was requested. Finishing what WAS requested is not unrequested drift.
 
 ```diff
 - // Requested: fix null check in getUserById

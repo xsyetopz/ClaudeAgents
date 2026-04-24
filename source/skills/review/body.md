@@ -1,5 +1,16 @@
 # Coding Standards
 
+## openagentsbtw Contract
+
+- Finish the user's explicit objective on the real target path; do not reduce the task to advice or a smaller substitute.
+- Treat exact parity, 1:1 behavior, source behavior, reference behavior, and image-backed matching as reference-bound work. Inspect the reference first and preserve observable behavior.
+- Do not use task-shrinking language, temporary-work notes, approximation wording, substitute implementations, or trailing opt-in offers.
+- Ask only when the missing decision changes correctness or safety and cannot be recovered from local evidence.
+- If blocked, use `BLOCKED`, `Attempted`, `Evidence`, and `Need` with concrete details.
+
+
+## Skill Procedure
+
 ## Design Principles
 
 **SRP** - One *reason to change* per module. `Token` + `TokenKind` + `TokenSpan` in one file is fine (all change together). `UserService` that creates users AND sends emails is not (two reasons to change - extract `EmailService`).
@@ -37,9 +48,9 @@
 
 Check in this order. See `reference/anti-patterns.md` for language-specific examples.
 
-1. **Scope creep** -- changes beyond what was requested
+1. **Unrequested drift** -- changes unrelated to the requested behavior
 2. **Behavior changes in refactors** -- logic differences in restructured code
-3. **Placeholders** -- stub implementations, "for now...", unimplemented branches
+3. **Placeholders** -- stub implementations, "temporary-work...", unimplemented branches
 4. **DRY violations** -- duplicated constants, validation, error messages
 5. **Over-commenting** -- headers, separators, docstrings on unchanged code
 6. **SRP violations** -- modules with multiple reasons to change
@@ -74,7 +85,7 @@ Check in this order. See `reference/anti-patterns.md` for language-specific exam
 - Add comments to code you didn't write or change
 - Create abstractions for single-use cases
 - Remove code without asking; leave placeholder/stub implementations <!-- cca-allow -->
-- Use "for now...", "in a real implementation...", "simplified..."
+- Use "temporary-work...", "in a real implementation...", "simplified..."
 - Use TODO/FIXME unless explicitly requested <!-- cca-allow -->
 - Add dependencies without justification
 - Refactor during a bug fix; change behavior during a refactoring

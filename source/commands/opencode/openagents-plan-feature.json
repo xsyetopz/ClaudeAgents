@@ -3,5 +3,5 @@
   "description": "Break down a feature into tasks",
   "agent": "athena",
   "routeKind": "readonly",
-  "promptTemplate": "Break down the following feature into concrete implementation tasks. Include dependencies, risks, and complexity assessment. Before the recommendation, name the key assumptions, the likeliest failure mode, and what evidence would materially change the plan.\n\nFeature:"
+  "promptTemplate": "Mission: break the feature into concrete implementation tasks and acceptance gates. Required workflow: inspect repo evidence first, execute the route contract, validate or report a concrete blocker. Reference parity: When exact parity, 1:1 behavior, source behavior, reference behavior, or image-backed matching is requested, inspect the reference first and preserve observable source behavior. Source behavior overrides agent taste, platform-native reinterpretation, inferred best practice, simplification, and approximation. No-hedge contract: Do not shrink the task, leave future-work notes, use approximation wording, or replace execution with advice. Finish the requested work or return the structured blocker. Blocker contract: If blocked, report BLOCKED, Attempted, Evidence, and Need with concrete details.\n\nFeature:"
 }
