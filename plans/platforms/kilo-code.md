@@ -1,4 +1,4 @@
-# Kilo Code Platform Spec
+# Kilo Code v5 Legacy Platform Spec
 
 Verified date: 2026-04-25.
 
@@ -8,6 +8,11 @@ Verified date: 2026-04-25.
 - https://kilo.ai/docs/customize/rules
 - https://kilo.ai/docs/customize/workflows
 - https://kilo.ai/docs/features/mcp
+- https://github.com/Kilo-Org/kilocode-legacy
+
+## Target
+
+v4 targets `Kilo-Org/kilocode-legacy` v5-era behavior because newer v7 behavior is reported as unsuitable. Do not silently switch to newer Kilo source or docs without updating this file.
 
 ## Native Surfaces
 
@@ -21,15 +26,29 @@ Verified date: 2026-04-25.
 | MCP       | native  | documented MCP.                                |
 | workflows | native  | documented workflows.                          |
 
+## Source-Backed Paths
+
+- Project rules: `.kilocode/rules/`
+- Mode-specific rules: `.kilocode/rules-<mode>/`
+- Project workflows: `.kilocode/workflows/`
+- Project custom modes: `.kilocodemodes`
+- Project MCP: `.kilocode/mcp.json`
+- Global CLI storage: `~/.kilocode/cli/`
+- VS Code extension global storage: platform-specific `globalStorage/kilocode.kilo-code/`
+
 ## Adapter Plan
 
 - Render rules.
 - Render workflows.
 - Render MCP guidance only if user enables it.
 - Keep unsupported hook surfaces explicit.
+- Render mode-specific rules instead of claiming subagent parity.
+- Preserve task protocol choice for a task; do not switch protocol mid-flow.
 
 ## Validation
 
 - fixture render
 - docs evidence check
 - uninstall smoke
+- mode-specific rules fixture
+- project/global storage cleanup fixture

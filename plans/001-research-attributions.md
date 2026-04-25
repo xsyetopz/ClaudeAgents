@@ -4,22 +4,27 @@ This file tracks sources used for v4 planning. Official docs override community 
 
 ## Primary References
 
-| Source               | Link                                                       | Use                                                              |
-| -------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| Codex docs           | https://developers.openai.com/codex/                       | Codex native surfaces: AGENTS, config, hooks, skills, subagents. |
-| Claude Code docs     | https://docs.claude.com/en/docs/claude-code/overview       | Claude Code memory, hooks, slash commands, skills, subagents.    |
-| OpenCode docs        | https://opencode.ai/docs/                                  | Agents, skills, config, permissions, plugins.                    |
-| Gemini CLI docs      | https://github.com/google-gemini/gemini-cli/tree/main/docs | GEMINI.md, extensions, commands, hooks, MCP.                     |
-| Amp manual           | https://ampcode.com/manual                                 | AGENTS.md, threads, toolboxes, skills, subagents, MCP.           |
-| Cursor docs          | https://docs.cursor.com/                                   | Rules, AGENTS.md support, MCP, context controls.                 |
-| Cline docs           | https://docs.cline.bot/                                    | Rules, workflows, hooks, MCP, `.clineignore`.                    |
-| Windsurf docs        | https://docs.windsurf.com/                                 | Rules, workflows, memories, MCP, editor agent surfaces.          |
-| Augment docs         | https://docs.augmentcode.com/                              | Guidelines, rules, memories, MCP/context services.               |
-| Kilo Code docs       | https://kilo.ai/docs/                                      | Rules, workflows, modes, MCP-compatible surfaces.                |
-| AGENTS.md            | https://agents.md/                                         | Cross-agent instruction file convention.                         |
-| BMAD Method          | https://docs.bmad-method.org/                              | Phase model, project context, progress docs, install discipline. |
-| Awesome Codex CLI    | https://github.com/RoggeOhta/awesome-codex-cli             | Ecosystem taxonomy and adjacent tool survey.                     |
-| Awesome Codex Skills | https://github.com/ComposioHQ/awesome-codex-skills         | Skill packaging patterns and progressive disclosure examples.    |
+| Source                  | Link                                                       | Use                                                              |
+| ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| Codex docs              | https://developers.openai.com/codex/                       | Codex native surfaces: AGENTS, config, hooks, skills, subagents. |
+| Claude Code docs        | https://docs.claude.com/en/docs/claude-code/overview       | Claude Code memory, hooks, slash commands, skills, subagents.    |
+| OpenCode docs           | https://opencode.ai/docs/                                  | Agents, skills, config, permissions, plugins.                    |
+| Gemini CLI docs         | https://github.com/google-gemini/gemini-cli/tree/main/docs | GEMINI.md, extensions, commands, hooks, MCP.                     |
+| Amp manual              | https://ampcode.com/manual                                 | AGENTS.md, threads, toolboxes, skills, subagents, MCP.           |
+| Cursor docs             | https://docs.cursor.com/                                   | Rules, AGENTS.md support, MCP, context controls.                 |
+| Cline docs              | https://docs.cline.bot/                                    | Rules, workflows, hooks, MCP, `.clineignore`.                    |
+| Windsurf docs           | https://docs.windsurf.com/                                 | Rules, workflows, memories, MCP, editor agent surfaces.          |
+| Augment docs            | https://docs.augmentcode.com/                              | Guidelines, rules, memories, MCP/context services.               |
+| Kilo Code docs          | https://kilo.ai/docs/                                      | Rules, workflows, modes, MCP-compatible surfaces.                |
+| AGENTS.md               | https://agents.md/                                         | Cross-agent instruction file convention.                         |
+| BMAD Method             | https://docs.bmad-method.org/                              | Phase model, project context, progress docs, install discipline. |
+| Awesome Codex CLI       | https://github.com/RoggeOhta/awesome-codex-cli             | Ecosystem taxonomy and adjacent tool survey.                     |
+| Awesome Codex Skills    | https://github.com/ComposioHQ/awesome-codex-skills         | Skill packaging patterns and progressive disclosure examples.    |
+| Codex source            | https://github.com/openai/codex                            | Source-backed config, AGENTS, hooks, skills, MCP, sandbox.       |
+| OpenCode source         | https://github.com/anomalyco/opencode                      | Source-backed config, agents, skills, plugins, MCP, compaction.  |
+| Claude Code sourcemap   | https://github.com/xsyetopz/claude-code-sourcemap          | Unofficial 2.1.88 sourcemap research; use paths only.            |
+| Kilo Code legacy source | https://github.com/Kilo-Org/kilocode-legacy                | v5-era rules, workflows, modes, MCP, task protocol.              |
+| Windsurf site           | https://windsurf.com/                                      | Product reality: Windsurf Editor and extension/plugin surface.   |
 
 ## Accepted Ideas
 
@@ -48,3 +53,5 @@ This file tracks sources used for v4 planning. Official docs override community 
 - Verbatim source text must stay short and unnecessary copying avoided.
 - Derived implementation ideas must be rewritten into openagentsbtw contracts.
 - Platform claims need a source link or `UNKNOWN` marker.
+- Unofficial sourcemap research must be labeled as unofficial and must not copy proprietary source text.
+- Source paths are evidence for architecture; official docs still define public support promises.

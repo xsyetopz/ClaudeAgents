@@ -9,7 +9,7 @@ v4 is a reimagination, not a migration. Compatibility layers would preserve v3 p
 
 ## Decision
 
-No v3 compatibility, aliases, migration mode, or old public flag preservation.
+No v3 compatibility, aliases, legacy transition mode, or old public flag preservation.
 
 Uninstall may know v3 paths only to remove managed residue.
 

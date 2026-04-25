@@ -33,7 +33,7 @@ The harness:
 ## Non-Goals
 
 - No v3 compatibility.
-- No migration mode.
+- No legacy transition mode.
 - No prompt-only parity claims.
 - No giant generator file.
 - No shell or Python core.

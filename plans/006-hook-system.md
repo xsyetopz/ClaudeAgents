@@ -4,14 +4,14 @@ Hooks enforce outcomes that prompts cannot reliably enforce.
 
 ## Hook Classes
 
-| Class        | Purpose                                                             |
-| ------------ | ------------------------------------------------------------------- |
-| pre-command  | block unsafe/noisy/destructive shell before execution               |
-| post-command | summarize output and capture artifacts                              |
-| pre-response | block false completion, missing validation, or placeholder language |
-| stop         | scan final answer for contract violations                           |
-| session      | inject tiny core context and refresh status                         |
-| install      | verify managed files and manifests                                  |
+| Class        | Purpose                                                                 |
+| ------------ | ----------------------------------------------------------------------- |
+| pre-command  | block unsafe/noisy/destructive shell before execution                   |
+| post-command | summarize output and capture artifacts                                  |
+| pre-response | block false completion, missing validation, or empty/temporary language |
+| stop         | scan final answer for contract violations                               |
+| session      | inject tiny core context and refresh status                             |
+| install      | verify managed files and manifests                                      |
 
 ## Capability Levels
 

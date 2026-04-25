@@ -9,6 +9,13 @@ Verified date: 2026-04-25.
 - https://developers.openai.com/codex/hooks
 - https://developers.openai.com/codex/skills
 - https://developers.openai.com/codex/subagents
+- https://github.com/openai/codex
+
+## Source Notes
+
+- `codex-rs/core/src/config/mod.rs` resolves config into runtime behavior.
+- `codex-rs/core/src/agents_md.rs` owns `AGENTS.md` discovery and composition.
+- `codex-rs/app-server/src/config/external_agent_config.rs` imports external agent config; v4 must not use that as compatibility path.
 
 ## Native Surfaces
 
@@ -22,6 +29,13 @@ Verified date: 2026-04-25.
 | MCP       | native  | config-managed servers.                |
 | workflows | partial | render as commands plus skills/agents. |
 
+## Context and Token Controls
+
+- `project_doc_max_bytes` can cap loaded project instructions.
+- `tool_output_token_limit` can cap tool output kept in context.
+- Config layer precedence means runtime or CLI overrides can beat managed config.
+- MCP approval can differ from shell approval.
+
 ## Adapter Plan
 
 - Render tiny `AGENTS.md`.
@@ -30,6 +44,8 @@ Verified date: 2026-04-25.
 - Render custom agents.
 - Render hooks backed by runner.
 - Keep model/profile logic explicit and sourced.
+- Keep source-generated output useful under token and byte caps.
+- Never rely on external-agent import for v3 migration.
 
 ## Validation
 
@@ -37,3 +53,5 @@ Verified date: 2026-04-25.
 - plugin cache install smoke
 - hook execution smoke
 - temp-home uninstall smoke
+- config precedence fixture with project and home config
+- token-limit fixture for large tool output

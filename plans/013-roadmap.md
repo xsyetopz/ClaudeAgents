@@ -9,6 +9,8 @@ Acceptance:
 - all platform specs exist.
 - ADRs exist.
 - platform claims are sourced or marked `UNKNOWN`.
+- source dives exist for Codex, OpenCode, Claude Code sourcemap, Kilo Code v5 legacy, and Windsurf.
+- Mermaid flow diagrams exist for runtime and install/uninstall paths.
 
 ## Phase 1: Source Model
 
@@ -16,6 +18,7 @@ Acceptance:
 - define schemas
 - define adapter registry
 - add docs evidence checker
+- add source-evidence manifest that links platform support to source paths or official docs
 
 ## Phase 2: Command Core
 
@@ -35,16 +38,16 @@ Acceptance:
 
 Implement in priority order:
 
-1. Codex CLi
+1. Codex CLI
 2. OpenCode
 3. Claude Code
 4. Gemini CLI
 5. Cline
 6. Cursor IDE
-7. Windsurf
+7. Windsurf Editor
 8. Amp
 9. Augment
-10. Kilo Code
+10. Kilo Code v5 legacy
 
 ## Phase 5: Installer Rewrite
 

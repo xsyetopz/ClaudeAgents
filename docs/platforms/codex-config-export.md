@@ -40,7 +40,7 @@ Official reference: https://developers.openai.com/codex/config-reference
   - `shell_tool = true`
   - `shell_snapshot = true`
   - `skill_mcp_dependency_install = true`
-  - `unified_exec = true`
+  - `unified_exec = false`
 - `[history]`
   - `persistence = "save-all"`
   - `max_bytes = 134217728`
