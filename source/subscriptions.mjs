@@ -56,7 +56,7 @@ const commonFeatureFlags = {
 	shellTool: true,
 	shellSnapshot: true,
 	skillMcpDependencyInstall: true,
-	unifiedExec: true,
+	unifiedExec: false,
 };
 
 export function isSupportedCodexModel(model) {
@@ -161,7 +161,6 @@ export const CODEX_PLANS = {
 				backgroundTerminalMaxTimeout: 7200,
 				features: {
 					...commonFeatureFlags,
-					unifiedExec: true,
 					preventIdleSleep: true,
 				},
 			},
@@ -242,7 +241,6 @@ export const CODEX_PLANS = {
 				backgroundTerminalMaxTimeout: 7200,
 				features: {
 					...commonFeatureFlags,
-					unifiedExec: true,
 					preventIdleSleep: true,
 				},
 			},
@@ -323,7 +321,6 @@ export const CODEX_PLANS = {
 				backgroundTerminalMaxTimeout: 7200,
 				features: {
 					...commonFeatureFlags,
-					unifiedExec: true,
 					preventIdleSleep: true,
 				},
 			},

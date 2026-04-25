@@ -72,7 +72,7 @@ const TOP_LEVEL_FEATURES = {
 	shellTool: true,
 	shellSnapshot: true,
 	skillMcpDependencyInstall: true,
-	unifiedExec: true,
+	unifiedExec: false,
 };
 
 function renderTomlArray(values) {

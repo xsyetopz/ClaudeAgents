@@ -460,7 +460,7 @@ describe("generated Codex defaults", () => {
 			config,
 			/\[features\][\s\S]*?skill_mcp_dependency_install = true/,
 		);
-		assert.match(config, /\[features\][\s\S]*?unified_exec = true/);
+		assert.match(config, /\[features\][\s\S]*?unified_exec = false/);
 		assert.match(config, /\[history\]/);
 		assert.match(config, /persistence = "save-all"/);
 		assert.match(config, /max_bytes = 134217728/);
@@ -512,7 +512,7 @@ describe("generated Codex defaults", () => {
 			);
 		}
 		assert.match(config, /background_terminal_max_timeout = 7200/);
-		assert.match(config, /unified_exec = true/);
+		assert.match(config, /unified_exec = false/);
 		assert.match(config, /prevent_idle_sleep = true/);
 		assert.equal(config.includes('approval_policy = "never"'), false);
 		assert.equal(config.includes('model_verbosity = "medium"'), false);
