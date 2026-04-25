@@ -1,6 +1,6 @@
-# Reimagination Thesis
+# OpenAgentLayer Reimagination Thesis
 
-v3 is a prompt framework. v4 becomes an overlaying agentic harness.
+v3 is a prompt framework. OpenAgentLayer becomes an overlaying agentic harness.
 
 ## Problem
 
@@ -16,9 +16,9 @@ v3 relies too much on generated prompt text and agent compliance. That creates:
 
 RTK savings expose the architecture flaw. Agents still think in raw shell and huge context dumps, so reminders cannot deliver the expected savings.
 
-## v4 Goal
+## OpenAgentLayer Goal
 
-v4 supercharges existing tools. It does not replace them.
+OpenAgentLayer supercharges existing tools. It does not replace them.
 
 The harness:
 

@@ -1,10 +1,10 @@
-# Install and Uninstall
+# OpenAgentLayer Install and Uninstall
 
-v4 install/uninstall is a product surface, not an afterthought.
+OpenAgentLayer install/uninstall is a product surface, not an afterthought.
 
 ## Install
 
-`install.sh` and `install.ps1` only bootstrap the TypeScript installer.
+`install.sh` and `install.ps1` only bootstrap the OpenAgentLayer TypeScript installer.
 
 Installer responsibilities:
 
@@ -13,7 +13,7 @@ Installer responsibilities:
 - render artifacts from source
 - write managed markers
 - write install manifest
-- install runner binary
+- install `oal-runner`
 - validate written files
 - report exact unsupported surfaces
 
@@ -21,9 +21,9 @@ Installer responsibilities:
 
 `uninstall.sh --all` removes:
 
-- v4 manifest-listed files
-- v4 managed marker blocks
-- v4 installed runner files
+- OpenAgentLayer manifest-listed files
+- OpenAgentLayer managed marker blocks
+- OpenAgentLayer installed runner files
 - known v3 residue
 
 It must not remove unmarked user files.

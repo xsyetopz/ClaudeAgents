@@ -1,6 +1,6 @@
-# Validation Strategy
+# OpenAgentLayer Validation Strategy
 
-v4 validation proves generated artifacts, install behavior, uninstall behavior, and token economy.
+OpenAgentLayer validation proves generated artifacts, install behavior, uninstall behavior, and token economy.
 
 ## Required Gates
 
@@ -25,11 +25,11 @@ bun test tests claude/tests codex/tests
 node scripts/check-generated.mjs
 ```
 
-v4 adds:
+OpenAgentLayer adds:
 
 ```bash
 bun test tests/v4
-cargo test -p oabtw-runner
+cargo test -p oal-runner
 node scripts/v4/install-smoke.mjs
 node scripts/v4/uninstall-smoke.mjs
 ```

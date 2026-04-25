@@ -17,7 +17,7 @@ flowchart TD
 ```mermaid
 flowchart TD
   A[agent requests action] --> B{harness verb?}
-  B -- yes --> C[oabtw-runner]
+  B -- yes --> C[oal-runner]
   B -- no --> D{raw shell justified?}
   D -- no --> E[block with exact reason]
   D -- yes --> C
@@ -95,4 +95,3 @@ flowchart TD
   C --> G[adapter may implement]
   E --> G
 ```
-

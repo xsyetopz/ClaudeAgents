@@ -1,8 +1,8 @@
 # v4 Reimagination Plan Index
 
-Status: draft source of truth for the v4 harness rewrite.
+Status: draft source of truth for the OpenAgentLayer rewrite.
 
-v4 is not a migration of v3. It is a reimagination from prompt framework to native overlay harness.
+OpenAgentLayer is not a migration of v3. It is a reimagination from prompt framework to native overlay harness.
 
 ## Core Specs
 
@@ -60,6 +60,7 @@ These files capture source-code research that informs the platform specs.
 - `decisions/adr-0002-no-legacy.md`
 - `decisions/adr-0003-native-adapters.md`
 - `decisions/adr-0004-rust-command-core.md`
+- `decisions/adr-0005-openagentlayer-name.md`
 
 ## Status Rules
 
@@ -68,3 +69,13 @@ These files capture source-code research that informs the platform specs.
 - `partial` means the platform supports enough to render useful behavior with limitations.
 - `prompt-only` means no deterministic runtime surface exists; generated rules/instructions only.
 - `unsupported` means v4 must not claim support.
+
+## Naming
+
+- Product: OpenAgentLayer
+- Short name: OAL
+- CLI: `oal`
+- Package scope: `@openagentlayer/*`
+- Rust crate prefix: `oal-*`
+- Runner binary/crate: `oal-runner`
+- Tagline: open overlay harness for coding agents

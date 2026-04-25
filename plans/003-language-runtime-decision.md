@@ -2,6 +2,13 @@
 
 Decision: TypeScript first, Rust surgically, Markdown as plan/spec memory, shell only as launcher.
 
+OpenAgentLayer names:
+
+- TypeScript packages use `@openagentlayer/*`.
+- Rust crates use `oal-*`.
+- Command runner binary is `oal-runner`.
+- CLI entrypoint is `oal`.
+
 ## TypeScript Ownership
 
 TypeScript owns harness intelligence:
@@ -43,7 +50,7 @@ Markdown owns human-verifiable planning:
 - ADRs
 - accepted/rejected ideas
 
-Reason: v4 is too broad for one README or one issue. The plan pack is the control plane.
+Reason: OpenAgentLayer is too broad for one README or one issue. The plan pack is the control plane.
 
 ## Shell and PowerShell Ownership
 

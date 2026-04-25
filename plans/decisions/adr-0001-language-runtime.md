@@ -14,6 +14,8 @@ v4 needs adapter rendering, install orchestration, command normalization, docs g
 - Markdown owns specs and rationale.
 - Shell/PowerShell only bootstrap.
 
+Public naming follows ADR-0005: `oal`, `oal-runner`, `@openagentlayer/*`, and `oal-*`.
+
 ## Consequences
 
 Easier:

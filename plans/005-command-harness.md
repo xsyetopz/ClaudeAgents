@@ -1,6 +1,6 @@
-# Command Harness
+# OpenAgentLayer Command Harness
 
-v4 command harness replaces raw-shell memory with typed intent.
+OpenAgentLayer command harness replaces raw-shell memory with typed intent.
 
 ## Command DSL
 
@@ -21,7 +21,7 @@ Initial verbs:
 
 ## Rust Runner Contract
 
-Binary target: `oabtw-runner`.
+Binary target: `oal-runner`.
 
 Responsibilities:
 
@@ -45,7 +45,7 @@ type HarnessCommand =
   | { kind: "diff"; paths?: string[] };
 ```
 
-Exact schema belongs in v4 implementation after Rust crate starts.
+Exact schema belongs in OpenAgentLayer implementation after Rust crate starts.
 
 ## Raw Shell Escape
 
