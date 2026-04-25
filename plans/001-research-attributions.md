@@ -1,0 +1,50 @@
+# Research and Attributions
+
+This file tracks sources used for v4 planning. Official docs override community lists.
+
+## Primary References
+
+| Source               | Link                                                       | Use                                                              |
+| -------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| Codex docs           | https://developers.openai.com/codex/                       | Codex native surfaces: AGENTS, config, hooks, skills, subagents. |
+| Claude Code docs     | https://docs.claude.com/en/docs/claude-code/overview       | Claude Code memory, hooks, slash commands, skills, subagents.    |
+| OpenCode docs        | https://opencode.ai/docs/                                  | Agents, skills, config, permissions, plugins.                    |
+| Gemini CLI docs      | https://github.com/google-gemini/gemini-cli/tree/main/docs | GEMINI.md, extensions, commands, hooks, MCP.                     |
+| Amp manual           | https://ampcode.com/manual                                 | AGENTS.md, threads, toolboxes, skills, subagents, MCP.           |
+| Cursor docs          | https://docs.cursor.com/                                   | Rules, AGENTS.md support, MCP, context controls.                 |
+| Cline docs           | https://docs.cline.bot/                                    | Rules, workflows, hooks, MCP, `.clineignore`.                    |
+| Windsurf docs        | https://docs.windsurf.com/                                 | Rules, workflows, memories, MCP, editor agent surfaces.          |
+| Augment docs         | https://docs.augmentcode.com/                              | Guidelines, rules, memories, MCP/context services.               |
+| Kilo Code docs       | https://kilo.ai/docs/                                      | Rules, workflows, modes, MCP-compatible surfaces.                |
+| AGENTS.md            | https://agents.md/                                         | Cross-agent instruction file convention.                         |
+| BMAD Method          | https://docs.bmad-method.org/                              | Phase model, project context, progress docs, install discipline. |
+| Awesome Codex CLI    | https://github.com/RoggeOhta/awesome-codex-cli             | Ecosystem taxonomy and adjacent tool survey.                     |
+| Awesome Codex Skills | https://github.com/ComposioHQ/awesome-codex-skills         | Skill packaging patterns and progressive disclosure examples.    |
+
+## Accepted Ideas
+
+- Native surface taxonomy: rules, agents, skills, commands, hooks, MCP, workflows, memories, install manifests.
+- Progressive disclosure: always-on instructions stay small; detailed procedures load only when selected.
+- Adapter contracts per platform instead of one generic prompt dump.
+- Phase-based workflows: research, plan, implement, validate, review, ship.
+- Project context files and progress docs as explicit control plane.
+- Skills as folders with metadata, `SKILL.md`, optional references, scripts, and assets.
+- Tool-specific install/uninstall verification.
+- Command budget enforcement through wrappers and hooks, not reminders.
+
+## Rejected Ideas
+
+- Link-farm documentation as product surface.
+- Badge-heavy README clutter.
+- Marketing claims like "best" or "comprehensive" without proof.
+- Copying platform-specific assumptions across tools.
+- Backwards compatibility layers for v3 names, flags, or generated layouts.
+- Prompt bloat as enforcement.
+- Long-lived catch-all orchestrator prompts.
+
+## Attribution Policy
+
+- Public README and docs links may be cited directly.
+- Verbatim source text must stay short and unnecessary copying avoided.
+- Derived implementation ideas must be rewritten into openagentsbtw contracts.
+- Platform claims need a source link or `UNKNOWN` marker.
