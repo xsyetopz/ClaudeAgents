@@ -1,7 +1,6 @@
 # Build output
 dist/
-build/
-.build/
+generated/
 v3_to_be_removed/
 target/
 
