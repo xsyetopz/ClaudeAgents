@@ -22,6 +22,8 @@ This file tracks sources used for v4 planning. Official docs override community 
 | Awesome Codex Skills    | https://github.com/ComposioHQ/awesome-codex-skills         | Skill packaging patterns and progressive disclosure examples.    |
 | Codex source            | https://github.com/openai/codex                            | Source-backed config, AGENTS, hooks, skills, MCP, sandbox.       |
 | OpenCode source         | https://github.com/anomalyco/opencode                      | Source-backed config, agents, skills, plugins, MCP, compaction.  |
+| OpenCode Models docs    | https://opencode.ai/docs/models/                           | OpenCode model/provider selection references.                    |
+| OpenCode Zen docs       | https://opencode.ai/docs/zen                               | OpenCode-hosted model IDs and Zen provider defaults.             |
 | Claude Code sourcemap   | https://github.com/xsyetopz/claude-code-sourcemap          | Unofficial 2.1.88 sourcemap research; use paths only.            |
 | Kilo Code legacy source | https://github.com/Kilo-Org/kilocode-legacy                | v5-era rules, workflows, modes, MCP, task protocol.              |
 | Windsurf site           | https://windsurf.com/                                      | Product reality: Windsurf Editor and extension/plugin surface.   |
@@ -36,6 +38,14 @@ This file tracks sources used for v4 planning. Official docs override community 
 - Skills as folders with metadata, `SKILL.md`, optional references, scripts, and assets.
 - Tool-specific install/uninstall verification.
 - Command budget enforcement through wrappers and hooks, not reminders.
+- User-provided runtime output can be direct evidence when the user explicitly corrects a plan fact.
+- User correction evidence updates the current plan or artifact directly; agents must not start unsolicited verification, log inspection, browsing, or side tasks.
+- Emotional, interpersonal, imagined, dream, memory, trauma, and hypothetical scenarios require direct answers or interpretation only unless the user explicitly asks for advice, guidance, action steps, or wording.
+
+## Runtime Evidence
+
+- 2026-04-28 Codex CLI model evidence provided by user: OAL accepts `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.3-codex`, and `gpt-5.2`; OAL rejects Spark-class utility routing and uses `gpt-5.4-mini` instead.
+- 2026-04-28 OpenCode `opencode models` output provided by user includes free fallback IDs: `opencode/big-pickle`, `opencode/minimax-m2.5-free`, `opencode/ling-2.6-flash-free`, `opencode/hy3-preview-free`, `opencode/nemotron-3-super-free`.
 
 ## Rejected Ideas
 

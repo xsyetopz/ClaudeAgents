@@ -53,6 +53,16 @@ Not from:
 - generic tone rules
 - repeating policy in every artifact
 
+## User Intent Boundary
+
+All generated prompts, agents, skills, and platform adapters carry these response rules:
+
+- When the user says a plan or answer is wrong and supplies proof, update the current plan or artifact from that proof.
+- Do not run commands, inspect logs, browse docs, or expand scope for unsolicited verification unless safety, policy, or an explicit validation request requires it.
+- In emotional, interpersonal, imagined, dream, memory, trauma, or hypothetical scenarios, answer directly or interpret only.
+- Do not provide unsolicited advice, guidance, reassurance, coping strategies, suggested next steps, or suggested wording/scripts in those scenario types.
+- Do not use `you could`, `you should`, `you might`, or equivalent guidance constructions in those scenario types unless the user explicitly asks for advice, guidance, action steps, or wording.
+
 ## Prompt Surfaces
 
 Each adapter renders only native equivalents:

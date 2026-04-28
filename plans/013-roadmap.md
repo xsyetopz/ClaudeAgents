@@ -1,72 +1,116 @@
 # OpenAgentLayer Roadmap
 
-## Phase 0: Plan Pack
+This roadmap turns the plan pack into a complete OpenAgentLayer v4 release. Every item is source-backed or explicitly blocked by `UNKNOWN` evidence.
 
-Acceptance:
+## Phase 0: Plan Pack and v3 Quarantine
 
-- `/plans/` exists.
-- all core specs exist.
-- all platform specs exist.
-- ADRs exist.
-- platform claims are sourced or marked `UNKNOWN`.
-- source dives exist for Codex, OpenCode, Claude Code sourcemap, Kilo Code v5 legacy, and Windsurf.
-- Mermaid flow diagrams exist for runtime and install/uninstall paths.
+- [x] `/plans/` exists with core specs, platform specs, source dives, ADRs, and Mermaid flows.
+- [x] Product name is locked as OpenAgentLayer / OAL.
+- [x] Old v3 implementation is moved out of the active product tree.
+- [x] `v3_to_be_removed/` is gitignored.
+- [x] v4 implementation does not mutate v3 in place.
+- [ ] Add a short plan-pack status table that shows which platform claims are sourced, partial, prompt-only, unsupported, or `UNKNOWN`.
 
-## Phase 1: Source Model
+## Phase 1: Source Model and Evidence Gates
 
-- define `source/harness`
-- define schemas
-- define adapter registry
-- add docs evidence checker
-- add source-evidence manifest that links platform support to source paths or official docs
+- [ ] Create `source/harness/` as the canonical TypeScript source model.
+- [ ] Define schemas for product metadata, adapters, prompts, skills, commands, hooks, permissions, model policy, install targets, uninstall targets, and validation gates.
+- [ ] Add an adapter registry keyed by stable platform IDs.
+- [ ] Add a source-evidence manifest that links every platform support claim to official docs, source paths, or user-provided runtime output.
+- [ ] Add a docs evidence checker that rejects unsourced support upgrades and stale verified dates.
+- [ ] Encode model policy: Codex utility routing uses `gpt-5.4-mini`; OAL does not emit Spark-class Codex routes.
+- [ ] Encode OpenCode fallback model defaults: `opencode/big-pickle`, `opencode/minimax-m2.5-free`, `opencode/ling-2.6-flash-free`, `opencode/hy3-preview-free`, and `opencode/nemotron-3-super-free`.
+- [ ] Pin Kilo support to `Kilo-Org/kilocode-legacy` v5 behavior; do not target v7 without a new decision record.
 
-## Phase 2: Command Core
+## Phase 2: CLI and Workspace Foundation
 
-- create Rust runner crate `oal-runner`
-- implement command DSL
-- replace RTK-memory dependency with harness command routing
-- add token-saving regression tests
+- [ ] Create the `oal` CLI entrypoint.
+- [ ] Split packages under `packages/` using the `@openagentlayer/*` scope.
+- [ ] Keep shell and PowerShell files as launchers only.
+- [ ] Add workspace-level config for TypeScript, tests, lint, formatting, and schema validation.
+- [ ] Add `oal plan`, `oal render`, `oal install`, `oal uninstall`, `oal validate`, and `oal doctor` command surfaces.
+- [ ] Add dry-run output for every command that would write files.
+- [ ] Add machine-readable JSON output for automation and concise text output for humans.
 
-## Phase 3: Generator Split
+## Phase 3: Command Core and `oal-runner`
 
-- keep thin generator
-- add platform renderer modules
-- remove v3 generated assumptions
-- add generated contract tests
+- [ ] Create Rust crate `oal-runner`.
+- [ ] Implement typed command intents for `status`, `diff`, `search`, `read`, `list`, `tree`, `test`, `build`, `lint`, and `logs`.
+- [ ] Enforce output budgets before data enters agent context.
+- [ ] Preserve exact errors while summarizing high-volume output.
+- [ ] Emit structured JSON summaries plus optional raw artifact paths.
+- [ ] Add raw-shell escape with justification, approval classification, and telemetry.
+- [ ] Add token-saving regression tests against noisy output fixtures.
+- [ ] Replace RTK-memory dependency in generated guidance with harness command routing.
 
-## Phase 4: Native Adapters
+## Phase 4: Generator and Renderer Split
 
-Implement in priority order:
+- [ ] Build platform renderer modules from the canonical source model.
+- [ ] Render managed markers into every generated artifact.
+- [ ] Render tiny always-on instruction files and lazy-loaded skills/workflows.
+- [ ] Remove v3 generated assumptions from active output.
+- [ ] Add generated contract tests for every renderer.
+- [ ] Add snapshot tests for important platform artifacts.
+- [ ] Add stale-output checks that fail when generated artifacts drift from source.
 
-1. Codex CLI
-2. OpenCode
-3. Claude Code
-4. Gemini CLI
-5. Cline
-6. Cursor IDE
-7. Windsurf Editor
-8. Amp
-9. Augment
-10. Kilo Code v5 legacy
+## Phase 5: Native Adapter Completion
 
-## Phase 5: Installer Rewrite
+- [ ] Codex CLI: render `AGENTS.md`, config, plugin skills, custom agents, hooks, MCP settings, and model policy using `gpt-5.4-mini` for bounded utility.
+- [ ] OpenCode: render agents, skills, config, permissions, local plugin files, Zen fallback model policy, and collision-safe skill names.
+- [ ] Claude Code: render native commands, hooks, skills, subagents, MCP, and compact project guidance.
+- [ ] Gemini CLI: render `GEMINI.md`, commands, extensions, MCP, and partial agent/skill equivalents.
+- [ ] Cline: render rules, workflows, MCP, hooks, and mode-compatible guidance.
+- [ ] Cursor IDE: render rules, AGENTS support, MCP, context controls, and partial workflow surfaces.
+- [ ] Windsurf Editor: render rules, workflows, memories, MCP, and supported hook surfaces.
+- [ ] Amp: render AGENTS, skills, toolbox/MCP guidance, and supported thread/subagent surfaces.
+- [ ] Augment: render guidelines, rules, memories, MCP/context service guidance, and mark unknown agent/command claims.
+- [ ] Kilo Code v5 legacy: render `.kilocode/rules/`, `.kilocode/rules-<mode>/`, `.kilocode/workflows/`, `.kilocodemodes`, and MCP config only when enabled.
 
-- TypeScript installer
-- shell launchers only
-- OpenAgentLayer manifest
-- dry-run
-- temp-home install smoke
+## Phase 6: Installer and Uninstaller Rewrite
 
-## Phase 6: Uninstaller Rewrite
+- [ ] Implement TypeScript installer with platform detection, adapter probes, source rendering, managed markers, install manifest, runner install, and written-file validation.
+- [ ] Implement uninstall from manifest first, then known v3 residue cleanup tables.
+- [ ] Add `--dry-run`, `--json`, `--platform`, `--home`, `--project`, and `--all` options.
+- [ ] Ensure uninstall never deletes unmarked user files.
+- [ ] Log every destructive cleanup path.
+- [ ] Add temp-home install smoke tests.
+- [ ] Add temp-home uninstall smoke tests.
+- [ ] Add v3 residue cleanup fixtures covering old Claude, Codex, OpenCode, Copilot, optional IDE, RTK, and managed config paths.
 
-- OpenAgentLayer manifest cleanup
-- known v3 residue cleanup
-- temp-home uninstall smoke
-- no unmarked user-file deletion
+## Phase 7: Validation Hardening
 
-## Phase 7: Public Docs Rewrite
+- [ ] Run schema validation for all source model files.
+- [ ] Run generated artifact snapshot and contract checks.
+- [ ] Run adapter docs evidence checks.
+- [ ] Run platform render tests.
+- [ ] Run temp-home install and uninstall smokes.
+- [ ] Run v3 residue cleanup fixture tests.
+- [ ] Run `cargo test -p oal-runner`.
+- [ ] Run token-saving regression tests.
+- [ ] Run permission, sandbox, hook, and approval-gate tests.
+- [ ] Run response-boundary regression checks.
+- [ ] Run cross-platform path tests for macOS, Linux, and Windows path conventions.
 
-- README OpenAgentLayer only
-- architecture OpenAgentLayer only
-- platform docs regenerated from plan evidence
-- changelog entry
+## Phase 8: Production Readiness
+
+- [ ] Restore CI for typecheck, lint, tests, schema checks, generated checks, Rust tests, install smokes, and uninstall smokes.
+- [ ] Add release packaging for npm packages and Rust runner binaries.
+- [ ] Add provenance and checksum generation.
+- [ ] Add compatibility notes that v4 is not a v3 migration layer.
+- [ ] Add rollback and uninstall docs.
+- [ ] Rewrite README for OpenAgentLayer only.
+- [ ] Rewrite architecture docs for OpenAgentLayer only.
+- [ ] Regenerate platform docs from plan evidence.
+- [ ] Add changelog entry for the v4 rewrite.
+- [ ] Add release checklist requiring clean tree, passing validation, generated parity, and no active output under `v3_to_be_removed/`.
+
+## Final Acceptance
+
+- [ ] `oal doctor` reports source, renderer, adapter, runner, installer, and uninstaller health.
+- [ ] `oal check --all` passes on a clean checkout.
+- [ ] Fresh temp-home install creates only managed OAL artifacts.
+- [ ] Fresh temp-home uninstall removes OAL artifacts and known v3 residue without deleting unmarked user files.
+- [ ] Codex generated config never routes to Spark-class models.
+- [ ] OpenCode generated config includes documented Zen fallback defaults.
+- [ ] Kilo generated output targets legacy v5 paths only.
+- [ ] Public docs contain no v3 product claims except removal/cleanup notes.

@@ -1,6 +1,6 @@
 # Codex CLI Platform Spec
 
-Verified date: 2026-04-25.
+Verified date: 2026-04-28.
 
 ## References
 
@@ -35,6 +35,23 @@ Verified date: 2026-04-25.
 - `tool_output_token_limit` can cap tool output kept in context.
 - Config layer precedence means runtime or CLI overrides can beat managed config.
 - MCP approval can differ from shell approval.
+
+## Model Policy
+
+Allowed OAL Codex models from 2026-04-28 user-provided runtime output:
+
+- `gpt-5.5`
+- `gpt-5.4`
+- `gpt-5.4-mini`
+- `gpt-5.3-codex`
+- `gpt-5.2`
+
+Routing policy:
+
+- Use `gpt-5.5` for complex planning, research, and orchestration.
+- Use `gpt-5.3-codex` for coding-specialist implementation and review.
+- Use `gpt-5.4-mini` for bounded utility and fast-small work.
+- Do not emit Spark-class Codex routes in OAL config, docs, defaults, or roadmap tasks.
 
 ## Adapter Plan
 

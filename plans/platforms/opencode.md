@@ -1,6 +1,6 @@
 # OpenCode Platform Spec
 
-Verified date: 2026-04-25.
+Verified date: 2026-04-28.
 
 ## References
 
@@ -8,6 +8,8 @@ Verified date: 2026-04-25.
 - https://opencode.ai/docs/agents/
 - https://opencode.ai/docs/skills/
 - https://opencode.ai/docs/config/
+- https://opencode.ai/docs/models/
+- https://opencode.ai/docs/zen
 - https://github.com/anomalyco/opencode
 
 ## Source Notes
@@ -36,6 +38,18 @@ Verified date: 2026-04-25.
 - OpenCode config includes native compaction and tool-output truncation concepts.
 - Plugin loading may execute package-manager behavior; v4 must avoid implicit package installs.
 - Skills may be discovered from `.opencode`, `.claude`, and `.agents` paths; name collisions must be handled.
+
+## Model Policy
+
+OpenCode model IDs use the `opencode/` provider prefix for hosted Zen models.
+
+Free fallback defaults from 2026-04-28 user-provided `opencode models` runtime output:
+
+- `opencode/big-pickle`
+- `opencode/minimax-m2.5-free`
+- `opencode/ling-2.6-flash-free`
+- `opencode/hy3-preview-free`
+- `opencode/nemotron-3-super-free`
 
 ## Adapter Plan
 

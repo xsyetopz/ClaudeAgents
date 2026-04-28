@@ -30,7 +30,15 @@ v4 permissions combine platform-native policies with harness-level command gates
 - Project rules can conflict with user/global managed rules; adapter must record precedence.
 - Hook scripts must be self-contained in installed target.
 
+## Unsolicited Action Guard
+
+Agents must stay within the requested action boundary.
+
+- User-provided correction proof is enough to update the plan or artifact.
+- Do not run commands, inspect logs, browse docs, or search for extra proof unless explicitly requested or required by safety/policy.
+- Do not convert an instruction to update a plan into a side investigation.
+- Tool use must match the user-requested task, not agent curiosity.
+
 ## v4 Contract
 
 Prompts describe policy. Hooks and runner enforce policy.
-
