@@ -1,5 +1,6 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { adapterFor } from "./adapters";
 import { assertRenderIdempotent } from "./render";
 import {
 	codexModels,
@@ -7,6 +8,7 @@ import {
 	greekGodAgents,
 	type JsonObject,
 	loadSource,
+	readJsonFile,
 	readTextFile,
 	type SourceFile,
 	type SourceGraph,
@@ -30,12 +32,13 @@ const schemaChecks = [
 	["source/schema/tools.schema.json", "source/tools/tools.json"],
 ] as const;
 
-const platformIds = ["codex", "claude", "opencode"] as const;
-
 export function checkSource(root = process.cwd()): void {
 	for (const [schema, data] of schemaChecks) {
 		validateJsonBySchema(root, schema, data);
 	}
+	const graph = loadSource(root);
+	const platformConfigs = existingPlatformConfigs(root);
+	const enabledPlatforms = graph.root.data["platforms"] as string[];
 	for (const agent of readdirSync(resolve(root, "source/agents")).sort()) {
 		validateJsonBySchema(
 			root,
@@ -50,7 +53,7 @@ export function checkSource(root = process.cwd()): void {
 			`source/hooks/${hook}`,
 		);
 	}
-	for (const platform of platformIds) {
+	for (const platform of existingPlatformIds(root)) {
 		validateJsonBySchema(
 			root,
 			"source/schema/platform.schema.json",
@@ -62,7 +65,17 @@ export function checkSource(root = process.cwd()): void {
 			`source/platforms/${platform}/config.json`,
 		);
 	}
-	const graph = loadSource(root);
+	for (const platform of enabledPlatforms) {
+		if (!adapterFor(platform)) {
+			throw createOalError(
+				graph.root.path,
+				"/platforms",
+				"enabled platform has no registered adapter",
+				platform,
+				"registered adapter",
+			);
+		}
+	}
 	checkNoGeneratedSource(graph);
 	checkRootReferences(graph);
 	checkAgents(graph);
@@ -70,10 +83,25 @@ export function checkSource(root = process.cwd()): void {
 	checkUpstreamHashes(root, graph);
 	checkModelRoutes(graph);
 	checkSubscriptions(graph);
+	checkProfileDefaults(graph, platformConfigs);
 	checkPlatformPolicies(graph);
 	checkProviders(graph);
 	checkTools(graph);
 	assertRenderIdempotent(root);
+}
+
+function existingPlatformIds(root: string): string[] {
+	const platformRoot = resolve(root, "source/platforms");
+	return readdirSync(platformRoot)
+		.filter((entry) => statSync(resolve(platformRoot, entry)).isDirectory())
+		.sort();
+}
+
+function existingPlatformConfigs(root: string): SourceFile[] {
+	return existingPlatformIds(root)
+		.map((platform) => `source/platforms/${platform}/config.json`)
+		.filter((path) => existsSync(resolve(root, path)))
+		.map((path) => ({ data: readJsonFile(root, path), path }));
 }
 
 function checkNoGeneratedSource(graph: SourceGraph): void {
@@ -192,7 +220,12 @@ function checkModelRoutes(graph: SourceGraph): void {
 		graph.modelRoutes.path,
 		"/claude",
 		models["claude"] as JsonObject,
-		["claude-opus-4-7", "claude-sonnet-4-6", "claude-haiku-4-5"],
+		[
+			"claude-opus-4-7",
+			"claude-opus-4-6",
+			"claude-sonnet-4-6",
+			"claude-haiku-4-5",
+		],
 	);
 	checkRoutesInAllowedSet(
 		graph.modelRoutes.path,
@@ -206,6 +239,105 @@ function checkModelRoutes(graph: SourceGraph): void {
 			"opencode/nemotron-3-super-free",
 		],
 	);
+}
+
+function checkProfileDefaults(
+	graph: SourceGraph,
+	platformConfigs: SourceFile[],
+): void {
+	const models = graph.modelRoutes.data;
+	const subscriptions = graph.subscriptions.data;
+	const effortByPlatform: Record<string, string[]> = {
+		claude: ["low", "medium", "high", "xhigh", "max"],
+		codex: ["none", "low", "medium", "high", "xhigh"],
+	};
+	for (const config of platformConfigs) {
+		const platform = String(config.data["platform"]);
+		const profiles = config.data["profile_defaults"];
+		if (!profiles) {
+			continue;
+		}
+		const allowedModels = (models[platform] as JsonObject | undefined)?.[
+			"allowed_models"
+		] as string[] | undefined;
+		const allowedSubscriptions = (
+			subscriptions[platform] as JsonObject | undefined
+		)?.["allowed"] as string[] | undefined;
+		const allowedEfforts = effortByPlatform[platform];
+		if (!(allowedModels && allowedSubscriptions && allowedEfforts)) {
+			continue;
+		}
+		for (const [profile, rawProfile] of Object.entries(
+			profiles as JsonObject,
+		)) {
+			if (!allowedSubscriptions.includes(profile)) {
+				throw createOalError(
+					config.path,
+					`/profile_defaults/${profile}`,
+					"profile default key must match allowed subscription",
+					profile,
+					allowedSubscriptions,
+				);
+			}
+			const agents = (rawProfile as JsonObject)["agents"] as
+				| JsonObject
+				| undefined;
+			if (!agents) {
+				throw createOalError(
+					config.path,
+					`/profile_defaults/${profile}/agents`,
+					"profile default must define Greek-gods agents",
+					rawProfile,
+					greekGodAgents,
+				);
+			}
+			for (const agent of greekGodAgents) {
+				const assignment = agents[agent] as JsonObject | undefined;
+				if (!assignment) {
+					throw createOalError(
+						config.path,
+						`/profile_defaults/${profile}/agents`,
+						"profile default missing Greek-gods agent",
+						agents,
+						agent,
+					);
+				}
+				const model = String(assignment["model"]);
+				if (!allowedModels.includes(model)) {
+					throw createOalError(
+						config.path,
+						`/profile_defaults/${profile}/agents/${agent}/model`,
+						"profile default uses unavailable model id",
+						model,
+						allowedModels,
+					);
+				}
+				const effort = String(assignment["effort"]);
+				if (!allowedEfforts.includes(effort)) {
+					throw createOalError(
+						config.path,
+						`/profile_defaults/${profile}/agents/${agent}/effort`,
+						"profile default uses unsupported effort",
+						effort,
+						allowedEfforts,
+					);
+				}
+			}
+			for (const agent of Object.keys(agents)) {
+				if (
+					!greekGodAgents.includes(agent as (typeof greekGodAgents)[number])
+				) {
+					throw createOalError(
+						config.path,
+						`/profile_defaults/${profile}/agents`,
+						"profile default contains non-Greek-gods agent",
+						agent,
+						greekGodAgents,
+					);
+				}
+			}
+		}
+	}
 }
 
 function checkRoutesInAllowedSet(
@@ -317,90 +449,95 @@ function checkAllowedSubscription(
 }
 
 function checkPlatformPolicies(graph: SourceGraph): void {
-	const codex = configFor(graph, "codex");
-	const codexFeatures = (codex.data["required_config"] as JsonObject)[
-		"features"
-	] as JsonObject;
-	checkRequired(
-		codex.path,
-		"/subscription/default",
-		(codex.data["subscription"] as JsonObject)["default"],
-		"plus",
-	);
-	checkRequired(
-		codex.path,
-		"/required_config/features/fast_mode",
-		codexFeatures["fast_mode"],
-		false,
-	);
-	checkRequired(
-		codex.path,
-		"/required_config/features/experimental_use_unified_exec_tool",
-		codexFeatures["experimental_use_unified_exec_tool"],
-		false,
-	);
-	checkRequired(
-		codex.path,
-		"/required_config/experimental_use_unified_exec_tool",
-		(codex.data["required_config"] as JsonObject)[
-			"experimental_use_unified_exec_tool"
-		],
-		false,
-	);
-	checkRequired(
-		codex.path,
-		"/required_config/features/multi_agent",
-		codexFeatures["multi_agent"],
-		false,
-	);
-	checkRequired(
-		codex.path,
-		"/required_config/features/multi_agent_v2",
-		codexFeatures["multi_agent_v2"],
-		true,
-	);
-
-	const claude = configFor(graph, "claude");
-	checkRequired(
-		claude.path,
-		"/subscription/default",
-		(claude.data["subscription"] as JsonObject)["default"],
-		"max-5",
-	);
-	checkRequired(
-		claude.path,
-		"/required_config/disableAllHooks",
-		(claude.data["required_config"] as JsonObject)["disableAllHooks"],
-		false,
-	);
-	checkRequired(
-		claude.path,
-		"/required_config/fastMode",
-		(claude.data["required_config"] as JsonObject)["fastMode"],
-		false,
-	);
-	checkRequired(
-		claude.path,
-		"/required_config/fastModePerSessionOptIn",
-		(claude.data["required_config"] as JsonObject)["fastModePerSessionOptIn"],
-		false,
-	);
-
-	const opencode = configFor(graph, "opencode");
-	if (
-		!greekGodAgents.includes(
-			(opencode.data["required_config"] as JsonObject)[
-				"default_agent"
-			] as (typeof greekGodAgents)[number],
-		)
-	) {
-		throw createOalError(
-			opencode.path,
-			"/required_config/default_agent",
-			"OpenCode default_agent must be Greek-gods agent",
-			(opencode.data["required_config"] as JsonObject)["default_agent"],
-			greekGodAgents,
+	const enabled = graph.root.data["platforms"] as string[];
+	if (enabled.includes("codex")) {
+		const codex = configFor(graph, "codex");
+		const codexFeatures = (codex.data["required_config"] as JsonObject)[
+			"features"
+		] as JsonObject;
+		checkRequired(
+			codex.path,
+			"/subscription/default",
+			(codex.data["subscription"] as JsonObject)["default"],
+			"plus",
 		);
+		checkRequired(
+			codex.path,
+			"/required_config/features/fast_mode",
+			codexFeatures["fast_mode"],
+			false,
+		);
+		checkRequired(
+			codex.path,
+			"/required_config/features/experimental_use_unified_exec_tool",
+			codexFeatures["experimental_use_unified_exec_tool"],
+			false,
+		);
+		checkRequired(
+			codex.path,
+			"/required_config/experimental_use_unified_exec_tool",
+			(codex.data["required_config"] as JsonObject)[
+				"experimental_use_unified_exec_tool"
+			],
+			false,
+		);
+		checkRequired(
+			codex.path,
+			"/required_config/features/multi_agent",
+			codexFeatures["multi_agent"],
+			false,
+		);
+		checkRequired(
+			codex.path,
+			"/required_config/features/multi_agent_v2",
+			codexFeatures["multi_agent_v2"],
+			true,
+		);
+	}
+	if (enabled.includes("claude")) {
+		const claude = configFor(graph, "claude");
+		checkRequired(
+			claude.path,
+			"/subscription/default",
+			(claude.data["subscription"] as JsonObject)["default"],
+			"max-5",
+		);
+		checkRequired(
+			claude.path,
+			"/required_config/disableAllHooks",
+			(claude.data["required_config"] as JsonObject)["disableAllHooks"],
+			false,
+		);
+		checkRequired(
+			claude.path,
+			"/required_config/fastMode",
+			(claude.data["required_config"] as JsonObject)["fastMode"],
+			false,
+		);
+		checkRequired(
+			claude.path,
+			"/required_config/fastModePerSessionOptIn",
+			(claude.data["required_config"] as JsonObject)["fastModePerSessionOptIn"],
+			false,
+		);
+	}
+	if (enabled.includes("opencode")) {
+		const opencode = configFor(graph, "opencode");
+		if (
+			!greekGodAgents.includes(
+				(opencode.data["required_config"] as JsonObject)[
+					"default_agent"
+				] as (typeof greekGodAgents)[number],
+			)
+		) {
+			throw createOalError(
+				opencode.path,
+				"/required_config/default_agent",
+				"OpenCode default_agent must be Greek-gods agent",
+				(opencode.data["required_config"] as JsonObject)["default_agent"],
+				greekGodAgents,
+			);
+		}
 	}
 }
 

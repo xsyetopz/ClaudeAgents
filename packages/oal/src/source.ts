@@ -179,20 +179,22 @@ export function loadSource(root = process.cwd()): SourceGraph {
 		data: readJsonFile<T>(root, path),
 		path,
 	});
+	const rootSource = sourceFile("source/oal.json");
+	const enabledPlatforms = rootSource.data["platforms"] as string[];
 	return {
 		agents: listJsonFiles(root, "source/agents").map((path) =>
 			sourceFile(path),
 		),
 		hooks: listJsonFiles(root, "source/hooks").map((path) => sourceFile(path)),
 		modelRoutes: sourceFile("source/routes/models.json"),
-		platformConfigs: ["claude", "codex", "opencode"].map((platform) =>
+		platformConfigs: enabledPlatforms.map((platform) =>
 			sourceFile(`source/platforms/${platform}/config.json`),
 		),
-		platforms: ["claude", "codex", "opencode"].map((platform) =>
+		platforms: enabledPlatforms.map((platform) =>
 			sourceFile(`source/platforms/${platform}/platform.json`),
 		),
 		providers: sourceFile("source/providers/providers.json"),
-		root: sourceFile("source/oal.json"),
+		root: rootSource,
 		subscriptions: sourceFile("source/routes/subscriptions.json"),
 		tools: sourceFile("source/tools/tools.json"),
 		upstreamSchemas: sourceFile("source/schemas/upstream.json"),

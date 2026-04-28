@@ -45,18 +45,69 @@
   "profile_defaults": {
     "max-5": {
       "default": true,
-      "routes": {
-        "plan": "claude-opus-4-7",
-        "research": "claude-opus-4-7",
-        "implement": "claude-sonnet-4-6",
-        "debug": "claude-opus-4-7",
-        "review": "claude-sonnet-4-6",
-        "utility": "claude-haiku-4-5"
+      "agents": {
+        "atalanta": {
+          "model": "claude-haiku-4-5",
+          "effort": "low"
+        },
+        "athena": {
+          "model": "claude-sonnet-4-6",
+          "effort": "medium"
+        },
+        "calliope": {
+          "model": "claude-haiku-4-5",
+          "effort": "low"
+        },
+        "hephaestus": {
+          "model": "claude-sonnet-4-6",
+          "effort": "high"
+        },
+        "hermes": {
+          "model": "claude-haiku-4-5",
+          "effort": "low"
+        },
+        "nemesis": {
+          "model": "claude-opus-4-7",
+          "effort": "medium"
+        },
+        "odysseus": {
+          "model": "claude-sonnet-4-6",
+          "effort": "medium"
+        }
       }
     },
     "max-20": {
-      "inherits": "max-5",
-      "capacity_class": "max-20"
+      "capacity_class": "max-20",
+      "agents": {
+        "atalanta": {
+          "model": "claude-haiku-4-5",
+          "effort": "medium"
+        },
+        "athena": {
+          "model": "claude-opus-4-7",
+          "effort": "high"
+        },
+        "calliope": {
+          "model": "claude-haiku-4-5",
+          "effort": "medium"
+        },
+        "hephaestus": {
+          "model": "claude-sonnet-4-6",
+          "effort": "high"
+        },
+        "hermes": {
+          "model": "claude-haiku-4-5",
+          "effort": "medium"
+        },
+        "nemesis": {
+          "model": "claude-opus-4-7",
+          "effort": "high"
+        },
+        "odysseus": {
+          "model": "claude-opus-4-7",
+          "effort": "medium"
+        }
+      }
     }
   },
   "doctor": {

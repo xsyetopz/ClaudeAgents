@@ -49,23 +49,102 @@
   "profile_defaults": {
     "plus": {
       "default": true,
-      "routes": {
-        "plan": "gpt-5.5 high",
-        "research": "gpt-5.5 high",
-        "implement": "gpt-5.3-codex high",
-        "debug": "gpt-5.3-codex xhigh",
-        "review": "gpt-5.3-codex high",
-        "utility": "gpt-5.4-mini medium",
-        "classify_contract": "gpt-5.4-mini high"
+      "agents": {
+        "atalanta": {
+          "model": "gpt-5.4-mini",
+          "effort": "low"
+        },
+        "athena": {
+          "model": "gpt-5.4-mini",
+          "effort": "medium"
+        },
+        "calliope": {
+          "model": "gpt-5.4-mini",
+          "effort": "low"
+        },
+        "hephaestus": {
+          "model": "gpt-5.3-codex",
+          "effort": "medium"
+        },
+        "hermes": {
+          "model": "gpt-5.4-mini",
+          "effort": "low"
+        },
+        "nemesis": {
+          "model": "gpt-5.5",
+          "effort": "low"
+        },
+        "odysseus": {
+          "model": "gpt-5.4",
+          "effort": "low"
+        }
       }
     },
     "pro-5": {
-      "inherits": "plus",
-      "capacity_class": "pro-5"
+      "capacity_class": "pro-5",
+      "agents": {
+        "atalanta": {
+          "model": "gpt-5.4-mini",
+          "effort": "low"
+        },
+        "athena": {
+          "model": "gpt-5.4",
+          "effort": "medium"
+        },
+        "calliope": {
+          "model": "gpt-5.4-mini",
+          "effort": "low"
+        },
+        "hephaestus": {
+          "model": "gpt-5.3-codex",
+          "effort": "high"
+        },
+        "hermes": {
+          "model": "gpt-5.4-mini",
+          "effort": "low"
+        },
+        "nemesis": {
+          "model": "gpt-5.5",
+          "effort": "medium"
+        },
+        "odysseus": {
+          "model": "gpt-5.4",
+          "effort": "medium"
+        }
+      }
     },
     "pro-20": {
-      "inherits": "plus",
-      "capacity_class": "pro-20"
+      "capacity_class": "pro-20",
+      "agents": {
+        "atalanta": {
+          "model": "gpt-5.4-mini",
+          "effort": "medium"
+        },
+        "athena": {
+          "model": "gpt-5.4",
+          "effort": "high"
+        },
+        "calliope": {
+          "model": "gpt-5.4-mini",
+          "effort": "medium"
+        },
+        "hephaestus": {
+          "model": "gpt-5.3-codex",
+          "effort": "high"
+        },
+        "hermes": {
+          "model": "gpt-5.4-mini",
+          "effort": "medium"
+        },
+        "nemesis": {
+          "model": "gpt-5.5",
+          "effort": "high"
+        },
+        "odysseus": {
+          "model": "gpt-5.5",
+          "effort": "medium"
+        }
+      }
     }
   },
   "doctor": {

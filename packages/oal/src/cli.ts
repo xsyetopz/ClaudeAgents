@@ -1,41 +1,30 @@
 #!/usr/bin/env bun
-import { checkSource } from "./check";
-import { explain, render } from "./render";
+import { commandUsage, findCommand } from "./commands";
 import { formatOalError } from "./source";
-
-function optionValue(args: string[], name: string, fallback: string): string {
-	const index = args.indexOf(name);
-	if (index === -1) {
-		return fallback;
-	}
-	return args[index + 1] ?? fallback;
-}
 
 function main(argv: string[]): void {
 	const [command, ...args] = argv;
-	if (command === "check") {
-		checkSource();
-		console.log("oal check ok");
+	if (
+		!command ||
+		command === "help" ||
+		command === "--help" ||
+		command === "-h"
+	) {
+		console.log(commandUsage());
 		return;
 	}
-	if (command === "render") {
-		const outDir = optionValue(args, "--out", "generated");
-		render(process.cwd(), outDir);
-		console.log(`oal render ok: ${outDir}`);
+	const selectedCommand = findCommand(command);
+	if (!selectedCommand) {
+		throw new Error(commandUsage());
+	}
+	if (args.includes("--help") || args.includes("-h")) {
+		console.log(selectedCommand.usage);
 		return;
 	}
-	if (command === "explain") {
-		const target = args.find((arg) => !arg.startsWith("--"));
-		if (!target) {
-			throw new Error("usage: oal explain <generated-path> [--out generated]");
-		}
-		const outDir = optionValue(args, "--out", "generated");
-		console.log(
-			JSON.stringify(explain(process.cwd(), target, outDir), null, "\t"),
-		);
-		return;
+	const result = selectedCommand.run(args);
+	if (result?.exitCode) {
+		process.exit(result.exitCode);
 	}
-	throw new Error("usage: oal <check|render|explain>");
 }
 
 try {

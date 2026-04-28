@@ -16,7 +16,12 @@
       "enum": [
         "codex",
         "claude",
-        "opencode"
+        "opencode",
+        "kilo",
+        "windsurf",
+        "cline",
+        "gemini",
+        "cursor"
       ]
     },
     "native_surfaces": {

@@ -1,11 +1,14 @@
 import {
 	existsSync,
+	mkdirSync,
 	readdirSync,
 	readFileSync,
 	rmSync,
 	statSync,
+	writeFileSync,
 } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
+import { adapterFor } from "./adapters";
 import {
 	cleanDirectory,
 	createTempDirectory,
@@ -84,6 +87,24 @@ export function render(
 			writeJson(`platforms/${id}/config-policy.json`, config.data, [
 				config.path,
 			]);
+		}
+	}
+	for (const platform of graph.root.data["platforms"] as string[]) {
+		const adapter = adapterFor(platform);
+		if (!adapter) {
+			throw new Error(
+				`enabled platform has no registered adapter: ${platform}`,
+			);
+		}
+		for (const payload of adapter.render(root, graph)) {
+			const absolutePath = join(absoluteOut, payload.path);
+			mkdirSync(dirname(absolutePath), { recursive: true });
+			writeFileSync(absolutePath, payload.content);
+			files.push({
+				path: payload.path,
+				sha256: sha256(readFileSync(absolutePath)),
+				sources: payload.sourcePaths,
+			});
 		}
 	}
 

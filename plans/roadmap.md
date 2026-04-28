@@ -20,6 +20,16 @@ Authoritative specs:
 - Renderer manifest, managed sidecar, and explain map: `specs/platform-adapters.md`
 - Validation order and policy checks: `specs/config-validation.md`
 
+## Phase 3A exit criteria
+
+Phase 3A is accepted when Codex adapter output includes native Codex surfaces, generated Codex config validates against the cached upstream schema, `oal doctor hooks codex` names supported and unsupported hook mappings explicitly, and `oal check` still passes.
+
+Status policy:
+
+- `[ ]` means no source/spec/code exists yet.
+- `[~]` means partial source/spec/code exists, but the acceptance gate is not met.
+- `[x]` means source/spec/code exists and validation passes.
+
 ## Phase 1: source and schema
 
 ### Source model
@@ -75,21 +85,21 @@ Authoritative specs:
 
 ### Codex
 
-- [ ] Implement Codex `detect`.
-- [ ] Implement Codex `capabilities`.
-- [ ] Render `AGENTS.md`.
-- [ ] Render Codex agents/subagents.
-- [ ] Render Codex skills.
-- [ ] Render Codex hooks.
-- [ ] Render Codex config.
-- [ ] Validate Codex config against upstream schema.
-- [ ] Enforce `features.fast_mode = false`.
-- [ ] Enforce `features.experimental_use_unified_exec_tool = false`.
-- [ ] Enforce root `experimental_use_unified_exec_tool = false`.
-- [ ] Enforce `features.multi_agent = false`.
-- [ ] Enforce `features.multi_agent_v2 = true`.
-- [ ] Enforce Codex subscription profile.
-- [ ] Implement `oal doctor hooks codex`.
+- [x] Implement Codex `detect`.
+- [x] Implement Codex `capabilities`.
+- [x] Render `AGENTS.md`.
+- [x] Render Codex agents/subagents.
+- [~] Render Codex skills.
+- [x] Render Codex hooks.
+- [x] Render Codex config.
+- [x] Validate Codex config against upstream schema.
+- [x] Enforce `features.fast_mode = false`.
+- [x] Enforce `features.experimental_use_unified_exec_tool = false`.
+- [x] Enforce root `experimental_use_unified_exec_tool = false`.
+- [x] Enforce `features.multi_agent = false`.
+- [x] Enforce `features.multi_agent_v2 = true`.
+- [x] Enforce Codex subscription profile.
+- [x] Implement `oal doctor hooks codex`.
 
 ### Claude Code
 
@@ -265,7 +275,7 @@ Authoritative specs:
 
 - [ ] Run local schema checks.
 - [ ] Run upstream schema hash checks.
-- [ ] Run generated config schema checks.
+- [~] Run generated config schema checks.
 - [ ] Run OAL config policy checks.
 - [ ] Run render idempotency check.
 - [ ] Run stale branding check.
