@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import Ajv from "ajv";
+import Ajv from "ajv/dist/2020.js";
 import { loadAdapters } from "../../core/src/adapters.mjs";
 import { readJson as readJsonFile } from "../../core/src/json.mjs";
 import {
@@ -11,6 +11,46 @@ import {
 import { repoPath } from "../../core/src/paths.mjs";
 
 const schemaPairs = [
+	[
+		"prompts",
+		"source/harness/prompts.json",
+		"source/harness/schemas/list.schema.json",
+	],
+	[
+		"skills",
+		"source/harness/skills.json",
+		"source/harness/schemas/list.schema.json",
+	],
+	[
+		"commands",
+		"source/harness/commands.json",
+		"source/harness/schemas/list.schema.json",
+	],
+	[
+		"hooks",
+		"source/harness/hooks.json",
+		"source/harness/schemas/list.schema.json",
+	],
+	[
+		"permissions",
+		"source/harness/permissions.json",
+		"source/harness/schemas/permissions.schema.json",
+	],
+	[
+		"install-targets",
+		"source/harness/install-targets.json",
+		"source/harness/schemas/list.schema.json",
+	],
+	[
+		"uninstall-targets",
+		"source/harness/uninstall-targets.json",
+		"source/harness/schemas/uninstall-targets.schema.json",
+	],
+	[
+		"validation-result",
+		"source/harness/validation-result.json",
+		"source/harness/schemas/validation-result.schema.json",
+	],
 	[
 		"product",
 		"source/harness/product.json",
@@ -120,6 +160,39 @@ export async function checkEvidence() {
 	return results;
 }
 
+function parseIsoDate(value) {
+	const millis = Date.parse(`${value}T00:00:00Z`);
+	if (Number.isNaN(millis)) {
+		throw new Error(`invalid ISO date: ${value}`);
+	}
+	return millis;
+}
+
+function ageInDays(verifiedAt, now) {
+	const dayMillis = 24 * 60 * 60 * 1000;
+	return Math.floor((parseIsoDate(now) - parseIsoDate(verifiedAt)) / dayMillis);
+}
+
+export async function checkEvidenceDates(now = "2026-04-28") {
+	const evidence = await readHarnessJson("source/harness/evidence.json");
+	const results = [];
+	for (const item of evidence.platformEvidence) {
+		const age = ageInDays(item.verifiedAt, now);
+		results.push(
+			age > evidence.maxAgeDays
+				? fail(
+						`evidence-date:${item.platformId}`,
+						`${item.path} stale by ${age} days`,
+					)
+				: ok(
+						`evidence-date:${item.platformId}`,
+						`${item.path} verified ${age} days ago`,
+					),
+		);
+	}
+	return results;
+}
+
 export async function checkAdapters() {
 	const adapters = await loadAdapters();
 	const results = [];
@@ -164,6 +237,7 @@ export async function runChecks(target = "all") {
 			...(await checkSchemas()),
 			...(await checkModelPolicy()),
 			...(await checkEvidence()),
+			...(await checkEvidenceDates()),
 			...(await checkAdapters()),
 			...(await checkRoadmap()),
 		],
@@ -171,7 +245,9 @@ export async function runChecks(target = "all") {
 			...(await checkSchemas()),
 			...(await checkModelPolicy()),
 			...(await checkEvidence()),
+			...(await checkEvidenceDates()),
 		],
+		"evidence-dates": checkEvidenceDates,
 		evidence: checkEvidence,
 		"model-policy": checkModelPolicy,
 		roadmap: checkRoadmap,

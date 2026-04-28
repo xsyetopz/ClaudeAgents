@@ -1,0 +1,8 @@
+[
+  {
+    "id": "runner-gate",
+    "event": "command",
+    "summary": "Route shell-adjacent work through the OAL runner budget gate.",
+    "evidenceId": "plans/006-hook-system.md"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "manifest",
+    "summary": "Remove manifest-listed OAL files first."
+  },
+  {
+    "kind": "v3-residue",
+    "summary": "Remove known v3 residue tables only when enabled."
+  }
+]

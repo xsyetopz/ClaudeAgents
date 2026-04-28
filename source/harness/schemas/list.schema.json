@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "kind": {
+        "type": "string"
+      },
+      "surface": {
+        "type": "string"
+      },
+      "event": {
+        "type": "string"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "evidenceId": {
+        "type": "string"
+      },
+      "platformId": {
+        "type": "string"
+      },
+      "target": {
+        "type": "string"
+      },
+      "managed": {
+        "type": "boolean"
+      }
+    }
+  }
+}

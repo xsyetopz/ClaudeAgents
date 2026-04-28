@@ -1,0 +1,6 @@
+{
+  "rawShell": "approval-required",
+  "runner": "allowed",
+  "destructiveCleanup": "manifest-or-confirmed-only",
+  "evidenceId": "plans/016-permission-model.md"
+}

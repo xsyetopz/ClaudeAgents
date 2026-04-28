@@ -9,7 +9,20 @@ This roadmap turns the plan pack into a complete OpenAgentLayer v4 release. Ever
 - [x] Old v3 implementation is moved out of the active product tree.
 - [x] `v3_to_be_removed/` is gitignored.
 - [x] v4 implementation does not mutate v3 in place.
-- [ ] Add a short plan-pack status table that shows which platform claims are sourced, partial, prompt-only, unsupported, or `UNKNOWN`.
+- [x] Add a short plan-pack status table that shows which platform claims are sourced, partial, prompt-only, unsupported, or `UNKNOWN`.
+
+| Platform            | Status  | Evidence                                                      |
+| ------------------- | ------- | ------------------------------------------------------------- |
+| Codex CLI           | sourced | official docs, source dive, 2026-04-28 runtime model evidence |
+| OpenCode            | sourced | official docs, source dive, 2026-04-28 Zen model evidence     |
+| Claude Code         | sourced | official docs and 2.1.88 sourcemap                            |
+| Gemini CLI          | partial | official docs                                                 |
+| Cline               | partial | official docs                                                 |
+| Cursor IDE          | partial | official docs                                                 |
+| Windsurf Editor     | partial | official docs and source dive                                 |
+| Amp                 | partial | official manual                                               |
+| Augment             | partial | official docs                                                 |
+| Kilo Code v5 legacy | partial | `Kilo-Org/kilocode-legacy` source                             |
 
 ## Phase 1: Source Model and Evidence Gates
 
@@ -21,8 +34,8 @@ This roadmap turns the plan pack into a complete OpenAgentLayer v4 release. Ever
 - [x] Encode model policy: Codex utility routing uses `gpt-5.4-mini`; OAL emits only policy-listed Codex routes.
 - [x] Encode OpenCode fallback model defaults: `opencode/big-pickle`, `opencode/minimax-m2.5-free`, `opencode/ling-2.6-flash-free`, `opencode/hy3-preview-free`, and `opencode/nemotron-3-super-free`.
 - [x] Pin Kilo support to `Kilo-Org/kilocode-legacy` v5 behavior; do not target v7 without a new decision record.
-- [ ] Extend schemas to prompts, skills, commands, hooks, permissions, install targets, uninstall targets, and validation result wire formats.
-- [ ] Extend docs evidence checker to reject stale verified dates.
+- [x] Extend schemas to prompts, skills, commands, hooks, permissions, install targets, uninstall targets, and validation result wire formats.
+- [x] Extend docs evidence checker to reject stale verified dates.
 
 ## Phase 2: CLI and Workspace Foundation
 
@@ -37,13 +50,13 @@ This roadmap turns the plan pack into a complete OpenAgentLayer v4 release. Ever
 ## Phase 3: Command Core and `oal-runner`
 
 - [x] Create Rust crate `oal-runner`.
-- [ ] Implement typed command intents for `status`, `diff`, `search`, `read`, `list`, `tree`, `test`, `build`, `lint`, and `logs`.
-- [ ] Enforce output budgets before data enters agent context.
-- [ ] Preserve exact errors while summarizing high-volume output.
+- [x] Implement typed command intents for `status`, `diff`, `search`, `read`, `list`, `tree`, `test`, `build`, `lint`, and `logs`.
+- [x] Enforce output budgets before data enters agent context.
+- [x] Preserve exact errors while summarizing high-volume output.
 - [x] Emit structured JSON summaries.
-- [ ] Emit optional raw artifact paths.
+- [x] Emit optional raw artifact paths.
 - [ ] Add raw-shell escape with justification, approval classification, and telemetry.
-- [ ] Add token-saving regression tests against noisy output fixtures.
+- [x] Add token-saving regression tests against noisy output fixtures.
 - [ ] Replace RTK-memory dependency in generated guidance with harness command routing.
 
 ## Phase 4: Generator and Renderer Split
@@ -82,7 +95,7 @@ This roadmap turns the plan pack into a complete OpenAgentLayer v4 release. Ever
 
 ## Phase 7: Validation Hardening
 
-- [ ] Run schema validation for all source model files.
+- [x] Run schema validation for all source model files.
 - [ ] Run generated artifact snapshot and contract checks.
 - [ ] Run adapter docs evidence checks.
 - [ ] Run platform render tests.

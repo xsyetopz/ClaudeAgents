@@ -1,4 +1,29 @@
 {
+  "verifiedAt": "2026-04-28",
+  "maxAgeDays": 120,
+  "platformEvidence": [
+    {
+      "platformId": "codex-cli",
+      "status": "sourced",
+      "evidenceType": "official-docs-and-runtime",
+      "path": "plans/platforms/codex-cli.md",
+      "verifiedAt": "2026-04-28"
+    },
+    {
+      "platformId": "opencode",
+      "status": "sourced",
+      "evidenceType": "official-docs-and-runtime",
+      "path": "plans/platforms/opencode.md",
+      "verifiedAt": "2026-04-28"
+    },
+    {
+      "platformId": "kilo-code-v5",
+      "status": "partial",
+      "evidenceType": "source",
+      "path": "plans/platforms/kilo-code.md",
+      "verifiedAt": "2026-04-25"
+    }
+  ],
   "requiredPlanPaths": [
     "plans/platforms/codex-cli.md",
     "plans/platforms/opencode.md",

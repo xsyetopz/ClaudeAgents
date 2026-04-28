@@ -12,6 +12,7 @@ import {
 } from "../packages/installer/src/index.mjs";
 import { renderArtifacts } from "../packages/renderers/src/index.mjs";
 import {
+	checkEvidenceDates,
 	runChecks,
 	summarizeResults,
 } from "../packages/validation/src/checks.mjs";
@@ -68,4 +69,15 @@ test("all checks pass", async () => {
 	const summary = summarizeResults(results);
 	assert.deepEqual(summary.failures, []);
 	assert.equal(summary.ok, true);
+});
+
+test("stale evidence dates fail with injected clock", async () => {
+	const results = await checkEvidenceDates("2027-01-01");
+	const summary = summarizeResults(results);
+	assert.equal(summary.ok, false);
+	assert.ok(
+		summary.failures.some(
+			(failure) => failure.id === "evidence-date:codex-cli",
+		),
+	);
 });
