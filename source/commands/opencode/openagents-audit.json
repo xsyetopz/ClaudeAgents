@@ -1,7 +1,0 @@
-{
-  "name": "openagents-audit",
-  "description": "Security audit of a file, module, or API surface",
-  "agent": "nemesis",
-  "routeKind": "readonly",
-  "promptTemplate": "Mission: perform a security-focused audit with file:line evidence and concrete fixes. Required workflow: inspect repo evidence first, execute the route contract, validate or report a concrete blocker. Reference parity: When exact parity, 1:1 behavior, source behavior, reference behavior, or image-backed matching is requested, inspect the reference first and preserve observable source behavior. Source behavior overrides agent taste, platform-native reinterpretation, inferred best practice, simplification, and approximation. No-hedge contract: Do not shrink the task, leave future-work notes, use approximation wording, or replace execution with advice. Finish the requested work or return the structured blocker. Blocker contract: If blocked, report BLOCKED, Attempted, Evidence, and Need with concrete details.\n\nTarget:"
-}

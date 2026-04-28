@@ -2,39 +2,7 @@
 dist/
 build/
 .build/
-
-# Generated platform artifacts (built at install/build time)
-claude/agents/
-claude/skills/
-claude/templates/CLAUDE.md
-claude/hooks/HOOKS.md
-claude/hooks/policy-map.json
-
-codex/agents/
-codex/templates/AGENTS.md
-codex/hooks/HOOKS.md
-codex/hooks/policy-map.json
-codex/plugin/openagentsbtw/skills/
-
-opencode/templates/
-
-copilot/templates/
-copilot/hooks/HOOKS.md
-copilot/hooks/policy-map.json
-
-bin/oabtw-codex
-bin/openagentsbtw-codex
-
-# Python
-__pycache__/
-*.py[codz]
-*.egg-info/
-.pytest_cache/
-.coverage
-htmlcov/
-.ruff_cache/
-.venv/
-venv/
+v3_to_be_removed/
 
 # Node
 node_modules/
@@ -63,6 +31,3 @@ Thumbs.db
 
 # Logs
 *.log
-
-# Local research corpus (do not track)
-docs/reddit-*
