@@ -1,8 +1,0 @@
-[
-  {
-    "id": "core",
-    "surface": "always-on",
-    "summary": "Tiny OpenAgentLayer core prompt loaded by every adapter.",
-    "evidenceId": "plans/009-prompt-architecture.md"
-  }
-]

@@ -1,7 +1,0 @@
-[
-  {
-    "id": "openagentsbtw",
-    "summary": "Role workflow entrypoint loaded lazily by supported platforms.",
-    "evidenceId": "plans/010-skill-workflow-system.md"
-  }
-]
