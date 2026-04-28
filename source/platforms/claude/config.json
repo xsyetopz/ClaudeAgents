@@ -1,0 +1,71 @@
+{
+  "$schema": "../../schema/platform-config.schema.json",
+  "platform": "claude",
+  "binary": "claude",
+  "subscription": {
+    "default": "max-5",
+    "allowed": [
+      "max-5",
+      "max-20"
+    ],
+    "blocked_consumer_tiers": [
+      "plus"
+    ],
+    "source_urls": [
+      "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+    ]
+  },
+  "schemas": {
+    "generated_settings": "claude_code_settings"
+  },
+  "managed_keys": [
+    "agent",
+    "allowManagedHooksOnly",
+    "allowManagedMcpServersOnly",
+    "allowManagedPermissionRulesOnly",
+    "availableModels",
+    "disableAllHooks",
+    "fastMode",
+    "fastModePerSessionOptIn",
+    "hooks",
+    "model",
+    "modelOverrides",
+    "permissions",
+    "statusLine",
+    "strictPluginOnlyCustomization"
+  ],
+  "required_config": {
+    "disableAllHooks": false,
+    "fastMode": false,
+    "fastModePerSessionOptIn": false,
+    "allowManagedHooksOnly": false,
+    "allowManagedMcpServersOnly": false,
+    "allowManagedPermissionRulesOnly": false
+  },
+  "profile_defaults": {
+    "max-5": {
+      "default": true,
+      "routes": {
+        "plan": "claude-opus-4-7",
+        "research": "claude-opus-4-7",
+        "implement": "claude-sonnet-4-6",
+        "debug": "claude-opus-4-7",
+        "review": "claude-sonnet-4-6",
+        "utility": "claude-haiku-4-5"
+      }
+    },
+    "max-20": {
+      "inherits": "max-5",
+      "capacity_class": "max-20"
+    }
+  },
+  "doctor": {
+    "reject_when": [
+      "subscription == plus",
+      "subscription not in allowed",
+      "disableAllHooks == true",
+      "fastMode == true",
+      "fastModePerSessionOptIn == true"
+    ]
+  }
+}

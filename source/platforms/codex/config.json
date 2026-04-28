@@ -1,0 +1,81 @@
+{
+  "$schema": "../../schema/platform-config.schema.json",
+  "platform": "codex",
+  "binary": "codex",
+  "subscription": {
+    "default": "plus",
+    "allowed": [
+      "plus",
+      "pro-5",
+      "pro-20"
+    ],
+    "source_urls": [
+      "https://help.openai.com/en/articles/11369540-codex-in-chatgpt",
+      "https://help.openai.com/en/articles/6825453-chatgpt-rate-limits"
+    ]
+  },
+  "schemas": {
+    "generated_config": "codex_config"
+  },
+  "required_config": {
+    "features": {
+      "codex_hooks": true,
+      "fast_mode": false,
+      "multi_agent": false,
+      "multi_agent_v2": true,
+      "experimental_use_unified_exec_tool": false
+    },
+    "experimental_use_unified_exec_tool": false
+  },
+  "managed_keys": [
+    "agents",
+    "approval_policy",
+    "features",
+    "hooks",
+    "marketplaces",
+    "mcp_servers",
+    "model",
+    "model_reasoning_effort",
+    "model_verbosity",
+    "plugins",
+    "profile",
+    "profiles",
+    "project_doc_max_bytes",
+    "sandbox_mode",
+    "skills",
+    "tool_output_token_limit",
+    "tools"
+  ],
+  "profile_defaults": {
+    "plus": {
+      "default": true,
+      "routes": {
+        "plan": "gpt-5.5 high",
+        "research": "gpt-5.5 high",
+        "implement": "gpt-5.3-codex high",
+        "debug": "gpt-5.3-codex xhigh",
+        "review": "gpt-5.3-codex high",
+        "utility": "gpt-5.4-mini medium",
+        "classify_contract": "gpt-5.4-mini high"
+      }
+    },
+    "pro-5": {
+      "inherits": "plus",
+      "capacity_class": "pro-5"
+    },
+    "pro-20": {
+      "inherits": "plus",
+      "capacity_class": "pro-20"
+    }
+  },
+  "doctor": {
+    "reject_when": [
+      "features.fast_mode == true",
+      "features.unified_exec == true",
+      "features.experimental_use_unified_exec_tool == true",
+      "experimental_use_unified_exec_tool == true",
+      "features.multi_agent == true",
+      "subscription not in allowed"
+    ]
+  }
+}
