@@ -63,6 +63,38 @@ Each capability is:
 
 Generated files include an OAL managed marker when target format allows comments. Commentless formats use sidecar manifest.
 
+Renderer core always writes:
+
+- `.oal/render-manifest.json`
+- `.oal/managed-files.json`
+- `.oal/explain-map.json`
+
+`render-manifest.json` fields:
+
+- `generated_at`
+- `generator`
+- `files[]`
+
+Each file entry contains:
+
+- `path`
+- `sha256`
+- `sources[]`
+
+`managed-files.json` fields:
+
+- `managed_by`
+- `files[]`
+
+`files[]` includes rendered payload files and `.oal/*` sidecars so install and uninstall can manage the whole generated tree. `render-manifest.json` records payload files only, because self-hashing the manifest would make the manifest unstable.
+
+`explain-map.json` maps each generated output path to:
+
+- `sha256`
+- `sources[]`
+
+Generated file paths in these manifests are relative to render output root. Source paths are relative to repo root. These manifests are sidecars, not source input.
+
 ## `install`
 
 `install` copies rendered files to platform roots.

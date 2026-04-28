@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/agent.schema.json",
+  "id": "odysseus",
+  "display_name": "Odysseus",
+  "role": "Coordinator for packet-driven multi-step work, disjoint delegation, acceptance gates, and final synthesis.",
+  "model_route": "plan",
+  "platforms": [
+    "codex",
+    "claude",
+    "opencode"
+  ]
+}

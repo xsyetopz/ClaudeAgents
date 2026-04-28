@@ -1,0 +1,69 @@
+{
+  "$schema": "../schema/tools.schema.json",
+  "tools": {
+    "bun": {
+      "required": true,
+      "probe": "bun --version",
+      "install": {
+        "macos": "brew install oven-sh/bun/bun",
+        "linux": "upstream-script"
+      }
+    },
+    "rtk": {
+      "required": true,
+      "probe": "rtk --version",
+      "install": {
+        "macos": "brew install rtk-ai/tap/rtk",
+        "linux": "upstream-script"
+      }
+    },
+    "rg": {
+      "required": true,
+      "probe": "rg --version",
+      "install": {
+        "macos": "brew install ripgrep",
+        "linux": "package-manager"
+      }
+    },
+    "jq": {
+      "required": true,
+      "probe": "jq --version",
+      "install": {
+        "macos": "brew install jq",
+        "linux": "package-manager"
+      }
+    },
+    "context7": {
+      "required": false,
+      "probe": "context7 --version",
+      "install": {
+        "macos": "optional-cli",
+        "linux": "optional-cli"
+      }
+    },
+    "ctx7": {
+      "required": false,
+      "probe": "ctx7 --version",
+      "install": {
+        "macos": "optional-cli",
+        "linux": "optional-cli"
+      }
+    },
+    "playwright": {
+      "required": false,
+      "probe": "playwright --version",
+      "install": {
+        "macos": "optional-cli",
+        "linux": "optional-cli"
+      }
+    },
+    "deepwiki": {
+      "required": false,
+      "probe": "deepwiki --help",
+      "install": {
+        "macos": "optional-cli",
+        "linux": "optional-cli"
+      }
+    }
+  }
+}

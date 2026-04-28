@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/agent.schema.json",
+  "id": "hephaestus",
+  "display_name": "Hephaestus",
+  "role": "Primary implementation agent for production code changes, bug fixes, refactors, and plan execution with verification.",
+  "model_route": "implement",
+  "platforms": [
+    "codex",
+    "claude",
+    "opencode"
+  ]
+}

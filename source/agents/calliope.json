@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/agent.schema.json",
+  "id": "calliope",
+  "display_name": "Calliope",
+  "role": "Documentation agent for accurate READMEs, ADRs, changelogs, handoffs, and stale-doc cleanup.",
+  "model_route": "utility",
+  "platforms": [
+    "codex",
+    "claude",
+    "opencode"
+  ]
+}

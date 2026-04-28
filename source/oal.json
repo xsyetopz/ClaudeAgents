@@ -1,0 +1,31 @@
+{
+  "$schema": "./schema/oal.schema.json",
+  "name": "OpenAgentLayer",
+  "cli": "oal",
+  "version": "4.0.0",
+  "platforms": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "providers": [
+    "caveman",
+    "rtk",
+    "bmad-method",
+    "taste-skill"
+  ],
+  "routes": [
+    "subscriptions",
+    "models"
+  ],
+  "tools": [
+    "bun",
+    "rtk",
+    "rg",
+    "jq",
+    "context7",
+    "ctx7",
+    "playwright",
+    "deepwiki"
+  ]
+}

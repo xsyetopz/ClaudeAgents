@@ -1,0 +1,257 @@
+import { createHash } from "node:crypto";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	statSync,
+	writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, relative, resolve, sep } from "node:path";
+import Ajv2020 from "ajv/dist/2020.js";
+
+export const greekGodAgents = [
+	"atalanta",
+	"athena",
+	"calliope",
+	"hephaestus",
+	"hermes",
+	"nemesis",
+	"odysseus",
+] as const;
+
+export const codexModels = [
+	"gpt-5.5",
+	"gpt-5.4",
+	"gpt-5.4-mini",
+	"gpt-5.3-codex",
+	"gpt-5.3-codex-spark",
+	"gpt-5.2",
+] as const;
+
+export type JsonObject = Record<string, unknown>;
+
+export interface SourceFile<T = JsonObject> {
+	path: string;
+	data: T;
+}
+
+export interface SourceGraph {
+	root: SourceFile;
+	agents: SourceFile[];
+	hooks: SourceFile[];
+	modelRoutes: SourceFile;
+	platformConfigs: SourceFile[];
+	platforms: SourceFile[];
+	providers: SourceFile;
+	subscriptions: SourceFile;
+	tools: SourceFile;
+	upstreamSchemas: SourceFile;
+}
+
+export interface OalErrorDetail {
+	file: string;
+	jsonPath: string;
+	message: string;
+	badValue?: unknown;
+	requiredValue?: unknown;
+}
+
+export class OalError extends Error {
+	readonly details: OalErrorDetail[];
+
+	constructor(message: string, details: OalErrorDetail[] = []) {
+		super(message);
+		this.name = "OalError";
+		this.details = details;
+	}
+}
+
+export function createOalError(
+	file: string,
+	jsonPath: string,
+	message: string,
+	badValue?: unknown,
+	requiredValue?: unknown,
+): OalError {
+	return new OalError(message, [
+		{ badValue, file, jsonPath, message, requiredValue },
+	]);
+}
+
+export function formatOalError(error: unknown): string {
+	if (!(error instanceof OalError)) {
+		return error instanceof Error ? error.message : String(error);
+	}
+	const detailText = error.details
+		.map((detail) => {
+			const values = [
+				`file=${detail.file}`,
+				`jsonPath=${detail.jsonPath}`,
+				`message=${detail.message}`,
+				detail.badValue === undefined
+					? undefined
+					: `badValue=${JSON.stringify(detail.badValue)}`,
+				detail.requiredValue === undefined
+					? undefined
+					: `requiredValue=${JSON.stringify(detail.requiredValue)}`,
+			]
+				.filter(Boolean)
+				.join(" ");
+			return `- ${values}`;
+		})
+		.join("\n");
+	return `${error.message}\n${detailText}`;
+}
+
+export function toRepoPath(root: string, path: string): string {
+	return relative(root, path).split(sep).join("/");
+}
+
+export function readJsonFile<T = JsonObject>(root: string, path: string): T {
+	return JSON.parse(readFileSync(resolve(root, path), "utf8")) as T;
+}
+
+export function readTextFile(root: string, path: string): Buffer {
+	return readFileSync(resolve(root, path));
+}
+
+export function sha256(content: string | Buffer): string {
+	return createHash("sha256").update(content).digest("hex");
+}
+
+export function stableStringify(value: unknown): string {
+	return `${JSON.stringify(sortJson(value), null, "\t")}\n`;
+}
+
+export function writeStableJson(path: string, value: unknown): void {
+	mkdirSync(dirname(path), { recursive: true });
+	writeFileSync(path, stableStringify(value));
+}
+
+export function sortJson(value: unknown): unknown {
+	if (Array.isArray(value)) {
+		return value.map(sortJson);
+	}
+	if (!value || typeof value !== "object") {
+		return value;
+	}
+	const sorted: JsonObject = {};
+	for (const key of Object.keys(value as JsonObject).sort()) {
+		sorted[key] = sortJson((value as JsonObject)[key]);
+	}
+	return sorted;
+}
+
+export function listJsonFiles(root: string, path: string): string[] {
+	const absolute = resolve(root, path);
+	if (!existsSync(absolute)) {
+		return [];
+	}
+	return readdirSync(absolute)
+		.filter((entry) => entry.endsWith(".json"))
+		.sort()
+		.map((entry) => `${path}/${entry}`);
+}
+
+export function listNestedJsonFiles(root: string, path: string): string[] {
+	const absolute = resolve(root, path);
+	if (!existsSync(absolute)) {
+		return [];
+	}
+	const files: string[] = [];
+	for (const entry of readdirSync(absolute).sort()) {
+		const child = join(absolute, entry);
+		if (statSync(child).isDirectory()) {
+			files.push(...listNestedJsonFiles(root, `${path}/${entry}`));
+		} else if (entry.endsWith(".json")) {
+			files.push(toRepoPath(root, child));
+		}
+	}
+	return files;
+}
+
+export function loadSource(root = process.cwd()): SourceGraph {
+	const sourceFile = <T = JsonObject>(path: string): SourceFile<T> => ({
+		data: readJsonFile<T>(root, path),
+		path,
+	});
+	return {
+		agents: listJsonFiles(root, "source/agents").map((path) =>
+			sourceFile(path),
+		),
+		hooks: listJsonFiles(root, "source/hooks").map((path) => sourceFile(path)),
+		modelRoutes: sourceFile("source/routes/models.json"),
+		platformConfigs: ["claude", "codex", "opencode"].map((platform) =>
+			sourceFile(`source/platforms/${platform}/config.json`),
+		),
+		platforms: ["claude", "codex", "opencode"].map((platform) =>
+			sourceFile(`source/platforms/${platform}/platform.json`),
+		),
+		providers: sourceFile("source/providers/providers.json"),
+		root: sourceFile("source/oal.json"),
+		subscriptions: sourceFile("source/routes/subscriptions.json"),
+		tools: sourceFile("source/tools/tools.json"),
+		upstreamSchemas: sourceFile("source/schemas/upstream.json"),
+	};
+}
+
+export function sourceFiles(graph: SourceGraph): SourceFile[] {
+	return [
+		graph.root,
+		...graph.agents,
+		...graph.hooks,
+		graph.modelRoutes,
+		...graph.platformConfigs,
+		...graph.platforms,
+		graph.providers,
+		graph.subscriptions,
+		graph.tools,
+		graph.upstreamSchemas,
+	];
+}
+
+export function validateJsonBySchema(
+	root: string,
+	schemaPath: string,
+	dataPath: string,
+): void {
+	const ajv = new Ajv2020({ allErrors: true });
+	ajv.addFormat("uri", {
+		type: "string",
+		validate(value: string) {
+			try {
+				new URL(value);
+				return true;
+			} catch {
+				return false;
+			}
+		},
+	});
+	const schema = readJsonFile(root, schemaPath);
+	const data = readJsonFile(root, dataPath);
+	const validate = ajv.compile(schema);
+	if (!validate(data)) {
+		throw new OalError(`${dataPath} failed ${schemaPath}`, [
+			...(validate.errors ?? []).map((error) => ({
+				badValue: error.data,
+				file: dataPath,
+				jsonPath: error.instancePath || "/",
+				message: error.message ?? "schema validation failed",
+				requiredValue: error.params,
+			})),
+		]);
+	}
+}
+
+export function cleanDirectory(path: string): void {
+	rmSync(path, { force: true, recursive: true });
+	mkdirSync(path, { recursive: true });
+}
+
+export function createTempDirectory(prefix: string): string {
+	return mkdtempSync(join(tmpdir(), prefix));
+}

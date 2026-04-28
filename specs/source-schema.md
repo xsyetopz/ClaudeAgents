@@ -39,7 +39,7 @@ Rules:
 
 - `name` must be `OpenAgentLayer`.
 - CLI id must be `oal`.
-- enabled platform ids must match files under `source/platforms/`.
+- enabled platform ids must match directories under `source/platforms/`.
 - no generated file path may be used as source input.
 
 ## Agent records
@@ -51,9 +51,7 @@ Required fields:
 - `id`
 - `display_name`
 - `role`
-- `route`
 - `model_route`
-- `instructions`
 - `platforms`
 
 Allowed ids:
@@ -80,16 +78,14 @@ Path: `source/skills/<skill>.json`
 Required fields:
 
 - `id`
-- `kind`
+- `description`
 - `source`
-- `body`
-- `platforms`
+- `provider` when `source` is `provider`
 
-Allowed `kind`:
+Allowed `source`:
 
 - `local`
-- `upstream`
-- `wrapper`
+- `provider`
 
 Rules:
 
@@ -104,10 +100,8 @@ Path: `source/commands/<command>.json`
 Required fields:
 
 - `id`
+- `description`
 - `route`
-- `kind`
-- `intent`
-- `platforms`
 
 Allowed command ids:
 
@@ -140,9 +134,8 @@ Path: `source/workflows/<workflow>.json`
 Required fields:
 
 - `id`
-- `route`
+- `description`
 - `steps`
-- `platforms`
 
 Rules:
 
@@ -158,31 +151,19 @@ Required fields:
 
 - `id`
 - `category`
-- `purpose`
-- `platform_events`
-- `input_adapter`
-- `output_adapter`
-- `failure_mode`
-- `unsupported`
+- `description`
+- `supported_platforms`
+- `unsupported_platforms`
 
 Allowed categories:
 
 - `session-start`
-- `session-end`
 - `prompt-submit`
 - `tool-pre`
 - `tool-post`
 - `tool-fail`
-- `tool-batch`
-- `permission`
 - `agent-start`
-- `agent-stop`
-- `task-created`
-- `task-completed`
 - `compact-pre`
-- `compact-post`
-- `workspace`
-- `notification`
 
 Rules:
 
@@ -193,23 +174,21 @@ Rules:
 
 ## Platform records
 
-Path: `source/platforms/<platform>.json` or `source/platforms/<platform>/config.json`
+Path: `source/platforms/<platform>/platform.json` for native capability records.
+
+Path: `source/platforms/<platform>/config.json` for schema-backed config policy records.
 
 Required fields:
 
 - `id`
-- `binary`
 - `native_surfaces`
 - `roots`
 - `renderers`
-- `doctor`
-- `schemas`
-- `managed_keys`
-- `required_config`
 
 Rules:
 
 - binary names are literal: `codex`, `claude`, `opencode`
+- platform id must match directory name
 - native surfaces must be explicit booleans or documented objects
 - unsupported surfaces must not render files
 - generated configs must validate against declared upstream schemas where listed

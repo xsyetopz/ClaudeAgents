@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/agent.schema.json",
+  "id": "hermes",
+  "display_name": "Hermes",
+  "role": "Exploration agent for cited repo tracing, dependency analysis, API discovery, and narrow evidence packets.",
+  "model_route": "research",
+  "platforms": [
+    "codex",
+    "claude",
+    "opencode"
+  ]
+}

@@ -9,9 +9,9 @@
   },
   "private": true,
   "scripts": {
-    "test": "echo \"no tests\"",
+    "test": "bun test",
     "check": "bun run lint && bun run check:source && bun run test",
-    "check:source": "node scripts/check-source.mjs",
+    "check:source": "bun packages/oal/src/cli.ts check",
     "lint": "bunx biome check . --error-on-warnings --max-diagnostics 16384",
     "format": "bunx biome format . --write --max-diagnostics 16384",
     "biome:check": "bunx biome check . --error-on-warnings --max-diagnostics 16384",

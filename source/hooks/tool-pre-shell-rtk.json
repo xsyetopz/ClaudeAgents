@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/hook.schema.json",
+  "id": "tool-pre-shell-rtk",
+  "category": "tool-pre",
+  "description": "Require RTK command shape when RTK policy is active.",
+  "supported_platforms": {
+    "codex": {
+      "events": [
+        "PreToolUse"
+      ],
+      "input_adapter": "codex-pretooluse-shell",
+      "output_adapter": "codex-block-or-allow"
+    }
+  },
+  "unsupported_platforms": {
+    "claude": "Hook payload parity not proven in this wave.",
+    "opencode": "Hook payload parity not proven in this wave."
+  }
+}

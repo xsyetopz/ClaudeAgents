@@ -10,56 +10,66 @@ Build OAL as a Bun/TypeScript/JSON-native agent layer that renders native platfo
 - [~] in progress
 - [x] done
 
+## Phase 1/2 exit criteria
+
+Phase 1/2 is accepted when `oal check` validates local JSON schemas, pinned upstream schema hashes, model/subscription/provider/tool policies, and renderer idempotency from the canonical `source/` graph.
+
+Authoritative specs:
+
+- Source graph and schemas: `specs/source-schema.md`
+- Renderer manifest, managed sidecar, and explain map: `specs/platform-adapters.md`
+- Validation order and policy checks: `specs/config-validation.md`
+
 ## Phase 1: source and schema
 
 ### Source model
 
-- [ ] Create `source/oal.json`.
-- [ ] Create JSON schemas for agents, skills, commands, workflows, hooks, platforms, providers, tools, routes, subscriptions, and upstream schemas.
-- [ ] Create Greek-gods agent records for `athena`, `hermes`, `hephaestus`, `nemesis`, `atalanta`, `calliope`, and `odysseus`.
-- [ ] Create provider records for required and optional providers.
-- [ ] Add git repo URL, remote, branch, locked ref, upstream path, overlay path, and sync strategy to provider records.
-- [ ] Create tool records for required and optional host tools.
-- [ ] Create model route records for Codex, Claude Code, and OpenCode.
-- [ ] Create subscription records for Codex and Claude Code.
-- [ ] Create upstream schema manifest.
-- [ ] Create Codex, Claude Code, and OpenCode config source records.
+- [x] Create `source/oal.json`.
+- [x] Create JSON schemas for agents, skills, commands, workflows, hooks, platforms, providers, tools, routes, subscriptions, and upstream schemas.
+- [x] Create Greek-gods agent records for `athena`, `hermes`, `hephaestus`, `nemesis`, `atalanta`, `calliope`, and `odysseus`.
+- [x] Create provider records for required and optional providers.
+- [x] Add git repo URL, remote, branch, locked ref, upstream path, overlay path, and sync strategy to provider records.
+- [x] Create tool records for required and optional host tools.
+- [x] Create model route records for Codex, Claude Code, and OpenCode.
+- [x] Create subscription records for Codex and Claude Code.
+- [x] Create upstream schema manifest.
+- [x] Create Codex, Claude Code, and OpenCode config source records.
 
 ### Validation
 
-- [ ] Wire schema validator into `oal check`.
-- [ ] Reject invalid agent names.
-- [ ] Reject unsupported Codex model ids.
-- [ ] Reject unsupported Claude Code model ids.
-- [ ] Reject unsupported OpenCode fallback model ids.
-- [ ] Reject hook ids that do not start with hook category prefix.
-- [ ] Reject providers without provenance.
-- [ ] Reject git-backed providers without repo URL, branch/ref, upstream path, and overlay path.
-- [ ] Reject Linux tool install records without package-manager detection.
-- [ ] Reject Codex subscription outside `plus`, `pro-5`, `pro-20`.
-- [ ] Reject Claude Code subscription outside `max-5`, `max-20`.
-- [ ] Reject Claude Code `plus` consumer profile.
+- [x] Wire schema validator into `oal check`.
+- [x] Reject invalid agent names.
+- [x] Reject unsupported Codex model ids.
+- [x] Reject unsupported Claude Code model ids.
+- [x] Reject unsupported OpenCode fallback model ids.
+- [x] Reject hook ids that do not start with hook category prefix.
+- [x] Reject providers without provenance.
+- [x] Reject git-backed providers without repo URL, branch/ref, upstream path, and overlay path.
+- [x] Reject Linux tool install records without package-manager detection.
+- [x] Reject Codex subscription outside `plus`, `pro-5`, `pro-20`.
+- [x] Reject Claude Code subscription outside `max-5`, `max-20`.
+- [x] Reject Claude Code `plus` consumer profile.
 
 ## Phase 2: renderer core
 
 ### Core pipeline
 
-- [ ] Implement source loader.
-- [ ] Implement schema validator.
-- [ ] Implement render planner.
-- [ ] Implement render manifest.
-- [ ] Implement managed-file marker or sidecar manifest.
-- [ ] Implement explain map from output file to source file.
-- [ ] Ensure generated output never becomes source input.
+- [x] Implement source loader.
+- [x] Implement schema validator.
+- [x] Implement render planner.
+- [x] Implement render manifest.
+- [x] Implement managed-file marker or sidecar manifest.
+- [x] Implement explain map from output file to source file.
+- [x] Ensure generated output never becomes source input.
 
 ### Idempotency
 
-- [ ] Render to temporary tree.
-- [ ] Compare render output deterministically.
-- [ ] Fail when two renders differ.
-- [ ] Preserve stable file ordering.
-- [ ] Preserve stable JSON formatting.
-- [ ] Preserve stable Markdown section ordering.
+- [x] Render to temporary tree.
+- [x] Compare render output deterministically.
+- [x] Fail when two renders differ.
+- [x] Preserve stable file ordering.
+- [x] Preserve stable JSON formatting.
+- [x] Preserve stable Markdown section ordering.
 
 ## Phase 3: platform adapters
 

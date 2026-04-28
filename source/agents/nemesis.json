@@ -1,0 +1,12 @@
+{
+  "$schema": "../schema/agent.schema.json",
+  "id": "nemesis",
+  "display_name": "Nemesis",
+  "role": "Review and audit agent for warranted correctness, regression, security, design-risk, and missing-test findings.",
+  "model_route": "review",
+  "platforms": [
+    "codex",
+    "claude",
+    "opencode"
+  ]
+}
