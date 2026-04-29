@@ -61,6 +61,15 @@ export function checkSource(root = process.cwd()): void {
 			`source/hooks/${hook}`,
 		);
 	}
+	for (const skill of readdirSync(resolve(root, "source/skills"))
+		.filter((entry) => entry.endsWith(".json"))
+		.sort()) {
+		validateJsonBySchema(
+			root,
+			"source/schema/skill.schema.json",
+			`source/skills/${skill}`,
+		);
+	}
 	for (const workflow of readdirSync(resolve(root, "source/workflows"))
 		.filter((entry) => entry.endsWith(".json"))
 		.sort()) {
@@ -96,6 +105,7 @@ export function checkSource(root = process.cwd()): void {
 	checkNoGeneratedSource(graph);
 	checkRootReferences(graph);
 	checkAgents(graph);
+	checkSkills(graph);
 	checkHooks(graph, existingPlatformIds(root));
 	checkUpstreamHashes(root, graph);
 	checkModelRoutes(graph);
@@ -207,6 +217,34 @@ function promptFor(graph: SourceGraph, agent: SourceFile): SourceFile<string> {
 		);
 	}
 	return prompt;
+}
+
+function checkSkills(graph: SourceGraph): void {
+	for (const skill of graph.skills) {
+		const bodyPath = String(skill.data["body_path"]);
+		const body = graph.skillBodies.find((file) => file.path === bodyPath);
+		if (!body) {
+			throw createOalError(
+				skill.path,
+				"/body_path",
+				"skill body file missing",
+				bodyPath,
+				"source/skills/<skill>.md",
+			);
+		}
+		if (
+			String(skill.data["source"]) === "provider" &&
+			!skill.data["provider"]
+		) {
+			throw createOalError(
+				skill.path,
+				"/provider",
+				"provider skill must name provider",
+				skill.data["provider"],
+				"provider id",
+			);
+		}
+	}
 }
 
 function checkHooks(graph: SourceGraph, platformIds: string[]): void {

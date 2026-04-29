@@ -5,7 +5,8 @@
   "required": [
     "id",
     "description",
-    "source"
+    "source",
+    "body_path"
   ],
   "properties": {
     "$schema": {
@@ -18,6 +19,10 @@
     "description": {
       "type": "string",
       "minLength": 1
+    },
+    "body_path": {
+      "type": "string",
+      "pattern": "^source/skills/[a-z][a-z0-9-]*\\.md$"
     },
     "source": {
       "enum": [

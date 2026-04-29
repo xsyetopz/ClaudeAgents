@@ -86,6 +86,11 @@ export const codexAdapter: PlatformAdapter = {
 					...graph.promptModules.map((module) => module.path),
 				],
 			})),
+			...graph.skills.map((skill) => ({
+				content: renderCodexSkill(graph, skill),
+				path: `codex/.agents/skills/${skill.data["id"]}/SKILL.md`,
+				sourcePaths: [skill.path, String(skill.data["body_path"])],
+			})),
 			...graph.hooks
 				.filter((hook) =>
 					Boolean(asJsonObject(hook.data["supported_platforms"])["codex"]),
@@ -108,6 +113,31 @@ export const codexAdapter: PlatformAdapter = {
 		];
 	},
 };
+
+function renderCodexSkill(graph: SourceGraph, skill: SourceFile): string {
+	const body = skillBodyFor(graph, skill).data.trim();
+	return [
+		"---",
+		`name: ${skill.data["id"]}`,
+		`description: ${String(skill.data["description"]).replaceAll("\n", " ")}`,
+		"---",
+		"",
+		body,
+		"",
+	].join("\n");
+}
+
+function skillBodyFor(
+	graph: SourceGraph,
+	skill: SourceFile,
+): SourceFile<string> {
+	const bodyPath = String(skill.data["body_path"]);
+	const body = graph.skillBodies.find((file) => file.path === bodyPath);
+	if (!body) {
+		throw new Error(`${bodyPath} is required`);
+	}
+	return body;
+}
 
 function configFor(graph: SourceGraph): SourceFile {
 	const config = graph.platformConfigs.find(

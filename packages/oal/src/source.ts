@@ -53,6 +53,8 @@ export interface SourceGraph {
 	platforms: SourceFile[];
 	providers: SourceFile;
 	subscriptions: SourceFile;
+	skillBodies: SourceFile<string>[];
+	skills: SourceFile[];
 	tools: SourceFile;
 	upstreamSchemas: SourceFile;
 	workflows: SourceFile[];
@@ -222,6 +224,9 @@ export function loadSource(root = process.cwd()): SourceGraph {
 	const agents = listJsonFiles(root, "source/agents").map((path) =>
 		sourceFile(path),
 	);
+	const skills = listJsonFiles(root, "source/skills").map((path) =>
+		sourceFile(path),
+	);
 	return {
 		agentPrompts: agents.map((agent) =>
 			textFile(String(agent.data["prompt_path"])),
@@ -243,6 +248,10 @@ export function loadSource(root = process.cwd()): SourceGraph {
 			(path) => textFile(path),
 		),
 		root: rootSource,
+		skillBodies: skills.map((skill) =>
+			textFile(String(skill.data["body_path"])),
+		),
+		skills,
 		subscriptions: sourceFile("source/routes/subscriptions.json"),
 		tools: sourceFile("source/tools/tools.json"),
 		upstreamSchemas: sourceFile("source/schemas/upstream.json"),
@@ -264,6 +273,8 @@ export function sourceFiles(graph: SourceGraph): SourceFile<unknown>[] {
 		...graph.platformConfigs,
 		...graph.platforms,
 		graph.providers,
+		...graph.skills,
+		...graph.skillBodies,
 		graph.subscriptions,
 		graph.tools,
 		graph.upstreamSchemas,

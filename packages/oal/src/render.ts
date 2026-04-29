@@ -68,6 +68,7 @@ export function render(
 				graph.providers.data["providers"] as JsonObject,
 			).sort(),
 			routes: graph.root.data["routes"],
+			skills: graph.skills.map((skill) => skill.data["id"]).sort(),
 			tools: Object.keys(graph.tools.data["tools"] as JsonObject).sort(),
 			version: graph.root.data["version"],
 		},
@@ -76,6 +77,9 @@ export function render(
 
 	for (const agent of graph.agents) {
 		writeJson(`agents/${agent.data["id"]}.json`, agent.data, [agent.path]);
+	}
+	for (const skill of graph.skills) {
+		writeJson(`skills/${skill.data["id"]}.json`, skill.data, [skill.path]);
 	}
 	for (const platform of graph.platforms) {
 		const id = String(platform.data["id"]);
