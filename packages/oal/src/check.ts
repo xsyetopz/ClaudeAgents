@@ -633,20 +633,45 @@ function checkPlatformPolicies(graph: SourceGraph): void {
 	}
 	if (enabled.includes("opencode")) {
 		const opencode = configFor(graph, "opencode");
+		const allowedModels = (graph.modelRoutes.data["opencode"] as JsonObject)[
+			"allowed_models"
+		] as string[];
+		const requiredConfig = opencode.data["required_config"] as JsonObject;
 		if (
 			!greekGodAgents.includes(
-				(opencode.data["required_config"] as JsonObject)[
-					"default_agent"
-				] as (typeof greekGodAgents)[number],
+				requiredConfig["default_agent"] as (typeof greekGodAgents)[number],
 			)
 		) {
 			throw createOalError(
 				opencode.path,
 				"/required_config/default_agent",
 				"OpenCode default_agent must be Greek-gods agent",
-				(opencode.data["required_config"] as JsonObject)["default_agent"],
+				requiredConfig["default_agent"],
 				greekGodAgents,
 			);
+		}
+		if (!allowedModels.includes(String(requiredConfig["small_model"]))) {
+			throw createOalError(
+				opencode.path,
+				"/required_config/small_model",
+				"OpenCode small_model must be free fallback model",
+				requiredConfig["small_model"],
+				allowedModels,
+			);
+		}
+		const routeDefaults = opencode.data["route_defaults"] as JsonObject;
+		for (const [route, models] of Object.entries(routeDefaults)) {
+			for (const model of models as string[]) {
+				if (!allowedModels.includes(model)) {
+					throw createOalError(
+						opencode.path,
+						`/route_defaults/${route}`,
+						"OpenCode route default must be free fallback model",
+						model,
+						allowedModels,
+					);
+				}
+			}
 		}
 	}
 }

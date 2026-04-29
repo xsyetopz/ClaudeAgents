@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { claudeAdapter } from "../packages/oal/src/adapters/claude";
 import { codexAdapter } from "../packages/oal/src/adapters/codex";
+import { opencodeAdapter } from "../packages/oal/src/adapters/opencode";
 import {
 	doctorHooks,
 	doctorTools,
@@ -75,6 +76,27 @@ describe("oal doctor", () => {
 		});
 	});
 
+	test("reports OpenCode detect and capabilities", () => {
+		withTempRepo((root) => {
+			const graph = loadSource(root);
+			expect(opencodeAdapter.detect(root, graph)).toMatchObject({
+				binary: "opencode",
+				platform: "opencode",
+				project_root: root,
+			});
+			expect(opencodeAdapter.capabilities(graph).surfaces).toMatchObject({
+				agents: "supported",
+				commands: "manual",
+				config: "supported",
+				hooks: "unsupported",
+				mcp: "manual",
+				model_routes: "supported",
+				permissions: "supported",
+				skills: "supported",
+			});
+		});
+	});
+
 	test("reports Codex hook mappings without fake parity", () => {
 		withTempRepo((root) => {
 			const result = doctorHooks("codex", root);
@@ -85,10 +107,21 @@ describe("oal doctor", () => {
 				path: "source/hooks/tool-pre-shell-rtk.json",
 			});
 			expect(result.checks).toContainEqual({
+				message: "tool-pre-destructive-command: codex hook mapping supported",
+				ok: true,
+				path: "source/hooks/tool-pre-destructive-command.json",
+			});
+			expect(result.checks).toContainEqual({
 				message:
 					"tool-pre-shell-rtk: codex runtime source/hooks/runtime/tool-pre-shell-rtk.mjs found",
 				ok: true,
 				path: "source/hooks/tool-pre-shell-rtk.json",
+			});
+			expect(result.checks).toContainEqual({
+				message:
+					"tool-pre-destructive-command: codex runtime source/hooks/runtime/tool-pre-destructive-command.mjs found",
+				ok: true,
+				path: "source/hooks/tool-pre-destructive-command.json",
 			});
 			expect(result.checks).toContainEqual({
 				message: "tool-pre-shell-rtk: claude hook mapping supported",
@@ -133,10 +166,21 @@ describe("oal doctor", () => {
 				path: "source/hooks/tool-pre-shell-rtk.json",
 			});
 			expect(result.checks).toContainEqual({
+				message: "tool-pre-destructive-command: claude hook mapping supported",
+				ok: true,
+				path: "source/hooks/tool-pre-destructive-command.json",
+			});
+			expect(result.checks).toContainEqual({
 				message:
 					"tool-pre-shell-rtk: claude runtime source/hooks/runtime/tool-pre-shell-rtk.mjs found",
 				ok: true,
 				path: "source/hooks/tool-pre-shell-rtk.json",
+			});
+			expect(result.checks).toContainEqual({
+				message:
+					"tool-pre-destructive-command: claude runtime source/hooks/runtime/tool-pre-destructive-command.mjs found",
+				ok: true,
+				path: "source/hooks/tool-pre-destructive-command.json",
 			});
 			expect(result.checks).toContainEqual({
 				message:
@@ -163,6 +207,25 @@ describe("oal doctor", () => {
 			expect(formatDoctorResult(result)).toContain(
 				"unknown hook event FakeEvent",
 			);
+		});
+	});
+
+	test("reports OpenCode unsupported hooks without fake parity", () => {
+		withTempRepo((root) => {
+			const result = doctorHooks("opencode", root);
+			expect(result.ok).toBe(true);
+			expect(result.checks).toContainEqual({
+				message:
+					"tool-pre-shell-rtk: opencode unsupported: Hook payload parity not proven in this wave.",
+				ok: true,
+				path: "source/hooks/tool-pre-shell-rtk.json",
+			});
+			expect(result.checks).toContainEqual({
+				message:
+					"tool-pre-destructive-command: opencode unsupported: Hook payload parity not proven in this wave.",
+				ok: true,
+				path: "source/hooks/tool-pre-destructive-command.json",
+			});
 		});
 	});
 });

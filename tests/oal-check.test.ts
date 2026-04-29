@@ -191,6 +191,46 @@ describe("oal check", () => {
 		});
 	});
 
+	test("rejects OpenCode default agents outside Greek-gods set", () => {
+		withTempRepo((root) => {
+			mutateJson(root, "source/platforms/opencode/config.json", (config) => {
+				(config["required_config"] as Record<string, unknown>)[
+					"default_agent"
+				] = "planner";
+			});
+			expect(() => checkSource(root)).toThrow(
+				"OpenCode default_agent must be Greek-gods agent",
+			);
+		});
+	});
+
+	test("rejects OpenCode small models outside free fallback set", () => {
+		withTempRepo((root) => {
+			mutateJson(root, "source/platforms/opencode/config.json", (config) => {
+				(config["required_config"] as Record<string, unknown>)["small_model"] =
+					"opencode/paid-only";
+			});
+			expect(() => checkSource(root)).toThrow(
+				"OpenCode small_model must be free fallback model",
+			);
+		});
+	});
+
+	test("rejects OpenCode route defaults outside free fallback set", () => {
+		withTempRepo((root) => {
+			mutateJson(root, "source/platforms/opencode/config.json", (config) => {
+				(
+					(config["route_defaults"] as Record<string, unknown>)[
+						"review"
+					] as string[]
+				).push("opencode/paid-only");
+			});
+			expect(() => checkSource(root)).toThrow(
+				"OpenCode route default must be free fallback model",
+			);
+		});
+	});
+
 	test("rejects hook ids without category prefix", () => {
 		withTempRepo((root) => {
 			mutateJson(root, "source/hooks/tool-pre-shell-rtk.json", (hook) => {
@@ -443,6 +483,35 @@ describe("oal check", () => {
 				expect(output).toContain("jsonPath=/allowManagedHooksOnly");
 				expect(output).toContain('badValue="yes"');
 				expect(output).toContain('requiredValue={"type":"boolean"}');
+			}
+		});
+	});
+
+	test("reports generated OpenCode config schema failures with structured fields", () => {
+		withTempRepo((root) => {
+			mutateJson(root, "source/platforms/opencode/config.json", (config) => {
+				(config["required_config"] as Record<string, unknown>)["logLevel"] =
+					123;
+			});
+			try {
+				checkSource(root);
+				throw new Error("expected checkSource to fail");
+			} catch (error) {
+				const output = formatOalError(error);
+				expect(output).toContain(
+					"generated/opencode/opencode.json failed opencode_config",
+				);
+				expect(output).toContain("platform=opencode");
+				expect(output).toContain(
+					"generatedFile=generated/opencode/opencode.json",
+				);
+				expect(output).toContain(
+					"sourceFile=source/platforms/opencode/config.json",
+				);
+				expect(output).toContain("schemaUrl=https://opencode.ai/config.json");
+				expect(output).toContain("jsonPath=/logLevel");
+				expect(output).toContain("badValue=123");
+				expect(output).toContain('requiredValue={"type":"string"}');
 			}
 		});
 	});

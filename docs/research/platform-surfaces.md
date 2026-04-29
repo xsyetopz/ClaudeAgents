@@ -101,15 +101,17 @@ Native surfaces:
 OAL adapter:
 
 - render Greek-gods agents into OpenCode agent config
-- render commands into OpenCode command surface
-- render skills into OpenCode skill surface
+- render Greek-gods agent bodies into `.opencode/agents`
+- render skills into `.opencode/skills`
+- leave commands and MCP manual until command/MCP source records exist
 - render free fallback routes from source model
-- run `oal doctor hooks opencode`
+- run `oal doctor hooks opencode` without rendering unsupported hook runtime files
 
 OpenCode priorities:
 
 - free model route order stays source-controlled
 - no Codex/Claude assumptions
+- no hook runtime output until native plugin or hook parity is proven
 - permissions and hooks stay native
 
 ## Kilo Code

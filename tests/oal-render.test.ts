@@ -49,6 +49,18 @@ describe("oal render", () => {
 				resolve(first, "claude/.claude/settings.json"),
 				"utf8",
 			);
+			const opencodeConfig = readFileSync(
+				resolve(first, "opencode/opencode.json"),
+				"utf8",
+			);
+			const opencodeAthenaAgent = readFileSync(
+				resolve(first, "opencode/.opencode/agents/athena.md"),
+				"utf8",
+			);
+			const opencodeSkill = readFileSync(
+				resolve(first, "opencode/.opencode/skills/oal/SKILL.md"),
+				"utf8",
+			);
 			const oalSkill = readFileSync(
 				resolve(first, "codex/.agents/skills/oal/SKILL.md"),
 				"utf8",
@@ -97,6 +109,9 @@ describe("oal render", () => {
 			expect(projectConfig).toContain(
 				'command = "node \\"$(git rev-parse --show-toplevel)/.codex/hooks/tool-pre-shell-rtk.mjs\\""',
 			);
+			expect(projectConfig).toContain(
+				'command = "node \\"$(git rev-parse --show-toplevel)/.codex/hooks/tool-pre-destructive-command.mjs\\""',
+			);
 			expect(userConfig).toContain('profile = "oal-plus"');
 			expect(userConfig).toContain('model_reasoning_effort = "medium"');
 			expect(userConfig).toContain('plan_mode_reasoning_effort = "high"');
@@ -129,10 +144,46 @@ describe("oal render", () => {
 				),
 			).toBe(true);
 			expect(
+				existsSync(
+					resolve(
+						first,
+						"claude/.claude/hooks/tool-pre-destructive-command.mjs",
+					),
+				),
+			).toBe(true);
+			expect(
 				existsSync(resolve(first, "claude/hooks/tool-pre-shell-rtk.json")),
+			).toBe(false);
+			expect(existsSync(resolve(first, "opencode/opencode.json"))).toBe(true);
+			expect(
+				existsSync(resolve(first, "opencode/.opencode/agents/athena.md")),
+			).toBe(true);
+			expect(
+				existsSync(resolve(first, "opencode/.opencode/skills/oal/SKILL.md")),
+			).toBe(true);
+			expect(
+				existsSync(resolve(first, "opencode/hooks/tool-pre-shell-rtk.json")),
+			).toBe(false);
+			expect(
+				existsSync(
+					resolve(first, "opencode/.opencode/hooks/tool-pre-shell-rtk.mjs"),
+				),
+			).toBe(false);
+			expect(
+				existsSync(
+					resolve(
+						first,
+						"opencode/.opencode/hooks/tool-pre-destructive-command.mjs",
+					),
+				),
 			).toBe(false);
 			expect(
 				existsSync(resolve(first, "codex/.codex/hooks/tool-pre-shell-rtk.mjs")),
+			).toBe(true);
+			expect(
+				existsSync(
+					resolve(first, "codex/.codex/hooks/tool-pre-destructive-command.mjs"),
+				),
 			).toBe(true);
 			expect(
 				existsSync(resolve(first, "codex/hooks/tool-pre-shell-rtk.json")),
@@ -153,6 +204,26 @@ describe("oal render", () => {
 			expect(claudeSettings).toContain(
 				'"command": "node \\"$CLAUDE_PROJECT_DIR/.claude/hooks/tool-pre-shell-rtk.mjs\\""',
 			);
+			expect(claudeSettings).toContain(
+				'"command": "node \\"$CLAUDE_PROJECT_DIR/.claude/hooks/tool-pre-destructive-command.mjs\\""',
+			);
+			expect(opencodeConfig).toContain(
+				'"$schema": "https://opencode.ai/config.json"',
+			);
+			expect(opencodeConfig).toContain('"default_agent": "athena"');
+			expect(opencodeConfig).toContain(
+				'"small_model": "opencode/ling-2.6-flash-free"',
+			);
+			expect(opencodeConfig).toContain('"agent"');
+			expect(opencodeConfig).toContain('"permission"');
+			expect(opencodeConfig).not.toContain('"mode": {');
+			expect(opencodeConfig).not.toContain('"tools"');
+			expect(opencodeConfig).not.toContain('"maxSteps"');
+			expect(opencodeAthenaAgent).toContain("mode: subagent");
+			expect(opencodeAthenaAgent).toContain(
+				"model: opencode/ling-2.6-flash-free",
+			);
+			expect(opencodeSkill).toContain("name: oal");
 			expect(oalSkill).toContain("name: oal");
 			expect(oalSkill).toContain("description: Use the OpenAgentLayer");
 			expect(existsSync(resolve(first, "codex/agents/athena.json"))).toBe(

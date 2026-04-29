@@ -120,18 +120,18 @@ Status policy:
 
 ### OpenCode
 
-- [ ] Implement OpenCode `detect`.
-- [ ] Implement OpenCode `capabilities`.
-- [ ] Render OpenCode agents.
-- [ ] Render OpenCode skills.
+- [x] Implement OpenCode `detect`.
+- [x] Implement OpenCode `capabilities`.
+- [x] Render OpenCode agents.
+- [x] Render OpenCode skills.
 - [ ] Render OpenCode commands.
-- [ ] Render OpenCode permissions.
+- [x] Render OpenCode permissions.
 - [ ] Render OpenCode MCP config.
-- [ ] Render OpenCode config.
-- [ ] Validate OpenCode config against upstream schema.
-- [ ] Enforce Greek-gods `default_agent`.
-- [ ] Enforce OpenCode free fallback model set.
-- [ ] Implement `oal doctor hooks opencode`.
+- [x] Render OpenCode config.
+- [x] Validate OpenCode config against upstream schema.
+- [x] Enforce Greek-gods `default_agent`.
+- [x] Enforce OpenCode free fallback model set.
+- [x] Implement `oal doctor hooks opencode`.
 
 ### Additional adapters
 
@@ -173,7 +173,7 @@ Status policy:
 ### Required hooks
 
 - [x] Implement `tool-pre-shell-rtk`.
-- [ ] Implement `tool-pre-destructive-command`.
+- [x] Implement `tool-pre-destructive-command`.
 - [ ] Implement `tool-post-write-quality`.
 - [ ] Implement `tool-fail-circuit`.
 - [ ] Implement `prompt-submit-contract`.
@@ -185,7 +185,7 @@ Status policy:
 
 - [x] `oal doctor hooks codex` checks Codex mapping.
 - [x] `oal doctor hooks claude` checks Claude Code mapping.
-- [ ] `oal doctor hooks opencode` checks OpenCode mapping.
+- [x] `oal doctor hooks opencode` checks OpenCode mapping.
 - [x] Hook doctor names unsupported events explicitly.
 - [x] Hook doctor rejects fake parity.
 
@@ -328,8 +328,6 @@ Status policy:
 - [ ] No fake hook parity.
 - [ ] No generated output treated as source.
 - [ ] No bundled RTK.
-- [ ] No Rust runtime path.
-- [ ] No Go runtime path.
 - [ ] Greek-gods agent names preserved across all supported platforms.
 - [ ] Codex `plus` default profile works.
 - [ ] Codex `pro-5` profile works.
