@@ -38,8 +38,11 @@ export const codexAdapter: PlatformAdapter = {
 		};
 	},
 	doctorHooks(_root: string, graph: SourceGraph): DoctorResult {
+		const platformEvents = asJsonObject(
+			graph.hookEvents.data["platform_events"],
+		);
 		const checks = graph.hooks.flatMap((hook) =>
-			validateHookMappings(hook, graph.hookEvents, ["codex"], "codex"),
+			validateHookMappings(hook, graph.hookEvents, Object.keys(platformEvents)),
 		);
 		return {
 			checks,

@@ -62,6 +62,18 @@ describe("oal doctor", () => {
 				ok: true,
 				path: "source/hooks/tool-pre-shell-rtk.json",
 			});
+			expect(result.checks).toContainEqual({
+				message:
+					"tool-pre-shell-rtk: claude unsupported: Hook payload parity not proven in this wave.",
+				ok: true,
+				path: "source/hooks/tool-pre-shell-rtk.json",
+			});
+			expect(result.checks).toContainEqual({
+				message:
+					"tool-pre-shell-rtk: opencode unsupported: Hook payload parity not proven in this wave.",
+				ok: true,
+				path: "source/hooks/tool-pre-shell-rtk.json",
+			});
 		});
 	});
 

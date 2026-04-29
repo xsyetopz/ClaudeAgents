@@ -89,7 +89,7 @@ Status policy:
 - [x] Implement Codex `capabilities`.
 - [x] Render `AGENTS.md`.
 - [x] Render Codex agents/subagents.
-- [~] Render Codex skills.
+- [x] Render Codex skills.
 - [x] Render Codex hooks.
 - [x] Render Codex config.
 - [x] Validate Codex config against upstream schema.
@@ -184,7 +184,7 @@ Status policy:
 - [x] `oal doctor hooks codex` checks Codex mapping.
 - [ ] `oal doctor hooks claude` checks Claude Code mapping.
 - [ ] `oal doctor hooks opencode` checks OpenCode mapping.
-- [ ] Hook doctor names unsupported events explicitly.
+- [x] Hook doctor names unsupported events explicitly.
 - [x] Hook doctor rejects fake parity.
 
 ## Phase 5: provider sync

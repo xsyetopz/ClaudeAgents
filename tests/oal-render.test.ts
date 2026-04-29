@@ -41,8 +41,15 @@ describe("oal render", () => {
 				resolve(first, "codex/.codex/agents/athena.toml"),
 				"utf8",
 			);
+			const oalSkill = readFileSync(
+				resolve(first, "codex/.agents/skills/oal/SKILL.md"),
+				"utf8",
+			);
 			const generatedAthena = JSON.parse(
 				readFileSync(resolve(first, "agents/athena.json"), "utf8"),
+			) as { $schema: string };
+			const generatedSkill = JSON.parse(
+				readFileSync(resolve(first, "skills/oal.json"), "utf8"),
 			) as { $schema: string };
 			const generatedHook = JSON.parse(
 				readFileSync(
@@ -62,6 +69,9 @@ describe("oal render", () => {
 			);
 			expect(generatedPlatform.$schema).toBe(
 				"https://raw.githubusercontent.com/xsyetopz/OpenAgentLayer/refs/heads/master/source/schema/platform.schema.json",
+			);
+			expect(generatedSkill.$schema).toBe(
+				"https://raw.githubusercontent.com/xsyetopz/OpenAgentLayer/refs/heads/master/source/schema/skill.schema.json",
 			);
 			for (const path of listJsonFiles(first)) {
 				const content = readFileSync(path, "utf8");
@@ -93,9 +103,14 @@ describe("oal render", () => {
 			expect(
 				existsSync(resolve(first, "codex/.codex/agents/athena.toml")),
 			).toBe(true);
+			expect(
+				existsSync(resolve(first, "codex/.agents/skills/oal/SKILL.md")),
+			).toBe(true);
 			expect(athenaAgent).toContain('model = "gpt-5.4-mini"');
 			expect(athenaAgent).toContain('model_reasoning_effort = "medium"');
 			expect(athenaAgent).toContain('developer_instructions = """');
+			expect(oalSkill).toContain("name: oal");
+			expect(oalSkill).toContain("description: Use the OpenAgentLayer");
 			expect(existsSync(resolve(first, "codex/agents/athena.json"))).toBe(
 				false,
 			);
@@ -105,6 +120,7 @@ describe("oal render", () => {
 			expect(managedFiles.files).toContain(".oal/render-manifest.json");
 			expect(managedFiles.files).toContain(".oal/managed-files.json");
 			expect(managedFiles.files).toContain(".oal/explain-map.json");
+			expect(managedFiles.files).toContain("codex/.agents/skills/oal/SKILL.md");
 			expect(explain(root, `${first}/agents/athena.json`, first)).toEqual({
 				sha256: expect.any(String),
 				sources: ["source/agents/athena.json"],
@@ -126,6 +142,15 @@ describe("oal render", () => {
 				sources: expect.arrayContaining([
 					"source/workflows/rpers.json",
 					"source/prompts/shared/operating-mode.md",
+				]),
+			});
+			expect(
+				explain(root, `${first}/codex/.agents/skills/oal/SKILL.md`, first),
+			).toEqual({
+				sha256: expect.any(String),
+				sources: expect.arrayContaining([
+					"source/skills/oal.json",
+					"source/skills/oal.md",
 				]),
 			});
 		});
