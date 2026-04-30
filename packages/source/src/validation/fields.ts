@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { errorDiagnostic } from "@openagentlayer/diagnostics";
 import type { Diagnostic, SourceRecord } from "@openagentlayer/types";
 import {
@@ -55,6 +56,112 @@ export function validateRecordFields(
 
 	if (record.kind === "policy") {
 		validatePolicyRecordFields(record, diagnostics);
+	}
+
+	if (record.kind === "skill") {
+		validateSkillRecordFields(record, diagnostics);
+	}
+}
+
+const AGENT_SKILL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const MAX_AGENT_SKILL_ID_LENGTH = 64;
+const MAX_AGENT_SKILL_DESCRIPTION_LENGTH = 1_024;
+const MAX_AGENT_SKILL_COMPATIBILITY_LENGTH = 500;
+const PLACEHOLDER_BODY_PATTERN =
+	/(^|\n)\s*(TODO|FIXME|\.\.\.|…)\s*($|\n)|rest follows|similar to above|add more as needed/iu;
+const FRONTMATTER_PATTERN = /^---\n[\s\S]*?\n---\n?/u;
+const NUMBERED_LIST_PATTERN = /^\d+\.\s/u;
+
+function validateSkillRecordFields(
+	record: Extract<SourceRecord, { readonly kind: "skill" }>,
+	diagnostics: Diagnostic[],
+): void {
+	if (
+		record.id.length > MAX_AGENT_SKILL_ID_LENGTH ||
+		!AGENT_SKILL_ID_PATTERN.test(record.id)
+	) {
+		diagnostics.push(
+			errorDiagnostic(
+				"invalid-agent-skill-name",
+				`Skill id '${record.id}' must be a lowercase kebab-case Agent Skills name.`,
+				record.location.metadataPath,
+			),
+		);
+	}
+
+	if (basename(record.location.directory) !== record.id) {
+		diagnostics.push(
+			errorDiagnostic(
+				"skill-directory-mismatch",
+				`Skill directory name must match skill id '${record.id}'.`,
+				record.location.metadataPath,
+			),
+		);
+	}
+
+	if (record.description.length > MAX_AGENT_SKILL_DESCRIPTION_LENGTH) {
+		diagnostics.push(
+			errorDiagnostic(
+				"agent-skill-description-too-long",
+				`Skill '${record.id}' description exceeds ${MAX_AGENT_SKILL_DESCRIPTION_LENGTH} characters.`,
+				record.location.metadataPath,
+			),
+		);
+	}
+
+	if (
+		record.compatibility !== undefined &&
+		record.compatibility.length > MAX_AGENT_SKILL_COMPATIBILITY_LENGTH
+	) {
+		diagnostics.push(
+			errorDiagnostic(
+				"agent-skill-compatibility-too-long",
+				`Skill '${record.id}' compatibility exceeds ${MAX_AGENT_SKILL_COMPATIBILITY_LENGTH} characters.`,
+				record.location.metadataPath,
+			),
+		);
+	}
+
+	validateSkillBody(record, diagnostics);
+}
+
+function validateSkillBody(
+	record: Extract<SourceRecord, { readonly kind: "skill" }>,
+	diagnostics: Diagnostic[],
+): void {
+	const bodyWithoutFrontmatter = record.body_content
+		.replace(FRONTMATTER_PATTERN, "")
+		.trim();
+	const bodyLines = bodyWithoutFrontmatter
+		.split("\n")
+		.map((line) => line.trim())
+		.filter((line) => line.length > 0 && !line.startsWith("#"));
+	const hasProceduralStructure = bodyLines.some(
+		(line) =>
+			line.startsWith("- ") ||
+			line.startsWith("* ") ||
+			NUMBERED_LIST_PATTERN.test(line) ||
+			line.startsWith("## "),
+	);
+
+	if (bodyLines.length < 2 || !hasProceduralStructure) {
+		diagnostics.push(
+			errorDiagnostic(
+				"barebones-skill-body",
+				`Skill '${record.id}' must include procedural guidance beyond a heading or one-line summary.`,
+				record.location.bodyPath ?? record.location.metadataPath,
+			),
+		);
+	}
+
+	if (PLACEHOLDER_BODY_PATTERN.test(record.body_content)) {
+		diagnostics.push(
+			errorDiagnostic(
+				"placeholder-skill-body",
+				`Skill '${record.id}' body contains placeholder text.`,
+				record.location.bodyPath ?? record.location.metadataPath,
+			),
+		);
 	}
 }
 

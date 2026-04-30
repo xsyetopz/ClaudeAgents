@@ -9,8 +9,11 @@ import type {
 	SourceRecord,
 } from "@openagentlayer/types";
 import {
+	disablesImplicitSkillInvocation,
+	renderAgentSkillMarkdown,
 	renderJsonFile,
 	renderMarkdownWithFrontmatter,
+	renderSkillSupportArtifacts,
 	resolveModelAssignment,
 } from "../../shared";
 import { CLAUDE_ARTIFACT_ROOT, CLAUDE_SURFACE } from "./constants";
@@ -57,19 +60,22 @@ export function renderClaudeRecordArtifacts(
 					surface: CLAUDE_SURFACE,
 					kind: "skill",
 					path: `.claude/skills/${record.id}/SKILL.md`,
-					content: renderMarkdownWithFrontmatter(
-						{
-							"allowed-tools": record.tool_grants,
-							description: record.description,
-							model: record.model_policy,
-							name: record.id,
-							"user-invocable": record.user_invocable,
-							when_to_use: record.when_to_use,
-						},
-						record.body_content,
-					),
+					content: renderAgentSkillMarkdown(record, {
+						"allowed-tools": record.tool_grants,
+						"disable-model-invocation": disablesImplicitSkillInvocation(record)
+							? true
+							: undefined,
+						model: record.model_policy,
+						"user-invocable": record.user_invocable,
+						when_to_use: record.when_to_use,
+					}),
 					sourceRecordIds: [record.id],
 				},
+				...renderSkillSupportArtifacts(
+					record,
+					CLAUDE_SURFACE,
+					`.claude/skills/${record.id}`,
+				),
 			];
 		case "command":
 			return [renderClaudeCommandSkill(record, graph, context)];

@@ -3,13 +3,19 @@ kind = "skill"
 title = "Review Policy"
 description = "Warranted review policy for blockers, risks, and validation gates."
 body = "SKILL.md"
+license = "MIT"
+compatibility = "Codex, Claude, and OpenCode skill surfaces."
 triggers = ["review", "audit", "risk"]
 when_to_use = "Use when validating OAL implementation or spec changes."
 invocation_mode = "manual-or-route"
 user_invocable = true
+allowed_tools = ["read", "search"]
 tool_grants = ["read", "search"]
 route_contract = "readonly"
 model_policy = "gpt-5.4"
 supporting_files = []
 surfaces = ["codex", "claude", "opencode"]
 
+[metadata]
+origin = "openagentlayer"
+quality_gate = "warranted-review"

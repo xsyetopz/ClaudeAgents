@@ -5,6 +5,8 @@ import {
 	isPackageCodeFile,
 	listFiles,
 	MAX_BOUNDARY_SCENARIO_LINES,
+	MAX_CLI_FAILURE_SCENARIO_LINES,
+	MAX_CLI_INSTALL_SCENARIO_LINES,
 	MAX_PACKAGE_CODE_LINES,
 	MAX_RENDER_REGISTRY_SCENARIO_LINES,
 	MAX_RUNTIME_SCENARIO_LINES,
@@ -93,6 +95,41 @@ describe("OAL layout and threshold boundaries", () => {
 		}
 		expect(files).not.toContain(
 			"packages/render/__tests__/src/registry.test.ts",
+		);
+		expect(oversizedFiles).toEqual([]);
+	});
+
+	test("keeps CLI install scenarios split", async () => {
+		const files = (await listFiles("packages/cli/__tests__/src"))
+			.filter((path) => path.endsWith(".test.ts"))
+			.filter(
+				(path) =>
+					path.includes("install") || path.includes("uninstall-edited-content"),
+			);
+		const oversizedFiles: string[] = [];
+		for (const path of files) {
+			const lineCount = countLines(await readFile(path, "utf8"));
+			if (lineCount > MAX_CLI_INSTALL_SCENARIO_LINES) {
+				oversizedFiles.push(`${path}: ${lineCount}`);
+			}
+		}
+		expect(files).not.toContain("packages/cli/__tests__/src/install.test.ts");
+		expect(oversizedFiles).toEqual([]);
+	});
+
+	test("keeps CLI failure-atomicity scenarios split", async () => {
+		const files = (await listFiles("packages/cli/__tests__/src"))
+			.filter((path) => path.endsWith(".test.ts"))
+			.filter((path) => path.includes("failure-"));
+		const oversizedFiles: string[] = [];
+		for (const path of files) {
+			const lineCount = countLines(await readFile(path, "utf8"));
+			if (lineCount > MAX_CLI_FAILURE_SCENARIO_LINES) {
+				oversizedFiles.push(`${path}: ${lineCount}`);
+			}
+		}
+		expect(files).not.toContain(
+			"packages/cli/__tests__/src/failure-atomicity.test.ts",
 		);
 		expect(oversizedFiles).toEqual([]);
 	});

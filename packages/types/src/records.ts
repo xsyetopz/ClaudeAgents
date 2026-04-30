@@ -50,9 +50,14 @@ export interface SkillRecord extends BaseRecord {
 	readonly triggers: readonly string[];
 	readonly body: string;
 	readonly body_content: string;
+	readonly license: string | undefined;
+	readonly compatibility: string | undefined;
+	readonly metadata: UnknownMap;
+	readonly allowed_tools: readonly string[];
 	readonly references: readonly string[];
 	readonly scripts: readonly string[];
 	readonly assets: readonly string[];
+	readonly support_files: readonly SkillSupportFile[];
 	readonly when_to_use: string | undefined;
 	readonly invocation_mode: string | undefined;
 	readonly user_invocable: boolean | undefined;
@@ -60,6 +65,12 @@ export interface SkillRecord extends BaseRecord {
 	readonly route_contract: string | undefined;
 	readonly model_policy: ModelId | undefined;
 	readonly supporting_files: readonly string[];
+}
+
+export interface SkillSupportFile {
+	readonly path: string;
+	readonly content: string;
+	readonly category: "reference" | "script" | "asset" | "supporting-file";
 }
 
 export interface CommandRecord extends BaseRecord {

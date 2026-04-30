@@ -50,7 +50,10 @@ export function renderOpenCodeConfig(
 		permission: {
 			...(projectDefaults["permission"] as Record<string, unknown>),
 			skill: Object.fromEntries(
-				graph.skills.map((record) => [record.id, "allow"]),
+				graph.skills.map((record) => [
+					record.id,
+					record.user_invocable === false ? "deny" : "allow",
+				]),
 			),
 		},
 	};

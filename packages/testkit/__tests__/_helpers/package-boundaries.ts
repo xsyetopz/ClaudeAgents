@@ -3,6 +3,9 @@ import { join } from "node:path";
 
 export const MAX_PACKAGE_CODE_LINES = 1_500;
 export const MAX_BOUNDARY_SCENARIO_LINES = 140;
+export const MAX_CLI_FAILURE_SCENARIO_LINES = 140;
+export const MAX_CLI_INSTALL_SCENARIO_LINES = 140;
+export const MAX_INSTALL_UNINSTALL_SCENARIO_LINES = 140;
 export const MAX_RENDER_REGISTRY_SCENARIO_LINES = 140;
 export const MAX_RUNTIME_SCENARIO_LINES = 140;
 export const PACKAGE_SRC_TEST_PATTERN = /^packages\/[^/]+\/src\//u;

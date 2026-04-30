@@ -9,8 +9,11 @@ import type {
 	SourceRecord,
 } from "@openagentlayer/types";
 import {
+	disablesImplicitSkillInvocation,
+	renderAgentSkillMarkdown,
 	renderJsonFile,
 	renderMarkdownWithFrontmatter,
+	renderSkillSupportArtifacts,
 	resolveModelAssignment,
 } from "../../shared";
 import { renderCodexAgentConfig } from "./config";
@@ -52,16 +55,35 @@ export function renderCodexRecordArtifacts(
 					surface: CODEX_SURFACE,
 					kind: "skill",
 					path: `${CODEX_PLUGIN_ROOT}/skills/${record.id}/SKILL.md`,
-					content: renderMarkdownWithFrontmatter(
-						{
-							description: record.description,
-							name: record.id,
-							"user-invocable": record.user_invocable,
-						},
-						record.body_content,
-					),
+					content: renderAgentSkillMarkdown(record, {
+						allowed_tools:
+							record.allowed_tools.length === 0
+								? undefined
+								: record.allowed_tools,
+						"user-invocable": record.user_invocable,
+					}),
 					sourceRecordIds: [record.id],
 				},
+				...renderSkillSupportArtifacts(
+					record,
+					CODEX_SURFACE,
+					`${CODEX_PLUGIN_ROOT}/skills/${record.id}`,
+				),
+				...(disablesImplicitSkillInvocation(record)
+					? [
+							{
+								surface: CODEX_SURFACE,
+								kind: "skill" as const,
+								path: `${CODEX_PLUGIN_ROOT}/skills/${record.id}/agents/openai.yaml`,
+								content: [
+									"policy:",
+									"  allow_implicit_invocation: false",
+									"",
+								].join("\n"),
+								sourceRecordIds: [record.id],
+							},
+						]
+					: []),
 			];
 		case "command":
 			return [renderCodexCommandSkill(record, graph, context)];

@@ -58,6 +58,10 @@ Skill TOML fields:
 - `id`
 - `title`
 - `description`
+- `license`
+- `compatibility`
+- `metadata`
+- `allowed_tools`
 - `triggers`
 - `when_to_use`
 - `invocation_mode`
@@ -68,22 +72,31 @@ Skill TOML fields:
 - `model_policy`
 - `supporting_files`
 
+The `id` field is the canonical Agent Skills `name`. It must match the skill directory name and use lowercase kebab-case. OAL does not maintain a second source-of-truth name field.
+
+`license`, `compatibility`, `metadata`, and `allowed_tools` are Agent Skills metadata fields. `tool_grants` remains OAL's provider-neutral permission intent; adapters translate both permission sources into native surface config.
+
 Skill render targets:
 
-- Codex: plugin skill `skills/<id>/SKILL.md`.
-- Claude Code: `.claude/skills/<id>/SKILL.md`.
-- OpenCode: `.opencode/skills/<id>/SKILL.md`.
+- Codex: plugin skill `skills/<id>/SKILL.md`, support files under the same skill directory, and optional `agents/openai.yaml` for disabled implicit invocation.
+- Claude Code: `.claude/skills/<id>/SKILL.md` and support files under the same skill directory.
+- OpenCode: `.opencode/skills/<id>/SKILL.md` and support files under the same skill directory.
 
 ## Rendering rules
 
 - Codex skills render to Codex plugin skill shape.
 - Claude skills render to Claude skill shape.
 - OpenCode skills render to OpenCode skill shape.
+- Native skill support files keep their source-relative paths under each rendered skill directory.
+- Surfaces receive only native frontmatter fields they can consume; dropped fields must remain available in OAL source records.
 - Unsupported surfaces have no renderer until their studies are added.
 
 ## Authoring rules
 
 - Shared body comes from Markdown.
+- `SKILL.md` must contain complete procedural guidance, not a heading plus one-line summary.
+- Long guidance goes in linked `references/` files; scripts and assets stay in `scripts/` and `assets/`.
+- `references`, `scripts`, `assets`, and `supporting_files` paths must stay inside the skill directory and exist at source-load time.
 - Surface-specific behavior goes in metadata override blocks.
 - No generated surface file is edited by hand.
 - Surface adapters may drop source fields only when the target surface has no equivalent and the drop is recorded in validation output.

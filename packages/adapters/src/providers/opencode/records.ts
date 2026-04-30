@@ -9,8 +9,10 @@ import type {
 	SourceRecord,
 } from "@openagentlayer/types";
 import {
+	renderAgentSkillMarkdown,
 	renderJsonFile,
 	renderMarkdownWithFrontmatter,
+	renderSkillSupportArtifacts,
 	resolveModelAssignment,
 } from "../../shared";
 import { OPENCODE_ARTIFACT_ROOT, OPENCODE_SURFACE } from "./constants";
@@ -43,16 +45,14 @@ export function renderOpenCodeRecordArtifacts(
 					surface: OPENCODE_SURFACE,
 					kind: "skill",
 					path: `.opencode/skills/${record.id}/SKILL.md`,
-					content: renderMarkdownWithFrontmatter(
-						{
-							description: record.description,
-							license: "MIT",
-							name: record.id,
-						},
-						record.body_content,
-					),
+					content: renderAgentSkillMarkdown(record, {}),
 					sourceRecordIds: [record.id],
 				},
+				...renderSkillSupportArtifacts(
+					record,
+					OPENCODE_SURFACE,
+					`.opencode/skills/${record.id}`,
+				),
 			];
 		case "command":
 			return [renderOpenCodeCommand(record, graph, context)];

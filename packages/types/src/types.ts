@@ -29,6 +29,7 @@ export type {
 	ModelPlanRecord,
 	PolicyRecord,
 	SkillRecord,
+	SkillSupportFile,
 	SourceLocation,
 	SourceRecord,
 	SurfaceConfigRecord,

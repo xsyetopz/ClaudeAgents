@@ -4,6 +4,7 @@ export interface FrontmatterValueMap {
 		| boolean
 		| number
 		| readonly string[]
+		| Record<string, unknown>
 		| undefined;
 }
 
@@ -28,10 +29,18 @@ export function appendSection(title: string, body: string): string {
 }
 
 function renderFrontmatterValue(
-	value: string | boolean | number | readonly string[],
+	value:
+		| string
+		| boolean
+		| number
+		| readonly string[]
+		| Record<string, unknown>,
 ): string {
 	if (Array.isArray(value)) {
 		return `[${value.map((entry) => JSON.stringify(entry)).join(", ")}]`;
+	}
+	if (typeof value === "object") {
+		return JSON.stringify(value);
 	}
 	if (typeof value === "string") {
 		return JSON.stringify(value);

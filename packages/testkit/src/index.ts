@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { WritePlan } from "@openagentlayer/render";
 import type { SourceGraph } from "@openagentlayer/types";
 
@@ -87,22 +87,64 @@ export async function writeModelPlan(
 
 export async function writeSkill(
 	root: string,
-	options: { readonly modelPolicy?: string } = {},
+	options: {
+		readonly compatibility?: string;
+		readonly createSupportFile?: boolean;
+		readonly description?: string;
+		readonly directory?: string;
+		readonly id?: string;
+		readonly invocationMode?: string;
+		readonly modelPolicy?: string;
+		readonly supportFile?: string;
+		readonly surfaces?: string;
+		readonly userInvocable?: boolean;
+	} = {},
 ): Promise<void> {
 	await writeFixtureSurfaceConfigs(root);
-	const directory = join(root, "source", "skills", "fixture-skill");
+	const id = options.id ?? "fixture-skill";
+	const directory = join(root, "source", options.directory ?? `skills/${id}`);
 	await mkdir(directory, { recursive: true });
-	await writeFile(join(directory, "SKILL.md"), "# Skill\n");
+	if (
+		options.supportFile !== undefined &&
+		options.createSupportFile !== false &&
+		!options.supportFile.startsWith("..")
+	) {
+		await mkdir(dirname(join(directory, options.supportFile)), {
+			recursive: true,
+		});
+		await writeFile(join(directory, options.supportFile), "support\n");
+	}
+	await writeFile(
+		join(directory, "SKILL.md"),
+		[
+			"# Fixture Skill",
+			"",
+			"Use this skill when fixture validation needs a complete skill body.",
+			"",
+			"## Procedure",
+			"",
+			"- Inspect the requested source record.",
+			"- Report concrete validation evidence.",
+			"",
+		].join("\n"),
+	);
 	await writeFile(
 		join(directory, "skill.toml"),
 		[
-			'id = "fixture-skill"',
+			`id = "${id}"`,
 			'kind = "skill"',
 			'title = "Fixture Skill"',
-			'description = "Fixture skill."',
+			`description = "${options.description ?? "Fixture skill with complete procedural guidance."}"`,
 			'body = "SKILL.md"',
+			'license = "MIT"',
+			`compatibility = "${options.compatibility ?? "Codex, Claude, and OpenCode skill surfaces."}"`,
+			'allowed_tools = ["read", "search"]',
+			'metadata = { origin = "fixture" }',
+			`invocation_mode = "${options.invocationMode ?? "manual-or-route"}"`,
+			`user_invocable = ${options.userInvocable ?? true}`,
 			`model_policy = "${options.modelPolicy ?? "gpt-5.4"}"`,
-			'surfaces = ["codex"]',
+			`supporting_files = ${options.supportFile === undefined ? "[]" : `["${options.supportFile}"]`}`,
+			`surfaces = ${options.surfaces ?? '["codex"]'}`,
 			"",
 		].join("\n"),
 	);
