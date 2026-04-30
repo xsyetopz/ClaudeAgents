@@ -5,9 +5,102 @@
     "": {
       "devDependencies": {
         "@biomejs/biome": "2.4.13",
+        "@openagentlayer/testkit": "workspace:*",
         "ajv": "^8.20.0",
         "bun-types": "1.3.13",
       },
+    },
+    "packages/adapter-contract": {
+      "name": "@openagentlayer/adapter-contract",
+      "dependencies": {
+        "@openagentlayer/diagnostics": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+    },
+    "packages/adapters": {
+      "name": "@openagentlayer/adapters",
+      "dependencies": {
+        "@openagentlayer/adapter-contract": "workspace:*",
+        "@openagentlayer/runtime": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+    },
+    "packages/cli": {
+      "name": "@openagentlayer/cli",
+      "bin": {
+        "oal": "src/cli.ts",
+      },
+      "dependencies": {
+        "@openagentlayer/diagnostics": "workspace:*",
+        "@openagentlayer/install": "workspace:*",
+        "@openagentlayer/render": "workspace:*",
+        "@openagentlayer/source": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openagentlayer/testkit": "workspace:*",
+      },
+    },
+    "packages/diagnostics": {
+      "name": "@openagentlayer/diagnostics",
+      "dependencies": {
+        "@openagentlayer/types": "workspace:*",
+      },
+    },
+    "packages/install": {
+      "name": "@openagentlayer/install",
+      "dependencies": {
+        "@openagentlayer/adapter-contract": "workspace:*",
+        "@openagentlayer/diagnostics": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openagentlayer/render": "workspace:*",
+        "@openagentlayer/source": "workspace:*",
+        "@openagentlayer/testkit": "workspace:*",
+      },
+    },
+    "packages/render": {
+      "name": "@openagentlayer/render",
+      "dependencies": {
+        "@openagentlayer/adapter-contract": "workspace:*",
+        "@openagentlayer/adapters": "workspace:*",
+        "@openagentlayer/source": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openagentlayer/testkit": "workspace:*",
+      },
+    },
+    "packages/runtime": {
+      "name": "@openagentlayer/runtime",
+      "dependencies": {
+        "@openagentlayer/diagnostics": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openagentlayer/testkit": "workspace:*",
+      },
+    },
+    "packages/source": {
+      "name": "@openagentlayer/source",
+      "dependencies": {
+        "@openagentlayer/diagnostics": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@openagentlayer/testkit": "workspace:*",
+      },
+    },
+    "packages/testkit": {
+      "name": "@openagentlayer/testkit",
+      "dependencies": {
+        "@openagentlayer/render": "workspace:*",
+        "@openagentlayer/types": "workspace:*",
+      },
+    },
+    "packages/types": {
+      "name": "@openagentlayer/types",
     },
   },
   "packages": {
@@ -28,6 +121,26 @@
     "@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.4.13", "", { "os": "win32", "cpu": "arm64" }, "sha512-Px9PS2B5/Q183bUwy/5VHqp3J2lzdOCeVGzMpphYfl8oSa7VDCqenBdqWpy6DCy/en4Rbf/Y1RieZF6dJPcc9A=="],
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.13", "", { "os": "win32", "cpu": "x64" }, "sha512-tTcMkXyBrmHi9BfrD2VNHs/5rYIUKETqsBlYOvSAABwBkJhSDVb5e7wPukftsQbO3WzQkXe6kaztC6WtUOXSoQ=="],
+
+    "@openagentlayer/adapter-contract": ["@openagentlayer/adapter-contract@workspace:packages/adapter-contract"],
+
+    "@openagentlayer/adapters": ["@openagentlayer/adapters@workspace:packages/adapters"],
+
+    "@openagentlayer/cli": ["@openagentlayer/cli@workspace:packages/cli"],
+
+    "@openagentlayer/diagnostics": ["@openagentlayer/diagnostics@workspace:packages/diagnostics"],
+
+    "@openagentlayer/install": ["@openagentlayer/install@workspace:packages/install"],
+
+    "@openagentlayer/render": ["@openagentlayer/render@workspace:packages/render"],
+
+    "@openagentlayer/runtime": ["@openagentlayer/runtime@workspace:packages/runtime"],
+
+    "@openagentlayer/source": ["@openagentlayer/source@workspace:packages/source"],
+
+    "@openagentlayer/testkit": ["@openagentlayer/testkit@workspace:packages/testkit"],
+
+    "@openagentlayer/types": ["@openagentlayer/types@workspace:packages/types"],
 
     "@types/node": ["@types/node@25.6.0", "", { "dependencies": { "undici-types": "~7.19.0" } }, "sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ=="],
 

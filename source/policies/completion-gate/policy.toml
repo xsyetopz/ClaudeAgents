@@ -1,0 +1,22 @@
+id = "completion-gate"
+kind = "policy"
+title = "Completion Gate"
+description = "Block route completion when required acceptance evidence is missing."
+category = "completion_gate"
+severity = "error"
+event_intent = "completion"
+blocking = true
+failure_mode = "fail_closed"
+handler_class = "command_script"
+matcher = "completion"
+runtime_script = "runtime/completion-gate.mjs"
+surface_events = ["Stop"]
+test_payloads = ["completion-gate/basic.json"]
+tests = ["completion-gate.test.ts"]
+surfaces = ["codex", "claude-code", "opencode"]
+
+[surface_mappings]
+codex = "Stop"
+claude-code = "Stop"
+opencode = "session.status"
+

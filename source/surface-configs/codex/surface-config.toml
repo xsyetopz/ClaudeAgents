@@ -1,0 +1,65 @@
+id = "codex-surface-config"
+kind = "surface-config"
+title = "Codex Surface Config"
+description = "Codex project config allowlist and default profile."
+surface = "codex"
+surfaces = ["codex"]
+allowed_key_paths = [
+  "features.codex_hooks",
+  "features.collaboration_modes",
+  "features.default_mode_request_user_input",
+  "features.fast_mode",
+  "features.memories",
+  "features.multi_agent_v2",
+  "features.shell_snapshot",
+  "features.shell_tool",
+  "features.skill_mcp_dependency_install",
+  "features.unified_exec",
+  "hooks.*.hooks.async",
+  "hooks.*.hooks.command",
+  "hooks.*.hooks.statusMessage",
+  "hooks.*.hooks.timeout",
+  "hooks.*.hooks.type",
+  "hooks.*.matcher",
+  "profiles.*.approval_policy",
+  "profiles.*.approvals_reviewer",
+  "profiles.*.model",
+  "profiles.*.model_reasoning_effort",
+  "profiles.*.plan_mode_reasoning_effort",
+]
+do_not_emit_key_paths = [
+  "approval_fallback_policy",
+  "approval_reviewer",
+]
+validation_rules = ["toml-parse", "allowlist"]
+
+[project_defaults.features]
+codex_hooks = true
+collaboration_modes = true
+default_mode_request_user_input = true
+fast_mode = false
+memories = true
+multi_agent_v2 = true
+shell_snapshot = true
+shell_tool = true
+skill_mcp_dependency_install = true
+unified_exec = false
+
+[default_profile]
+profile_id = "codex-plus"
+placement = "generated-project-profile"
+emitted_key_paths = ["features.*", "profiles.*.*"]
+source_url = "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/core/config.schema.json"
+validation = "toml-parse"
+
+[[replacements]]
+from = "approval_fallback_policy"
+to = "approval_policy"
+reason = "Codex config uses approval_policy for route approval behavior."
+source_url = "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/core/config.schema.json"
+
+[[replacements]]
+from = "approval_reviewer"
+to = "approvals_reviewer"
+reason = "Codex config uses approvals_reviewer for automated approval review."
+source_url = "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/core/config.schema.json"

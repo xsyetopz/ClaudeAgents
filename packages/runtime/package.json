@@ -1,0 +1,15 @@
+{
+  "name": "@openagentlayer/runtime",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@openagentlayer/diagnostics": "workspace:*",
+    "@openagentlayer/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@openagentlayer/testkit": "workspace:*"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@openagentlayer/cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "oal": "src/cli.ts"
+  },
+  "dependencies": {
+    "@openagentlayer/diagnostics": "workspace:*",
+    "@openagentlayer/install": "workspace:*",
+    "@openagentlayer/render": "workspace:*",
+    "@openagentlayer/source": "workspace:*",
+    "@openagentlayer/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@openagentlayer/testkit": "workspace:*"
+  }
+}

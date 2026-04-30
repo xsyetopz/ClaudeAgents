@@ -1,0 +1,69 @@
+id = "opencode-surface-config"
+kind = "surface-config"
+title = "OpenCode Surface Config"
+description = "OpenCode project config allowlist and default profile."
+surface = "opencode"
+surfaces = ["opencode"]
+allowed_key_paths = [
+  "$schema",
+  "agent.*.description",
+  "agent.*.model",
+  "command.*.agent",
+  "command.*.description",
+  "command.*.model",
+  "command.*.subtask",
+  "command.*.template",
+  "compaction.auto",
+  "compaction.prune",
+  "compaction.reserved",
+  "default_agent",
+  "permission.bash",
+  "permission.edit",
+  "permission.glob",
+  "permission.grep",
+  "permission.list",
+  "permission.read",
+  "permission.skill",
+  "permission.skill.*",
+  "permission.task",
+  "plugin",
+  "snapshot",
+  "watcher.ignore",
+]
+do_not_emit_key_paths = ["sharing"]
+validation_rules = ["json-parse", "allowlist"]
+
+[project_defaults]
+"$schema" = "https://opencode.ai/config.json"
+plugin = [".opencode/plugins/openagentlayer.ts"]
+snapshot = true
+
+[project_defaults.compaction]
+auto = true
+prune = true
+reserved = 10000
+
+[project_defaults.permission]
+bash = "ask"
+edit = "ask"
+glob = "allow"
+grep = "allow"
+list = "allow"
+read = "allow"
+task = "ask"
+
+[project_defaults.watcher]
+ignore = [".git/**", "node_modules/**", "dist/**", "build/**", "coverage/**", ".oal/generated/**"]
+
+[default_profile]
+profile_id = "codex-plus"
+placement = "generated-project-profile"
+emitted_key_paths = ["agent.*.*", "command.*.*", "compaction.*", "default_agent", "permission.*", "plugin", "snapshot", "watcher.ignore"]
+source_url = "https://opencode.ai/config.json"
+validation = "json-parse"
+
+[[replacements]]
+from = "sharing"
+to = "share"
+reason = "OpenCode config uses share for sharing behavior."
+source_url = "https://opencode.ai/config.json"

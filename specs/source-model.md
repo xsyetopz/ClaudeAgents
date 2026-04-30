@@ -9,6 +9,7 @@ Authority: normative.
 - Every record has `id`, `kind`, `title`, `description`, and `surfaces`.
 - IDs are lowercase kebab-case.
 - Body files are Markdown.
+- Loaded records include exact body file text for adapter rendering.
 - Metadata files are TOML.
 - Record loading must fail on duplicate IDs.
 - Record loading must fail on unknown surface names.
@@ -23,6 +24,7 @@ Fields:
 - `role`
 - `description`
 - `prompt`
+- `prompt_content`
 - `mode`: `primary`, `subagent`, or `both`
 - `route_contract`
 - `model_intent`
@@ -50,6 +52,7 @@ Fields:
 - `description`
 - `triggers`
 - `body`
+- `body_content`
 - `references`
 - `scripts`
 - `assets`
@@ -75,6 +78,7 @@ Fields:
 - `route_contract`
 - `aliases`
 - `prompt_template`
+- `prompt_template_content`
 - `arguments`
 - `invocation`
 - `side_effect_level`
@@ -130,9 +134,88 @@ Fields:
 - `authority`
 - `surfaces`
 - `body`
+- `body_content`
 - `injection_point`
 
 Guidance records provide instruction bodies for generated surface files.
+
+## Model plan record
+
+Path:
+
+- `source/model-plans/<id>/model-plan.toml`
+
+Fields:
+
+- `id`
+- `kind`: `model-plan`
+- `title`
+- `description`
+- `surfaces`
+- `default_plan`
+- `default_model`
+- `implementation_effort`
+- `plan_effort`
+- `review_effort`
+- `effort_ceiling`
+- `role_assignments`
+- `deep_route_overrides`
+- `long_context_routes`
+
+Each `role_assignments` entry contains:
+
+- `role`
+- `model`
+- `effort`
+
+Each `deep_route_overrides` entry contains:
+
+- `role`
+- `route`
+- `model`
+- `effort`
+
+Model plan records are source truth for profile and agent model assignment. Adapters translate model plans into native profile/settings/config files, but must not hardcode role names or default model assignments.
+
+At most one model plan may set `default_plan = true` for a surface. Explicit render calls may select a non-default plan by ID; unknown selected plan IDs must fail render validation.
+
+## Surface config record
+
+Path:
+
+- `source/surface-configs/<surface>/surface-config.toml`
+
+Fields:
+
+- `id`
+- `kind`: `surface-config`
+- `title`
+- `description`
+- `surface`
+- `surfaces`
+- `allowed_key_paths`
+- `do_not_emit_key_paths`
+- `project_defaults`
+- `default_profile`
+- `replacements`
+- `validation_rules`
+
+`default_profile` contains:
+
+- `profile_id`
+- `placement`
+- `emitted_key_paths`
+- `source_url`
+- `validation`
+
+Each replacement contains:
+
+- `from`
+- `to`
+- `reason`
+- `source_url`
+
+Surface config records are source truth for native config allowlists, default project values, blocked keys, and replacement mappings. Adapters must validate emitted config objects against these records before returning bundles.
 
 ## Links
 

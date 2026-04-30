@@ -1,0 +1,153 @@
+id = "claude-max-20"
+kind = "model-plan"
+title = "Claude Max 20x"
+description = "Claude Max 20x model routing plan."
+surfaces = ["claude-code"]
+default_plan = false
+default_model = "sonnet"
+implementation_effort = "medium"
+plan_effort = "high"
+review_effort = "high"
+effort_ceiling = "high"
+long_context_routes = []
+
+[[role_assignments]]
+role = "aphrodite"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "apollo"
+model = "haiku"
+effort = "low"
+
+[[role_assignments]]
+role = "ares"
+model = "sonnet"
+effort = "medium"
+
+[[role_assignments]]
+role = "argus"
+model = "haiku"
+effort = "medium"
+
+[[role_assignments]]
+role = "asclepius"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "atalanta"
+model = "haiku"
+effort = "medium"
+
+[[role_assignments]]
+role = "athena"
+model = "opusplan"
+effort = "high"
+
+[[role_assignments]]
+role = "calliope"
+model = "haiku"
+effort = "medium"
+
+[[role_assignments]]
+role = "clio"
+model = "haiku"
+effort = "medium"
+
+[[role_assignments]]
+role = "daedalus"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "dike"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "hecate"
+model = "opus"
+effort = "high"
+
+[[role_assignments]]
+role = "hephaestus"
+model = "sonnet"
+effort = "medium"
+
+[[role_assignments]]
+role = "hermes"
+model = "haiku"
+effort = "medium"
+
+[[role_assignments]]
+role = "hestia"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "iris"
+model = "haiku"
+effort = "low"
+
+[[role_assignments]]
+role = "metis"
+model = "opus"
+effort = "high"
+
+[[role_assignments]]
+role = "mnemosyne"
+model = "haiku"
+effort = "low"
+
+[[role_assignments]]
+role = "nemesis"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "odysseus"
+model = "opusplan"
+effort = "high"
+
+[[role_assignments]]
+role = "themis"
+model = "sonnet"
+effort = "high"
+
+[[deep_route_overrides]]
+role = "athena"
+route = "huge-architecture-corpus"
+model = "opus[1m]"
+effort = "high"
+
+[[deep_route_overrides]]
+role = "metis"
+route = "contradiction-resolution"
+model = "opus"
+effort = "xhigh"
+
+[[deep_route_overrides]]
+role = "nemesis"
+route = "wide-audit"
+model = "opus[1m]"
+effort = "high"
+
+[[deep_route_overrides]]
+role = "hecate"
+route = "hidden-risk-analysis"
+model = "opus"
+effort = "high"
+
+[[deep_route_overrides]]
+role = "odysseus"
+route = "huge-multi-agent-state"
+model = "opus[1m]"
+effort = "high"
+
+[[deep_route_overrides]]
+role = "clio"
+route = "large-archive-study"
+model = "opus[1m]"
+effort = "medium"

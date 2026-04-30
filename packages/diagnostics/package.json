@@ -1,0 +1,13 @@
+{
+  "name": "@openagentlayer/diagnostics",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/diagnostics.ts",
+    "./coerce": "./src/coerce.ts",
+    "./diagnostics": "./src/diagnostics.ts"
+  },
+  "dependencies": {
+    "@openagentlayer/types": "workspace:*"
+  }
+}

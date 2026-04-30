@@ -1,0 +1,20 @@
+{
+  "name": "@openagentlayer/render",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/write-plan.ts",
+    "./context": "./src/context.ts",
+    "./registry": "./src/registry.ts",
+    "./write-plan": "./src/write-plan.ts"
+  },
+  "dependencies": {
+    "@openagentlayer/adapter-contract": "workspace:*",
+    "@openagentlayer/adapters": "workspace:*",
+    "@openagentlayer/source": "workspace:*",
+    "@openagentlayer/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@openagentlayer/testkit": "workspace:*"
+  }
+}

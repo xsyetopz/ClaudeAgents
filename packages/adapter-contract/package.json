@@ -1,0 +1,12 @@
+{
+  "name": "@openagentlayer/adapter-contract",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@openagentlayer/diagnostics": "workspace:*",
+    "@openagentlayer/types": "workspace:*"
+  }
+}

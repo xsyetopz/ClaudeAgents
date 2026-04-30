@@ -1,0 +1,16 @@
+id = "plan"
+kind = "command"
+title = "Plan"
+description = "Route work through decision-complete planning."
+owner_role = "athena"
+route_contract = "readonly"
+aliases = ["decide", "architect"]
+prompt_template = "prompt.md"
+arguments = ["objective"]
+invocation = "user"
+side_effect_level = "none"
+model_policy = "gpt-5.5"
+hook_policies = ["completion-gate"]
+supporting_files = []
+surfaces = ["codex", "claude-code", "opencode"]
+

@@ -1,0 +1,221 @@
+import type {
+	AGENT_MODES,
+	CLAUDE_MODEL_IDS,
+	CODEX_MODEL_IDS,
+	EFFORT_LEVELS,
+	MODEL_IDS,
+	MODEL_PLAN_IDS,
+	POLICY_CATEGORIES,
+	POLICY_FAILURE_MODES,
+	POLICY_HANDLER_CLASSES,
+	RECORD_KINDS,
+	ROUTE_KINDS,
+	SURFACES,
+} from "./constants";
+
+export type RecordKind = (typeof RECORD_KINDS)[number];
+export type SourceRecordKind = RecordKind | "surface-config";
+export type Surface = (typeof SURFACES)[number];
+export type RouteKind = (typeof ROUTE_KINDS)[number];
+export type PolicyCategory = (typeof POLICY_CATEGORIES)[number];
+export type PolicyFailureMode = (typeof POLICY_FAILURE_MODES)[number];
+export type PolicyHandlerClass = (typeof POLICY_HANDLER_CLASSES)[number];
+export type AgentMode = (typeof AGENT_MODES)[number];
+export type ModelId = (typeof MODEL_IDS)[number];
+export type ModelPlanId = (typeof MODEL_PLAN_IDS)[number];
+export type CodexModelId = (typeof CODEX_MODEL_IDS)[number];
+export type ClaudeModelId = (typeof CLAUDE_MODEL_IDS)[number];
+export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+
+export type UnknownMap = Record<string, unknown>;
+
+export interface SourceLocation {
+	readonly directory: string;
+	readonly metadataPath: string;
+	readonly bodyPath: string | undefined;
+}
+
+export interface BaseRecord {
+	readonly id: string;
+	readonly kind: SourceRecordKind;
+	readonly title: string;
+	readonly description: string;
+	readonly surfaces: readonly Surface[];
+	readonly location: SourceLocation;
+	readonly raw: UnknownMap;
+}
+
+export interface AgentRecord extends BaseRecord {
+	readonly kind: "agent";
+	readonly role: string;
+	readonly prompt: string;
+	readonly prompt_content: string;
+	readonly mode: AgentMode;
+	readonly route_contract: string | undefined;
+	readonly model_intent: string | undefined;
+	readonly family: string | undefined;
+	readonly primary: boolean | undefined;
+	readonly subagent: boolean | undefined;
+	readonly model_class: string | undefined;
+	readonly effort_ceiling: EffortLevel | undefined;
+	readonly budget_tier: string | undefined;
+	readonly handoff_contract: string | undefined;
+	readonly permissions: readonly string[];
+	readonly skills: readonly string[];
+}
+
+export interface SkillRecord extends BaseRecord {
+	readonly kind: "skill";
+	readonly triggers: readonly string[];
+	readonly body: string;
+	readonly body_content: string;
+	readonly references: readonly string[];
+	readonly scripts: readonly string[];
+	readonly assets: readonly string[];
+	readonly when_to_use: string | undefined;
+	readonly invocation_mode: string | undefined;
+	readonly user_invocable: boolean | undefined;
+	readonly tool_grants: readonly string[];
+	readonly route_contract: string | undefined;
+	readonly model_policy: ModelId | undefined;
+	readonly supporting_files: readonly string[];
+}
+
+export interface CommandRecord extends BaseRecord {
+	readonly kind: "command";
+	readonly owner_role: string;
+	readonly route_contract: string | undefined;
+	readonly aliases: readonly string[];
+	readonly prompt_template: string;
+	readonly prompt_template_content: string;
+	readonly arguments: readonly string[];
+	readonly invocation: string | undefined;
+	readonly side_effect_level: string | undefined;
+	readonly surface_overrides: UnknownMap;
+	readonly model_policy: ModelId | undefined;
+	readonly hook_policies: readonly string[];
+	readonly supporting_files: readonly string[];
+}
+
+export interface PolicyRecord extends BaseRecord {
+	readonly kind: "policy";
+	readonly category: PolicyCategory;
+	readonly severity: string;
+	readonly event_intent: string;
+	readonly runtime_script: string | undefined;
+	readonly surface_mappings: UnknownMap;
+	readonly blocking: boolean | undefined;
+	readonly failure_mode: PolicyFailureMode | undefined;
+	readonly handler_class: PolicyHandlerClass | undefined;
+	readonly matcher: string | undefined;
+	readonly payload_schema: string | undefined;
+	readonly surface_events: readonly string[];
+	readonly test_payloads: readonly string[];
+	readonly message: string | undefined;
+	readonly tests: readonly string[];
+}
+
+export interface GuidanceRecord extends BaseRecord {
+	readonly kind: "guidance";
+	readonly authority: string;
+	readonly body: string;
+	readonly body_content: string;
+	readonly injection_point: string;
+}
+
+export interface ModelPlanAssignment {
+	readonly role: string;
+	readonly model: ModelId;
+	readonly effort: EffortLevel;
+}
+
+export interface ModelPlanOverride {
+	readonly role: string;
+	readonly route: string;
+	readonly model: ModelId;
+	readonly effort: EffortLevel;
+}
+
+export interface ModelPlanRecord extends BaseRecord {
+	readonly kind: "model-plan";
+	readonly default_plan: boolean | undefined;
+	readonly default_model: ModelId;
+	readonly implementation_effort: EffortLevel;
+	readonly plan_effort: EffortLevel;
+	readonly review_effort: EffortLevel;
+	readonly effort_ceiling: EffortLevel;
+	readonly role_assignments: readonly ModelPlanAssignment[];
+	readonly deep_route_overrides: readonly ModelPlanOverride[];
+	readonly long_context_routes: readonly string[];
+}
+
+export interface ConfigReplacement {
+	readonly from: string;
+	readonly to: string;
+	readonly reason: string;
+	readonly source_url: string;
+}
+
+export interface DefaultProfile {
+	readonly profile_id: string;
+	readonly placement: string;
+	readonly emitted_key_paths: readonly string[];
+	readonly source_url: string;
+	readonly validation: string;
+}
+
+export interface SurfaceConfigRecord extends BaseRecord {
+	readonly kind: "surface-config";
+	readonly surface: Surface;
+	readonly allowed_key_paths: readonly string[];
+	readonly do_not_emit_key_paths: readonly string[];
+	readonly project_defaults: UnknownMap;
+	readonly default_profile: DefaultProfile;
+	readonly replacements: readonly ConfigReplacement[];
+	readonly validation_rules: readonly string[];
+}
+
+export type SourceRecord =
+	| AgentRecord
+	| SkillRecord
+	| CommandRecord
+	| PolicyRecord
+	| GuidanceRecord
+	| ModelPlanRecord
+	| SurfaceConfigRecord;
+
+export interface SurfaceRenderTargetRecord {
+	readonly surface: Surface;
+	readonly kind: string;
+	readonly path: string;
+	readonly format: string;
+	readonly source_record: string;
+	readonly adapter: string;
+	readonly validation_rule: string;
+}
+
+export interface SourceGraph {
+	readonly records: readonly SourceRecord[];
+	readonly byId: ReadonlyMap<string, SourceRecord>;
+	readonly agents: readonly AgentRecord[];
+	readonly skills: readonly SkillRecord[];
+	readonly commands: readonly CommandRecord[];
+	readonly policies: readonly PolicyRecord[];
+	readonly guidance: readonly GuidanceRecord[];
+	readonly modelPlans: readonly ModelPlanRecord[];
+	readonly surfaceConfigs: readonly SurfaceConfigRecord[];
+}
+
+export type DiagnosticLevel = "error" | "warning";
+
+export interface Diagnostic {
+	readonly level: DiagnosticLevel;
+	readonly code: string;
+	readonly message: string;
+	readonly path?: string;
+}
+
+export interface LoadResult {
+	readonly graph?: SourceGraph;
+	readonly diagnostics: readonly Diagnostic[];
+}

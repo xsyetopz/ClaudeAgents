@@ -1,0 +1,18 @@
+{
+  "name": "@openagentlayer/install",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@openagentlayer/adapter-contract": "workspace:*",
+    "@openagentlayer/diagnostics": "workspace:*",
+    "@openagentlayer/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@openagentlayer/render": "workspace:*",
+    "@openagentlayer/source": "workspace:*",
+    "@openagentlayer/testkit": "workspace:*"
+  }
+}

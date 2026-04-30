@@ -87,6 +87,17 @@ Runtime scripts receive normalized JSON:
 
 Each surface adapter owns conversion from native payload to normalized payload. Runtime scripts must not parse native surface payloads directly unless the adapter is the runtime script.
 
+Current runtime package exports:
+
+- `RuntimePayload`
+- `RuntimeDecision`
+- `evaluateCompletionGate(payload)`
+- `evaluateDestructiveCommandGuard(payload)`
+- `evaluateRuntimePolicy(payload)`
+- `renderRuntimeScript(policyId)`
+
+Rendered runtime scripts are self-contained `.mjs` files. They read normalized JSON from stdin, write a normalized decision JSON line to stdout, and exit non-zero only for `deny`.
+
 ## Required guards
 
 - destructive shell command guard;

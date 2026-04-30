@@ -14,25 +14,50 @@ flowchart TD
   P[Policy TOML + runtime .mjs] --> G
   D[Guidance MD] --> G
   M[Model routing TOML] --> G
+  SC[Surface config TOML] --> G
   G --> V[Source validator]
   V --> R[Render context]
+```
+
+## Package graph
+
+```mermaid
+flowchart LR
+  T[types] --> D[diagnostics]
+  T --> S[source]
+  D --> S
+  T --> R[render]
+  S --> R
+  T --> AC[adapter-contract]
+  AC --> AD[adapters]
+  T --> AD
+  RT[runtime] --> AD
+  AD --> R
+  AC --> R
+  T --> RT
+  D --> RT
+  AC --> IN[install]
+  RT --> IN
+  S --> CLI[cli]
+  R --> CLI
+  IN --> CLI
 ```
 
 ## Adapter graph
 
 ```mermaid
 flowchart LR
-  R[Render context] --> AC[Codex adapter]
-  R --> AL[Claude adapter]
-  R --> AO[OpenCode adapter]
-  R --> AP[Copilot adapter]
-  R --> AI[Optional IDE adapter]
+  R[Render context] --> AD[adapters package]
+  AD --> SH[shared adapter helpers]
+  AD --> AC[providers/codex]
+  AD --> AL[providers/claude]
+  AD --> AO[providers/opencode]
   AC --> GC[Generated Codex files]
   AL --> GL[Generated Claude files]
   AO --> GO[Generated OpenCode files]
-  AP --> GP[Generated Copilot files]
-  AI --> GI[Generated IDE files]
 ```
+
+Additional adapters require their own surface-config study and allowlist contract before they enter this graph.
 
 ## Runtime graph
 
@@ -48,4 +73,3 @@ flowchart TD
   PE --> DG[Drift guard]
   PE --> CG[Completion gate]
 ```
-

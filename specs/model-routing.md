@@ -40,6 +40,7 @@ Plan records must define:
 - review effort;
 - role assignments;
 - effort ceiling;
+- whether plan is default for each listed surface;
 - explicit deep-route overrides;
 - long-context route allowances.
 
@@ -60,6 +61,7 @@ Codex model set:
 - `gpt-5.4`
 - `gpt-5.4-mini`
 - `gpt-5.3-codex`
+- `gpt-5.2`
 
 Codex effort levels:
 

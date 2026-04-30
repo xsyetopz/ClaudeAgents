@@ -1,0 +1,10 @@
+{
+  "name": "@openagentlayer/types",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/types.ts",
+    "./constants": "./src/constants.ts",
+    "./types": "./src/types.ts"
+  }
+}

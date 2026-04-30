@@ -1,0 +1,150 @@
+import { describe, expect, test } from "bun:test";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import {
+	applyInstallPlan,
+	uninstallManagedFiles,
+} from "@openagentlayer/install";
+import { createAdapterRegistry } from "@openagentlayer/render/registry";
+import { loadSourceGraph } from "@openagentlayer/source";
+import { createFixtureRoot } from "@openagentlayer/testkit";
+
+describe("OAL installer", () => {
+	test("project install writes selected surface artifacts and manifest", async () => {
+		const { targetRoot, codexBundle } = await createInstallFixture();
+
+		const result = await applyInstallPlan({
+			bundle: codexBundle,
+			scope: "project",
+			targetRoot,
+		});
+
+		expect(result.manifest.surface).toBe("codex");
+		expect(result.writtenFiles).toContain(
+			join(targetRoot, ".oal/manifest/codex-project.json"),
+		);
+		expect(
+			await Bun.file(
+				join(targetRoot, ".codex/openagentlayer/config.toml"),
+			).text(),
+		).toContain("fast_mode = false");
+	});
+
+	test("uninstall removes only managed files", async () => {
+		const { targetRoot, codexBundle } = await createInstallFixture();
+		const neighborPath = join(
+			targetRoot,
+			".codex/openagentlayer/user-note.txt",
+		);
+
+		await applyInstallPlan({
+			bundle: codexBundle,
+			scope: "project",
+			targetRoot,
+		});
+		await mkdir(join(targetRoot, ".codex/openagentlayer"), { recursive: true });
+		await writeFile(neighborPath, "keep\n");
+
+		const result = await uninstallManagedFiles({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(result.removedFiles).toContain(
+			join(targetRoot, ".oal/manifest/codex-project.json"),
+		);
+		expect(await Bun.file(neighborPath).text()).toBe("keep\n");
+		expect(
+			await Bun.file(
+				join(targetRoot, ".codex/openagentlayer/config.toml"),
+			).exists(),
+		).toBe(false);
+	});
+
+	test("install rejects managed paths that escape target root", async () => {
+		const { targetRoot, codexBundle } = await createInstallFixture();
+
+		await expect(
+			applyInstallPlan({
+				bundle: {
+					...codexBundle,
+					artifacts: [
+						{
+							content: "bad\n",
+							kind: "config",
+							path: "../escape.txt",
+							sourceRecordIds: [],
+							surface: "codex",
+						},
+					],
+				},
+				scope: "project",
+				targetRoot,
+			}),
+		).rejects.toThrow("escapes target root");
+	});
+
+	test("uninstall missing manifest is no-op", async () => {
+		const targetRoot = await createFixtureRoot();
+
+		const result = await uninstallManagedFiles({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(result.removedFiles).toEqual([]);
+	});
+
+	test("uninstall ignores forged manifest target root", async () => {
+		const targetRoot = await createFixtureRoot();
+		const forgedTargetRoot = await createFixtureRoot();
+		const externalVictim = join(forgedTargetRoot, "victim.txt");
+		const localManagedFile = join(targetRoot, "victim.txt");
+		const manifestPath = join(targetRoot, ".oal/manifest/codex-project.json");
+
+		await mkdir(join(targetRoot, ".oal/manifest"), { recursive: true });
+		await writeFile(externalVictim, "external\n");
+		await writeFile(localManagedFile, "local\n");
+		await writeFile(
+			manifestPath,
+			JSON.stringify({
+				entries: [
+					{
+						artifactKind: "config",
+						path: "victim.txt",
+						sha256: "forged",
+						sourceRecordIds: [],
+					},
+				],
+				generatedAt: "deterministic",
+				scope: "project",
+				surface: "codex",
+				targetRoot: forgedTargetRoot,
+			}),
+		);
+
+		await uninstallManagedFiles({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(await Bun.file(externalVictim).text()).toBe("external\n");
+		expect(await Bun.file(localManagedFile).exists()).toBe(false);
+	});
+});
+
+async function createInstallFixture() {
+	const sourceResult = await loadSourceGraph(process.cwd());
+	if (sourceResult.graph === undefined) {
+		throw new Error("Expected graph.");
+	}
+	const targetRoot = await createFixtureRoot();
+	const registry = createAdapterRegistry();
+	return {
+		targetRoot,
+		codexBundle: registry.renderSurfaceBundle(sourceResult.graph, "codex"),
+	};
+}

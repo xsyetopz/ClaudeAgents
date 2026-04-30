@@ -1,0 +1,48 @@
+id = "claude-code-surface-config"
+kind = "surface-config"
+title = "Claude Code Surface Config"
+description = "Claude Code project settings allowlist and default profile."
+surface = "claude-code"
+surfaces = ["claude-code"]
+allowed_key_paths = [
+  "$schema",
+  "fastModePerSessionOptIn",
+  "hooks.*",
+  "hooks.*.hooks.command",
+  "hooks.*.hooks.statusMessage",
+  "hooks.*.hooks.timeout",
+  "hooks.*.hooks.type",
+  "hooks.*.matcher",
+  "includeGitInstructions",
+  "plansDirectory",
+]
+do_not_emit_key_paths = [
+  "commitAttribution",
+  "voice",
+]
+validation_rules = ["json-parse", "allowlist"]
+
+[project_defaults]
+"$schema" = "https://www.schemastore.org/claude-code-settings.json"
+fastModePerSessionOptIn = true
+includeGitInstructions = false
+plansDirectory = "./plans"
+
+[default_profile]
+profile_id = "claude-max-5"
+placement = "generated-project-profile"
+emitted_key_paths = ["$schema", "fastModePerSessionOptIn", "hooks.*", "includeGitInstructions", "plansDirectory"]
+source_url = "https://www.schemastore.org/claude-code-settings.json"
+validation = "json-parse"
+
+[[replacements]]
+from = "commitAttribution"
+to = "attribution"
+reason = "Claude Code settings use attribution for commit attribution behavior."
+source_url = "https://code.claude.com/docs/en/settings"
+
+[[replacements]]
+from = "voice"
+to = "voice.enabled"
+reason = "Claude Code settings use nested voice.enabled for voice behavior."
+source_url = "https://code.claude.com/docs/en/settings"
