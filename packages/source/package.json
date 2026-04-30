@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/load.ts",
+    ".": "./src/index.ts",
     "./graph": "./src/graph.ts",
     "./load": "./src/load.ts",
     "./validate-docs": "./src/validate-docs.ts",

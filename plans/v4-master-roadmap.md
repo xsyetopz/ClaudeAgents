@@ -99,6 +99,31 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 - [x] Sealed — Move option parsing, output helpers, surface resolution, and hook verification into focused CLI modules.
 - [x] Sealed — Validate CLI entrypoint stays thin and package modules do not import CLI internals.
 
+## Phase 10: source compiler maintainability
+
+- [x] Sealed — Split source graph loading into definition, filesystem, record-loader, graph-builder, and orchestration modules.
+- [x] Sealed — Split source validation into identity, field, model, surface-config, and reference validation modules.
+- [x] Sealed — Validate source loader and validator entrypoints stay small and package modules do not import source internals by path.
+
+## Phase 11: test maintainability
+
+- [x] Sealed — Split CLI tests into command, install, and failure-atomicity scenario modules with shared helpers.
+- [x] Sealed — Split installer tests into install, uninstall, and verification scenario modules with shared helpers.
+- [x] Sealed — Split source validation tests into graph, docs, record, model-plan, and surface-config scenario modules.
+
+## Phase 12: type contract maintainability
+
+- [x] Sealed — Split primitive, diagnostic, source record, graph, and render-target type contracts into focused modules.
+- [x] Sealed — Preserve `@openagentlayer/types` compatibility through a barrel public entrypoint.
+- [x] Sealed — Add explicit type subpath exports and validate packages do not import types internals by path.
+
+## Phase 13: render maintainability
+
+- [x] Sealed — Split render write-plan internals into desired-artifact generation, existing-file scanning, stable JSON, and write application modules.
+- [x] Sealed — Split adapter registry normalization and model-plan option validation from registry factory.
+- [x] Sealed — Add render package barrel public entrypoint.
+- [x] Sealed — Validate render orchestration files stay small and packages do not import render internals by path.
+
 ## Done criteria
 
 - [x] Sealed — `oal check` validates source graph; `bun run check:source` may wrap it.

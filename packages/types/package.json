@@ -5,6 +5,11 @@
   "exports": {
     ".": "./src/types.ts",
     "./constants": "./src/constants.ts",
+    "./diagnostics": "./src/diagnostics.ts",
+    "./graph": "./src/graph.ts",
+    "./primitives": "./src/primitives.ts",
+    "./records": "./src/records.ts",
+    "./render-targets": "./src/render-targets.ts",
     "./types": "./src/types.ts"
   }
 }

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/write-plan.ts",
+    ".": "./src/index.ts",
     "./context": "./src/context.ts",
     "./registry": "./src/registry.ts",
     "./write-plan": "./src/write-plan.ts"

@@ -168,6 +168,110 @@ describe("OAL package boundaries", () => {
 
 		expect(violations).toEqual([]);
 	});
+
+	test("keeps source loader and validator split by ownership", async () => {
+		const load = await Bun.file("packages/source/src/load.ts").text();
+		const validate = await Bun.file("packages/source/src/validate.ts").text();
+
+		expect(load.split("\n").length).toBeLessThanOrEqual(120);
+		expect(load).not.toContain("function parseToml");
+		expect(load).not.toContain("function buildGraph");
+		expect(validate.split("\n").length).toBeLessThanOrEqual(40);
+		expect(validate).not.toContain("function validateModelPlan");
+		expect(validate).not.toContain("function validateSurfaceConfig");
+		expect(validate).not.toContain("function validateRouteContract");
+	});
+
+	test("keeps package modules from importing source internals by path", async () => {
+		const sourcePathPattern = ["packages", "source", "src"].join("/");
+		const files = (await listFiles("packages"))
+			.filter(isPackageCodeFile)
+			.filter((path) => !path.startsWith("packages/source/"))
+			.filter(
+				(path) =>
+					path !== "packages/testkit/__tests__/src/package-boundaries.test.ts",
+			);
+		const violations: string[] = [];
+		for (const path of files) {
+			const content = await readFile(path, "utf8");
+			if (content.includes(sourcePathPattern)) {
+				violations.push(path);
+			}
+		}
+
+		expect(violations).toEqual([]);
+	});
+
+	test("keeps types public entrypoint as barrel", async () => {
+		const index = await Bun.file("packages/types/src/types.ts").text();
+		expect(index.split("\n").length).toBeLessThanOrEqual(40);
+		expect(index).not.toContain("interface ");
+		expect(index).not.toContain("type UnknownMap =");
+		expect(index).toContain("export type {");
+	});
+
+	test("keeps package modules from importing types internals by path", async () => {
+		const typesPathPattern = ["packages", "types", "src"].join("/");
+		const files = (await listFiles("packages"))
+			.filter(isPackageCodeFile)
+			.filter((path) => !path.startsWith("packages/types/"))
+			.filter(
+				(path) =>
+					path !== "packages/testkit/__tests__/src/package-boundaries.test.ts",
+			);
+		const violations: string[] = [];
+		for (const path of files) {
+			const content = await readFile(path, "utf8");
+			if (content.includes(typesPathPattern)) {
+				violations.push(path);
+			}
+		}
+
+		expect(violations).toEqual([]);
+	});
+
+	test("keeps render public entrypoint as module barrel", async () => {
+		const index = await Bun.file("packages/render/src/index.ts").text();
+		expect(index.split("\n").length).toBeLessThanOrEqual(40);
+		expect(index).not.toContain("function ");
+		expect(index).not.toContain("interface ");
+		expect(index).toContain("export {");
+	});
+
+	test("keeps render registry and write plan split by ownership", async () => {
+		const registry = await Bun.file("packages/render/src/registry.ts").text();
+		const writePlan = await Bun.file(
+			"packages/render/src/write-plan.ts",
+		).text();
+
+		expect(registry.split("\n").length).toBeLessThanOrEqual(90);
+		expect(registry).not.toContain("function validateModelPlanOption");
+		expect(registry).not.toContain("function normalizeBundle");
+		expect(writePlan.split("\n").length).toBeLessThanOrEqual(90);
+		expect(writePlan).not.toContain("function createDesiredFiles");
+		expect(writePlan).not.toContain("function stableJson");
+		expect(writePlan).not.toContain("async function listExistingFiles");
+	});
+
+	test("keeps package modules from importing render internals by path", async () => {
+		const renderPathPattern = ["packages", "render", "src"].join("/");
+		const files = (await listFiles("packages"))
+			.filter(isPackageCodeFile)
+			.filter((path) => !path.startsWith("packages/render/"))
+			.filter(
+				(path) =>
+					path !== "packages/testkit/__tests__/src/package-boundaries.test.ts",
+			);
+		const violations: string[] = [];
+		for (const path of files) {
+			const content = await readFile(path, "utf8");
+			if (content.includes(renderPathPattern)) {
+				violations.push(path);
+			}
+		}
+
+		expect(violations).toEqual([]);
+	});
 });
 
 async function readPackageManifest(packageName: string): Promise<{

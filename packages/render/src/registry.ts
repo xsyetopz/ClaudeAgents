@@ -2,16 +2,18 @@ import type {
 	AdapterBundle,
 	SurfaceAdapter,
 } from "@openagentlayer/adapter-contract";
-import { createClaudeAdapter } from "@openagentlayer/adapters/providers/claude";
-import { createCodexAdapter } from "@openagentlayer/adapters/providers/codex";
-import { createOpenCodeAdapter } from "@openagentlayer/adapters/providers/opencode";
-import type { Diagnostic, SourceGraph, Surface } from "@openagentlayer/types";
+import type { SourceGraph, Surface } from "@openagentlayer/types";
 import { SURFACES } from "@openagentlayer/types/constants";
+import { compareAdapters, createDefaultAdapters } from "./adapters";
+import { normalizeBundle } from "./bundle";
 import { createAdapterContext } from "./context";
+import {
+	type RenderSurfaceOptions,
+	validateModelPlanOption,
+} from "./model-plan";
 
-export interface RenderSurfaceOptions {
-	readonly modelPlanId?: string;
-}
+export type { RenderSurfaceOptions };
+export { createDefaultAdapters };
 
 export interface AdapterRegistry {
 	readonly adapters: readonly SurfaceAdapter[];
@@ -58,34 +60,6 @@ export function createAdapterRegistry(
 	};
 }
 
-function validateModelPlanOption(
-	graph: SourceGraph,
-	surface: Surface,
-	options: RenderSurfaceOptions,
-): Diagnostic | undefined {
-	if (options.modelPlanId === undefined) {
-		return undefined;
-	}
-
-	const modelPlan = graph.modelPlans.find(
-		(record) =>
-			record.id === options.modelPlanId && record.surfaces.includes(surface),
-	);
-	if (modelPlan !== undefined) {
-		return undefined;
-	}
-
-	return {
-		code: "unknown-model-plan",
-		level: "error",
-		message: `Unknown model plan '${options.modelPlanId}' for surface '${surface}'.`,
-	};
-}
-
-export function createDefaultAdapters(): readonly SurfaceAdapter[] {
-	return [createCodexAdapter(), createClaudeAdapter(), createOpenCodeAdapter()];
-}
-
 function getAdapter(
 	adapterBySurface: ReadonlyMap<Surface, SurfaceAdapter>,
 	surface: Surface,
@@ -95,27 +69,4 @@ function getAdapter(
 		throw new Error(`Unknown surface '${surface}'.`);
 	}
 	return adapter;
-}
-
-function normalizeBundle(
-	adapter: SurfaceAdapter,
-	bundle: AdapterBundle,
-): AdapterBundle {
-	const diagnostics = bundle.diagnostics.concat(adapter.validateBundle(bundle));
-	return {
-		...bundle,
-		artifacts: [...bundle.artifacts].sort((left, right) =>
-			left.path.localeCompare(right.path),
-		),
-		diagnostics: diagnostics.sort(
-			(left, right) =>
-				left.code.localeCompare(right.code) ||
-				(left.path ?? "").localeCompare(right.path ?? "") ||
-				left.message.localeCompare(right.message),
-		),
-	};
-}
-
-function compareAdapters(left: SurfaceAdapter, right: SurfaceAdapter): number {
-	return left.surface.localeCompare(right.surface);
 }
