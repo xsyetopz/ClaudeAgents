@@ -1,9 +1,0 @@
-id = "core"
-kind = "guidance"
-title = "Core Guidance"
-description = "Root OpenAgentLayer guidance for generated surface instructions."
-authority = "root"
-body = "body.md"
-injection_point = "project"
-surfaces = ["codex", "claude", "opencode"]
-
