@@ -124,6 +124,31 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 - [x] Sealed — Add render package barrel public entrypoint.
 - [x] Sealed — Validate render orchestration files stay small and packages do not import render internals by path.
 
+## Phase 14: contract foundation maintainability
+
+- [x] Sealed — Split adapter-contract package into identity, artifact, install-plan, surface-adapter, and validation modules.
+- [x] Sealed — Preserve adapter-contract root compatibility through a barrel public entrypoint and focused subpath exports.
+- [x] Sealed — Split diagnostics package into factory, severity query, and coercion modules while preserving root and coercion exports.
+- [x] Sealed — Validate adapter-contract and diagnostics entrypoints stay focused and packages do not import their internals by path.
+
+## Phase 15: testkit boundary-suite maintainability
+
+- [x] Sealed — Split package-boundary tests into workspace, entrypoint, internal-import, split-ownership, and layout-threshold scenario modules.
+- [x] Sealed — Move package-boundary fixture helpers into a shared test helper module.
+- [x] Sealed — Validate package-boundary scenario files stay below a smaller split threshold and the old monolith does not return.
+
+## Phase 16: runtime test maintainability
+
+- [x] Sealed — Split runtime tests into script, completion-gate, destructive-command-guard, prompt-context-injection, runtime-router, and source-drift scenario modules.
+- [x] Sealed — Move repeated runtime script and manifest helpers into a shared test helper module.
+- [x] Sealed — Validate runtime scenario files stay below a smaller split threshold and the old monolith does not return.
+
+## Phase 17: render registry test maintainability
+
+- [x] Sealed — Split render registry tests into registry-order, Codex bundle, Claude bundle, OpenCode bundle, and hook bundle scenario modules.
+- [x] Sealed — Move repeated render registry graph, bundle, artifact, and hook helpers into a shared test helper module.
+- [x] Sealed — Validate render registry scenario files stay below a smaller split threshold and the old monolith does not return.
+
 ## Done criteria
 
 - [x] Sealed — `oal check` validates source graph; `bun run check:source` may wrap it.

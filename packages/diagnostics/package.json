@@ -5,7 +5,9 @@
   "exports": {
     ".": "./src/diagnostics.ts",
     "./coerce": "./src/coerce.ts",
-    "./diagnostics": "./src/diagnostics.ts"
+    "./diagnostics": "./src/diagnostics.ts",
+    "./factory": "./src/factory.ts",
+    "./severity": "./src/severity.ts"
   },
   "dependencies": {
     "@openagentlayer/types": "workspace:*"

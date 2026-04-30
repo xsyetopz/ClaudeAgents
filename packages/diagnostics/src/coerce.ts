@@ -1,5 +1,5 @@
 import type { Diagnostic, UnknownMap } from "@openagentlayer/types";
-import { errorDiagnostic } from "./diagnostics";
+import { errorDiagnostic } from "./factory";
 
 export function asObject(
 	value: unknown,
