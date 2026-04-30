@@ -64,6 +64,8 @@ Required:
 
 Runtime completion gates inspect route state, changed paths, execution evidence, and final response text where the surface supports it.
 
+Rendered prompt layers include the active route contract so project instructions, role prompts, commands, skills, and hook-injected context share the same completion expectation.
+
 ## Links
 
 - [OpenAgentLayer v4](openagentlayer-v4.md)

@@ -89,6 +89,14 @@ Skill render targets:
 - Claude Code: `.claude/skills/<id>/SKILL.md` and support files under the same skill directory.
 - OpenCode: `.opencode/skills/<id>/SKILL.md` and support files under the same skill directory.
 
+Imported skill rules:
+
+- Imported skills must keep the concrete upstream skill identity. OAL must not create generic wrapper skills such as `full-skill`.
+- Imported skills with `metadata.origin = "openagentlayer-local"` must set `metadata.source_package` and `metadata.upstream_name`.
+- Imported skill bodies must preserve full procedural depth from the source skill. OAL metadata may add routing, tool policy, support-file lists, and surface-native frontmatter, but must not compress the body into a summary.
+- Support files from imported skills remain support files. `openai.yaml`, scripts, references, and assets must render under the native skill directory with source-relative paths.
+- Caveman-family skills are response-style skills only. Taste-family skills are frontend/UI/design execution skills only.
+
 ## Rendering rules
 
 - Codex skills render to Codex plugin skill shape.
@@ -102,6 +110,7 @@ Skill render targets:
 
 - Shared body comes from Markdown.
 - `SKILL.md` must contain complete procedural guidance, not a heading plus one-line summary.
+- `SKILL.md` must not be an unnecessary wrapper around another skill when the concrete skill can be sourced directly.
 - Long guidance goes in linked `references/` files; scripts and assets stay in `scripts/` and `assets/`.
 - `references`, `scripts`, `assets`, and `supporting_files` paths must stay inside the skill directory and exist at source-load time.
 - Surface-specific behavior goes in metadata override blocks.

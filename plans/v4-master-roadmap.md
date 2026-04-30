@@ -202,19 +202,19 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 
 ## Phase 25: prompt and instruction architecture
 
-- [ ] Queued — Split prompting into global guidance, surface guidance, role prompt, command prompt, skill instructions, hook-injected context, and completion contract layers.
-- [ ] Queued — Define prompt-layer precedence, merge order, conflict behavior, and surface-specific placement for Codex, Claude, and OpenCode.
-- [ ] Queued — Add route contracts that require output shape, validation evidence, handoff shape, completion-gate evidence, and escalation behavior.
-- [ ] Queued — Validate rendered prompt layers are deterministic and include required high-authority guidance on every supported surface.
-- [ ] Queued — Prefer runtime and hook enforcement over prose-only prompting when a behavior can be checked deterministically.
+- [x] Sealed — Split prompting into global guidance, surface guidance, role prompt, command prompt, skill instructions, hook-injected context, and completion contract layers.
+- [x] Sealed — Define prompt-layer precedence, merge order, conflict behavior, and surface-specific placement for Codex, Claude, and OpenCode.
+- [x] Sealed — Add route contracts that require output shape, validation evidence, handoff shape, completion-gate evidence, and escalation behavior.
+- [x] Sealed — Validate rendered prompt layers are deterministic and include required high-authority guidance on every supported surface.
+- [x] Sealed — Prefer runtime and hook enforcement over prose-only prompting when a behavior can be checked deterministically.
 
 ## Phase 26: taste and caveman skill integration
 
-- [ ] Queued — Add source records for caveman, caveman-commit, caveman-compress, caveman-review, taste, taste-output, taste-redesign, taste-images, taste-imagegen, and taste family variants.
-- [ ] Queued — Preserve upstream-style skill metadata, invocation rules, full body depth, pinned source attribution, and support-file structure instead of compressing them into short summaries.
-- [ ] Queued — Add OAL wrappers only for routing, surface-native metadata, and model/tool policy; do not dilute skill bodies or convert them into generic guidance.
-- [ ] Queued — Validate caveman skills affect assistant response style only and taste skills affect frontend/UI/design tasks only.
-- [ ] Queued — Test generated skills for complete instructions, no missing sections, no placeholder prose, and correct user invocation behavior.
+- [x] Sealed — Add source records for caveman, caveman-commit, caveman-compress, caveman-review, taste, taste-output, taste-redesign, taste-images, taste-imagegen, and taste family variants.
+- [x] Sealed — Preserve upstream-style skill metadata, invocation rules, full body depth, pinned source attribution, and support-file structure instead of compressing them into short summaries.
+- [x] Sealed — Add OAL wrappers only for routing, surface-native metadata, and model/tool policy; do not dilute skill bodies or convert them into generic guidance.
+- [x] Sealed — Validate caveman skills affect assistant response style only and taste skills affect frontend/UI/design tasks only.
+- [x] Sealed — Test generated skills for complete instructions, no missing sections, no placeholder prose, and correct user invocation behavior.
 
 ## Phase 27: role and subagent orchestration depth
 

@@ -16,6 +16,33 @@ describe("OAL prompt context injection runtime policy", () => {
 			"OpenAgentLayer context:",
 		);
 		expect(decision.context?.["prompt_append"]).toContain("Route: plan");
+		expect(decision.context?.["prompt_append"]).toContain(
+			"Route contract: readonly",
+		);
+	});
+
+	test("returns enriched metadata in prompt append context", () => {
+		const decision = evaluatePromptContextInjection({
+			event: "UserPromptSubmit",
+			metadata: {
+				active_policy: "completion-gate",
+				route_contract: "edit-required",
+				validation: "passed",
+			},
+			policy_id: "prompt-context-injection",
+			route: "implement",
+			surface: "claude",
+		});
+
+		expect(decision.context?.["prompt_append"]).toContain(
+			"Route contract: edit-required",
+		);
+		expect(decision.context?.["prompt_append"]).toContain(
+			"Active policy: completion-gate",
+		);
+		expect(decision.context?.["prompt_append"]).toContain(
+			"Validation expectation: passed",
+		);
 	});
 
 	test("rendered prompt context script returns context decision", async () => {

@@ -20,6 +20,7 @@ import {
 	renderCommandMetadata,
 	renderCommandSupportArtifacts,
 } from "../../shared/commands";
+import { renderPromptLayerBlock } from "../../shared/prompt-layers";
 import { renderCodexAgentConfig } from "./config";
 import {
 	CODEX_ARTIFACT_ROOT,
@@ -48,7 +49,7 @@ export function renderCodexRecordArtifacts(
 					surface: CODEX_SURFACE,
 					kind: "agent",
 					path: `.codex/agents/${record.id}.toml`,
-					content: renderCodexAgentConfig(record, assignment),
+					content: renderCodexAgentConfig(record, graph, assignment),
 					sourceRecordIds: [record.id],
 				},
 			];
@@ -59,13 +60,24 @@ export function renderCodexRecordArtifacts(
 					surface: CODEX_SURFACE,
 					kind: "skill",
 					path: `${CODEX_PLUGIN_ROOT}/skills/${record.id}/SKILL.md`,
-					content: renderAgentSkillMarkdown(record, {
-						allowed_tools:
-							record.allowed_tools.length === 0
-								? undefined
-								: record.allowed_tools,
-						"user-invocable": record.user_invocable,
-					}),
+					content: [
+						renderAgentSkillMarkdown(record, {
+							allowed_tools:
+								record.allowed_tools.length === 0
+									? undefined
+									: record.allowed_tools,
+							"user-invocable": record.user_invocable,
+						}).trimEnd(),
+						...(graph === undefined
+							? []
+							: [
+									renderPromptLayerBlock(graph, CODEX_SURFACE, {
+										routeContract: record.route_contract,
+										skill: record,
+									}),
+								]),
+						"",
+					].join("\n\n"),
 					sourceRecordIds: [record.id],
 				},
 				...renderSkillSupportArtifacts(
@@ -166,6 +178,14 @@ function renderCodexCommandSkill(
 			[
 				record.prompt_template_content.trimEnd(),
 				renderCommandMetadata(record),
+				...(graph === undefined
+					? []
+					: [
+							renderPromptLayerBlock(graph, CODEX_SURFACE, {
+								command: record,
+								routeContract: record.route_contract,
+							}),
+						]),
 				`Argument schema: ${JSON.stringify(record.argument_schema)}.`,
 			].join("\n"),
 		),

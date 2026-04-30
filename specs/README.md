@@ -13,6 +13,7 @@ Index:
 - [route contracts](route-contracts.md)
 - [command and skill format](command-skill-format.md)
 - [hook policy engine](hook-policy-engine.md)
+- [prompt architecture](prompt-architecture.md)
 - [installer runtime](installer-runtime.md)
 - [model routing](model-routing.md)
 - [validation and drift](validation-and-drift.md)

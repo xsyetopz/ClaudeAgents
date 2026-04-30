@@ -130,6 +130,41 @@ describe("OAL source record validation", () => {
 		);
 	});
 
+	test("fails unnecessary full-skill wrapper names", async () => {
+		const root = await createFixtureRoot();
+		await writeAgent(root);
+		await writeSkill(root, { id: "full-skill" });
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"unnecessary-skill-wrapper",
+		);
+	});
+
+	test("fails imported skills without attribution", async () => {
+		const root = await createFixtureRoot();
+		await writeAgent(root);
+		await writeSkill(root);
+		const skillPath = `${root}/source/skills/fixture-skill/skill.toml`;
+		const source = await Bun.file(skillPath).text();
+		await Bun.write(
+			skillPath,
+			source.replace(
+				'metadata = { origin = "fixture" }',
+				'metadata = { origin = "openagentlayer-local" }',
+			),
+		);
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"missing-imported-skill-attribution",
+		);
+	});
+
 	test("fails overlong Agent Skills text fields", async () => {
 		const root = await createFixtureRoot();
 		await writeAgent(root);

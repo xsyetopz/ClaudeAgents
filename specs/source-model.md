@@ -67,6 +67,8 @@ Fields:
 
 Skill records express procedural capability. Adapters translate into native skill formats.
 
+Imported skills are first-class skill records. They keep the original `SKILL.md` body, attribution metadata, and support files instead of being summarized into OAL prose. Imported records from the local openagentlayer package must include `metadata.source_package` and `metadata.upstream_name`; records named as generic wrappers such as `full-skill` are invalid because they hide the concrete Agent Skill identity.
+
 ## Command record
 
 Fields:
@@ -138,6 +140,8 @@ Fields:
 - `injection_point`
 
 Guidance records provide instruction bodies for generated surface files.
+
+Prompt architecture derives prompt layers from existing guidance, agent, command, skill, policy, and route-contract source records. It does not add a separate prompt record kind.
 
 ## Model plan record
 

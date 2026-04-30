@@ -47,6 +47,7 @@ export function renderOpenCodeConfig(
 			]),
 		),
 		default_agent: primaryAgent,
+		instructions: [".opencode/openagentlayer/instructions.md"],
 		permission: {
 			...(projectDefaults["permission"] as Record<string, unknown>),
 			skill: Object.fromEntries(

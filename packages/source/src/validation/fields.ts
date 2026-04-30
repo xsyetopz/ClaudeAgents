@@ -71,8 +71,15 @@ const AGENT_SKILL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const MAX_AGENT_SKILL_ID_LENGTH = 64;
 const MAX_AGENT_SKILL_DESCRIPTION_LENGTH = 1_024;
 const MAX_AGENT_SKILL_COMPATIBILITY_LENGTH = 500;
+const FORBIDDEN_SKILL_ID_PATTERN = /(^|-)full-skill($|-)/u;
 const PLACEHOLDER_BODY_PATTERN =
 	/(^|\n)\s*(TODO|FIXME|\.\.\.|…)\s*($|\n)|rest follows|similar to above|add more as needed/iu;
+const STANDALONE_PLACEHOLDER_LINE_PATTERN = /^\s*(TODO|FIXME|\.\.\.|…)\s*$/u;
+const PLACEHOLDER_PHRASES = [
+	"rest follows",
+	"similar to above",
+	"add more as needed",
+] as const;
 const FRONTMATTER_PATTERN = /^---\n[\s\S]*?\n---\n?/u;
 const NUMBERED_LIST_PATTERN = /^\d+\.\s/u;
 const COMMAND_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
@@ -105,6 +112,16 @@ function validateSkillRecordFields(
 		);
 	}
 
+	if (FORBIDDEN_SKILL_ID_PATTERN.test(record.id)) {
+		diagnostics.push(
+			errorDiagnostic(
+				"unnecessary-skill-wrapper",
+				`Skill '${record.id}' is an unnecessary wrapper; source the concrete Agent Skill directly.`,
+				record.location.metadataPath,
+			),
+		);
+	}
+
 	if (record.description.length > MAX_AGENT_SKILL_DESCRIPTION_LENGTH) {
 		diagnostics.push(
 			errorDiagnostic(
@@ -128,7 +145,32 @@ function validateSkillRecordFields(
 		);
 	}
 
+	validateImportedSkillAttribution(record, diagnostics);
 	validateSkillBody(record, diagnostics);
+}
+
+function validateImportedSkillAttribution(
+	record: Extract<SourceRecord, { readonly kind: "skill" }>,
+	diagnostics: Diagnostic[],
+): void {
+	if (record.metadata["origin"] !=openagentlayerbtw-local") {
+		return;
+	}
+
+	if (
+		typeof record.metadata["source_package"] !== "string" ||
+		record.metadata["source_package"].length === 0 ||
+		typeof record.metadata["upstream_name"] !== "string" ||
+		record.metadata["upstream_name"].length === 0
+	) {
+		diagnostics.push(
+			errorDiagnostic(
+				"missing-imported-skill-attribution",
+				`Imported skill '${record.id}' must preserve source package and upstream name attribution.`,
+				record.location.metadataPath,
+			),
+		);
+	}
 }
 
 function validateSkillBody(
@@ -160,7 +202,7 @@ function validateSkillBody(
 		);
 	}
 
-	if (PLACEHOLDER_BODY_PATTERN.test(record.body_content)) {
+	if (containsActivePlaceholder(record.body_content)) {
 		diagnostics.push(
 			errorDiagnostic(
 				"placeholder-skill-body",
@@ -262,7 +304,7 @@ function validateCommandBody(
 		);
 	}
 
-	if (PLACEHOLDER_BODY_PATTERN.test(record.prompt_template_content)) {
+	if (containsActivePlaceholder(record.prompt_template_content)) {
 		diagnostics.push(
 			errorDiagnostic(
 				"placeholder-command-body",
@@ -271,6 +313,29 @@ function validateCommandBody(
 			),
 		);
 	}
+}
+
+function containsActivePlaceholder(body: string): boolean {
+	if (PLACEHOLDER_BODY_PATTERN.test(body)) {
+		for (const line of body.split("\n")) {
+			const normalizedLine = line.trim();
+			const lowercaseLine = normalizedLine.toLowerCase();
+			if (STANDALONE_PLACEHOLDER_LINE_PATTERN.test(normalizedLine)) {
+				return true;
+			}
+			if (
+				PLACEHOLDER_PHRASES.some((phrase) => lowercaseLine.includes(phrase)) &&
+				!normalizedLine.includes('"') &&
+				!normalizedLine.includes("`") &&
+				!lowercaseLine.includes("banned") &&
+				!lowercaseLine.includes("never")
+			) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 function validatePolicyRecordFields(

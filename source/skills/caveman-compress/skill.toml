@@ -1,0 +1,24 @@
+id = "caveman-compress"
+kind = "skill"
+title = "Caveman Compress"
+description = "Compress prose-first memory/docs files into Caveman style, preserving code, links, and structure while saving a .original.md backup."
+body = "SKILL.md"
+license = "MIT"
+compatibility = "Codex, Claude, and OpenCode Agent Skills surfaces."
+triggers = ["caveman-compress", "caveman"]
+when_to_use = "Compress prose-first memory/docs files into Caveman style, preserving code, links, and structure while saving a .original.md backup."
+invocation_mode = "manual-or-route"
+user_invocable = true
+allowed_tools = ["read", "search"]
+tool_grants = ["read", "search"]
+route_contract = "readonly"
+scripts = ["scripts/compress.mjs"]
+supporting_files = []
+surfaces = ["codex", "claude", "opencode"]
+
+[metadata]
+origin = "openagentlayer-local"
+source = "local installed openagentlayer skill cache"
+source_package = "openagentlayer/3.3.2"
+skill_category = "caveman-family"
+upstream_name = "caveman-compress"

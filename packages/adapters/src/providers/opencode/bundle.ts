@@ -15,9 +15,11 @@ import {
 	renderJsonFile,
 	validateConfigObject,
 } from "../../shared";
+import { renderProjectPromptInstructions } from "../../shared/prompt-layers";
 import { renderOpenCodeConfig } from "./config";
 import {
 	OPENCODE_CONFIG_PATH,
+	OPENCODE_INSTRUCTIONS_PATH,
 	OPENCODE_PLUGIN_PATH,
 	OPENCODE_SURFACE,
 } from "./constants";
@@ -86,6 +88,18 @@ function renderOpenCodeBundleArtifacts(
 			path: OPENCODE_CONFIG_PATH,
 			content: renderJsonFile(renderOpenCodeConfig(graph, context)),
 			installMode: "structured-object",
+			sourceRecordIds: graph.records.map((record) => record.id).sort(),
+		},
+		{
+			surface: OPENCODE_SURFACE,
+			kind: "instruction",
+			path: OPENCODE_INSTRUCTIONS_PATH,
+			content: [
+				"# OpenAgentLayer OpenCode Instructions",
+				"",
+				renderProjectPromptInstructions(graph, OPENCODE_SURFACE),
+				"",
+			].join("\n"),
 			sourceRecordIds: graph.records.map((record) => record.id).sort(),
 		},
 		{

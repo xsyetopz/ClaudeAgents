@@ -86,6 +86,10 @@ OAL mapping:
 - global install -> user/global generated skills path;
 - remote skill catalogs only when explicitly configured.
 
+## Instructions config
+
+OAL emits `instructions` with the generated `.opencode/openagentlayer/instructions.md` path so project-wide prompt layers are native OpenCode config, not hidden plugin state.
+
 ## Plugin config
 
 `plugin` is an array. Items can be:

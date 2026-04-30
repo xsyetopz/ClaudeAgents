@@ -4,6 +4,10 @@ import type {
 	SourceGraph,
 } from "@openagentlayer/types";
 import { renderTomlDocument, tomlMultilineString } from "../../shared";
+import {
+	renderProjectPromptInstructions,
+	renderPromptLayerBlock,
+} from "../../shared/prompt-layers";
 import { CODEX_ARTIFACT_ROOT, CODEX_SURFACE } from "./constants";
 
 export function renderCodexConfig(graph: SourceGraph): string {
@@ -18,6 +22,7 @@ export function renderCodexConfig(graph: SourceGraph): string {
 
 export function renderCodexAgentConfig(
 	record: AgentRecord,
+	graph: SourceGraph | undefined,
 	assignment: {
 		readonly model: string | undefined;
 		readonly effort: string | undefined;
@@ -33,6 +38,15 @@ export function renderCodexAgentConfig(
 				record.route_contract === undefined
 					? undefined
 					: `Route contract: ${record.route_contract}.`,
+				...(graph === undefined
+					? []
+					: [
+							"",
+							renderPromptLayerBlock(graph, CODEX_SURFACE, {
+								agent: record,
+								routeContract: record.route_contract,
+							}),
+						]),
 			]
 				.filter((line): line is string => line !== undefined)
 				.join("\n"),
@@ -62,6 +76,8 @@ export function renderCodexAgentsMd(graph: SourceGraph): string {
 		"OpenAgentLayer provides project behavior, routing, validation, and hook policy for Codex.",
 		"Use `.codex/agents/*.toml` custom agents for Greek-god role delegation.",
 		"Use `.codex/openagentlayer/plugin/skills/` for OAL command and skill surfaces.",
+		"",
+		renderProjectPromptInstructions(graph, CODEX_SURFACE),
 		"",
 		"## Available OAL Agents",
 		"",

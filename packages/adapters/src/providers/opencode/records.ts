@@ -19,6 +19,7 @@ import {
 	renderCommandMetadata,
 	renderCommandSupportArtifacts,
 } from "../../shared/commands";
+import { renderPromptLayerBlock } from "../../shared/prompt-layers";
 import { OPENCODE_ARTIFACT_ROOT, OPENCODE_SURFACE } from "./constants";
 
 export function renderOpenCodeRecordArtifacts(
@@ -38,7 +39,17 @@ export function renderOpenCodeRecordArtifacts(
 							description: record.description,
 							name: record.id,
 						},
-						record.prompt_content,
+						[
+							record.prompt_content.trimEnd(),
+							...(graph === undefined
+								? []
+								: [
+										renderPromptLayerBlock(graph, OPENCODE_SURFACE, {
+											agent: record,
+											routeContract: record.route_contract,
+										}),
+									]),
+						].join("\n\n"),
 					),
 					sourceRecordIds: [record.id],
 				},
@@ -49,7 +60,18 @@ export function renderOpenCodeRecordArtifacts(
 					surface: OPENCODE_SURFACE,
 					kind: "skill",
 					path: `.opencode/skills/${record.id}/SKILL.md`,
-					content: renderAgentSkillMarkdown(record, {}),
+					content: [
+						renderAgentSkillMarkdown(record, {}).trimEnd(),
+						...(graph === undefined
+							? []
+							: [
+									renderPromptLayerBlock(graph, OPENCODE_SURFACE, {
+										routeContract: record.route_contract,
+										skill: record,
+									}),
+								]),
+						"",
+					].join("\n\n"),
 					sourceRecordIds: [record.id],
 				},
 				...renderSkillSupportArtifacts(
@@ -135,6 +157,14 @@ function renderOpenCodeCommand(
 			[
 				record.prompt_template_content.trimEnd(),
 				renderCommandMetadata(record),
+				...(graph === undefined
+					? []
+					: [
+							renderPromptLayerBlock(graph, OPENCODE_SURFACE, {
+								command: record,
+								routeContract: record.route_contract,
+							}),
+						]),
 			].join("\n"),
 		),
 		sourceRecordIds: [record.id],

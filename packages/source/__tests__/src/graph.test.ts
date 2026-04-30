@@ -25,17 +25,23 @@ describe("OAL source graph", () => {
 				"surface-config:claude-surface-config",
 				"surface-config:codex-surface-config",
 				"surface-config:opencode-surface-config",
+				"skill:caveman",
 				"skill:review-policy",
+				"skill:taste",
 			]),
 		);
 		expect(result.graph?.agents).toHaveLength(21);
+		expect(result.graph?.skills).toHaveLength(15);
 		expect(result.graph?.modelPlans).toHaveLength(5);
 		expect(result.graph?.surfaceConfigs).toHaveLength(3);
 		expect(
 			result.graph?.agents.find((record) => record.id === "athena")
 				?.prompt_content,
 		).toContain("# Athena");
-		expect(result.graph?.skills[0]?.body_content).toContain("# Review Policy");
+		expect(
+			result.graph?.skills.find((record) => record.id === "review-policy")
+				?.body_content,
+		).toContain("# Review Policy");
 		expect(result.graph?.commands[0]?.prompt_template_content).toContain(
 			"# Plan",
 		);

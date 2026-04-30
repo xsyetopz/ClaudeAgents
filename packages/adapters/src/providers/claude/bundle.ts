@@ -15,7 +15,12 @@ import {
 	renderJsonFile,
 	validateConfigObject,
 } from "../../shared";
-import { CLAUDE_SETTINGS_PATH, CLAUDE_SURFACE } from "./constants";
+import { renderProjectPromptInstructions } from "../../shared/prompt-layers";
+import {
+	CLAUDE_INSTRUCTIONS_PATH,
+	CLAUDE_SETTINGS_PATH,
+	CLAUDE_SURFACE,
+} from "./constants";
 import { renderClaudeRecordArtifacts } from "./records";
 import { renderClaudeSettings } from "./settings";
 
@@ -42,7 +47,10 @@ export function renderClaudeBundle(
 	context: AdapterContext,
 ): AdapterBundle {
 	const diagnostics: Diagnostic[] = [];
-	const artifacts: AdapterArtifact[] = [renderSettingsArtifact(graph)];
+	const artifacts: AdapterArtifact[] = [
+		renderSettingsArtifact(graph),
+		renderInstructionsArtifact(graph),
+	];
 	diagnostics.push(
 		...validateConfigObject({
 			artifactPath: CLAUDE_SETTINGS_PATH,
@@ -64,6 +72,23 @@ export function renderClaudeBundle(
 		surface: CLAUDE_SURFACE,
 		artifacts: artifacts.sort(compareByPath),
 		diagnostics,
+	};
+}
+
+function renderInstructionsArtifact(graph: SourceGraph): AdapterArtifact {
+	return {
+		surface: CLAUDE_SURFACE,
+		kind: "instruction",
+		path: CLAUDE_INSTRUCTIONS_PATH,
+		content: [
+			"# OpenAgentLayer Claude Instructions",
+			"",
+			renderProjectPromptInstructions(graph, CLAUDE_SURFACE),
+			"",
+		].join("\n"),
+		installMode: "marked-text-block",
+		managedBlockId: "claude-instructions",
+		sourceRecordIds: graph.records.map((record) => record.id).sort(),
 	};
 }
 

@@ -1,0 +1,24 @@
+id = "caveman"
+kind = "skill"
+title = "Caveman"
+description = "Ultra-terse response mode that compresses assistant prose while preserving technical substance. Supports off, lite, full, ultra, wenyan-lite, wenyan, and wenyan-ultra. Use when the user wants fewer tokens, shorter answers, or Caveman mode."
+body = "SKILL.md"
+license = "MIT"
+compatibility = "Codex, Claude, and OpenCode Agent Skills surfaces."
+triggers = ["caveman", "caveman"]
+when_to_use = "Ultra-terse response mode that compresses assistant prose while preserving technical substance. Supports off, lite, full, ultra, wenyan-lite, wenyan, and wenyan-ultra. Use when the user wants fewer tokens, shorter answers, or Caveman mode."
+invocation_mode = "manual-or-route"
+user_invocable = true
+allowed_tools = ["read", "search"]
+tool_grants = ["read", "search"]
+route_contract = "readonly"
+scripts = []
+supporting_files = []
+surfaces = ["codex", "claude", "opencode"]
+
+[metadata]
+origin = "openagentlayer-local"
+source = "local installed openagentlayer skill cache"
+source_package = "openagentlayer/3.3.2"
+skill_category = "caveman-family"
+upstream_name = "caveman"

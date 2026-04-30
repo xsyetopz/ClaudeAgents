@@ -17,6 +17,7 @@ allowed_key_paths = [
   "compaction.prune",
   "compaction.reserved",
   "default_agent",
+  "instructions",
   "permission.bash",
   "permission.edit",
   "permission.glob",
@@ -53,12 +54,29 @@ read = "allow"
 task = "ask"
 
 [project_defaults.watcher]
-ignore = [".git/**", "node_modules/**", "dist/**", "build/**", "coverage/**", ".oal/generated/**"]
+ignore = [
+  ".git/**",
+  "node_modules/**",
+  "dist/**",
+  "build/**",
+  "coverage/**",
+  ".oal/generated/**",
+]
 
 [default_profile]
 profile_id = "codex-plus"
 placement = "generated-project-profile"
-emitted_key_paths = ["agent.*.*", "command.*.*", "compaction.*", "default_agent", "permission.*", "plugin", "snapshot", "watcher.ignore"]
+emitted_key_paths = [
+  "agent.*.*",
+  "command.*.*",
+  "compaction.*",
+  "default_agent",
+  "instructions",
+  "permission.*",
+  "plugin",
+  "snapshot",
+  "watcher.ignore",
+]
 source_url = "https://opencode.ai/config.json"
 validation = "json-parse"
 

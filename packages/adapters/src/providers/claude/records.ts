@@ -20,6 +20,7 @@ import {
 	renderCommandMetadata,
 	renderCommandSupportArtifacts,
 } from "../../shared/commands";
+import { renderPromptLayerBlock } from "../../shared/prompt-layers";
 import { CLAUDE_ARTIFACT_ROOT, CLAUDE_SURFACE } from "./constants";
 
 export function renderClaudeRecordArtifacts(
@@ -52,7 +53,17 @@ export function renderClaudeRecordArtifacts(
 							skills: record.skills,
 							tools: record.permissions,
 						},
-						record.prompt_content,
+						[
+							record.prompt_content.trimEnd(),
+							...(graph === undefined
+								? []
+								: [
+										renderPromptLayerBlock(graph, CLAUDE_SURFACE, {
+											agent: record,
+											routeContract: record.route_contract,
+										}),
+									]),
+						].join("\n\n"),
 					),
 					sourceRecordIds: [record.id],
 				},
@@ -64,15 +75,28 @@ export function renderClaudeRecordArtifacts(
 					surface: CLAUDE_SURFACE,
 					kind: "skill",
 					path: `.claude/skills/${record.id}/SKILL.md`,
-					content: renderAgentSkillMarkdown(record, {
-						"allowed-tools": record.tool_grants,
-						"disable-model-invocation": disablesImplicitSkillInvocation(record)
-							? true
-							: undefined,
-						model: record.model_policy,
-						"user-invocable": record.user_invocable,
-						when_to_use: record.when_to_use,
-					}),
+					content: [
+						renderAgentSkillMarkdown(record, {
+							"allowed-tools": record.tool_grants,
+							"disable-model-invocation": disablesImplicitSkillInvocation(
+								record,
+							)
+								? true
+								: undefined,
+							model: record.model_policy,
+							"user-invocable": record.user_invocable,
+							when_to_use: record.when_to_use,
+						}).trimEnd(),
+						...(graph === undefined
+							? []
+							: [
+									renderPromptLayerBlock(graph, CLAUDE_SURFACE, {
+										routeContract: record.route_contract,
+										skill: record,
+									}),
+								]),
+						"",
+					].join("\n\n"),
 					sourceRecordIds: [record.id],
 				},
 				...renderSkillSupportArtifacts(
@@ -158,6 +182,14 @@ function renderClaudeCommandSkill(
 			[
 				record.prompt_template_content.trimEnd(),
 				renderCommandMetadata(record),
+				...(graph === undefined
+					? []
+					: [
+							renderPromptLayerBlock(graph, CLAUDE_SURFACE, {
+								command: record,
+								routeContract: record.route_contract,
+							}),
+						]),
 			].join("\n"),
 		),
 		sourceRecordIds: [record.id],

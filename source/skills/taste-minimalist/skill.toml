@@ -1,0 +1,24 @@
+id = "taste-minimalist"
+kind = "skill"
+title = "Taste Minimalist"
+description = "Minimalist editorial product UI with restrained palettes, clean typography, and crisp structure."
+body = "SKILL.md"
+license = "MIT"
+compatibility = "Codex, Claude, and OpenCode Agent Skills surfaces."
+triggers = ["frontend", "ui", "ux", "design", "polish"]
+when_to_use = "Minimalist editorial product UI with restrained palettes, clean typography, and crisp structure."
+invocation_mode = "manual-or-route"
+user_invocable = true
+allowed_tools = ["read", "search", "edit"]
+tool_grants = ["read", "search", "edit"]
+route_contract = "edit-required"
+scripts = []
+supporting_files = ["openai.yaml"]
+surfaces = ["codex", "claude", "opencode"]
+
+[metadata]
+origin = "openagentlayer-local"
+source = "local installed openagentlayer skill cache"
+source_package = "openagentlayer/3.3.2"
+skill_category = "taste-family"
+upstream_name = "taste-minimalist"

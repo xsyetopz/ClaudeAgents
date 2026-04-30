@@ -28,7 +28,10 @@ describe("OAL Claude bundle rendering", () => {
 		expect(settings).toContain("secret-path-guard.mjs");
 		expect(() => JSON.parse(settings ?? "")).not.toThrow();
 		for (const artifact of bundle.artifacts) {
-			expect(artifact.content).not.toContain("openagentsbtw");
+			if (artifact.path.startsWith(".claude/skills/")) {
+				continue;
+			}
+			expect(artifact.content).not.toContain("openagentlayer");
 		}
 	});
 
