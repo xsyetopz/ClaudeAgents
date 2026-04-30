@@ -5,6 +5,7 @@ description = "Require justification and risk metadata for permission escalation
 category = "delegation"
 severity = "error"
 event_intent = "permission_request"
+hook_event_category = "permission_request"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

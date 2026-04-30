@@ -5,6 +5,7 @@ description = "Block placeholder or prototype text in generated output when cont
 category = "output_safety"
 severity = "error"
 event_intent = "post_tool_output"
+hook_event_category = "post_tool"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

@@ -5,6 +5,7 @@ description = "Block known destructive shell commands before tool execution."
 category = "execution_guard"
 severity = "error"
 event_intent = "tool_execution"
+hook_event_category = "pre_tool"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

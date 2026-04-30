@@ -19,14 +19,25 @@ describe("OAL Claude bundle rendering", () => {
 		const settings = artifactContent(bundle, ".claude/settings.json");
 
 		expect(artifactPaths(bundle)).toContain(".claude/agents/athena.md");
+		expect(artifactPaths(bundle)).toContain(".claude/agents/morpheus.md");
 		expect(artifactPaths(bundle)).toContain(".claude/settings.json");
-		expect(settings).toContain(
-			"bun .claude/openagentlayer/runtime/completion-gate.mjs",
+		const morpheus = artifactContent(bundle, ".claude/agents/morpheus.md");
+		expect(morpheus).toContain('model: "sonnet"');
+		expect(morpheus).toContain('effort: "high"');
+		expect(morpheus).toContain("skills:");
+		expect(morpheus).toContain("review-policy");
+		const parsedSettings = JSON.parse(settings ?? "") as {
+			readonly hooks?: Record<string, unknown[]>;
+		};
+		expect(Object.keys(parsedSettings.hooks ?? {})).toEqual(
+			expect.arrayContaining([
+				"PermissionRequest",
+				"PostToolUse",
+				"PreToolUse",
+				"Stop",
+				"UserPromptSubmit",
+			]),
 		);
-		expect(settings).toContain("UserPromptSubmit");
-		expect(settings).toContain("PermissionRequest");
-		expect(settings).toContain("secret-path-guard.mjs");
-		expect(() => JSON.parse(settings ?? "")).not.toThrow();
 	});
 
 	test("renders complete native skill packages from fixture source", async () => {

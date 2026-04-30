@@ -37,11 +37,17 @@ Fields:
 - `handoff_contract`
 - `permissions`
 - `skills`
+- `commands`
+- `policies`
 - `surfaces`
 
 Agent records express role behavior. They do not contain rendered frontmatter for any one surface.
 
 Agent role IDs are source data. The schema must allow new Greek-named roles without code changes. Role families are metadata values loaded from source; validation may enforce a configured family list, but renderer logic must not depend on a fixed role-name enum.
+
+`skills`, `commands`, and `policies` are role affinity metadata. They describe preferred native skill access, command ownership/support, and policy awareness for rendered subagents. OAL validates those references against source graph IDs and renders them only through native fields where a surface supports them; otherwise the affinities stay in generated prompt metadata.
+
+Agent prompt Markdown is authored source content. Validators may reject missing prompt files and active placeholder text, but must not enforce fixed prose section names, line text, or Caveman/taste/style wording. Unit tests should validate source graph structure, rendered file structure, native config shape, and behavior; they must not lock role prompt prose except where a provider format requires a structural marker.
 
 ## Skill record
 
@@ -101,6 +107,7 @@ Fields:
 - `category`
 - `severity`
 - `event_intent`
+- `hook_event_category`
 - `runtime_script`
 - `surface_mappings`
 - `blocking`

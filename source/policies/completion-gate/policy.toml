@@ -5,6 +5,7 @@ description = "Block route completion when required acceptance evidence is missi
 category = "completion_gate"
 severity = "error"
 event_intent = "completion"
+hook_event_category = "completion"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

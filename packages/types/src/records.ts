@@ -43,6 +43,8 @@ export interface AgentRecord extends BaseRecord {
 	readonly handoff_contract: string | undefined;
 	readonly permissions: readonly string[];
 	readonly skills: readonly string[];
+	readonly commands: readonly string[];
+	readonly policies: readonly string[];
 }
 
 export interface SkillRecord extends BaseRecord {
@@ -124,6 +126,7 @@ export interface PolicyRecord extends BaseRecord {
 	readonly category: PolicyCategory;
 	readonly severity: string;
 	readonly event_intent: string;
+	readonly hook_event_category: string;
 	readonly runtime_script: string | undefined;
 	readonly surface_mappings: UnknownMap;
 	readonly blocking: boolean | undefined;

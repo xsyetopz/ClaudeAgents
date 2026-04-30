@@ -5,6 +5,7 @@ description = "Report dirty working tree state at completion and block only when
 category = "vcs_gate"
 severity = "warn"
 event_intent = "completion"
+hook_event_category = "completion"
 blocking = false
 failure_mode = "warn_only"
 handler_class = "command_script"

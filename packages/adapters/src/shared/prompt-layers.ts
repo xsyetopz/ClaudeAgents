@@ -33,6 +33,7 @@ export function renderPromptLayerBlock(
 		...renderGlobalGuidance(graph, surface),
 		...renderSurfaceGuidance(surface),
 		...renderRolePrompt(options.agent),
+		...renderRoleAffinities(options.agent),
 		...renderCommandPrompt(options.command),
 		...renderSkillInstructions(options.skill),
 		...renderHookContext(graph, surface),
@@ -81,6 +82,27 @@ function renderRolePrompt(record: AgentRecord | undefined): readonly string[] {
 	return ["### Role prompt", "", record.prompt_content.trim(), ""];
 }
 
+function renderRoleAffinities(
+	record: AgentRecord | undefined,
+): readonly string[] {
+	if (record === undefined) {
+		return [];
+	}
+	return [
+		"### Role affinities",
+		"",
+		`Skills: ${formatList(record.skills)}.`,
+		`Commands: ${formatList(record.commands)}.`,
+		`Policies: ${formatList(record.policies)}.`,
+		`Tools: ${formatList(record.permissions)}.`,
+		`Handoff contract: ${record.handoff_contract ?? "none"}.`,
+		record.route_contract === undefined
+			? "Route contract: readonly."
+			: `Route contract: ${record.route_contract}.`,
+		"",
+	];
+}
+
 function renderCommandPrompt(
 	record: CommandRecord | undefined,
 ): readonly string[] {
@@ -88,6 +110,12 @@ function renderCommandPrompt(
 		return [];
 	}
 	return ["### Command prompt", "", record.prompt_template_content.trim(), ""];
+}
+
+function formatList(values: readonly string[] | undefined): string {
+	return values === undefined || values.length === 0
+		? "none"
+		: values.join(", ");
 }
 
 function renderSkillInstructions(

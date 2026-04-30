@@ -128,6 +128,7 @@ export function renderCodexRecordArtifacts(
 						event_intent: record.event_intent,
 						failure_mode: record.failure_mode,
 						handler_class: record.handler_class,
+						hook_event_category: record.hook_event_category,
 						id: record.id,
 						surface: CODEX_SURFACE,
 						surface_events: record.surface_events,

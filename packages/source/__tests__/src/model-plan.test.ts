@@ -75,6 +75,23 @@ describe("OAL source model-plan validation", () => {
 		);
 	});
 
+	test("fails missing model plan role assignment", async () => {
+		const root = await createFixtureRoot();
+		await writeAgent(root);
+		await writeAgent(root, {
+			directory: "agents/second-agent",
+			id: "second-agent",
+		});
+		await writeModelPlan(root);
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"missing-role-assignment",
+		);
+	});
+
 	test("fails duplicate default model plans for one surface", async () => {
 		const root = await createFixtureRoot();
 		await writeAgent(root);

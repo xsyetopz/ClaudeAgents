@@ -44,6 +44,7 @@ Fields:
 - `blocking`: whether failure blocks the surface action.
 - `failure_mode`: `fail_open`, `fail_closed`, or `warn_only`.
 - `handler_class`: `command_script`, `prompt_review`, `agent_review`, `http_callout`, or `mcp_callout`.
+- `hook_event_category`: normalized event family used by adapters before selecting a provider-native event.
 - `runtime_script`: generated `.mjs` path for command-script handlers.
 - `matcher`: abstract matcher expression translated per surface.
 - `payload_schema`: normalized input expected by the runtime script.
@@ -52,7 +53,16 @@ Fields:
 
 ## Surface event mapping
 
-Adapters map OAL policy categories to current surface mechanisms:
+Adapters map hook event categories to current surface mechanisms:
+
+- `prompt_submit`: user prompt append/submission hooks.
+- `pre_tool`: hooks before tool execution.
+- `post_tool`: hooks after tool execution.
+- `permission_request`: permission/escalation decision hooks.
+- `completion`: stop/final-response/session-completion hooks.
+- `compaction`: context compaction hooks.
+- `file_change`: file-write/file-change hooks.
+- `session_status`: session-status hooks that are not tied to a single prompt or tool call.
 
 - Codex: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`, `PermissionRequest`.
 - Claude Code: lifecycle, prompt, tool, permission, subagent, file, compaction, and session events from Claude hook docs.
@@ -60,6 +70,8 @@ Adapters map OAL policy categories to current surface mechanisms:
 - `vcs_gate` maps to tool-execution hooks plus completion/session diff checks; adapters must implement both command guard and final diff-state validation where the surface can expose them.
 
 OpenCode renders plugin handlers for hook-like policy.
+
+Validation must reject a `surface_mappings` event that does not belong to the policy's declared `hook_event_category`. Provider renderers may use explicit `surface_mappings` when present, but fallback/default event selection must be category-aware rather than hardcoded per policy id.
 
 ## Blocking semantics
 

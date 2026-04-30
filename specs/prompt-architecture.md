@@ -30,6 +30,12 @@ Within a layer, records render in stable source-id order. If two entries own the
 
 The prompt-context hook may append route, surface, active policy, route contract, and validation expectations. Deterministic behavior remains enforced by policy runtime where possible; prose is not the only guard.
 
+## Prompt source boundaries
+
+Role prompts, command prompts, skill bodies, and guidance files are authored source. The compiler preserves them and layers deterministic metadata around them, but it does not impose Caveman mode, taste style, or fixed prose section text on those bodies. Caveman and taste remain explicit skills/toggles/routes, not ambient prompt-writing style.
+
+Provider tests validate generated directories, config keys, native frontmatter, hook entries, model assignment, support-file placement, and parseability. They must not assert arbitrary role-prompt prose lines as correctness gates.
+
 ## Completion contract
 
 Every rendered prompt-layer block includes the active route contract. Editing and execution routes must report validation evidence or concrete blockers before completion.

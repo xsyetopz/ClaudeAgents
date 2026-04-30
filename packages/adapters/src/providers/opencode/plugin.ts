@@ -1,4 +1,5 @@
 import type { PolicyRecord } from "@openagentlayer/types";
+import { resolveHookEvent } from "../../shared";
 import { OPENCODE_ARTIFACT_ROOT, OPENCODE_SURFACE } from "./constants";
 
 export function renderOpenCodePlugin(
@@ -38,9 +39,7 @@ export function renderOpenCodePlugin(
 }
 
 function renderOpenCodeHandler(record: PolicyRecord): string {
-	const event = String(
-		record.surface_mappings[OPENCODE_SURFACE] ?? "session.status",
-	);
+	const event = resolveHookEvent(record, OPENCODE_SURFACE);
 	const runtimePath = `${OPENCODE_ARTIFACT_ROOT}/${record.runtime_script ?? `runtime/${record.id}.mjs`}`;
 	return [
 		`\t\t${JSON.stringify(event)}: async (input: unknown) => {`,

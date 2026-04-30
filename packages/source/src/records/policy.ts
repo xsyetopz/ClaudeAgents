@@ -24,6 +24,8 @@ export function buildPolicyRecord(
 		category: (readOptionalString(source, "category") ?? "") as PolicyCategory,
 		severity: readOptionalString(source, "severity") ?? "error",
 		event_intent: readOptionalString(source, "event_intent") ?? "",
+		hook_event_category:
+			readOptionalString(source, "hook_event_category") ?? "",
 		runtime_script: readOptionalString(source, "runtime_script"),
 		surface_mappings: readObject(
 			source,

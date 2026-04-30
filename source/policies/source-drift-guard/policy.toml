@@ -5,6 +5,7 @@ description = "Detect missing or changed managed files before session completion
 category = "drift_guard"
 severity = "error"
 event_intent = "completion"
+hook_event_category = "completion"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

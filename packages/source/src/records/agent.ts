@@ -67,6 +67,18 @@ export async function buildAgentRecord(
 			base.location.metadataPath,
 			diagnostics,
 		),
+		commands: readStringArray(
+			source,
+			"commands",
+			base.location.metadataPath,
+			diagnostics,
+		),
+		policies: readStringArray(
+			source,
+			"policies",
+			base.location.metadataPath,
+			diagnostics,
+		),
 		location: { ...base.location, bodyPath },
 	};
 }

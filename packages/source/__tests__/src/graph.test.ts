@@ -12,6 +12,10 @@ describe("OAL source graph", () => {
 		).toEqual(
 			expect.arrayContaining([
 				"agent:athena",
+				"agent:chronos",
+				"agent:morpheus",
+				"agent:prometheus",
+				"agent:proteus",
 				"command:plan",
 				"guidance:core",
 				"model-plan:claude-max-20",
@@ -30,7 +34,7 @@ describe("OAL source graph", () => {
 				"skill:taste",
 			]),
 		);
-		expect(result.graph?.agents).toHaveLength(21);
+		expect(result.graph?.agents).toHaveLength(25);
 		expect(result.graph?.skills).toHaveLength(15);
 		expect(result.graph?.modelPlans).toHaveLength(5);
 		expect(result.graph?.surfaceConfigs).toHaveLength(3);
@@ -40,8 +44,8 @@ describe("OAL source graph", () => {
 		).toContain("# Athena");
 		expect(
 			result.graph?.skills.find((record) => record.id === "review-policy")
-				?.body_content,
-		).toContain("# Review Policy");
+				?.metadata,
+		).toMatchObject({ quality_gate: "warranted-review" });
 		expect(result.graph?.commands[0]?.prompt_template_content).toContain(
 			"# Plan",
 		);

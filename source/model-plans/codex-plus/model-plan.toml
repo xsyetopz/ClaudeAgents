@@ -115,3 +115,23 @@ effort = "medium"
 role = "themis"
 model = "gpt-5.4"
 effort = "medium"
+
+[[role_assignments]]
+role = "chronos"
+model = "gpt-5.4-mini"
+effort = "medium"
+
+[[role_assignments]]
+role = "morpheus"
+model = "gpt-5.4"
+effort = "medium"
+
+[[role_assignments]]
+role = "prometheus"
+model = "gpt-5.3-codex"
+effort = "medium"
+
+[[role_assignments]]
+role = "proteus"
+model = "gpt-5.4-mini"
+effort = "medium"

@@ -13,6 +13,8 @@ export async function writeAgent(
 		readonly directory?: string;
 		readonly id?: string;
 		readonly prompt?: string;
+		readonly commands?: string;
+		readonly policies?: string;
 		readonly routeContract?: string;
 		readonly surfaces?: string;
 	} = {},
@@ -24,7 +26,34 @@ export async function writeAgent(
 		options.directory ?? "agents/duplicate-one",
 	);
 	await mkdir(directory, { recursive: true });
-	await writeFile(join(directory, "prompt.md"), "# Agent\n");
+	await writeFile(
+		join(directory, "prompt.md"),
+		[
+			"# Fixture Agent",
+			"",
+			"## Mission",
+			"",
+			"Exercise source graph validation and render behavior for tests.",
+			"",
+			"## Use when",
+			"",
+			"- Fixture tests need a complete agent prompt.",
+			"",
+			"## Operating rules",
+			"",
+			"- Stay scoped to fixture behavior.",
+			"- Preserve explicit test inputs.",
+			"",
+			"## Evidence rules",
+			"",
+			"- Report concrete fixture validation evidence.",
+			"",
+			"## Output contract",
+			"",
+			"- Return fixture result and validation status.",
+			"",
+		].join("\n"),
+	);
 	await writeFile(
 		join(directory, "agent.toml"),
 		[
@@ -37,6 +66,8 @@ export async function writeAgent(
 			'mode = "both"',
 			`route_contract = "${options.routeContract ?? "readonly"}"`,
 			'handoff_contract = "result-evidence-blockers-files-next-action"',
+			`commands = ${options.commands ?? "[]"}`,
+			`policies = ${options.policies ?? "[]"}`,
 			`surfaces = ${options.surfaces ?? '["codex"]'}`,
 			"",
 		].join("\n"),
@@ -226,6 +257,7 @@ export async function writeCommand(
 export async function writePolicy(
 	root: string,
 	options: {
+		readonly hookEventCategory?: string;
 		readonly surfaceEvents?: string;
 		readonly surfaceMappings?: string;
 	} = {},
@@ -243,6 +275,7 @@ export async function writePolicy(
 			'category = "completion_gate"',
 			'severity = "error"',
 			'event_intent = "completion"',
+			`hook_event_category = "${options.hookEventCategory ?? "completion"}"`,
 			`surface_events = ${options.surfaceEvents ?? '["Stop"]'}`,
 			"test_payloads = []",
 			"tests = []",

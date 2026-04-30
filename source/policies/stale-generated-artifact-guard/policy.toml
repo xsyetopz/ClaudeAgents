@@ -5,6 +5,7 @@ description = "Block stale generated artifacts reported by render or install met
 category = "drift_guard"
 severity = "error"
 event_intent = "generated_artifact_drift"
+hook_event_category = "file_change"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

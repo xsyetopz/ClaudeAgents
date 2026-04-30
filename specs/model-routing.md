@@ -44,6 +44,8 @@ Plan records must define:
 - explicit deep-route overrides;
 - long-context route allowances.
 
+Every model plan must assign every source agent role. Missing role assignments are validation failures because subagent routing must stay explicit, subscription-aware, and free from hardcoded role assumptions.
+
 ## Codex plan rules
 
 All OAL-generated Codex profiles must set:
@@ -176,6 +178,7 @@ Current seed roles:
 
 - Unknown model IDs fail source validation.
 - Unknown plan names fail source validation.
+- Missing role assignments fail source validation.
 - Surface adapter must report unsupported model settings.
 - Model routing must be test-covered.
 - Role assignments must validate against known model set per surface.

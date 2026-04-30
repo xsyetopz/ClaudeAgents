@@ -8,6 +8,7 @@ export function validateGraphReferences(
 	const diagnostics: Diagnostic[] = [];
 	const agentIds = new Set(graph.agents.map((record) => record.id));
 	const skillIds = new Set(graph.skills.map((record) => record.id));
+	const commandIds = new Set(graph.commands.map((record) => record.id));
 	const policyIds = new Set(graph.policies.map((record) => record.id));
 
 	for (const record of graph.agents) {
@@ -17,6 +18,30 @@ export function validateGraphReferences(
 					errorDiagnostic(
 						"unknown-skill-reference",
 						`Agent '${record.id}' references unknown skill '${skillId}'.`,
+						record.location.metadataPath,
+					),
+				);
+			}
+		}
+
+		for (const commandId of record.commands) {
+			if (!commandIds.has(commandId)) {
+				diagnostics.push(
+					errorDiagnostic(
+						"unknown-agent-command-reference",
+						`Agent '${record.id}' references unknown command '${commandId}'.`,
+						record.location.metadataPath,
+					),
+				);
+			}
+		}
+
+		for (const policyId of record.policies) {
+			if (!policyIds.has(policyId)) {
+				diagnostics.push(
+					errorDiagnostic(
+						"unknown-agent-policy-reference",
+						`Agent '${record.id}' references unknown policy '${policyId}'.`,
 						record.location.metadataPath,
 					),
 				);
@@ -73,12 +98,27 @@ function validateModelPlanReferences(
 	agentIds: ReadonlySet<string>,
 ): void {
 	for (const record of graph.modelPlans) {
+		const assignedRoles = new Set(
+			record.role_assignments.map(({ role }) => role),
+		);
 		for (const assignment of record.role_assignments) {
 			if (!agentIds.has(assignment.role)) {
 				diagnostics.push(
 					errorDiagnostic(
 						"unknown-role-assignment",
 						`Model plan '${record.id}' references unknown role '${assignment.role}'.`,
+						record.location.metadataPath,
+					),
+				);
+			}
+		}
+
+		for (const agentId of agentIds) {
+			if (!assignedRoles.has(agentId)) {
+				diagnostics.push(
+					errorDiagnostic(
+						"missing-role-assignment",
+						`Model plan '${record.id}' has no assignment for role '${agentId}'.`,
 						record.location.metadataPath,
 					),
 				);

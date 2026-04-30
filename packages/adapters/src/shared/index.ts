@@ -5,6 +5,7 @@ export {
 	getSurfaceConfig,
 	validateConfigObject,
 } from "./config-validation";
+export { resolveHookEvent } from "./hooks";
 export { renderJsonFile, stableJson } from "./json";
 export { renderMarkdownWithFrontmatter } from "./markdown";
 export { resolveModelAssignment } from "./models";

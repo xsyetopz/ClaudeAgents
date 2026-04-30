@@ -5,6 +5,7 @@ description = "Block tool or shell access to secret-bearing paths."
 category = "execution_guard"
 severity = "error"
 event_intent = "tool_execution"
+hook_event_category = "pre_tool"
 blocking = true
 failure_mode = "fail_closed"
 handler_class = "command_script"

@@ -3,7 +3,11 @@ import type {
 	PolicyRecord,
 	SourceGraph,
 } from "@openagentlayer/types";
-import { renderTomlDocument, tomlMultilineString } from "../../shared";
+import {
+	renderTomlDocument,
+	resolveHookEvent,
+	tomlMultilineString,
+} from "../../shared";
 import {
 	renderProjectPromptInstructions,
 	renderPromptLayerBlock,
@@ -128,7 +132,7 @@ function renderCodexConfigObject(graph: SourceGraph) {
 }
 
 function renderCodexHook(record: PolicyRecord): string {
-	const event = String(record.surface_mappings[CODEX_SURFACE] ?? "Stop");
+	const event = resolveHookEvent(record, CODEX_SURFACE);
 	const matcher =
 		record.matcher === undefined || event === "Stop"
 			? []

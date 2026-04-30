@@ -1,4 +1,5 @@
 import type { SourceGraph } from "@openagentlayer/types";
+import { resolveHookEvent } from "../../shared";
 import { CLAUDE_ARTIFACT_ROOT, CLAUDE_SURFACE } from "./constants";
 
 export function renderClaudeSettings(
@@ -11,7 +12,7 @@ export function renderClaudeSettings(
 	for (const record of graph.policies.filter((record) =>
 		record.surfaces.includes(CLAUDE_SURFACE),
 	)) {
-		const event = String(record.surface_mappings[CLAUDE_SURFACE] ?? "Stop");
+		const event = resolveHookEvent(record, CLAUDE_SURFACE);
 		hooks[event] = [
 			...(hooks[event] ?? []),
 			{

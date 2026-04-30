@@ -5,6 +5,7 @@ description = "Emit context preservation guidance before compaction or low-conte
 category = "context_budget"
 severity = "info"
 event_intent = "context_compaction"
+hook_event_category = "compaction"
 blocking = false
 failure_mode = "warn_only"
 handler_class = "command_script"

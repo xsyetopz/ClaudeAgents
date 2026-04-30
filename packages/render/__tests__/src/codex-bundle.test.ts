@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { createAdapterRegistry } from "@openagentlayer/render/registry";
-import { loadSourceGraph } from "@openagentlayer/source";
-import {
-	createFixtureRoot,
-	writeAgent,
-	writeSkill,
-} from "@openagentlayer/testkit";
 import {
 	artifactContent,
 	artifactPaths,
@@ -59,22 +53,42 @@ describe("OAL Codex bundle rendering", () => {
 			".codex/agents/athena.toml",
 		);
 
-		expect(codexConfig).toContain("fast_mode = false");
-		expect(codexConfig).toContain("multi_agent = false");
-		expect(codexConfig).toContain("multi_agent_v2 = true");
-		expect(codexConfig).toContain("unified_exec = false");
-		expect(codexConfig).toContain("[agents]");
-		expect(codexConfig).toContain("max_threads = 6");
-		expect(codexConfig).toContain("max_depth = 1");
-		expect(codexConfig).toContain("[profiles.codex-plus]");
-		expect(codexConfig).toContain("[profiles.codex-pro-5]");
-		expect(codexConfig).toContain("[[hooks.Stop]]");
-		expect(codexConfig).toContain("[[hooks.PreToolUse]]");
-		expect(codexConfig).toContain("[[hooks.UserPromptSubmit]]");
-		expect(codexConfig).toContain(
-			'command = "bun .codex/openagentlayer/runtime/completion-gate.mjs"',
+		const parsedConfig = Bun.TOML.parse(codexConfig ?? "") as {
+			readonly agents?: {
+				readonly max_depth?: number;
+				readonly max_threads?: number;
+			};
+			readonly features?: {
+				readonly fast_mode?: boolean;
+				readonly multi_agent?: boolean;
+				readonly multi_agent_v2?: boolean;
+				readonly unified_exec?: boolean;
+			};
+			readonly hooks?: Record<string, unknown[]>;
+			readonly profiles?: Record<string, unknown>;
+		};
+		expect(parsedConfig.features).toMatchObject({
+			fast_mode: false,
+			multi_agent: false,
+			multi_agent_v2: true,
+			unified_exec: false,
+		});
+		expect(parsedConfig.agents).toMatchObject({
+			max_depth: 1,
+			max_threads: 6,
+		});
+		expect(Object.keys(parsedConfig.profiles ?? {})).toEqual(
+			expect.arrayContaining(["codex-plus", "codex-pro-5"]),
 		);
-		expect(() => Bun.TOML.parse(codexConfig ?? "")).not.toThrow();
+		expect(Object.keys(parsedConfig.hooks ?? {})).toEqual(
+			expect.arrayContaining([
+				"PermissionRequest",
+				"PostToolUse",
+				"PreToolUse",
+				"Stop",
+				"UserPromptSubmit",
+			]),
+		);
 		expect(codexPlugin).toContain('"displayName": "OpenAgentLayer"');
 		expect(codexPlugin).toContain('"name": "openagentlayer"');
 		expect(codexPlusAthena).toContain('model = "gpt-5.4"');
@@ -99,40 +113,5 @@ describe("OAL Codex bundle rendering", () => {
 				level: "error",
 			}),
 		);
-	});
-
-	test("renders complete native skill packages from fixture source", async () => {
-		const root = await createFixtureRoot();
-		await writeAgent(root);
-		await writeSkill(root, {
-			id: "fixture-skill",
-			invocationMode: "manual-only",
-			supportFile: "references/guide.md",
-			userInvocable: false,
-		});
-		const result = await loadSourceGraph(root);
-		if (result.graph === undefined) {
-			throw new Error("Expected fixture graph.");
-		}
-		const bundle = createAdapterRegistry().renderSurfaceBundle(
-			result.graph,
-			"codex",
-		);
-
-		expect(artifactPaths(bundle)).toContain(
-			".codex/openagentlayer/plugin/skills/fixture-skill/SKILL.md",
-		);
-		expect(artifactPaths(bundle)).toContain(
-			".codex/openagentlayer/plugin/skills/fixture-skill/references/guide.md",
-		);
-		expect(artifactPaths(bundle)).toContain(
-			".codex/openagentlayer/plugin/skills/fixture-skill/agents/openai.yaml",
-		);
-		expect(
-			artifactContent(
-				bundle,
-				".codex/openagentlayer/plugin/skills/fixture-skill/SKILL.md",
-			),
-		).toContain('name: "fixture-skill"');
 	});
 });

@@ -84,6 +84,31 @@ const FRONTMATTER_PATTERN = /^---\n[\s\S]*?\n---\n?/u;
 const NUMBERED_LIST_PATTERN = /^\d+\.\s/u;
 const COMMAND_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const ARGUMENT_PLACEHOLDER_PATTERN = /\$ARGUMENTS|\$\d+/u;
+const HOOK_EVENT_CATEGORY_EVENTS: ReadonlyMap<
+	string,
+	ReadonlySet<string>
+> = new Map(
+	Object.entries({
+		completion: ["Stop", "session.idle", "session.status"],
+		compaction: [
+			"PreCompact",
+			"PostCompact",
+			"UserPromptSubmit",
+			"tui.prompt.append",
+		],
+		file_change: [
+			"FileChanged",
+			"PostToolUse",
+			"session.status",
+			"tool.execute.after",
+		],
+		permission_request: ["PermissionRequest", "permission.asked"],
+		post_tool: ["PostToolUse", "tool.execute.after"],
+		pre_tool: ["PreToolUse", "tool.execute.before"],
+		prompt_submit: ["UserPromptSubmit", "tui.prompt.append"],
+		session_status: ["Stop", "session.status"],
+	}).map(([category, events]) => [category, new Set(events)]),
+);
 
 function validateSkillRecordFields(
 	record: Extract<SourceRecord, { readonly kind: "skill" }>,
@@ -380,6 +405,40 @@ function validatePolicyRecordFields(
 			errorDiagnostic(
 				"invalid-handler-class",
 				`Unknown handler class '${record.handler_class}'.`,
+				record.location.metadataPath,
+			),
+		);
+	}
+
+	validatePolicyHookCategory(record, diagnostics);
+}
+
+function validatePolicyHookCategory(
+	record: Extract<SourceRecord, { readonly kind: "policy" }>,
+	diagnostics: Diagnostic[],
+): void {
+	const allowedEvents = HOOK_EVENT_CATEGORY_EVENTS.get(
+		record.hook_event_category,
+	);
+	if (allowedEvents === undefined) {
+		diagnostics.push(
+			errorDiagnostic(
+				"invalid-hook-event-category",
+				`Unknown hook event category '${record.hook_event_category}'.`,
+				record.location.metadataPath,
+			),
+		);
+		return;
+	}
+
+	for (const [surface, event] of Object.entries(record.surface_mappings)) {
+		if (typeof event !== "string" || allowedEvents.has(event)) {
+			continue;
+		}
+		diagnostics.push(
+			errorDiagnostic(
+				"invalid-hook-surface-event",
+				`Policy '${record.id}' maps ${surface} event '${event}' outside hook category '${record.hook_event_category}'.`,
 				record.location.metadataPath,
 			),
 		);

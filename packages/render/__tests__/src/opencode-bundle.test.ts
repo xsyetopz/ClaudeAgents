@@ -25,7 +25,9 @@ describe("OAL OpenCode bundle rendering", () => {
 		expect(artifactPaths(bundle)).toEqual(
 			expect.arrayContaining([
 				".opencode/agents/athena.md",
+				".opencode/agents/chronos.md",
 				".opencode/agents/hephaestus.md",
+				".opencode/agents/proteus.md",
 				".opencode/commands/plan.md",
 				".opencode/openagentlayer/guidance/core.md",
 				".opencode/openagentlayer/policies/completion-gate.json",
@@ -47,6 +49,10 @@ describe("OAL OpenCode bundle rendering", () => {
 		expect(plugin).toContain("secret-path-guard");
 		expect(plugin).toContain("OpenAgentLayerPlugin");
 		expect(config).toContain('"model": "gpt-5.4"');
+		expect(config).toContain('"morpheus"');
+		expect(config).toContain('"gpt-5.4"');
+		const proteus = artifactContent(bundle, ".opencode/agents/proteus.md");
+		expect(proteus).not.toContain("tools:");
 		expect(() => JSON.parse(config ?? "")).not.toThrow();
 	});
 

@@ -406,6 +406,50 @@ describe("OAL source record validation", () => {
 		});
 	});
 
+	test("loads agent command and policy affinities", async () => {
+		const root = await createFixtureRoot();
+		await writeSkill(root);
+		await writePolicy(root);
+		await writeAgent(root, {
+			commands: '["fixture-command"]',
+			policies: '["fixture-policy"]',
+		});
+		await writeCommand(root);
+
+		const result = await loadSourceGraph(root);
+
+		expect(result.diagnostics).toEqual([]);
+		expect(result.graph?.agents[0]).toMatchObject({
+			commands: ["fixture-command"],
+			policies: ["fixture-policy"],
+			skills: [],
+		});
+	});
+
+	test("fails unknown agent command affinity", async () => {
+		const root = await createFixtureRoot();
+		await writeAgent(root, { commands: '["missing-command"]' });
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"unknown-agent-command-reference",
+		);
+	});
+
+	test("fails unknown agent policy affinity", async () => {
+		const root = await createFixtureRoot();
+		await writeAgent(root, { policies: '["missing-policy"]' });
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"unknown-agent-policy-reference",
+		);
+	});
+
 	test("fails invalid command id", async () => {
 		const root = await createFixtureRoot();
 		await writeAgent(root);
@@ -516,6 +560,33 @@ describe("OAL source record validation", () => {
 		);
 		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
 			"invalid-array",
+		);
+	});
+
+	test("fails unknown hook event category", async () => {
+		const root = await createFixtureRoot();
+		await writePolicy(root, { hookEventCategory: "unknown_event" });
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"invalid-hook-event-category",
+		);
+	});
+
+	test("fails hook mapping outside declared event category", async () => {
+		const root = await createFixtureRoot();
+		await writePolicy(root, {
+			hookEventCategory: "pre_tool",
+			surfaceMappings: '{ codex = "Stop" }',
+		});
+
+		const result = await loadSourceGraph(root);
+
+		expect(hasErrors(result.diagnostics)).toBe(true);
+		expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+			"invalid-hook-surface-event",
 		);
 	});
 

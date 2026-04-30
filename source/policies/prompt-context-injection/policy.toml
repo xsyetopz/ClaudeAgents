@@ -5,6 +5,7 @@ description = "Attach concise OpenAgentLayer route and behavior context to user 
 category = "input_guard"
 severity = "info"
 event_intent = "prompt_context"
+hook_event_category = "prompt_submit"
 blocking = false
 failure_mode = "warn_only"
 handler_class = "command_script"

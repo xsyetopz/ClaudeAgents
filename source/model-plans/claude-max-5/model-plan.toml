@@ -116,6 +116,26 @@ role = "themis"
 model = "sonnet"
 effort = "high"
 
+[[role_assignments]]
+role = "chronos"
+model = "haiku"
+effort = "medium"
+
+[[role_assignments]]
+role = "morpheus"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "prometheus"
+model = "sonnet"
+effort = "high"
+
+[[role_assignments]]
+role = "proteus"
+model = "sonnet"
+effort = "high"
+
 [[deep_route_overrides]]
 role = "hermes"
 route = "deep-trace"

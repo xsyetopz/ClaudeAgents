@@ -219,11 +219,11 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 
 ## Phase 27: role and subagent orchestration depth
 
-- [ ] Queued — Expand Greek-god role records where useful for design polish, docs, security, performance, install health, source sync, prompt QA, hook QA, and provider schema QA.
-- [ ] Queued — Add role-to-skill, role-to-command, and role-to-policy affinity metadata so adapters can render native subagent skill/tool access.
-- [ ] Queued — Add subscription-aware model and effort defaults for Codex Plus, Codex Pro 5x/20x, Claude Max 5x/20x, and provider-specific long-context variants.
-- [ ] Queued — Default to low/medium effort for routine work, medium/high for planning and review, and reserve high/xhigh for explicit architecture, audit, or rare mini/codex cases.
-- [ ] Queued — Validate rendered subagents include native model, effort, tools, skills, prompt, and handoff metadata without hardcoded role assumptions.
+- [x] Sealed — Expand Greek-god role records where useful for design polish, docs, security, performance, install health, source sync, prompt QA, hook QA, and provider schema QA.
+- [x] Sealed — Add role-to-skill, role-to-command, and role-to-policy affinity metadata so adapters can render native subagent skill/tool access.
+- [x] Sealed — Add subscription-aware model and effort defaults for Codex Plus, Codex Pro 5x/20x, Claude Max 5x/20x, and provider-specific long-context variants.
+- [x] Sealed — Default to low/medium effort for routine work, medium/high for planning and review, and reserve high/xhigh for explicit architecture, audit, or rare mini/codex cases.
+- [x] Sealed — Validate rendered subagents include native model, effort, tools, skills, prompt, and handoff metadata without hardcoded role assumptions.
 
 ## Phase 28: external-source sync studies
 
@@ -240,6 +240,24 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 - [ ] Queued — Add render smoke fixtures for complex graphs that include many agents, commands, skills, support files, policies, prompt layers, and model-plan variants.
 - [ ] Queued — Add install and doctor checks that managed skills, commands, hooks, runtime scripts, and support files are reversible and drift-detectable.
 - [ ] Queued — Add roadmap/docs/spec consistency audit for new phases so plans, specs, and docs cannot disagree about supported surfaces or source concepts.
+
+## Phase 30: prompt and OAL skill quality
+
+- [x] Sealed — Rewrite OAL-owned agent prompts with concrete mission, use, operating, evidence, and output sections.
+- [x] Sealed — Rewrite core OAL guidance around source authority, reboot rules, provider-native rendering, upstream sync, runtime enforcement, and dirty-tree discipline.
+- [x] Sealed — Rewrite planning command prompt as a decision-complete route with grounding, intent lock, implementation spec, acceptance gates, and blocker rules.
+- [x] Sealed — Rewrite OAL-owned review-policy skill with warranted-finding review standard, severity rules, evidence requirements, non-goals, and output shape.
+- [x] Sealed — Keep prompt/body markdown author-owned: validation may reject missing files and placeholders, but unit tests must not assert role-prose lines or enforce style sections.
+
+## Phase 31: provider structure, hook categories, and headless e2e
+
+- [x] Sealed — Add explicit policy hook event categories for prompt submit, pre-tool, post-tool, permission request, completion, compaction, file-change, and session-status families.
+- [x] Sealed — Resolve generated Codex, Claude, and OpenCode hook events through category-aware helpers before provider rendering.
+- [x] Sealed — Validate policy surface mappings stay inside the declared hook event category.
+- [x] Sealed — Convert provider tests toward native structure/config assertions instead of agent-body prose assertions.
+- [x] Sealed — Add opt-in headless e2e scripts for Codex, OpenCode, and Claude that run only after binary, model, and auth are proven by a real prompt response.
+- [x] Sealed — Do not add e2e force overrides; unavailable binaries, unavailable models, or missing auth skip with a concrete reason.
+- [x] Sealed — Remove generic OpenAgentLayer mentions from role prompts unless the prompt is specifically about layer mechanics, generated surfaces, skills, commands, or provider invocation.
 
 ## Done criteria
 
