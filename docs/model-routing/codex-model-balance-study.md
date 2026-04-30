@@ -30,6 +30,7 @@ Every OAL-generated Codex profile must set:
 ```toml
 [features]
 fast_mode = false
+multi_agent = false
 multi_agent_v2 = true
 unified_exec = false
 ```
@@ -37,6 +38,7 @@ unified_exec = false
 Reason:
 
 - `fast_mode = false`: conserve weekly usage; fast mode is opt-in route behavior, not baseline.
+- `multi_agent = false`: disable the non-v2 multi-agent path.
 - `multi_agent_v2 = true`: required for OAL role/subagent routing.
 - `unified_exec = false`: OAL keeps known command/hook behavior until a separate study proves unified exec semantics.
 
@@ -151,4 +153,3 @@ Role defaults:
 - On Plus, use `plan_mode_reasoning_effort = "medium"` and implementation `model_reasoning_effort = "low"` or `"medium"`.
 - On Pro 5x/20x, use `plan_mode_reasoning_effort = "high"` and implementation `model_reasoning_effort = "medium"`.
 - Deep explicit route may override effort to `xhigh` only for selected roles.
-

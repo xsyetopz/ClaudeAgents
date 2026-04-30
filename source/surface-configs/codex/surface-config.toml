@@ -5,15 +5,12 @@ description = "Codex project config allowlist and default profile."
 surface = "codex"
 surfaces = ["codex"]
 allowed_key_paths = [
+  "agents.max_depth",
+  "agents.max_threads",
   "features.codex_hooks",
-  "features.collaboration_modes",
-  "features.default_mode_request_user_input",
   "features.fast_mode",
-  "features.memories",
+  "features.multi_agent",
   "features.multi_agent_v2",
-  "features.shell_snapshot",
-  "features.shell_tool",
-  "features.skill_mcp_dependency_install",
   "features.unified_exec",
   "hooks.*.hooks.async",
   "hooks.*.hooks.command",
@@ -35,14 +32,9 @@ validation_rules = ["toml-parse", "allowlist"]
 
 [project_defaults.features]
 codex_hooks = true
-collaboration_modes = true
-default_mode_request_user_input = true
 fast_mode = false
-memories = true
+multi_agent = false
 multi_agent_v2 = true
-shell_snapshot = true
-shell_tool = true
-skill_mcp_dependency_install = true
 unified_exec = false
 
 [default_profile]

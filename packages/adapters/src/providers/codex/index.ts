@@ -13,6 +13,7 @@ import {
 } from "@openagentlayer/adapter-contract";
 import { renderRuntimeScript } from "@openagentlayer/runtime";
 import type {
+	AgentRecord,
 	CommandRecord,
 	Diagnostic,
 	PolicyRecord,
@@ -31,6 +32,7 @@ import {
 const SURFACE = "codex" as const;
 const ARTIFACT_ROOT = ".codex/openagentlayer";
 const PLUGIN_ROOT = `${ARTIFACT_ROOT}/plugin`;
+const CODEX_CONFIG_PATH = ".codex/config.toml";
 
 export const codexAdapterId = SURFACE;
 
@@ -80,7 +82,7 @@ function renderBundle(
 	const artifacts: AdapterArtifact[] = renderBundleArtifacts(graph);
 	diagnostics.push(
 		...validateConfigObject({
-			artifactPath: `${ARTIFACT_ROOT}/config.toml`,
+			artifactPath: CODEX_CONFIG_PATH,
 			config: Bun.TOML.parse(renderCodexConfig(graph)) as Record<
 				string,
 				unknown
@@ -143,8 +145,15 @@ function renderBundleArtifacts(graph: SourceGraph): AdapterArtifact[] {
 		{
 			surface: SURFACE,
 			kind: "config",
-			path: `${ARTIFACT_ROOT}/config.toml`,
+			path: CODEX_CONFIG_PATH,
 			content: renderCodexConfig(graph),
+			sourceRecordIds: graph.records.map((record) => record.id).sort(),
+		},
+		{
+			surface: SURFACE,
+			kind: "instruction",
+			path: "AGENTS.md",
+			content: renderCodexAgentsMd(graph),
 			sourceRecordIds: graph.records.map((record) => record.id).sort(),
 		},
 	];
@@ -159,7 +168,7 @@ function renderRecordArtifacts(
 		case "agent": {
 			const assignment =
 				graph === undefined
-					? { model: undefined }
+					? { effort: undefined, model: undefined }
 					: resolveModelAssignment(
 							graph,
 							SURFACE,
@@ -170,16 +179,8 @@ function renderRecordArtifacts(
 				{
 					surface: SURFACE,
 					kind: "agent",
-					path: `${ARTIFACT_ROOT}/agents/${record.id}.md`,
-					content: renderMarkdownWithFrontmatter(
-						{
-							description: record.description,
-							model: assignment.model ?? record.model_class,
-							name: record.id,
-							role: record.role,
-						},
-						record.prompt_content,
-					),
+					path: `.codex/agents/${record.id}.toml`,
+					content: renderCodexAgentConfig(record, assignment),
 					sourceRecordIds: [record.id],
 				},
 			];
@@ -310,6 +311,10 @@ function renderCodexConfigObject(graph: SourceGraph) {
 			?.project_defaults ?? {};
 	return {
 		...projectDefaults,
+		agents: {
+			max_depth: 1,
+			max_threads: 6,
+		},
 		profiles:
 			Object.keys(profiles).length === 0
 				? {
@@ -323,6 +328,60 @@ function renderCodexConfigObject(graph: SourceGraph) {
 					}
 				: profiles,
 	};
+}
+
+function renderCodexAgentConfig(
+	record: AgentRecord,
+	assignment: {
+		readonly model: string | undefined;
+		readonly effort: string | undefined;
+	},
+): string {
+	return renderTomlDocument({
+		description: record.description,
+		developer_instructions: [
+			record.prompt_content.trimEnd(),
+			"",
+			`OAL role: ${record.role}.`,
+			record.route_contract === undefined
+				? undefined
+				: `Route contract: ${record.route_contract}.`,
+		]
+			.filter((line): line is string => line !== undefined)
+			.join("\n"),
+		model: assignment.model ?? record.model_class,
+		model_reasoning_effort: assignment.effort ?? record.effort_ceiling,
+		name: record.id,
+		nickname_candidates: [record.id],
+		sandbox_mode: record.permissions.includes("write")
+			? "workspace-write"
+			: "read-only",
+	});
+}
+
+function renderCodexAgentsMd(graph: SourceGraph): string {
+	const guidance = graph.guidance
+		.filter((record) => record.surfaces.includes(SURFACE))
+		.map((record) => `## ${record.title}\n\n${record.body_content.trim()}`)
+		.join("\n\n");
+	const agentList = graph.agents
+		.filter((record) => record.surfaces.includes(SURFACE))
+		.map((record) => `- ${record.id}: ${record.description}`)
+		.join("\n");
+	return [
+		"# OpenAgentLayer Codex Instructions",
+		"",
+		"OpenAgentLayer provides project behavior, routing, validation, and hook policy for Codex.",
+		"Use `.codex/agents/*.toml` custom agents for Greek-god role delegation.",
+		"Use `.codex/openagentlayer/plugin/skills/` for OAL command and skill surfaces.",
+		"",
+		"## Available OAL Agents",
+		"",
+		agentList,
+		guidance === "" ? "" : "",
+		guidance,
+		"",
+	].join("\n");
 }
 
 function renderCodexHook(record: PolicyRecord): string {

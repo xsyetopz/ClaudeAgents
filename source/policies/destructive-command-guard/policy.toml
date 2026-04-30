@@ -13,9 +13,9 @@ runtime_script = "runtime/destructive-command-guard.mjs"
 surface_events = ["PreToolUse", "tool.execute.before"]
 test_payloads = ["destructive-command-guard/basic.json"]
 tests = ["destructive-command-guard.test.ts"]
-surfaces = ["codex", "claude-code", "opencode"]
+surfaces = ["codex", "claude", "opencode"]
 
 [surface_mappings]
 codex = "PreToolUse"
-claude-code = "PreToolUse"
+claude = "PreToolUse"
 opencode = "tool.execute.before"

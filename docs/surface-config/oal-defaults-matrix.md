@@ -43,6 +43,7 @@ Retrieval date: 2026-04-29.
 ```toml
 [features]
 fast_mode = false
+multi_agent = false
 multi_agent_v2 = true
 unified_exec = false
 codex_hooks = true

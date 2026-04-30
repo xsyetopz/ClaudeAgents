@@ -32,7 +32,7 @@ Each adapter must define a `default_profile` record for each supported surface.
 
 Required fields:
 
-- `surface`: `codex`, `claude-code`, or `opencode`;
+- `surface`: `codex`, `claude`, or `opencode`;
 - `profile_id`: generated profile name or equivalent surface selector;
 - `placement`: config placement class;
 - `emitted_keys`: exact keys the adapter writes;

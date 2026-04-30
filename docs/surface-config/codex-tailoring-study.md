@@ -23,6 +23,7 @@ Every generated OAL Codex profile must carry this feature baseline:
 ```toml
 [features]
 fast_mode = false
+multi_agent = false
 multi_agent_v2 = true
 unified_exec = false
 ```
@@ -30,6 +31,7 @@ unified_exec = false
 Reason:
 
 - `fast_mode = false`: OAL favors usage control and deliberate routing over speed burn.
+- `multi_agent = false`: disable the non-v2 multi-agent path.
 - `multi_agent_v2 = true`: OAL uses multi-agent routing as core behavior.
 - `unified_exec = false`: OAL keeps hook and shell behavior in the stable path chosen by route policy.
 

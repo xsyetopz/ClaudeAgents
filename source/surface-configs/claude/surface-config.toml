@@ -1,9 +1,9 @@
-id = "claude-code-surface-config"
+id = "claude-surface-config"
 kind = "surface-config"
 title = "Claude Code Surface Config"
 description = "Claude Code project settings allowlist and default profile."
-surface = "claude-code"
-surfaces = ["claude-code"]
+surface = "claude"
+surfaces = ["claude"]
 allowed_key_paths = [
   "$schema",
   "fastModePerSessionOptIn",

@@ -12,5 +12,5 @@ side_effect_level = "none"
 model_policy = "gpt-5.5"
 hook_policies = ["completion-gate"]
 supporting_files = []
-surfaces = ["codex", "claude-code", "opencode"]
+surfaces = ["codex", "claude", "opencode"]
 

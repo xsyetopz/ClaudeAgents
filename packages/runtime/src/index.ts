@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { Surface } from "@openagentlayer/types";
 
 export type RuntimeDecisionKind = "allow" | "deny" | "warn" | "context";
@@ -13,6 +14,16 @@ export interface RuntimePayload {
 	readonly paths?: readonly string[];
 	readonly route?: string;
 	readonly metadata?: Record<string, unknown>;
+}
+
+interface DriftManifestEntry {
+	readonly path: string;
+	readonly sha256: string;
+}
+
+interface DriftManifest {
+	readonly targetRoot?: string;
+	readonly entries?: readonly DriftManifestEntry[];
 }
 
 export interface RuntimeDecision {
@@ -40,6 +51,14 @@ const DESTRUCTIVE_COMMAND_PATTERNS: readonly RegExp[] = [
 	/\bchmod\s+-R\s+777\b/u,
 	/>\s*\/dev\/(disk|rdisk)/u,
 ];
+const TRAILING_SLASH_PATTERN = /\/$/u;
+const WINDOWS_ABSOLUTE_PATH_PATTERN = /^[A-Za-z]:/u;
+const PATH_SEPARATOR_PATTERN = /[\\/]/u;
+const RUNTIME_SCRIPT_FILES = {
+	"completion-gate": "completion-gate.mjs",
+	"destructive-command-guard": "destructive-command-guard.mjs",
+	"source-drift-guard": "source-drift-guard.mjs",
+} as const satisfies Record<string, string>;
 
 export function evaluateCompletionGate(
 	payload: RuntimePayload,
@@ -111,6 +130,68 @@ export function evaluateRuntimePolicy(
 	}
 }
 
+export async function evaluateSourceDriftGuard(
+	payload: RuntimePayload,
+): Promise<RuntimeDecision> {
+	const manifestPath = extractStringMetadata(payload, "manifest_path");
+	const targetRoot =
+		extractStringMetadata(payload, "target_root") ??
+		payload.cwd ??
+		process.cwd();
+	const manifestPaths =
+		manifestPath === undefined
+			? await discoverManifestPaths(targetRoot)
+			: [manifestPath];
+	if (manifestPaths.length === 0) {
+		return {
+			decision: "deny",
+			policy_id: payload.policy_id ?? "source-drift-guard",
+			message: "Source drift guard failed: no managed manifest found.",
+		};
+	}
+
+	const issues: string[] = [];
+	for (const path of manifestPaths) {
+		const manifestFile = Bun.file(path);
+		if (!(await manifestFile.exists())) {
+			issues.push(`missing-manifest:${path}`);
+			continue;
+		}
+		const manifest = JSON.parse(await manifestFile.text()) as DriftManifest;
+		for (const entry of manifest.entries ?? []) {
+			if (!isSafeRelativePath(entry.path)) {
+				issues.push(`path-escape:${entry.path}`);
+				continue;
+			}
+			const filePath = `${targetRoot.replace(TRAILING_SLASH_PATTERN, "")}/${entry.path}`;
+			const file = Bun.file(filePath);
+			if (!(await file.exists())) {
+				issues.push(`missing:${entry.path}`);
+				continue;
+			}
+			const actualSha = await sha256(await file.text());
+			if (actualSha !== entry.sha256) {
+				issues.push(`changed:${entry.path}`);
+			}
+		}
+	}
+
+	if (issues.length > 0) {
+		return {
+			context: { issues },
+			decision: "deny",
+			policy_id: payload.policy_id ?? "source-drift-guard",
+			message: `Managed install drift detected: ${issues.join(", ")}`,
+		};
+	}
+
+	return {
+		decision: "allow",
+		policy_id: payload.policy_id ?? "source-drift-guard",
+		message: "Managed install matches manifest.",
+	};
+}
+
 export function createSyntheticHookPayload(
 	options: SyntheticHookPayloadOptions,
 ): RuntimePayload {
@@ -127,53 +208,15 @@ export function createSyntheticHookPayload(
 }
 
 export function renderRuntimeScript(policyId: string): string {
-	return [
-		"#!/usr/bin/env node",
-		`const policyId = ${JSON.stringify(policyId)};`,
-		`const destructiveCommandPatterns = ${renderPatternArray(DESTRUCTIVE_COMMAND_PATTERNS)};`,
-		"async function readStdin() {",
-		"  let text = '';",
-		"  for await (const chunk of process.stdin) text += chunk;",
-		"  return text.trim() === '' ? {} : JSON.parse(text);",
-		"}",
-		"function extractCommand(payload) {",
-		"  if (typeof payload.command === 'string') return payload.command;",
-		"  const input = payload.tool_input;",
-		"  if (input && typeof input === 'object') {",
-		"    if (typeof input.command === 'string') return input.command;",
-		"    if (typeof input.cmd === 'string') return input.cmd;",
-		"  }",
-		"  return '';",
-		"}",
-		"function evaluateCompletionGate(payload) {",
-		"  const metadata = payload.metadata || (payload.tool_input && payload.tool_input.metadata) || {};",
-		"  const ok = metadata.validation_passed === true || metadata.validation === 'passed' || metadata.validation === 'pass';",
-		"  return ok ? { decision: 'allow', policy_id: policyId, message: 'Completion gate satisfied.' } : { decision: 'deny', policy_id: policyId, message: 'Completion blocked: missing validation evidence.' };",
-		"}",
-		"function evaluateDestructiveCommandGuard(payload) {",
-		"  const command = extractCommand(payload);",
-		"  if (command === '') return { decision: 'allow', policy_id: policyId, message: 'No shell command detected.' };",
-		"  for (const pattern of destructiveCommandPatterns) {",
-		"    if (pattern.test(command)) return { decision: 'deny', policy_id: policyId, message: 'Command blocked by destructive-command guard: ' + command };",
-		"  }",
-		"  return { decision: 'allow', policy_id: policyId, message: 'Command allowed.' };",
-		"}",
-		"function evaluateRuntimePolicy(payload) {",
-		"  switch (policyId) {",
-		"    case 'completion-gate':",
-		"      return evaluateCompletionGate(payload);",
-		"    case 'destructive-command-guard':",
-		"      return evaluateDestructiveCommandGuard(payload);",
-		"    default:",
-		"      return { decision: 'warn', policy_id: policyId || 'unknown-policy', message: 'Unknown policy id.' };",
-		"  }",
-		"}",
-		"const payload = await readStdin();",
-		"const decision = evaluateRuntimePolicy(payload);",
-		"process.stdout.write(JSON.stringify(decision) + '\\n');",
-		"process.exit(decision.decision === 'deny' ? 1 : 0);",
-		"",
-	].join("\n");
+	const fileName =
+		RUNTIME_SCRIPT_FILES[policyId as keyof typeof RUNTIME_SCRIPT_FILES];
+	if (fileName === undefined) {
+		throw new Error(`Unknown runtime policy script '${policyId}'.`);
+	}
+	return readFileSync(
+		new URL(`./scripts/${fileName}`, import.meta.url),
+		"utf8",
+	);
 }
 
 function extractCommand(payload: RuntimePayload): string {
@@ -214,6 +257,47 @@ function extractMetadata(payload: RuntimePayload): Record<string, unknown> {
 	return {};
 }
 
-function renderPatternArray(patterns: readonly RegExp[]): string {
-	return `[${patterns.map((pattern) => pattern.toString()).join(", ")}]`;
+function extractStringMetadata(
+	payload: RuntimePayload,
+	key: string,
+): string | undefined {
+	const value = extractMetadata(payload)[key];
+	return typeof value === "string" ? value : undefined;
+}
+
+async function sha256(content: string): Promise<string> {
+	const bytes = new TextEncoder().encode(content);
+	const digest = await crypto.subtle.digest("SHA-256", bytes);
+	return [...new Uint8Array(digest)]
+		.map((byte) => byte.toString(16).padStart(2, "0"))
+		.join("");
+}
+
+async function discoverManifestPaths(
+	targetRoot: string,
+): Promise<readonly string[]> {
+	const root = targetRoot.replace(TRAILING_SLASH_PATTERN, "");
+	const candidates = [
+		"codex-project",
+		"claude-project",
+		"opencode-project",
+		"codex-global",
+		"claude-global",
+		"opencode-global",
+	].map((name) => `${root}/.oal/manifest/${name}.json`);
+	const existing: string[] = [];
+	for (const candidate of candidates) {
+		if (await Bun.file(candidate).exists()) {
+			existing.push(candidate);
+		}
+	}
+	return existing;
+}
+
+function isSafeRelativePath(path: string): boolean {
+	return !(
+		path.startsWith("/") ||
+		WINDOWS_ABSOLUTE_PATH_PATTERN.test(path) ||
+		path.split(PATH_SEPARATOR_PATTERN).includes("..")
+	);
 }

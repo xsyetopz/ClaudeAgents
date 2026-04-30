@@ -422,7 +422,7 @@ function validatePlanModel(
 				),
 			);
 		}
-		if (surface === "claude-code" && !CLAUDE_MODEL_ID_SET.has(model)) {
+		if (surface === "claude" && !CLAUDE_MODEL_ID_SET.has(model)) {
 			diagnostics.push(
 				errorDiagnostic(
 					"unsupported-model-for-surface",

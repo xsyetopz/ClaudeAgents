@@ -13,10 +13,10 @@ runtime_script = "runtime/completion-gate.mjs"
 surface_events = ["Stop"]
 test_payloads = ["completion-gate/basic.json"]
 tests = ["completion-gate.test.ts"]
-surfaces = ["codex", "claude-code", "opencode"]
+surfaces = ["codex", "claude", "opencode"]
 
 [surface_mappings]
 codex = "Stop"
-claude-code = "Stop"
+claude = "Stop"
 opencode = "session.status"
 

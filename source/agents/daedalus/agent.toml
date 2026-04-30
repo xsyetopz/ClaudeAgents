@@ -16,4 +16,4 @@ budget_tier = "balanced"
 handoff_contract = "result-evidence-blockers-files-next-action"
 permissions = ["read", "search"]
 skills = []
-surfaces = ["codex", "claude-code", "opencode"]
+surfaces = ["codex", "claude", "opencode"]

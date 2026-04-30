@@ -4,6 +4,13 @@ import { join } from "node:path";
 import { createFixtureRoot } from "@openagentlayer/testkit";
 
 describe("OAL CLI installer", () => {
+	test("doctor verifies source and rendered hook scripts", async () => {
+		const result = await runCli(["doctor", "--root", process.cwd()]);
+
+		expect(result.exitCode).toBe(0);
+		expect(result.stdout).toContain("oal doctor ok:");
+	});
+
 	test("dry-run render reports write plan without writing files", async () => {
 		const targetRoot = await createFixtureRoot();
 
@@ -45,7 +52,7 @@ describe("OAL CLI installer", () => {
 		const sourceRoot = await createFixtureRoot();
 		const targetRoot = await createFixtureRoot();
 		await writeSurfaceConfig(sourceRoot, "codex");
-		await writeSurfaceConfig(sourceRoot, "claude-code");
+		await writeSurfaceConfig(sourceRoot, "claude");
 		await writeSurfaceConfig(sourceRoot, "opencode", {
 			blockedKeyPaths: ["plugin"],
 			projectDefaults: [
@@ -92,7 +99,7 @@ describe("OAL CLI installer", () => {
 		).toBe(true);
 		expect(
 			await Bun.file(
-				join(targetRoot, ".oal/manifest/claude-code-project.json"),
+				join(targetRoot, ".oal/manifest/claude-project.json"),
 			).exists(),
 		).toBe(true);
 		expect(
@@ -121,7 +128,7 @@ describe("OAL CLI installer", () => {
 		).toBe(false);
 		expect(
 			await Bun.file(
-				join(targetRoot, ".oal/manifest/claude-code-project.json"),
+				join(targetRoot, ".oal/manifest/claude-project.json"),
 			).exists(),
 		).toBe(false);
 		expect(
@@ -129,6 +136,71 @@ describe("OAL CLI installer", () => {
 				join(targetRoot, ".oal/manifest/opencode-project.json"),
 			).exists(),
 		).toBe(false);
+	});
+
+	test("doctor verifies installed managed files", async () => {
+		const targetRoot = await createFixtureRoot();
+		const installResult = await runCli([
+			"install",
+			"--surface",
+			"codex",
+			"--scope",
+			"project",
+			"--target",
+			targetRoot,
+			"--root",
+			process.cwd(),
+		]);
+		expect(installResult.exitCode).toBe(0);
+
+		const doctorResult = await runCli([
+			"doctor",
+			"--surface",
+			"codex",
+			"--scope",
+			"project",
+			"--target",
+			targetRoot,
+			"--root",
+			process.cwd(),
+		]);
+
+		expect(doctorResult.exitCode).toBe(0);
+		expect(doctorResult.stdout).toContain(
+			"oal doctor install codex/project ok",
+		);
+	});
+
+	test("doctor reports bad installed managed files", async () => {
+		const targetRoot = await createFixtureRoot();
+		const installResult = await runCli([
+			"install",
+			"--surface",
+			"codex",
+			"--scope",
+			"project",
+			"--target",
+			targetRoot,
+			"--root",
+			process.cwd(),
+		]);
+		expect(installResult.exitCode).toBe(0);
+		await writeFile(join(targetRoot, ".codex/config.toml"), "changed\n");
+
+		const doctorResult = await runCli([
+			"doctor",
+			"--surface",
+			"codex",
+			"--scope",
+			"project",
+			"--target",
+			targetRoot,
+			"--root",
+			process.cwd(),
+		]);
+
+		expect(doctorResult.exitCode).toBe(1);
+		expect(doctorResult.stderr).toContain("hash-mismatch");
 	});
 
 	test("global install requires explicit target", async () => {
@@ -170,9 +242,7 @@ describe("OAL CLI installer", () => {
 			).exists(),
 		).toBe(true);
 		expect(
-			await Bun.file(
-				join(targetRoot, ".codex/openagentlayer/config.toml"),
-			).exists(),
+			await Bun.file(join(targetRoot, ".codex/config.toml")).exists(),
 		).toBe(true);
 	});
 
@@ -183,7 +253,7 @@ describe("OAL CLI installer", () => {
 			blockedKeyPaths: ["features.fast_mode"],
 			projectDefaults: ["[project_defaults.features]", "fast_mode = false"],
 		});
-		await writeSurfaceConfig(sourceRoot, "claude-code");
+		await writeSurfaceConfig(sourceRoot, "claude");
 		await writeSurfaceConfig(sourceRoot, "opencode");
 
 		const result = await runCli([
@@ -211,7 +281,7 @@ describe("OAL CLI installer", () => {
 		const sourceRoot = await createFixtureRoot();
 		const targetRoot = await createFixtureRoot();
 		await writeSurfaceConfig(sourceRoot, "codex");
-		await writeSurfaceConfig(sourceRoot, "claude-code");
+		await writeSurfaceConfig(sourceRoot, "claude");
 		await writeSurfaceConfig(sourceRoot, "opencode", {
 			blockedKeyPaths: ["plugin"],
 			projectDefaults: [
@@ -240,9 +310,7 @@ describe("OAL CLI installer", () => {
 			).exists(),
 		).toBe(false);
 		expect(
-			await Bun.file(
-				join(targetRoot, ".codex/openagentlayer/config.toml"),
-			).exists(),
+			await Bun.file(join(targetRoot, ".codex/config.toml")).exists(),
 		).toBe(false);
 	});
 });
@@ -266,7 +334,7 @@ async function runCli(args: readonly string[]): Promise<{
 
 async function writeSurfaceConfig(
 	root: string,
-	surface: "codex" | "claude-code" | "opencode",
+	surface: "codex" | "claude" | "opencode",
 	options: {
 		readonly blockedKeyPaths?: readonly string[];
 		readonly projectDefaults?: readonly string[];
@@ -283,7 +351,7 @@ async function writeSurfaceConfig(
 			`description = "${surface} fixture surface config."`,
 			`surface = "${surface}"`,
 			`surfaces = ["${surface}"]`,
-			'allowed_key_paths = ["agent", "agent.*.*", "command", "command.*.*", "default_agent", "features.fast_mode", "hooks", "permission.skill", "plugin", "profiles.*.*"]',
+			'allowed_key_paths = ["agent", "agent.*.*", "agents.max_depth", "agents.max_threads", "command", "command.*.*", "default_agent", "features.fast_mode", "features.multi_agent", "features.multi_agent_v2", "hooks", "hooks.*.hooks.command", "hooks.*.hooks.statusMessage", "hooks.*.hooks.timeout", "hooks.*.hooks.type", "hooks.*.matcher", "permission.skill", "plugin", "profiles.*.*"]',
 			`do_not_emit_key_paths = ${JSON.stringify(options.blockedKeyPaths ?? [])}`,
 			"validation_rules = []",
 			"",

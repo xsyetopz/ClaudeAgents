@@ -62,7 +62,7 @@ Each entry contains:
 - Write executable bits for hook scripts where needed.
 - Verify installed files parse or execute where possible.
 
-Current install writes full generated artifact files for the selected surface and records those files in the manifest.
+Current install writes full generated artifact files for the selected surface and records those files in the manifest. Install verification checks manifest presence, target-root path safety, managed file existence, managed file hashes, and generated hook script execution.
 
 ## Uninstall rules
 

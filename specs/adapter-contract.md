@@ -74,7 +74,7 @@ Every artifact must include:
 
 Current native artifact targets:
 
-- Codex: `.codex/openagentlayer/config.toml`, generated plugin manifest, skill-backed command routes, skill files, agent files, guidance files, policy metadata.
+- Codex: `.codex/config.toml`, `.codex/agents/*.toml`, generated plugin manifest, skill-backed command routes, skill files, guidance files, policy metadata.
 - Claude Code: `.claude/settings.json`, `.claude/agents/*.md`, `.claude/skills/*/SKILL.md`, skill-backed command routes, guidance files, policy metadata.
 - OpenCode: `opencode.json`, `.opencode/plugins/openagentlayer.ts`, `.opencode/commands/*.md`, `.opencode/skills/*/SKILL.md`, agent files, guidance files, policy metadata.
 

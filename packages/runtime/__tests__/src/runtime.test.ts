@@ -1,16 +1,26 @@
 import { describe, expect, test } from "bun:test";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import {
 	createSyntheticHookPayload,
 	evaluateCompletionGate,
 	evaluateDestructiveCommandGuard,
 	evaluateRuntimePolicy,
+	evaluateSourceDriftGuard,
 	renderRuntimeScript,
 } from "@openagentlayer/runtime";
 import { createFixtureRoot } from "@openagentlayer/testkit";
 
 describe("OAL runtime policies", () => {
+	test("runtime scripts are loaded from separate source files", async () => {
+		const script = await readFile(
+			new URL("../../src/scripts/completion-gate.mjs", import.meta.url),
+			"utf8",
+		);
+
+		expect(renderRuntimeScript("completion-gate")).toBe(script);
+	});
+
 	test("completion gate allows accepted validation evidence", () => {
 		expect(
 			evaluateCompletionGate({
@@ -86,7 +96,7 @@ describe("OAL runtime policies", () => {
 				event: "Stop",
 				metadata: { validation: "passed" },
 				policyId: "completion-gate",
-				surface: "claude-code",
+				surface: "claude",
 			}),
 			createSyntheticHookPayload({
 				event: "tool.execute.before",
@@ -147,4 +157,116 @@ describe("OAL runtime policies", () => {
 		expect(exitCode).not.toBe(0);
 		expect(stderr).toContain("SyntaxError");
 	});
+
+	test("source drift guard allows clean manifest", async () => {
+		const root = await createFixtureRoot();
+		const filePath = join(root, "managed.txt");
+		await writeFile(filePath, "clean\n");
+		const manifestPath = await writeManifest(root, "clean\n");
+
+		const decision = await evaluateSourceDriftGuard({
+			metadata: { manifest_path: manifestPath, target_root: root },
+			policy_id: "source-drift-guard",
+		});
+
+		expect(decision.decision).toBe("allow");
+	});
+
+	test("source drift guard denies missing and changed files", async () => {
+		const root = await createFixtureRoot();
+		const manifestPath = await writeManifest(root, "expected\n");
+
+		const missing = await evaluateSourceDriftGuard({
+			metadata: { manifest_path: manifestPath, target_root: root },
+			policy_id: "source-drift-guard",
+		});
+		await writeFile(join(root, "managed.txt"), "changed\n");
+		const changed = await evaluateSourceDriftGuard({
+			metadata: { manifest_path: manifestPath, target_root: root },
+			policy_id: "source-drift-guard",
+		});
+
+		expect(missing.decision).toBe("deny");
+		expect(changed.decision).toBe("deny");
+	});
+
+	test("source drift guard discovers managed manifests from cwd", async () => {
+		const root = await createFixtureRoot();
+		await writeFile(join(root, "managed.txt"), "clean\n");
+		await writeManifest(root, "clean\n");
+
+		const decision = await evaluateSourceDriftGuard({
+			cwd: root,
+			policy_id: "source-drift-guard",
+		});
+
+		expect(decision.decision).toBe("allow");
+	});
+
+	test("source drift guard denies missing manifest", async () => {
+		const root = await createFixtureRoot();
+
+		const decision = await evaluateSourceDriftGuard({
+			metadata: {
+				manifest_path: join(root, ".oal/manifest/codex-project.json"),
+				target_root: root,
+			},
+			policy_id: "source-drift-guard",
+		});
+
+		expect(decision.decision).toBe("deny");
+	});
+
+	test("source drift guard rejects escaping manifest paths and ignores forged target root", async () => {
+		const root = await createFixtureRoot();
+		const forgedRoot = await createFixtureRoot();
+		const manifestPath = join(root, ".oal/manifest/codex-project.json");
+		await mkdir(dirname(manifestPath), { recursive: true });
+		await writeFile(
+			manifestPath,
+			JSON.stringify({
+				entries: [{ path: "..\\escape.txt", sha256: "bad" }],
+				targetRoot: forgedRoot,
+			}),
+		);
+
+		const decision = await evaluateSourceDriftGuard({
+			metadata: { manifest_path: manifestPath, target_root: root },
+			policy_id: "source-drift-guard",
+		});
+
+		expect(decision.decision).toBe("deny");
+		expect(decision.context?.["issues"]).toContain(
+			"path-escape:..\\escape.txt",
+		);
+	});
 });
+
+async function writeManifest(
+	root: string,
+	expectedContent: string,
+): Promise<string> {
+	const manifestPath = join(root, ".oal/manifest/codex-project.json");
+	await mkdir(dirname(manifestPath), { recursive: true });
+	await writeFile(
+		manifestPath,
+		JSON.stringify({
+			entries: [
+				{
+					path: "managed.txt",
+					sha256: await sha256(expectedContent),
+				},
+			],
+			targetRoot: root,
+		}),
+	);
+	return manifestPath;
+}
+
+async function sha256(content: string): Promise<string> {
+	const bytes = new TextEncoder().encode(content);
+	const digest = await crypto.subtle.digest("SHA-256", bytes);
+	return [...new Uint8Array(digest)]
+		.map((byte) => byte.toString(16).padStart(2, "0"))
+		.join("");
+}

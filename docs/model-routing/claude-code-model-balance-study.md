@@ -8,9 +8,9 @@ Sources:
 
 - `https://code.claude.com/docs/en/model-config`
 - `https://code.claude.com/docs/en/settings`
-- `https://support.claude.com/en/articles/11940350-claude-code-model-configuration`
+- `https://support.claude.com/en/articles/11940350-claude-model-configuration`
 - `https://support.claude.com/en/articles/11014257-about-claude-s-max-plan-usage`
-- `https://support.claude.com/en/articles/11145838-using-claude-code-with-your-pro-or-max-plan`
+- `https://support.claude.com/en/articles/11145838-using-claude-with-your-pro-or-max-plan`
 
 Retrieval date: 2026-04-29.
 

@@ -7,7 +7,7 @@ export const RECORD_KINDS = [
 	"model-plan",
 ] as const;
 
-export const SURFACES = ["codex", "claude-code", "opencode"] as const;
+export const SURFACES = ["codex", "claude", "opencode"] as const;
 
 export const ROUTE_KINDS = [
 	"readonly",

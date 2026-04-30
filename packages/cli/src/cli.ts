@@ -3,6 +3,7 @@ import { hasErrors } from "@openagentlayer/diagnostics";
 import {
 	applyInstallPlan,
 	uninstallManagedFiles,
+	verifyManagedInstall,
 } from "@openagentlayer/install";
 import {
 	applyWritePlan,
@@ -50,7 +51,7 @@ async function main(args: readonly string[]): Promise<number> {
 		case "render":
 			return await renderCommand(options);
 		case "doctor":
-			return doctorCommand(options);
+			return await doctorCommand(options);
 		case "install":
 			return await installCommand(options);
 		case "uninstall":
@@ -98,10 +99,66 @@ async function renderCommand(options: CliOptions): Promise<number> {
 	return 0;
 }
 
-function doctorCommand(options: CliOptions): number {
+async function doctorCommand(options: CliOptions): Promise<number> {
+	const loadResult = await loadSourceGraph(options.root);
+	printDiagnostics(loadResult.diagnostics);
+	if (hasErrors(loadResult.diagnostics) || loadResult.graph === undefined) {
+		return 1;
+	}
+
+	const graph = loadResult.graph;
+	const registry = createAdapterRegistry();
+	const bundles = resolveSurfaces(options.surface ?? "all").map((surface) =>
+		registry.renderSurfaceBundle(graph, surface),
+	);
+	const diagnostics = bundles.flatMap((bundle) => bundle.diagnostics);
+	printDiagnostics(diagnostics);
+	if (hasErrors(diagnostics)) {
+		return 1;
+	}
+
+	const hookIssues = await verifyRenderedHooks(bundles);
+	for (const issue of hookIssues) {
+		console.error(`ERROR hook-self-contained: ${issue}`);
+	}
+	if (hookIssues.length > 0) {
+		return 1;
+	}
+
+	if (options.scope !== undefined || options.target !== undefined) {
+		if (options.surface === undefined) {
+			printError("Install verification requires --surface <surface|all>.");
+			return 2;
+		}
+		if (options.scope === undefined) {
+			printError("Install verification requires --scope <project|global>.");
+			return 2;
+		}
+		const targetRoot = resolveTargetRoot({
+			...options,
+			scope: options.scope,
+		});
+		for (const surface of resolveSurfaces(options.surface)) {
+			const result = await verifyManagedInstall({
+				scope: options.scope,
+				surface,
+				targetRoot,
+			});
+			for (const issue of result.issues) {
+				console.error(
+					`ERROR install-verify/${issue.code}: ${issue.path}: ${issue.message}`,
+				);
+			}
+			if (result.issues.length > 0) {
+				return 1;
+			}
+			console.log(`oal doctor install ${surface}/${options.scope} ok`);
+		}
+	}
+
 	console.log(`oal doctor root=${options.root}`);
 	console.log(`bun=${Bun.version}`);
-	console.log("oal doctor ok: runtime available");
+	console.log(`oal doctor ok: ${bundles.length} surface bundles verified`);
 	return 0;
 }
 
@@ -238,7 +295,7 @@ function hasInstallOptions(options: CliOptions): options is CliOptions & {
 	readonly scope: ScopeOption;
 } {
 	if (options.surface === undefined) {
-		printError("Missing required --surface <codex|claude-code|opencode|all>.");
+		printError("Missing required --surface <codex|claude|opencode|all>.");
 		return false;
 	}
 	if (options.scope === undefined) {
@@ -285,6 +342,47 @@ function printHelp(): void {
 
 function printError(message: string): void {
 	console.error(`ERROR: ${message}`);
+}
+
+async function verifyRenderedHooks(
+	bundles: readonly {
+		readonly artifacts: readonly {
+			readonly content: string;
+			readonly kind: string;
+			readonly path: string;
+		}[];
+	}[],
+): Promise<readonly string[]> {
+	const issues: string[] = [];
+	for (const bundle of bundles) {
+		for (const artifact of bundle.artifacts) {
+			if (artifact.kind !== "hook" || !artifact.path.endsWith(".mjs")) {
+				continue;
+			}
+			const process = Bun.spawn(["bun", "-e", artifact.content], {
+				stderr: "pipe",
+				stdin: "pipe",
+				stdout: "pipe",
+			});
+			process.stdin.write("{}");
+			process.stdin.end();
+			const [stdout, stderr] = await Promise.all([
+				new Response(process.stdout).text(),
+				new Response(process.stderr).text(),
+				process.exited,
+			]);
+			try {
+				const decision = JSON.parse(stdout) as { readonly decision?: unknown };
+				if (typeof decision.decision === "string") {
+					continue;
+				}
+			} catch {
+				// Report below.
+			}
+			issues.push(`${artifact.path}: ${stderr || stdout}`);
+		}
+	}
+	return issues;
 }
 
 const exitCode = await main(Bun.argv.slice(2)).catch((error: unknown) => {

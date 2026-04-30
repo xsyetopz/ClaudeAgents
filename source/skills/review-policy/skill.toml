@@ -11,5 +11,5 @@ tool_grants = ["read", "search"]
 route_contract = "readonly"
 model_policy = "gpt-5.4"
 supporting_files = []
-surfaces = ["codex", "claude-code", "opencode"]
+surfaces = ["codex", "claude", "opencode"]
 

@@ -93,6 +93,7 @@ Current runtime package exports:
 - `RuntimeDecision`
 - `evaluateCompletionGate(payload)`
 - `evaluateDestructiveCommandGuard(payload)`
+- `evaluateSourceDriftGuard(payload)`
 - `evaluateRuntimePolicy(payload)`
 - `renderRuntimeScript(policyId)`
 

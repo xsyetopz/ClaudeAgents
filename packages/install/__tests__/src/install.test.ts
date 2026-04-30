@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
 	applyInstallPlan,
 	uninstallManagedFiles,
+	verifyManagedInstall,
 } from "@openagentlayer/install";
 import { createAdapterRegistry } from "@openagentlayer/render/registry";
 import { loadSourceGraph } from "@openagentlayer/source";
@@ -24,9 +25,7 @@ describe("OAL installer", () => {
 			join(targetRoot, ".oal/manifest/codex-project.json"),
 		);
 		expect(
-			await Bun.file(
-				join(targetRoot, ".codex/openagentlayer/config.toml"),
-			).text(),
+			await Bun.file(join(targetRoot, ".codex/config.toml")).text(),
 		).toContain("fast_mode = false");
 	});
 
@@ -56,9 +55,7 @@ describe("OAL installer", () => {
 		);
 		expect(await Bun.file(neighborPath).text()).toBe("keep\n");
 		expect(
-			await Bun.file(
-				join(targetRoot, ".codex/openagentlayer/config.toml"),
-			).exists(),
+			await Bun.file(join(targetRoot, ".codex/config.toml")).exists(),
 		).toBe(false);
 	});
 
@@ -133,6 +130,98 @@ describe("OAL installer", () => {
 
 		expect(await Bun.file(externalVictim).text()).toBe("external\n");
 		expect(await Bun.file(localManagedFile).exists()).toBe(false);
+	});
+
+	test("install verification accepts clean managed files", async () => {
+		const { targetRoot, codexBundle } = await createInstallFixture();
+		await applyInstallPlan({
+			bundle: codexBundle,
+			scope: "project",
+			targetRoot,
+		});
+
+		const result = await verifyManagedInstall({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(result.issues).toEqual([]);
+	});
+
+	test("install verification reports missing managed files", async () => {
+		const { targetRoot, codexBundle } = await createInstallFixture();
+		await applyInstallPlan({
+			bundle: codexBundle,
+			scope: "project",
+			targetRoot,
+		});
+		await rm(join(targetRoot, ".codex/config.toml"), {
+			force: true,
+		});
+
+		const result = await verifyManagedInstall({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(result.issues).toContainEqual(
+			expect.objectContaining({ code: "missing-file" }),
+		);
+	});
+
+	test("install verification reports hash mismatch", async () => {
+		const { targetRoot, codexBundle } = await createInstallFixture();
+		await applyInstallPlan({
+			bundle: codexBundle,
+			scope: "project",
+			targetRoot,
+		});
+		await writeFile(join(targetRoot, ".codex/config.toml"), "changed\n");
+
+		const result = await verifyManagedInstall({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(result.issues).toContainEqual(
+			expect.objectContaining({ code: "hash-mismatch" }),
+		);
+	});
+
+	test("install verification reports forged escaping manifest path", async () => {
+		const targetRoot = await createFixtureRoot();
+		const manifestPath = join(targetRoot, ".oal/manifest/codex-project.json");
+		await mkdir(join(targetRoot, ".oal/manifest"), { recursive: true });
+		await writeFile(
+			manifestPath,
+			JSON.stringify({
+				entries: [
+					{
+						artifactKind: "config",
+						path: "../escape.txt",
+						sha256: "bad",
+						sourceRecordIds: [],
+					},
+				],
+				generatedAt: "deterministic",
+				scope: "project",
+				surface: "codex",
+				targetRoot,
+			}),
+		);
+
+		const result = await verifyManagedInstall({
+			scope: "project",
+			surface: "codex",
+			targetRoot,
+		});
+
+		expect(result.issues).toContainEqual(
+			expect.objectContaining({ code: "path-escape" }),
+		);
 	});
 });
 

@@ -28,7 +28,7 @@ describe("OAL render write plan", () => {
 		expect(second).toBe(first);
 		expect(first).toContain("add\tgraph.json");
 		expect(first).toContain("add\tmanifest.json");
-		expect(first).toContain("add\t.codex/openagentlayer/config.toml");
+		expect(first).toContain("add\t.codex/config.toml");
 		expect(first).toContain("add\t.claude/settings.json");
 		expect(first).toContain("add\topencode.json");
 	});

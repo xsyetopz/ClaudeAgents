@@ -26,7 +26,7 @@ import {
 	validateConfigObject,
 } from "../../shared";
 
-const SURFACE = "claude-code" as const;
+const SURFACE = "claude" as const;
 const ARTIFACT_ROOT = ".claude/openagentlayer";
 
 export const claudeAdapterId = SURFACE;
@@ -260,29 +260,28 @@ function renderClaudeSettings(graph: SourceGraph): Record<string, unknown> {
 	const projectDefaults =
 		graph.surfaceConfigs.find((record) => record.surface === SURFACE)
 			?.project_defaults ?? {};
+	const hooks: Record<string, unknown[]> = {};
+	for (const record of graph.policies.filter((record) =>
+		record.surfaces.includes(SURFACE),
+	)) {
+		const event = String(record.surface_mappings[SURFACE] ?? "Stop");
+		hooks[event] = [
+			...(hooks[event] ?? []),
+			{
+				hooks: [
+					{
+						command: `bun ${ARTIFACT_ROOT}/${record.runtime_script ?? `runtime/${record.id}.mjs`}`,
+						statusMessage: `checking ${record.id}`,
+						timeout: 10,
+						type: "command",
+					},
+				],
+				...(record.matcher === undefined ? {} : { matcher: record.matcher }),
+			},
+		];
+	}
 	return {
 		...projectDefaults,
-		hooks: Object.fromEntries(
-			graph.policies
-				.filter((record) => record.surfaces.includes(SURFACE))
-				.map((record) => [
-					String(record.surface_mappings[SURFACE] ?? "Stop"),
-					[
-						{
-							hooks: [
-								{
-									command: `bun ${ARTIFACT_ROOT}/${record.runtime_script ?? `runtime/${record.id}.mjs`}`,
-									statusMessage: `checking ${record.id}`,
-									timeout: 10,
-									type: "command",
-								},
-							],
-							...(record.matcher === undefined
-								? {}
-								: { matcher: record.matcher }),
-						},
-					],
-				]),
-		),
+		hooks,
 	};
 }

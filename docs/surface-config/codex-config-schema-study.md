@@ -182,6 +182,7 @@ OAL rule: tool config belongs in adapter-owned profile fragments.
 Keep feature flags only when they directly affect OAL behavior:
 
 - `codex_hooks`
+- `multi_agent`
 - `multi_agent_v2`
 - `collaboration_modes`
 - `default_mode_request_user_input`
@@ -209,6 +210,7 @@ Every OAL-generated Codex profile must set:
 ```toml
 [features]
 fast_mode = false
+multi_agent = false
 multi_agent_v2 = true
 unified_exec = false
 ```
@@ -216,6 +218,7 @@ unified_exec = false
 These defaults are part of the OAL model-balance contract:
 
 - `fast_mode = false`: OAL does not burn usage for speed unless a route explicitly opts in.
+- `multi_agent = false`: disable the non-v2 multi-agent path.
 - `multi_agent_v2 = true`: OAL uses multi-agent routing as a core capability.
 - `unified_exec = false`: OAL keeps stable hook/shell behavior until a dedicated route opts into different execution semantics.
 

@@ -92,7 +92,7 @@ Test paths mirror the package `src/` structure. Shared helpers used by multiple 
 - `oal uninstall --surface <surface> --scope <scope>`
 - `oal doctor`
 
-Installer commands accept `--surface codex|claude-code|opencode|all`, `--scope project|global`, and optional `--target <dir>`. Global install requires explicit `--target`.
+Installer commands accept `--surface codex|claude|opencode|all`, `--scope project|global`, and optional `--target <dir>`. Global install requires explicit `--target`.
 
 ## Links
 

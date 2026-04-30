@@ -32,7 +32,7 @@ describe("OAL source validation", () => {
 				"model-plan:codex-pro-5",
 				"policy:completion-gate",
 				"policy:destructive-command-guard",
-				"surface-config:claude-code-surface-config",
+				"surface-config:claude-surface-config",
 				"surface-config:codex-surface-config",
 				"surface-config:opencode-surface-config",
 				"skill:review-policy",

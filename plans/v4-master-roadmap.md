@@ -55,7 +55,7 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 - [x] Sealed — Implement command safety guard.
 - [x] Sealed — Implement route contract completion gate.
 - [ ] Queued — Implement prompt injection/context hook.
-- [ ] Queued — Implement source drift guard.
+- [x] Sealed — Implement source drift guard.
 - [x] Sealed — Implement policy test harness with synthetic hook payloads.
 
 ## Phase 5: installer
@@ -66,14 +66,14 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 - [x] Sealed — Implement managed-file manifest.
 - [x] Sealed — Implement uninstall from manifest.
 - [ ] Queued — Implement config merge with marked managed blocks.
-- [ ] Queued — Implement install verification.
+- [x] Sealed — Implement install verification.
 
 ## Phase 6: validation
 
 - [x] Sealed — Validate source graph.
 - [x] Sealed — Validate render determinism.
 - [x] Sealed — Validate generated artifacts against snapshots or structural assertions.
-- [~] Active — Validate installed hook scripts are self-contained.
+- [x] Sealed — Validate installed hook scripts are self-contained.
 - [ ] Queued — Validate docs match specs.
 - [ ] Queued — Validate no spec contains v3 implementation requirements.
 
@@ -83,7 +83,7 @@ OpenAgentLayer is not a harness and not a framework. It does not own model execu
 - [x] Sealed — `oal render --out <dir>` creates deterministic generated output; `bun run render` may wrap it.
 - [x] Sealed — `oal install --surface <surface> --scope <scope>` installs from managed manifest.
 - [x] Sealed — `oal uninstall --surface <surface> --scope <scope>` reverses managed install.
-- [ ] Queued — `oal doctor` reports runtime and install health.
+- [x] Sealed — `oal doctor` reports runtime and install health.
 - [ ] Queued — `bun test` covers source, adapters, runtime, installer, docs audits.
 - [x] Sealed — No `*.test.ts` files live under `packages/*/src/`; tests mirror package source under `packages/*/__tests__/`.
 - [ ] Queued — v4 specs define all behavior needed by implementers.

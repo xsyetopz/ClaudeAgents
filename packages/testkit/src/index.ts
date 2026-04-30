@@ -165,13 +165,13 @@ export async function writePolicy(
 
 export async function writeFixtureSurfaceConfigs(root: string): Promise<void> {
 	await writeFixtureSurfaceConfig(root, "codex");
-	await writeFixtureSurfaceConfig(root, "claude-code");
+	await writeFixtureSurfaceConfig(root, "claude");
 	await writeFixtureSurfaceConfig(root, "opencode");
 }
 
 async function writeFixtureSurfaceConfig(
 	root: string,
-	surface: "codex" | "claude-code" | "opencode",
+	surface: "codex" | "claude" | "opencode",
 ): Promise<void> {
 	const directory = join(root, "source", "surface-configs", surface);
 	await mkdir(directory, { recursive: true });
