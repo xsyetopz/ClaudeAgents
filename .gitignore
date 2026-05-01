@@ -4,6 +4,11 @@ generated/
 v3_to_be_removed/
 target/
 
+# Temporary Codex-related stuff for Ralphing v4
+.codex-loop/
+codex-loop.sh
+TASK.md
+
 # Node
 node_modules/
 *.tsbuildinfo
