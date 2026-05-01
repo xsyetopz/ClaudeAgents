@@ -4,7 +4,12 @@
 
 OpenAgentLayer v4 is a provider-native agent surface compiler. It lets a maintainer author roles, skills, commands, route contracts, runtime policies, and model plans once, then compile them into provider-specific artifacts for Codex, Claude Code, and OpenCode.
 
-V4 is not a new agent runtime. It delegates actual reasoning, tool execution, subagent spawning, permissions, and UI behavior to the provider. OAL owns the source graph, rendering, validation, installation, migration, and policy tests.
+V4 is not a new agent runtime. It delegates actual reasoning, tool execution, subagent spawning, permissions, and UI behavior to the provider. OAL owns the source graph, rendering, validation, deploy safety, and policy tests.
+
+V4 is production infrastructure, not a toy framework or prompt experiment.
+Maintainability, extension safety, deterministic validation, and operational
+stability take priority over novelty. Greek-god agent IDs remain because they
+are distinct durable role identifiers, not because roles should be theatrical.
 
 ## Primary users
 
@@ -22,11 +27,10 @@ oal check
 oal render --surface codex --plan pro-5 --out generated/codex
 oal render --surface claude --plan max-5 --out generated/claude
 oal render --surface opencode --plan max --out generated/opencode
-oal diff --surface all
-oal install --surface codex --scope project --dry-run
-oal uninstall --surface codex --scope project
+oal deploy --surface codex --scope project --dry-run
+oal deploy --surface codex --scope project
+oal undeploy --surface codex --scope project
 oal eval --suite smoke --surface all
-oal explain route implement --surface codex --plan pro-5
 ```
 
 ### Source graph
@@ -67,7 +71,7 @@ generated/
 
 ## Name and positioning
 
-Use “OpenAgentLayer” publicly. Use “OAL” internally. Stop using `openagentsbtw` in new artifacts except for compatibility uninstall/migration detection.
+Use “OpenAgentLayer” publicly. Use “OAL” internally. Do not use the legacy project name in any v4 artifact. V4 does not include v3 detection, compatibility, migration, or alias handling.
 
 Suggested tagline:
 
@@ -87,7 +91,6 @@ OAL v4 should organize around capabilities, not providers.
 | Document   | `/oal document`    | Calliope           | Docs/changelog/ADR           |
 | Design     | `/oal design`      | Apollo / Aphrodite | UI/design guidance or diff   |
 | Debug      | `/oal debug`       | Ares / Hermes      | Reproduction and fix path    |
-| Migrate    | `/oal migrate`     | Demeter / Hestia   | Migration plan and checks    |
 | Release    | `/oal release`     | Hestia / Nemesis   | release checklist/evidence   |
 
 ## Boundary decisions
@@ -99,9 +102,8 @@ OAL v4 should organize around capabilities, not providers.
 - model/effort/budget policy;
 - generated prompt and skill packages;
 - hook/policy scripts;
-- install manifest and rollback;
+- deploy manifest and rollback;
 - headless smoke/eval harness;
-- migration from v3 output names.
 
 ### OAL does not own
 
@@ -119,8 +121,6 @@ Author source records
       ↓
 Load typed source graph
       ↓
-Normalize aliases and deprecations
-      ↓
 Validate graph invariants
       ↓
 Resolve selected surface + model plan
@@ -129,42 +129,39 @@ Render provider-native artifacts
       ↓
 Validate against upstream schemas
       ↓
-Generate install manifest
+Generate deploy manifest
       ↓
-Dry-run diff / install / rollback
+Dry-run deploy / apply / rollback / undeploy
       ↓
 Run provider headless smoke tests
 ```
 
 ## Required package responsibilities
 
-### `packages/source`
+### `packages/graph`
 
-Loads JSON, TOML, YAML, and Markdown records. Normalizes old names. Validates source graph invariants. Tracks provenance. No provider-specific rendering.
+Loads JSON source records and Markdown prompt/skill bodies. Validates source
+graph invariants. Tracks provenance. No provider-specific rendering.
 
-### `packages/model-routing`
+### `packages/routes`
+
+Defines route completion semantics, permission compatibility, and contract checks. Example contracts: `readonly`, `edit-required`, `execution-required`, `review-required`, `handoff-required`, `interactive-confirmation-required`.
+
+### `packages/models`
 
 Resolves role, route, provider, plan, model, effort, verbosity, context-window, and budget. No filesystem writes. No prompt rendering.
 
-### `packages/contracts`
+### `packages/render`
 
-Defines route completion semantics. Example contracts: `readonly`, `edit-required`, `execution-required`, `review-required`, `handoff-required`, `interactive-confirmation-required`.
+Contains provider modules for Codex, Claude Code, and OpenCode. Renderers consume the normalized graph and selected plan; they do not invent defaults.
 
-### `packages/render-*`
+### `packages/deploy`
 
-Each provider gets its own renderer. Renderers consume the normalized graph and selected plan; they do not invent defaults.
+Writes rendered files using declared deploy modes. Handles structured merges, marked text blocks, full-file ownership, hash validation, rollback, and undeploy.
 
-### `packages/runtime`
+### `packages/cli`
 
-Holds policy scripts and a small runtime decision protocol. Every policy must be testable both as direct function and rendered script.
-
-### `packages/install`
-
-Writes files using declared install modes. Handles structured merges, marked text blocks, full-file ownership, hash validation, rollback, and uninstall.
-
-### `packages/eval`
-
-Runs golden render tests, provider schema validation, headless CLI smoke tests, and task outcome benchmarks.
+Owns CLI parsing, terminal output, command dispatch, and process exit codes. It does not contain graph, route, model, render, or deploy business logic.
 
 ## Quality bars
 
@@ -174,9 +171,12 @@ Runs golden render tests, provider schema validation, headless CLI smoke tests, 
 4. No route may use `xhigh` or Claude `max` effort without an explicit budget exception.
 5. No provider renderer may emit unsupported keys unless marked pass-through and source-owned.
 6. No provider adapter may claim support for a hook event that the provider does not expose.
-7. No installed file may be overwritten without a manifest entry or explicit conflict policy.
+7. No deployed file may be overwritten without a manifest entry or explicit conflict policy.
 8. No integration may be copied from upstream without version/pin/provenance metadata.
+9. No source record, generated config, command, or docs path should contain
+   hobby-project placeholders, whimsical filler, fake feature claims, or
+   unsupported provider behavior.
 
 ## Product risk
 
-The main v4 risk is repeating the failed pattern: trying to convert source, packages, providers, installer, hooks, prompts, and model plans in one sweep. V4 should first compile a minimal source graph to one provider, then expand. The migration plan in `09_MIGRATION_ROADMAP_AND_DELIVERY_PLAN.md` is ordered accordingly.
+The main v4 risk is repeating the failed pattern: trying to convert source, packages, providers, deploy lifecycle, hooks, prompts, and model plans in one sweep. V4 should first compile a minimal source graph to one provider, then expand. The roadmap in `09_ROADMAP_AND_DELIVERY_PLAN.md` is ordered accordingly.

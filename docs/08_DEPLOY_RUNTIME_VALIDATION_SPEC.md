@@ -1,10 +1,10 @@
-# 08 — Installer, Runtime, Validation, and Observability Specification
+# 08 - Deploy, Runtime, Validation, and Observability Specification
 
-## Installer principle
+## Deploy principle
 
-Installation is a manifest-aware write operation, not a copy script. V4 must be able to preview, apply, verify, rollback, and uninstall every artifact it owns.
+Deploy is a manifest-aware write operation, not a copy script. V4 must be able to preview, apply, verify, rollback, and undeploy every artifact it owns.
 
-## Install scopes
+## Deploy scopes
 
 | Scope          | Meaning                         | Example                                                                  |
 | -------------- | ------------------------------- | ------------------------------------------------------------------------ |
@@ -15,7 +15,7 @@ Installation is a manifest-aware write operation, not a copy script. V4 must be 
 
 V4 should default to project scope for safety.
 
-## Install modes
+## Deploy modes
 
 ### `full-file`
 
@@ -26,7 +26,7 @@ Manifest entry:
 ```json
 {
   "path": ".codex/openagentlayer/runtime/completion-gate.mjs",
-  "installMode": "full-file",
+  "deployMode": "full-file",
   "sha256": "...",
   "sourceId": "policy:completion-gate"
 }
@@ -51,7 +51,7 @@ OAL owns selected JSON/TOML object paths.
 ```json
 {
   "path": ".claude/settings.json",
-  "installMode": "structured-object",
+  "deployMode": "structured-object",
   "managedValues": {
     "hooks.Stop": "sha256:...",
     "permissions.deny": "sha256:..."
@@ -82,7 +82,7 @@ OAL may read the value for diagnostics but must not overwrite it.
   "entries": [
     {
       "path": ".codex/config.toml",
-      "installMode": "structured-object",
+      "deployMode": "structured-object",
       "sha256": "...",
       "sourceIds": ["surface:codex", "model-plan:codex-pro-5-efficiency"]
     }
@@ -101,13 +101,12 @@ Manifests live under:
 ## Dry-run output
 
 ```text
-OAL install preview: codex project
+OAL deploy preview: codex project
 
 CREATE .codex/agents/hephaestus.toml
 UPDATE .codex/config.toml
   + profiles.oal-main.model = "gpt-5.5"
   + profiles.oal-main.model_reasoning_effort = "medium"
-  ! existing profiles.openagentsbtw detected; will preserve unless --migrate-v3
 CONFLICT AGENTS.md
   OAL block exists but hash differs and was edited by user.
   Action: skip unless --force-block-refresh
@@ -116,22 +115,22 @@ CONFLICT AGENTS.md
 ## Conflict policy
 
 1. Never overwrite user-owned keys.
-2. Never overwrite a modified OAL block without explicit `--force` or migration mode.
+2. Never overwrite a modified OAL block without explicit `--force`.
 3. Structured merges must preserve unknown keys.
 4. Removal only affects manifest-owned entries.
-5. Uninstall must leave a report of preserved user edits and orphaned unknown files.
+5. Undeploy must leave a report of preserved user edits and orphaned unknown files.
 
 ## Runtime policy scripts
 
-Runtime scripts should be generated or copied as self-contained files. They must not import from source tree paths that will not exist after install.
+Runtime scripts should be generated or copied as self-contained files. They must not import from source tree paths that will not exist after deploy.
 
 Every runtime policy has:
 
 ```text
-source/policies/<id>/policy.toml
+source/policies/<id>/policy.json
 source/policies/<id>/runtime.mjs
 source/policies/<id>/fixtures/*.json
-packages/runtime/__tests__/<id>.test.ts
+tests/runtime-policies/<id>.test.ts
 ```
 
 ## Headless E2E tests
@@ -180,7 +179,7 @@ Suggested suites:
 - render all surfaces;
 - parse all artifacts;
 - run all policy scripts with fixtures;
-- verify install manifests;
+- verify deploy manifests;
 - no model-plan gaps.
 
 ### `routes`
@@ -199,13 +198,6 @@ Suggested suites:
 - detect xhigh/max usage outside break-glass;
 - track tool-output reinjection volume.
 
-### `migration`
-
-- migrate v3 config artifacts into v4 source graph;
-- preserve user edits;
-- remove old `openagentsbtw` managed blocks;
-- rollback after simulated failed install.
-
 ## Observability
 
 Local telemetry should be opt-in and file-based. No remote collection is required.
@@ -214,7 +206,7 @@ Files:
 
 ```text
 .oal/logs/render.jsonl
-.oal/logs/install.jsonl
+.oal/logs/deploy.jsonl
 .oal/logs/runtime-policy.jsonl
 .oal/usage/ledger.jsonl
 ```
@@ -237,9 +229,9 @@ Example policy log:
 1. Never read `.env`, private keys, token stores, or secret paths unless explicit policy allows and user confirms.
 2. Never log secret-like values.
 3. Secret scanners must redact matched content.
-4. Installer must not execute third-party scripts during render.
+4. Deploy must not execute third-party scripts during render.
 5. Third-party skills are copied only from pinned refs or explicit local sync commands.
-6. Managed configs should be opt-in and clearly separated from user/project installs.
+6. Managed configs should be opt-in and clearly separated from user/project deploys.
 
 ## Release gate
 
@@ -248,11 +240,9 @@ Before v4 release:
 ```bash
 oal check --strict
 oal render --surface all --plan all --out generated
-oal diff --expect-clean
-oal install --surface all --scope project --dry-run
+oal deploy --surface all --scope project --dry-run
 oal eval --suite smoke --surface all
 oal eval --suite routes --surface codex
-oal eval --suite migration
 ```
 
 Release fails if:
@@ -261,6 +251,6 @@ Release fails if:
 - any contract/tool mismatch remains;
 - any unsupported provider hook is rendered as supported;
 - any generated config fails schema validation;
-- any runtime script imports from the source tree after install;
+- any runtime script imports from the source tree after deploy;
 - any third-party integration lacks provenance;
-- uninstall cannot remove manifest-owned files cleanly.
+- undeploy cannot remove manifest-owned files cleanly.

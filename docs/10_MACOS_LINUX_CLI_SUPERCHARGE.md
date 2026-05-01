@@ -49,7 +49,7 @@ alias du='dust'
 alias df='duf'
 ```
 
-Do not force these aliases in installer. Emit them as recommendations or optional shell snippet, or an optional addition .env file that gets injected on use, and can have its behaviour toggled off at will.
+Do not force these aliases during OAL deploy. Emit them as recommendations or optional shell snippet, or an optional addition .env file that gets injected on use, and can have its behaviour toggled off at will.
 
 ## Search patterns for agents
 
@@ -113,8 +113,8 @@ git status --short --branch
 ## Performance and profiling helpers
 
 ```bash
-# Benchmark generate command
-hyperfine 'bun run generate'
+# Benchmark render command
+hyperfine 'bun run oal render --surface codex --plan pro-5 --out generated/codex'
 
 # Count code by language
 tokei .
@@ -138,14 +138,14 @@ check:
   bun run check:source
   bun run test
 
-generate surface="all":
-  bun run oal generate --surface {{surface}} --out generated
+render surface="codex":
+  bun run oal render --surface {{surface}} --plan pro-5 --out generated/{{surface}}
 
 smoke:
   bun run oal eval --suite smoke --surface all
 
 codex-dry:
-  bun run oal install --surface codex --scope project --dry-run
+  bun run oal deploy --surface codex --scope project --dry-run
 ```
 
 ## OAL diagnostics command ideas
@@ -161,7 +161,6 @@ Should check:
 - Codex/Claude/OpenCode CLI availability;
 - schema cache freshness;
 - whether current repo has generated artifacts out of sync;
-- whether provider configs contain v3 leftovers;
 - whether shell aliases would conflict.
 
 ## Safe install snippets

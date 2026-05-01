@@ -2,11 +2,11 @@
 
 ## Finding
 
-V3 (openagentsbtw) is neither a clean harness nor a framework. It is a cross-provider generated configuration package with agent roles, skills, commands, hooks, runtime scripts, install scripts, and subscription routing layered together. That can be valuable, but the current architecture makes unrelated changes interfere with each other.
+V3 is neither a clean harness nor a framework. It is a cross-provider generated configuration package with agent roles, skills, commands, hooks, runtime scripts, install scripts, and subscription routing layered together. That can be valuable, but the current architecture makes unrelated changes interfere with each other.
 
 The best v4 framing is: **OpenAgentLayer is an agent surface compiler**.
 
-A compiler can have provider adapters, validation, install manifests, and runtime policy tests. A harness implies test execution around a target system. A framework implies users build applications inside it. OpenAgentLayer does neither cleanly. It compiles and installs agent-facing surfaces for existing agent CLIs.
+A compiler can have provider adapters, validation, deploy manifests, and runtime policy tests. A harness implies test execution around a target system. A framework implies users build applications inside it. OpenAgentLayer does neither cleanly. It compiles and deploys agent-facing surfaces for existing agent CLIs.
 
 ## Evidence from current repo shape
 
@@ -14,7 +14,7 @@ Current public documentation says canonical source lives under `source/`, with a
 
 Current code contradicts that rule. `scripts/generate.mjs` contains rendering logic for skills, agents, hooks, OpenCode git hooks, Codex wrappers, platform overlays, Caveman prompt/runtime, and generated directories. The file is doing product logic, rendering, provider mapping, runtime policy generation, and filesystem writes together. That is the clearest structural smell.
 
-The repo also has evidence of a reverted v4 attempt. A recent commit message says “restore v3 because rest were broken apparently.” That is not just a git detail; it means the next v4 should avoid a wide rewrite that changes source, renderers, runtime, installer, and tests in one motion.
+The repo also has evidence of a reverted v4 attempt. A recent commit message says “restore v3 because rest were broken apparently.” That is not just a git detail; it means the next v4 should avoid a wide rewrite that changes source, renderers, deploy behavior, runtime policies, and tests in one motion.
 
 ## What is working in v3
 

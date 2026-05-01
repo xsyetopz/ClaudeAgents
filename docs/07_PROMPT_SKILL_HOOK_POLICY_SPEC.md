@@ -112,17 +112,42 @@ Must include command evidence:
 ## Skill model
 
 Skills are portable instruction bundles. In v4 they should be scoped and measured.
+Agent Skills are for reusable procedures, checklists, templates, deterministic
+scripts, and reference packs that supercharge an agent. They are not substitutes
+for agent roles, route ownership, model routing, permission policy, or
+delegation.
+
+Skill IDs must be verb-first and self-documenting. The initial OAL skill catalog
+is defined in `12_ACTION_SKILL_CATALOG.md`.
 
 Skill metadata must include:
 
-```toml
-id = "taste-skill"
-source_package = "third-party"
-activation = "manual | route-scoped | always"
-allowed_routes = ["design", "ui-review"]
-forbidden_routes = ["security", "test-output", "structured-data"]
-can_run_scripts = false
+```json
+{
+  "id": "create-skill",
+  "kind": "skill",
+  "body": "body.md",
+  "activation": {
+    "mode": "explicit",
+    "routes": {
+      "include": ["document", "devex"],
+      "exclude": ["security", "test-output", "structured-data"]
+    }
+  },
+  "render": {
+    "targets": ["codex", "claude", "opencode"]
+  }
+}
 ```
+
+Keep `skill.json` terse and structural. Put user-facing instructions,
+checklists, examples, and caveats in source `body.md` or
+progressive-disclosure references. All provider-facing `SKILL.md` packages are
+generated and deployed for Codex, Claude Code, and OpenCode; authored source
+records are not copied directly into tool config.
+
+Do not add tests for skill prose. Validate generated provider frontmatter,
+schema constraints, route bindings, and deploy behavior instead.
 
 ## Skill invocation policy
 

@@ -2,7 +2,7 @@
 
 Retrieval date: 2026-05-01.
 
-## OpenAgentLayer / openagentsbtw repo
+## OpenAgentLayer repo
 
 Repository studied:
 
@@ -17,7 +17,7 @@ Important current-source paths:
 - `source/catalog/items.mjs`
 - `source/catalog/loaders.mjs`
 - `source/agents/*/agent.json`
-- `source/agents/*/prompt.md`
+- `source/agents/*/agent.json`
 - `source/hooks/policies/subagent-route-context.json`
 - `source/subscriptions.mjs`
 - `codex/templates/config.toml`
@@ -27,7 +27,7 @@ Important git evidence:
 - Current restored v3 commit observed in repository history: `0a05c6363990f131bf8ad54213eebc76770d85ad`, message: `restore v3 because rest were broken apparently`.
 - Recent v4 attempt commit observed: `1ac882d078551c5477053d1c7f54cb75b0800f57`, message: `feat(oal): harden provider parity and runtime gates`.
 
-Interpretation: v4 should not repeat a full all-at-once rewrite. Build the source graph, one adapter, runtime policies, installer, then migration.
+Interpretation: v4 should not repeat a full all-at-once rewrite. Build the source graph, one adapter, deploy lifecycle, then runtime policies and evals.
 
 ## Upstream schemas and docs
 
@@ -147,7 +147,7 @@ V4 should be implemented as a small compiler core with strict validation and pro
 2. contract/tool/model validation;
 3. provider-native adapters;
 4. schema-derived config validation;
-5. manifest-aware installer;
+5. manifest-aware deploy lifecycle;
 6. runtime policy parity tests;
 7. budget-aware model routing;
 8. scoped third-party skill integrations.

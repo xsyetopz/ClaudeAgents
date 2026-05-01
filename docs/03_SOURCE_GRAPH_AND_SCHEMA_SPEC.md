@@ -2,20 +2,24 @@
 
 ## Goal
 
-Create one typed source graph that every provider renderer consumes. No renderer should read ad hoc folders or infer behavior from old generated output. Every role, skill, route, hook, model assignment, and install artifact must exist as data before rendering starts.
+Create one typed source graph that every provider renderer consumes. No renderer should read ad hoc folders or infer behavior from old generated output. Every role, skill, route, hook, model assignment, and deploy artifact must exist as data before rendering starts.
 
 ## File format recommendation
 
-Use JSON or TOML for machine records and Markdown for prompt/skill bodies.
+Use JSON for machine records and Markdown for prompt/skill bodies.
 
 Recommended default:
 
-- `record.toml` for compact authored records;
+- `record.json` for source records that should parse without extra runtime
+  dependencies in Node/Bun;
 - `body.md` for prompt/skill content;
 - `schema/*.json` for JSON Schema validation;
 - generated `.d.ts` TypeScript types from schemas.
 
-TOML fits the existing Codex ecosystem and keeps comments useful. JSON remains acceptable for strict machine records. Avoid JavaScript source records; they make static validation and schema diffing weaker.
+Provider renderers may emit TOML when the target tool requires it, such as
+Codex config and agent files. OAL source records should not require a TOML
+parser. Avoid JavaScript source records; they make static validation and schema
+diffing weaker.
 
 ## Source layout
 
@@ -23,43 +27,47 @@ TOML fits the existing Codex ecosystem and keeps comments useful. JSON remains a
 source/
   agents/
     athena/
-      agent.toml
-      prompt.md
+      agent.json
     hephaestus/
-      agent.toml
-      prompt.md
+      agent.json
   skills/
     review/
-      skill.toml
-      SKILL.md
+      skill.json
+      body.md
       reference/
       scripts/
   routes/
-    implement.toml
-    review.toml
-    explore.toml
+    implement.json
+    review.json
+    explore.json
   commands/
-    implement.toml
-    oal-review.toml
+    implement.json
+    review.json
   policies/
     protected-branch-confirm/
-      policy.toml
-      runtime.mjs
-      tests.json
+      policy.json
   model-plans/
-    codex-plus.toml
-    codex-pro-5.toml
-    codex-pro-20.toml
-    claude-max-5.toml
-    claude-max-20.toml
-    opencode-default.toml
+    codex-plus.json
+    codex-pro-5.json
+    codex-pro-20.json
+    claude-max-5.json
+    claude-max-20.json
+    opencode-default.json
+  model-roles/
+    implementation.json
+    review.json
+    utility.json
+  model-aliases/
+    codex.json
+    claude.json
+    opencode.json
   surfaces/
-    codex.toml
-    claude.toml
-    opencode.toml
+    codex.json
+    claude.json
+    opencode.json
   integrations/
-    caveman.toml
-    taste-skill.toml
+    caveman.json
+    taste-skill.json
   prompt-layers/
     global.md
     provider-codex.md
@@ -71,162 +79,184 @@ source/
 
 ### Agent record
 
-```toml
-id = "hephaestus"
-display_name = "Hephaestus"
-kind = "agent"
-mode = "implementation"
-primary = false
-surfaces = ["codex", "claude", "opencode"]
-description = "Implementation agent for scoped production code changes."
-contract = "edit-required"
-model_role = "implementation"
-skills = ["review", "test", "style"]
-forbidden_skills = []
-
-[permissions]
-read = true
-write = true
-shell = "ask"
-network = false
-secrets = "deny"
-git_commit = "deny"
-git_push = "deny"
-
-[limits]
-max_turns = 80
-max_parallel_children = 0
-
-[provider.codex]
-sandbox_mode = "workspace-write"
-agent_file = true
-
-[provider.claude]
-permission_mode = "acceptEdits"
-tools = ["Read", "Edit", "MultiEdit", "Write", "Grep", "Glob", "Bash"]
-
-[provider.opencode]
-mode = "subagent"
-permission.edit = "allow"
-permission.write = "allow"
-permission.bash = "ask"
+```json
+{
+  "id": "hephaestus",
+  "kind": "agent",
+  "modelRole": "implementation",
+  "contract": "edit-required",
+  "routes": ["implement", "refactor"],
+  "skills": ["drive-tdd"],
+  "render": {
+    "targets": ["codex", "claude", "opencode"]
+  },
+  "permissions": {
+    "read": true,
+    "write": true,
+    "shell": "ask",
+    "network": "deny"
+  }
+}
 ```
+
+Agent records are structural role metadata. They do not contain prompt prose or
+provider-native file formatting. Codex agents render to `.toml`; Claude Code and
+OpenCode agents render to Markdown with YAML frontmatter.
 
 ### Skill record
 
-```toml
-id = "review"
-display_name = "Review"
-kind = "skill"
-surfaces = ["codex", "claude", "opencode"]
-source_package = "oal-first-party"
-version = "4.0.0"
-user_invocable = true
-implicit_invocation = "route-scoped"
-description = "Review code for correctness, regressions, security, and missing tests."
-
-[inputs]
-requires_files = true
-requires_diff = false
-
-[outputs]
-format = "findings"
-
-[permissions]
-scripts = false
-network = false
+```json
+{
+  "id": "review",
+  "kind": "skill",
+  "body": "body.md",
+  "activation": {
+    "mode": "route-scoped",
+    "routes": {
+      "include": ["implement", "review"],
+      "exclude": ["security"]
+    }
+  },
+  "render": {
+    "targets": ["codex", "claude", "opencode"]
+  }
+}
 ```
+
+`skill.json` is machine-only source graph metadata. It should not carry prose
+that belongs in `body.md`; provider-specific Codex, Claude Code, and OpenCode
+`SKILL.md` artifacts are generated from the normalized graph and deployed
+through the render/deploy pipeline.
 
 ### Route record
 
-```toml
-id = "implement"
-display_name = "Implement"
-owning_agent = "hephaestus"
-allowed_agents = ["hephaestus", "atalanta", "nemesis", "calliope"]
-contract = "edit-required"
-default_model_role = "implementation"
-required_evidence = ["files_changed", "verification_attempted"]
-forbidden_outputs = ["todo_placeholder", "demo_instead_of_real_impl"]
-
-[completion]
-requires_diff = true
-requires_verification = true
-allow_docs_only = false
-
-[commands.codex]
-name = "oal-implement"
-
-[commands.claude]
-name = "oal:implement"
-
-[commands.opencode]
-name = "oal-implement"
+```json
+{
+  "id": "implement",
+  "kind": "route",
+  "owningAgent": "hephaestus",
+  "contract": "edit-required"
+}
 ```
+
+Route records are structural dispatch contracts. Completion requirements,
+commands, and provider command names can be layered later without embedding
+prompt prose in route source.
+
+### Command record
+
+```json
+{
+  "id": "implement",
+  "kind": "command",
+  "route": "implement",
+  "names": {
+    "codex": "oal-implement",
+    "claude": "oal:implement",
+    "opencode": "oal-implement"
+  }
+}
+```
+
+Command records own provider invocation names. Command bodies remain thin
+provider-rendered route entrypoints, not prompt-prose forks.
 
 ### Policy record
 
-```toml
-id = "staged-secret-guard"
-kind = "mutation_guard"
-decision_protocol = "oal-policy-v1"
-runtime = "runtime.mjs"
-surfaces = ["codex", "claude", "opencode"]
-category = "security"
-
-[provider.claude]
-event = "PreToolUse"
-matcher = "Bash(git commit *)|Bash(git add *)"
-timeout = 5
-
-[provider.codex]
-event = "PreToolUse"
-matcher = "shell"
-timeout = 5
-
-[provider.opencode]
-permission_rule = "bash.git"
-plugin_event = "tool.execute.before"
+```json
+{
+  "id": "staged-secret-guard",
+  "kind": "policy",
+  "category": "safety",
+  "render": {
+    "enabled": false
+  }
+}
 ```
+
+Policy records can exist before runtime implementations, but disabled policies
+must not render provider hooks, scripts, or fake behavior.
 
 ### Model plan record
 
-```toml
-id = "codex-pro-5-efficiency"
-surface = "codex"
-subscription = "pro-5"
-default_model = "gpt-5.4"
-default_effort = "medium"
-default_verbosity = "low"
-weekly_budget_class = "limited"
-
-[[assignments]]
-model_role = "orchestration"
-model = "gpt-5.5"
-effort = "medium"
-escalate_to = "high"
-
-[[assignments]]
-model_role = "implementation"
-model = "gpt-5.3-codex"
-effort = "medium"
-escalate_to = "high"
-
-[[assignments]]
-model_role = "utility"
-model = "gpt-5.4"
-effort = "low"
-escalate_to = "medium"
+```json
+{
+  "id": "codex-pro-5-efficiency",
+  "kind": "model-plan",
+  "surface": "codex",
+  "assignments": [
+    {
+      "modelRole": "orchestration",
+      "modelAlias": "frontier",
+      "effort": "medium"
+    },
+    {
+      "modelRole": "implementation",
+      "modelAlias": "implementation",
+      "effort": "medium"
+    },
+    {
+      "modelRole": "utility",
+      "modelAlias": "utility",
+      "effort": "low"
+    }
+  ]
+}
 ```
+
+Model plans use aliases at the source layer. Provider renderers resolve aliases
+to concrete model IDs through plan-specific policy so source roles do not bake in
+provider model names.
+
+### Model alias record
+
+```json
+{
+  "id": "codex",
+  "kind": "model-aliases",
+  "surface": "codex",
+  "aliases": {
+    "frontier": { "model": "gpt-5.5" },
+    "implementation": { "model": "gpt-5.3-codex" },
+    "utility": { "model": "gpt-5.4" }
+  }
+}
+```
+
+Aliases are surface-scoped. Model plans reference aliases; renderers use the
+matching surface alias record to emit provider-native model IDs.
+
+### Surface record
+
+```json
+{
+  "id": "codex",
+  "kind": "surface",
+  "agentFormat": "toml",
+  "skillFormat": "markdown-yaml-frontmatter",
+  "configFormat": "toml"
+}
+```
+
+Surface records capture provider file formats. They are not capability claims.
+Codex is the only seeded surface with TOML agent and config output; Claude Code
+and OpenCode agents use Markdown with YAML frontmatter.
 
 ## Validation invariants
 
+The initial structural validator is `scripts/validate-source.ts`. It checks
+source graph references and provider file-format facts without asserting prompt
+or skill prose.
+
+Prompt-layer records point at Markdown bodies. The validator checks existence
+and provider coverage only; it must not snapshot Markdown wording.
+
 ### Identity and references
 
-1. All IDs are kebab-case or lowercase Greek role IDs. No mixed old/new names.
+1. All IDs are kebab-case or lowercase Greek role IDs.
 2. Every referenced agent, skill, route, model role, policy, and integration exists.
 3. Every provider-specific record must name a supported provider surface.
-4. Old aliases are accepted only in migration input and normalized before render.
+4. Old aliases are not valid source records and are not detected, normalized, or migrated.
 
 ### Contracts and permissions
 
@@ -250,12 +280,16 @@ escalate_to = "medium"
 3. Feature flags must be generated from source presets and checked against upstream schema.
 4. Generated provider config must validate against upstream schema when possible.
 
-### Skill provenance
+### Third-party skill sync
 
-1. First-party skills use `source_package = "oal-first-party"`.
-2. Third-party skills use explicit repository, ref, license, sync command, and copied path.
-3. Any local modifications to third-party skills require an overlay record.
-4. Sync tests must fail when upstream-managed files drift without provenance update.
+1. First-party skills are the default and do not carry ownership or upstream
+   repository metadata.
+2. Third-party skills are exact vendored syncs with explicit repository, ref,
+   license, sync command, and copied path.
+3. Upstream-managed third-party files are not modified in place.
+4. OAL changes to third-party behavior require separate overlay records.
+5. Sync tests must fail when upstream-managed files drift without a sync-record
+   update.
 
 ## Diagnostics format
 

@@ -4,6 +4,11 @@
 
 Add a Greek-god-named agent only when it changes hard behavior: tools, permissions, model role, output contract, route ownership, or invocation trigger. Do not add agents for vibes.
 
+Greek-god names are stable role IDs. They must not turn prompts, docs, or
+generated configs into mythology-themed prose. Enterprise consumers should be
+able to audit each role by contract, permission set, model role, route
+ownership, and validation evidence.
+
 ## Existing core roles
 
 | Agent      |         Keep? | Role                                  | Contract                | Notes                                                        |
@@ -22,7 +27,7 @@ Add a Greek-god-named agent only when it changes hard behavior: tools, permissio
 
 If Calliope writes docs, its contract cannot be `readonly`. Use:
 
-```toml
+```text
 contract = "docs-write"
 permissions.write = true
 write_scope = ["docs/**", "README.md", "CHANGELOG.md", "*.md"]
@@ -34,7 +39,7 @@ For read-only documentation review, use route `document-review` or agent mode `c
 
 Odysseus prompt says it never modifies files. Its route contract should be:
 
-```toml
+```text
 contract = "delegated-edit-required"
 direct_write = false
 allowed_delegate_writers = ["hephaestus", "calliope"]
@@ -46,7 +51,7 @@ Do not mark Odysseus as a direct `edit-required` agent.
 
 Atalanta can run tests and may write snapshots or coverage files indirectly. Its write policy should be explicit:
 
-```toml
+```text
 contract = "execution-required"
 permissions.shell = "allow-test-commands"
 permissions.write = "generated-test-artifacts-only"
@@ -54,11 +59,11 @@ permissions.write = "generated-test-artifacts-only"
 
 ## Proposed v4 expanded registry
 
-Keep the default install smaller. Add extended agents behind an `extended-agents` preset.
+Keep the default deploy smaller. Add extended agents behind an `extended-agents` preset.
 
 ### Apollo — frontend, design-system, accessibility
 
-```toml
+```text
 id = "apollo"
 display_name = "Apollo"
 model_role = "taste-design"
@@ -72,7 +77,7 @@ Use Apollo when UI quality matters: layout, typography, motion, accessibility, d
 
 ### Artemis — impact tracing and regression scope
 
-```toml
+```text
 id = "artemis"
 model_role = "utility"
 contract = "readonly"
@@ -85,11 +90,11 @@ Hermes finds facts. Artemis follows call chains and scopes blast radius. This sp
 
 ### Demeter — data, schemas, migrations
 
-```toml
+```text
 id = "demeter"
 model_role = "implementation"
-contract = "migration-required"
-primary_routes = ["migrate", "schema", "data-fix"]
+contract = "schema-change-required"
+primary_routes = ["schema", "data-fix"]
 skills = ["test", "review", "errors"]
 permissions.write = true
 permissions.shell = "ask"
@@ -99,7 +104,7 @@ Owns database schema changes, migration scripts, seed data, serialization format
 
 ### Hestia — devex, repo hygiene, release prep
 
-```toml
+```text
 id = "hestia"
 model_role = "utility"
 contract = "tooling-write"
@@ -112,7 +117,7 @@ Owns package scripts, CI, lint/format, editor config, release notes, and reposit
 
 ### Themis — policy, security controls, compliance
 
-```toml
+```text
 id = "themis"
 model_role = "review"
 contract = "readonly"
@@ -125,7 +130,7 @@ Nemesis reviews correctness broadly. Themis specializes in policy, permissions, 
 
 ### Asclepius — reliability, observability, incident analysis
 
-```toml
+```text
 id = "asclepius"
 model_role = "debug"
 contract = "debug-evidence-required"
@@ -139,7 +144,7 @@ Owns logs, metrics, traces, health checks, failure modes, and incident root-caus
 
 ### Chronos — performance and latency
 
-```toml
+```text
 id = "chronos"
 model_role = "review"
 contract = "evidence-required"
@@ -152,7 +157,7 @@ Use for profiling, benchmark interpretation, algorithmic complexity, and slow CI
 
 ### Hecate — integrations and boundary systems
 
-```toml
+```text
 id = "hecate"
 model_role = "architecture"
 contract = "integration-plan-or-edit"
@@ -165,7 +170,7 @@ Owns external APIs, auth boundary work, SDK integration, MCP/provider integratio
 
 ### Mnemosyne — memory, handoff, continuity
 
-```toml
+```text
 id = "mnemosyne"
 model_role = "documentation"
 contract = "handoff-required"
@@ -180,7 +185,7 @@ Owns continuation summaries, compaction prompts, memory hygiene, session state, 
 
 Prefer **Aphrodite** for product taste and user-facing polish. Avoid making this role too vague.
 
-```toml
+```text
 id = "aphrodite"
 model_role = "taste-design"
 contract = "taste-review"
@@ -191,7 +196,7 @@ permissions.write = "ui-copy-and-style-scope"
 
 Use for product language, aesthetic cohesion, empty states, onboarding copy, visual hierarchy, and “does this feel premium?” checks.
 
-## Minimal default install
+## Minimal default deploy
 
 Default v4 should include 8 roles:
 
@@ -242,7 +247,7 @@ Examples:
 | “why did tests fail”        | test/debug   | Atalanta → Asclepius |
 | “review this PR”            | review       | Nemesis              |
 | “make this UI less generic” | design/taste | Apollo/Aphrodite     |
-| “migrate schema”            | migrate      | Demeter              |
+| “change schema”             | schema       | Demeter              |
 | “release prep”              | release      | Hestia + Nemesis     |
 
 ## Delegation rules
@@ -280,3 +285,10 @@ Avoid generic “Capabilities” lists unless they change behavior. Prompts shou
 5. Every agent has at least one route or is hidden/internal.
 6. Every extended agent has a measurable reason to exist.
 7. No two agents have the same route ownership unless one is explicitly specialist fallback.
+
+## Source records
+
+The registry is seeded under `source/agents/<id>/agent.json`. These records are
+structural JSON only: ID, model role, contract, routes, skills, render targets,
+and permissions. Prompt prose and provider-native agent file formats are
+generated later by the render adapters.

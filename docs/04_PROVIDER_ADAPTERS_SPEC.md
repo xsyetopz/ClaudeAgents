@@ -23,10 +23,13 @@ Provider parity means “same OAL capability is available,” not “same file f
 .codex/openagentlayer/skills/*/SKILL.md
 .codex/openagentlayer/skills/*/openai.yaml
 .codex/openagentlayer/runtime/*.mjs
-.codex/openagentlayer/hooks/*.toml or hooks config if supported
 AGENTS.md managed block
 .oal/manifest/codex-project.json
 ```
+
+Codex is the only v4 target that emits TOML, and only for Codex-native
+`config.toml` plus `.codex/agents/*.toml`. Runtime policy files and manifests
+remain JSON or JavaScript.
 
 ### Codex config areas v4 should own
 
@@ -165,6 +168,9 @@ CLAUDE.md managed block
 .oal/manifest/claude-project.json
 ```
 
+Claude agents render as Markdown with YAML frontmatter. Claude Code output does
+not use TOML.
+
 ### Claude settings v4 should own
 
 Claude Code settings include permissions, model selection, available models, model overrides, `effortLevel`, `fastMode`, hooks, status line, plugins, file suggestions, MCP allow/deny controls, memory settings, and environment variables.
@@ -236,6 +242,9 @@ opencode.json or opencode.jsonc
 .oal/manifest/opencode-project.json
 ```
 
+OpenCode agents and commands render as Markdown with YAML frontmatter. OpenCode
+output does not use TOML.
+
 ### OpenCode config v4 should own
 
 OpenCode supports JSON/JSONC config and merges multiple locations. Project config can override global config. Managed settings exist for organizations. The config includes `provider`, `model`, `small_model`, `agent`, `default_agent`, `command`, `skills`, `permission`, `compaction`, `watcher`, `mcp`, `plugin`, and related options.
@@ -250,7 +259,7 @@ Suggested mapping:
 
 | OAL role         | OpenCode mode                                 | Notes                                 |
 | ---------------- | --------------------------------------------- | ------------------------------------- |
-| Build/Hephaestus | primary or subagent depending install profile | Main writer                           |
+| Build/Hephaestus | primary or subagent depending deploy profile | Main writer                           |
 | Athena           | primary plan variant or subagent              | Read-only plan                        |
 | Hermes/Artemis   | subagent                                      | read-only exploration                 |
 | Nemesis/Themis   | subagent                                      | review/security                       |
@@ -318,4 +327,4 @@ type SurfaceAdapter = {
 | `reference-copy`    | third-party skill references and scripts.            |
 | `user-owned`        | values OAL reads but never writes.                   |
 
-No install should proceed without an install manifest preview.
+No deploy should proceed without a deploy manifest preview.

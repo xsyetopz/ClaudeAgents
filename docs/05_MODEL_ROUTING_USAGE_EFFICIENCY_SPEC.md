@@ -105,15 +105,20 @@ If users are 20–40% in weekly deficit even on 20x, reduce default effort befor
 
 Record format:
 
-```toml
-[[exceptions]]
-id = "codex-xhigh-breakglass"
-models = ["gpt-5.5", "gpt-5.3-codex"]
-effort = "xhigh"
-allowed_routes = ["plan", "review", "debug"]
-requires_reason = true
-ttl_turns = 1
-budget_guard = "disallow_when_weekly_deficit"
+```json
+{
+  "exceptions": [
+    {
+      "id": "codex-xhigh-breakglass",
+      "models": ["gpt-5.5", "gpt-5.3-codex"],
+      "effort": "xhigh",
+      "allowedRoutes": ["plan", "review", "debug"],
+      "requiresReason": true,
+      "ttlTurns": 1,
+      "budgetGuard": "disallow_when_weekly_deficit"
+    }
+  ]
+}
 ```
 
 ## Claude model plan
