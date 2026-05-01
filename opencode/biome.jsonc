@@ -1,5 +1,6 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
+	"root": false,
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -35,7 +36,9 @@
 			}
 		},
 		{
-			"includes": ["src/index.ts"],
+			"includes": [
+				"src/index.ts"
+			],
 			"linter": {
 				"rules": {
 					"performance": {
@@ -146,7 +149,10 @@
 		}
 	},
 	"javascript": {
-		"globals": ["Bun", "$"],
+		"globals": [
+			"Bun",
+			"$"
+		],
 		"formatter": {
 			"quoteStyle": "double"
 		}
