@@ -48,8 +48,14 @@ jobs:
         run: rtk proxy -- bun run test
       - name: Acceptance
         run: rtk proxy -- bun run accept
-      - name: RTK gain
-        run: rtk proxy -- bun run rtk-gain -- --allow-empty-history
+      - name: RTK gain policy
+        run: |
+          printf "%s\n" "$OAL_RTK_GAIN_FIXTURE" > "$RUNNER_TEMP/oal-rtk-gain.txt"
+          rtk proxy -- bun run rtk-gain -- --from-file "$RUNNER_TEMP/oal-rtk-gain.txt" --allow-empty-history
+        env:
+          OAL_RTK_GAIN_FIXTURE: |
+            Total commands:    1
+            Tokens saved:      10K (92.9%)
       - name: Lint
         run: rtk proxy -- bun run biome:check
       - name: Roadmap evidence
