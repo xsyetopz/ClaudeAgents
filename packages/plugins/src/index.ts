@@ -1,5 +1,6 @@
 import {
 	chmod,
+	cp,
 	mkdir,
 	readdir,
 	readFile,
@@ -33,6 +34,11 @@ export interface PluginSyncResult {
 const PROVIDERS = ["codex", "claude", "opencode"] as const;
 const PLUGIN_NAME = "openagentlayer";
 const CODEX_MARKETPLACE_NAME = "openagentlayer-local";
+const REPO_PLUGIN_ROOTS: Record<Provider, string> = {
+	codex: "plugins/codex/openagentlayer",
+	claude: "plugins/claude/openagentlayer",
+	opencode: "plugins/opencode/openagentlayer",
+};
 
 export async function syncPlugins(
 	options: PluginSyncOptions,
@@ -78,10 +84,8 @@ async function syncCodex(options: ProviderSyncOptions): Promise<void> {
 		".codex/plugins/cache/openagentlayer-local/openagentlayer",
 	);
 	const cacheTarget = join(cacheRoot, options.version);
-	await copyMarketplace(options, "codex", pluginRoot);
-	await writeProviderArtifacts(options, pluginRoot);
-	await copyMarketplace(options, "codex", cacheTarget);
-	await writeProviderArtifacts(options, cacheTarget);
+	await copyPluginPayload(options, "codex", pluginRoot);
+	await copyPluginPayload(options, "codex", cacheTarget);
 	await writeCodexMarketplace(options, pluginRoot);
 	await pruneVersionCache(options, cacheRoot);
 }
@@ -96,26 +100,8 @@ async function syncClaude(options: ProviderSyncOptions): Promise<void> {
 		".claude/plugins/cache/openagentlayer/openagentlayer",
 	);
 	const cacheTarget = join(cacheRoot, options.version);
-	await writeBytes(
-		options,
-		join(marketplaceRoot, ".claude-plugin/marketplace.json"),
-		await readFile(
-			join(
-				options.repoRoot,
-				"marketplace/claude/.claude-plugin/marketplace.json",
-			),
-		),
-		"marketplace payload",
-	);
-	await writeBytes(
-		options,
-		join(cacheTarget, ".claude-plugin/plugin.json"),
-		await readFile(
-			join(options.repoRoot, "marketplace/claude/.claude-plugin/plugin.json"),
-		),
-		"marketplace payload",
-	);
-	await writeProviderArtifacts(options, cacheTarget);
+	await copyPluginPayload(options, "claude", marketplaceRoot);
+	await copyPluginPayload(options, "claude", cacheTarget);
 	await pruneVersionCache(options, cacheRoot);
 	await removeTemporaryCaches(
 		options,
@@ -128,120 +114,22 @@ async function syncOpenCode(options: ProviderSyncOptions): Promise<void> {
 	const pluginRoot = join(configRoot, "plugins/openagentlayer");
 	const cacheRoot = join(configRoot, "plugins/cache/openagentlayer");
 	const cacheTarget = join(cacheRoot, options.version);
-	await copyMarketplace(options, "opencode", pluginRoot);
-	await writeProviderArtifacts(options, pluginRoot);
-	await copyMarketplace(options, "opencode", cacheTarget);
-	await writeProviderArtifacts(options, cacheTarget);
+	await copyPluginPayload(options, "opencode", pluginRoot);
+	await copyPluginPayload(options, "opencode", cacheTarget);
 	await pruneVersionCache(options, cacheRoot);
 }
 
-async function copyMarketplace(
+async function copyPluginPayload(
 	options: ProviderSyncOptions,
 	provider: Provider,
 	targetRoot: string,
 ): Promise<void> {
-	const sourceRoot = join(options.repoRoot, "marketplace", provider);
+	const sourceRoot = join(options.repoRoot, REPO_PLUGIN_ROOTS[provider]);
 	const files = await listFiles(sourceRoot);
 	for (const sourcePath of files) {
 		const target = join(targetRoot, relative(sourceRoot, sourcePath));
-		await writeBytes(
-			options,
-			target,
-			await readFile(sourcePath),
-			"marketplace payload",
-		);
+		await copyFile(options, sourcePath, target, "plugin payload");
 	}
-}
-
-async function writeProviderArtifacts(
-	options: ProviderSyncOptions,
-	targetRoot: string,
-): Promise<void> {
-	for (const artifact of pluginArtifacts(options.provider, options.artifacts)) {
-		await writeBytes(
-			options,
-			join(targetRoot, artifact.targetPath),
-			Buffer.from(artifact.content),
-			"provider artifact",
-			artifact.executable,
-		);
-	}
-}
-
-function pluginArtifacts(
-	provider: Provider,
-	artifacts: Artifact[],
-): { targetPath: string; content: string; executable?: boolean }[] {
-	const pluginFiles: {
-		targetPath: string;
-		content: string;
-		executable?: boolean;
-	}[] = [];
-	for (const artifact of artifacts) {
-		if (artifact.mode !== "file" && artifact.mode !== "config") continue;
-		const targetPath = pluginTargetPath(provider, artifact.path);
-		if (!targetPath) continue;
-		const pluginArtifact: {
-			targetPath: string;
-			content: string;
-			executable?: boolean;
-		} = {
-			targetPath,
-			content: pluginContent(provider, artifact),
-		};
-		if (artifact.executable) pluginArtifact.executable = true;
-		pluginFiles.push(pluginArtifact);
-	}
-	return pluginFiles;
-}
-
-function pluginTargetPath(
-	provider: Provider,
-	artifactPath: string,
-): string | undefined {
-	if (provider === "codex") {
-		const prefix = ".codex/openagentlayer/";
-		return artifactPath.startsWith(prefix)
-			? artifactPath.replace(prefix, "")
-			: undefined;
-	}
-	if (provider === "claude") {
-		if (artifactPath === ".claude/settings.json") return "hooks/hooks.json";
-		const prefix = ".claude/";
-		return artifactPath.startsWith(prefix)
-			? artifactPath.replace(prefix, "")
-			: undefined;
-	}
-	const prefix = ".opencode/";
-	return artifactPath.startsWith(prefix)
-		? artifactPath.replace(prefix, "")
-		: undefined;
-}
-
-function pluginContent(provider: Provider, artifact: Artifact): string {
-	if (provider !== "claude" || artifact.path !== ".claude/settings.json")
-		return artifact.content;
-	const settings = JSON.parse(artifact.content) as {
-		hooks?: Record<string, { type: string; command: string }[]>;
-	};
-	return `${JSON.stringify(
-		{
-			hooks: Object.fromEntries(
-				Object.entries(settings.hooks ?? {}).map(([event, handlers]) => [
-					event,
-					handlers.map((handler) => ({
-						...handler,
-						command: handler.command.replace(
-							".claude/hooks/scripts/",
-							["${", "CLAUDE_PLUGIN_ROOT", "}"].join("") + "/hooks/scripts/",
-						),
-					})),
-				]),
-			),
-		},
-		null,
-		2,
-	)}\n`;
 }
 
 async function writeCodexMarketplace(
@@ -316,6 +204,20 @@ async function writeText(
 	reason: string,
 ): Promise<void> {
 	await writeBytes(options, path, Buffer.from(content), reason);
+}
+
+async function copyFile(
+	options: ProviderSyncOptions,
+	sourcePath: string,
+	targetPath: string,
+	reason: string,
+): Promise<void> {
+	options.changes.push({ action: "write", path: targetPath, reason });
+	if (options.dryRun) return;
+	await mkdir(dirname(targetPath), { recursive: true });
+	await cp(sourcePath, targetPath, { force: true, preserveTimestamps: true });
+	const metadata = await stat(sourcePath);
+	if ((metadata.mode & 0o111) !== 0) await chmod(targetPath, 0o755);
 }
 
 async function writeBytes(

@@ -13,6 +13,7 @@ import { loadSource } from "@openagentlayer/source";
 import { allPluginProviders, syncPlugins } from "../src";
 
 const repoRoot = resolve(import.meta.dir, "../../..");
+const claudePluginRoot = ["${", "CLAUDE_PLUGIN_ROOT", "}"].join("");
 
 test("plugin sync writes provider payloads and prunes stale OAL caches", async () => {
 	const home = await mkdtemp(join(tmpdir(), "oal-plugins-"));
@@ -70,7 +71,7 @@ test("plugin sync writes provider payloads and prunes stale OAL caches", async (
 			await readFile(
 				join(
 					home,
-					".claude/plugins/marketplaces/openagentlayer/.claude-plugin/marketplace.json",
+					".claude/plugins/marketplaces/openagentlayer/.claude-plugin/plugin.json",
 				),
 				"utf8",
 			),
@@ -83,7 +84,7 @@ test("plugin sync writes provider payloads and prunes stale OAL caches", async (
 				),
 				"utf8",
 			),
-		).toContain(["${", "CLAUDE_PLUGIN_ROOT", "}"].join("") + "/hooks/scripts/");
+		).toContain(`${claudePluginRoot}/hooks/scripts/`);
 		expect(
 			await readFile(
 				join(home, ".config/opencode/plugins/openagentlayer/package.json"),

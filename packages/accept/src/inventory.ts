@@ -6,7 +6,6 @@ const TRACKED_PRODUCT_ROOTS = [
 	"source",
 	"tests",
 	"homebrew",
-	"marketplace",
 	"plugins",
 ] as const;
 const REFERENCE_ROOTS = ["docs", "third_party"] as const;
@@ -102,7 +101,8 @@ function findDisconnectedProductPaths(relativeFiles: string[]): string[] {
 		(file) =>
 			PRODUCT_FILE_PATTERN.test(file) &&
 			!active.has(file) &&
-			!file.startsWith("node_modules/"),
+			!file.startsWith("node_modules/") &&
+			!file.startsWith("marketplace/"),
 	);
 }
 
@@ -112,8 +112,6 @@ async function listFiles(root: string): Promise<string[]> {
 		root,
 		"ls-files",
 		"--cached",
-		"--others",
-		"--exclude-standard",
 	]);
 	return stdout.split("\n").filter(Boolean).map(normalizePath);
 }

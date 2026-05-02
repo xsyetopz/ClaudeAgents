@@ -7,10 +7,9 @@ import type { OalSource } from "@openagentlayer/source";
 const MARKETPLACE_FILES = [
 	".agents/plugins/marketplace.json",
 	".claude-plugin/marketplace.json",
-	"marketplace/claude/.claude-plugin/plugin.json",
-	"marketplace/claude/.claude-plugin/marketplace.json",
-	"marketplace/codex/.codex-plugin/plugin.json",
-	"marketplace/opencode/package.json",
+	"plugins/claude/openagentlayer/.claude-plugin/plugin.json",
+	"plugins/codex/openagentlayer/.codex-plugin/plugin.json",
+	"plugins/opencode/openagentlayer/package.json",
 ] as const;
 
 export async function assertPluginMarketplace(
@@ -122,7 +121,7 @@ async function assertPluginSync(
 		for (const path of [
 			".codex/plugins/openagentlayer/.codex-plugin/plugin.json",
 			".codex/plugins/cache/openagentlayer-local/openagentlayer/0.1.0/.codex-plugin/plugin.json",
-			".claude/plugins/marketplaces/openagentlayer/.claude-plugin/marketplace.json",
+			".claude/plugins/marketplaces/openagentlayer/.claude-plugin/plugin.json",
 			".claude/plugins/cache/openagentlayer/openagentlayer/0.1.0/.claude-plugin/plugin.json",
 			".claude/plugins/cache/openagentlayer/openagentlayer/0.1.0/hooks/hooks.json",
 			".config/opencode/plugins/openagentlayer/package.json",

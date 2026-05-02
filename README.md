@@ -63,13 +63,8 @@ The archive must contain `bin/oal`.
 
 ## Provider plugin payloads
 
-OAL hosts marketplace payload metadata in `marketplace/`:
-
-- `marketplace/claude` for Claude Code
-- `marketplace/codex` for Codex
-- `marketplace/opencode` for OpenCode user plugins
-
-The repository also hosts native marketplace entrypoints and plugin payloads:
+OAL hosts native marketplace entrypoints and plugin payloads directly in this
+repository:
 
 - `.claude-plugin/marketplace.json` points Claude Code at `plugins/claude/openagentlayer`
 - `.agents/plugins/marketplace.json` points Codex at `plugins/codex/openagentlayer`
