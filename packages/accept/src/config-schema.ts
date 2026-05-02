@@ -1,0 +1,218 @@
+interface CodexProfile {
+	model?: string;
+	approval_policy?: string;
+	sandbox_mode?: string;
+	model_instructions_file?: string;
+	tools_view_image?: boolean;
+}
+
+interface CodexToml {
+	profiles: Record<string, CodexProfile>;
+	features: Record<string, Record<string, boolean>>;
+	agents: Record<string, unknown>;
+}
+
+const TOML_INTEGER_PATTERN = /^\d+$/;
+
+const ALLOWED_CODEX_MODELS = new Set([
+	"gpt-5.5",
+	"gpt-5.4-mini",
+	"gpt-5.3-codex",
+]);
+const ALLOWED_APPROVAL_POLICIES = new Set(["on-request", "never"]);
+const ALLOWED_SANDBOX_MODES = new Set(["workspace-write", "read-only"]);
+const ALLOWED_CODEX_FEATURES = new Set([
+	"shell_zsh_fork",
+	"steer",
+	"apps",
+	"tui_app_server",
+	"memories",
+	"sqlite",
+	"plugins",
+	"codex_hooks",
+	"goals",
+	"responses_websockets",
+	"responses_websockets_v2",
+	"unified_exec",
+	"multi_agent",
+	"multi_agent_v2",
+	"shell_snapshot",
+	"collaboration_modes",
+	"codex_git_commit",
+	"fast_mode",
+	"voice_transcription",
+	"undo",
+	"js_repl",
+]);
+const ALLOWED_CLAUDE_MODELS = new Set([
+	"claude-opus-4-7",
+	"claude-opus-4-7[1m]",
+	"claude-sonnet-4-6",
+	"claude-haiku-4-5",
+]);
+const ALLOWED_OPENCODE_PERMISSION_VALUES = new Set(["allow", "ask", "deny"]);
+
+export function assertCodexTomlSchema(toml: string): void {
+	const parsed = parseCodexToml(toml);
+	for (const [profileName, profile] of Object.entries(parsed.profiles)) {
+		if (!(profile.model && ALLOWED_CODEX_MODELS.has(profile.model)))
+			throw new Error(
+				`Codex profile ${profileName} has unsupported model ${profile.model}`,
+			);
+		if (
+			profile.approval_policy &&
+			!ALLOWED_APPROVAL_POLICIES.has(profile.approval_policy)
+		)
+			throw new Error(
+				`Codex profile ${profileName} has unsupported approval policy ${profile.approval_policy}`,
+			);
+		if (
+			profile.sandbox_mode &&
+			!ALLOWED_SANDBOX_MODES.has(profile.sandbox_mode)
+		)
+			throw new Error(
+				`Codex profile ${profileName} has unsupported sandbox mode ${profile.sandbox_mode}`,
+			);
+	}
+	for (const [profileName, features] of Object.entries(parsed.features)) {
+		for (const [feature, value] of Object.entries(features)) {
+			if (!ALLOWED_CODEX_FEATURES.has(feature))
+				throw new Error(
+					`Codex profile ${profileName} emits unsupported feature ${feature}`,
+				);
+			if (typeof value !== "boolean")
+				throw new Error(`Codex feature ${feature} is not boolean.`);
+		}
+	}
+	if (!(parsed.agents["max_threads"] && parsed.agents["max_depth"]))
+		throw new Error("Codex agents table missing concurrency settings.");
+}
+
+export function assertClaudeSettingsSchema(settings: unknown): void {
+	const object = asRecord(settings, "Claude settings");
+	if (!ALLOWED_CLAUDE_MODELS.has(asString(object["model"], "Claude model")))
+		throw new Error("Claude settings model is not allowlisted.");
+	const permissions = asRecord(object["permissions"], "Claude permissions");
+	for (const key of ["allow", "ask", "deny"])
+		if (!Array.isArray(permissions[key]))
+			throw new Error(`Claude permissions.${key} must be an array.`);
+	const hooks = asRecord(object["hooks"], "Claude hooks");
+	for (const handlers of Object.values(hooks)) {
+		if (!Array.isArray(handlers))
+			throw new Error("Claude hook handlers must be arrays.");
+		for (const handler of handlers) {
+			const hook = asRecord(handler, "Claude hook handler");
+			if (hook["type"] !== "command")
+				throw new Error("Claude hooks must use command handlers.");
+			if (!asString(hook["command"], "Claude hook command").endsWith(".mjs"))
+				throw new Error("Claude hook command must reference .mjs script.");
+		}
+	}
+}
+
+export function assertOpenCodeConfigSchema(config: unknown): void {
+	const object = asRecord(config, "OpenCode config");
+	for (const key of ["model", "small_model", "default_agent"])
+		asString(object[key], `OpenCode ${key}`);
+	const modelFallbacks = object["model_fallbacks"];
+	if (
+		!Array.isArray(modelFallbacks) ||
+		modelFallbacks.some((entry) => typeof entry !== "string")
+	)
+		throw new Error("OpenCode model_fallbacks must be a string array.");
+	const permission = asRecord(object["permission"], "OpenCode permission");
+	for (const [tool, value] of Object.entries(permission))
+		if (!ALLOWED_OPENCODE_PERMISSION_VALUES.has(String(value)))
+			throw new Error(
+				`OpenCode permission ${tool} has invalid value ${String(value)}`,
+			);
+	const agents = asRecord(object["agent"], "OpenCode agent");
+	if (!agents[asString(object["default_agent"], "OpenCode default_agent")])
+		throw new Error("OpenCode default_agent does not exist in agent map.");
+	const commands = asRecord(object["command"], "OpenCode command");
+	for (const [name, command] of Object.entries(commands)) {
+		const record = asRecord(command, `OpenCode command ${name}`);
+		if (!agents[asString(record["agent"], `OpenCode command ${name} agent`)])
+			throw new Error(`OpenCode command ${name} references missing agent.`);
+	}
+	if (!Array.isArray(object["plugin"]))
+		throw new Error("OpenCode plugin must be an array.");
+	if (!Array.isArray(object["instructions"]))
+		throw new Error("OpenCode instructions must be an array.");
+}
+
+function parseCodexToml(toml: string): CodexToml {
+	const parsed: CodexToml = { profiles: {}, features: {}, agents: {} };
+	let section = "";
+	for (const rawLine of toml.split("\n")) {
+		const line = rawLine.trim();
+		if (line.length === 0 || line.startsWith("#")) continue;
+		if (line.startsWith("[") && line.endsWith("]")) {
+			section = line.slice(1, -1);
+			continue;
+		}
+		const [key, rawValue] = splitAssignment(line);
+		const value = parseTomlValue(rawValue);
+		if (section.startsWith("profiles.") && section.endsWith(".features")) {
+			const profile = section.split(".")[1] ?? "";
+			parsed.features[profile] ??= {};
+			parsed.features[profile][key] = value as boolean;
+		} else if (section.startsWith("profiles.")) {
+			const profile = section.split(".")[1] ?? "";
+			parsed.profiles[profile] ??= {};
+			parsed.profiles[profile][key as keyof CodexProfile] = value as never;
+		} else if (section === "agents") {
+			parsed.agents[key] = value;
+		}
+	}
+	return parsed;
+}
+
+function splitAssignment(line: string): [string, string] {
+	const index = line.indexOf("=");
+	if (index < 1) throw new Error(`Invalid TOML assignment: ${line}`);
+	return [line.slice(0, index).trim(), line.slice(index + 1).trim()];
+}
+
+function parseTomlValue(rawValue: string): string | boolean | number {
+	const value = stripTomlComment(rawValue);
+	if (value === "true") return true;
+	if (value === "false") return false;
+	if (TOML_INTEGER_PATTERN.test(value)) return Number(value);
+	if (value.startsWith('"') && value.endsWith('"'))
+		return JSON.parse(value) as string;
+	return value;
+}
+
+function stripTomlComment(rawValue: string): string {
+	let isQuoted = false;
+	let isEscaped = false;
+	for (let index = 0; index < rawValue.length; index += 1) {
+		const character = rawValue[index];
+		if (isEscaped) {
+			isEscaped = false;
+			continue;
+		}
+		if (character === "\\") {
+			isEscaped = true;
+			continue;
+		}
+		if (character === '"') {
+			isQuoted = !isQuoted;
+			continue;
+		}
+		if (character === "#" && !isQuoted) return rawValue.slice(0, index).trim();
+	}
+	return rawValue.trim();
+}
+
+function asRecord(value: unknown, label: string): Record<string, unknown> {
+	if (value && typeof value === "object" && !Array.isArray(value))
+		return value as Record<string, unknown>;
+	throw new Error(`${label} must be an object.`);
+}
+
+function asString(value: unknown, label: string): string {
+	if (typeof value === "string" && value.length > 0) return value;
+	throw new Error(`${label} must be a non-empty string.`);
+}

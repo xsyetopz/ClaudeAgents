@@ -1,0 +1,12 @@
+{
+  "id": "explore",
+  "title": "Explore and Trace",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "description": "Map repositories and data flow with exact file evidence before implementation. Avoid broad unbounded scans and summarize only verified facts",
+  "body": "Map repositories and data flow with exact file evidence before implementation. Avoid broad unbounded scans and summarize only verified facts. Workflow: read binding roadmap and source, inspect relevant implementation, identify owner package, verify generated artifacts and acceptance coverage, then report exact evidence. Non-goals: placeholders, shallow descriptions, or docs that are not backed by code.",
+  "supportFiles": []
+}

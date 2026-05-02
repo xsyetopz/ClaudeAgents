@@ -28,7 +28,7 @@ The pack does not use “recommended” in the conservative-default sense. OAL�
 
 OAL must generate provider-native artifacts. A file is only useful if it is consumed by source loading, rendering, deployment, uninstall, runtime hooks, or validation. Provider capability differences must be represented explicitly; no fake parity layer.
 
-V3 is reference-only. The reboot must not mention `openagentsbtw`, `oabtw`, or `v4` in product code or generated end-user artifacts.
+V3 is reference-only. The reboot must not mention `legacy project`, `legacy project`, or `OAL` in product code or generated end-user artifacts.
 
 ## Added user-researched Codex surface-exploitation profile
 

@@ -1,0 +1,20 @@
+{
+  "id": "inject_project_memory",
+  "script": "inject-project-memory.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "SessionStart"
+    ],
+    "claude": [
+      "SessionStart"
+    ],
+    "opencode": [
+      "session.created"
+    ]
+  }
+}

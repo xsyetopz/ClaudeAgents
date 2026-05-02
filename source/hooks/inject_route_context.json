@@ -1,0 +1,20 @@
+{
+  "id": "inject_route_context",
+  "script": "inject-route-context.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "UserPromptSubmit"
+    ],
+    "claude": [
+      "UserPromptSubmit"
+    ],
+    "opencode": [
+      "tui.prompt.append"
+    ]
+  }
+}

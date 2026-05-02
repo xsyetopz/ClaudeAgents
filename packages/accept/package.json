@@ -1,0 +1,16 @@
+{
+  "name": "@openagentlayer/accept",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@openagentlayer/adapter": "workspace:*",
+    "@openagentlayer/artifact": "workspace:*",
+    "@openagentlayer/deploy": "workspace:*",
+    "@openagentlayer/manifest": "workspace:*",
+    "@openagentlayer/policy": "workspace:*",
+    "@openagentlayer/runtime": "workspace:*",
+    "@openagentlayer/source": "workspace:*"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "require_structured_config_tools",
+  "script": "require-jq-yq-edits.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PreToolUse"
+    ],
+    "claude": [
+      "PreToolUse"
+    ],
+    "opencode": [
+      "tool.execute.before"
+    ]
+  }
+}

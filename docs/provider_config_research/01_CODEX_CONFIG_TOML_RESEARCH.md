@@ -207,7 +207,7 @@ AGENTS.md or .codex/AGENTS.md depending project policy
 .codex/openagentlayer/manifest.json
 ```
 
-Final names should be `openagentlayer` or `oal`, not `openagentsbtw`.
+Final names should be `openagentlayer` or `oal`, not `legacy project`.
 
 ## User-researched native-capability feature profile for OAL-managed Codex profiles
 

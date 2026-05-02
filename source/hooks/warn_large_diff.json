@@ -1,0 +1,20 @@
+{
+  "id": "warn_large_diff",
+  "script": "warn-large-diff.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PostToolUse"
+    ],
+    "claude": [
+      "PostToolUse"
+    ],
+    "opencode": [
+      "session.diff"
+    ]
+  }
+}

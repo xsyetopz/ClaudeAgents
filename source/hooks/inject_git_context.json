@@ -1,0 +1,20 @@
+{
+  "id": "inject_git_context",
+  "script": "inject-git-context.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "SessionStart"
+    ],
+    "claude": [
+      "SessionStart"
+    ],
+    "opencode": [
+      "session.created"
+    ]
+  }
+}

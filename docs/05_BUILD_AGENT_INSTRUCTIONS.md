@@ -8,7 +8,7 @@ Build OAL as a running generator/deployer product. Do not satisfy the task by cr
 
 ## v3 rule
 
-`v3_legacy/` is reference and study material only. Do not modify v3 except to move existing reference material into that directory if the repository layout requires it. Do not import v3 into OAL runtime code. Do not mention “oabtw v4” in OAL product code.
+`v3_legacy/` is reference and study material only. Do not modify v3 except to move existing reference material into that directory if the repository layout requires it. Do not import v3 into OAL runtime code. Do not mention “legacy reference line” in OAL product code.
 
 ## No shortcut rule
 

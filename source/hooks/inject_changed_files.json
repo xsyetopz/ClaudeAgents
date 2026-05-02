@@ -1,0 +1,20 @@
+{
+  "id": "inject_changed_files",
+  "script": "inject-changed-files.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PostToolUse"
+    ],
+    "claude": [
+      "PostToolUse"
+    ],
+    "opencode": [
+      "file.edited"
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { validateSourceGraph } from "@openagentlayer/policy";
+import { runtimeHooks } from "@openagentlayer/runtime";
+import type { OalSource } from "@openagentlayer/source";
+
+const ACTIVE_PRODUCT_FILE_PATTERN = /\.(ts|mts|mjs|json)$/;
+const LEGACY_IMPORT_PATTERN = new RegExp(
+	`(?:from|import)\\s*[(]?[\\s\\S]{0,120}?["'].*${["v3", "legacy"].join("_")}.*["']`,
+);
+
+export async function assertRuntimeIsolation(repoRoot: string): Promise<void> {
+	const activeFiles = await listActiveProductFiles(join(repoRoot, "packages"));
+	for (const file of activeFiles) {
+		if (
+			file.endsWith("packages/accept/src/inventory.ts") ||
+			file.endsWith("packages/policy/src/generated.ts")
+		)
+			continue;
+		const text = await readFile(file, "utf8");
+		if (LEGACY_IMPORT_PATTERN.test(text))
+			throw new Error(
+				`Active runtime file imports or references the legacy reference path: ${file}`,
+			);
+	}
+}
+
+export function assertHookScriptsAreRuntimeOwned(source: OalSource): void {
+	for (const hook of source.hooks) {
+		if (!hook.script.endsWith(".mjs"))
+			throw new Error(
+				`Hook ${hook.id} does not reference .mjs runtime script.`,
+			);
+		if (!runtimeHooks.includes(hook.script))
+			throw new Error(
+				`Hook ${hook.id} references unmanaged runtime script ${hook.script}.`,
+			);
+	}
+}
+
+export async function assertSourceInventory(repoRoot: string): Promise<void> {
+	for (const directory of ["agents", "skills", "routes", "hooks", "tools"]) {
+		const entries = await readdir(join(repoRoot, "source", directory));
+		if (!entries.some((entry) => entry.endsWith(".json")))
+			throw new Error(`No authored source records in ${directory}.`);
+	}
+}
+
+export function assertRoadmapSource(source: OalSource): void {
+	for (const id of [
+		"athena",
+		"hermes",
+		"hephaestus",
+		"atalanta",
+		"nemesis",
+		"calliope",
+		"odysseus",
+	])
+		if (!source.agents.some((agent) => agent.id === id))
+			throw new Error(`Missing core agent ${id}.`);
+	for (const id of [
+		"plan",
+		"implement",
+		"review",
+		"test",
+		"validate",
+		"explore",
+		"trace",
+		"debug",
+		"document",
+		"orchestrate",
+		"audit",
+	])
+		if (!source.routes.some((route) => route.id === id))
+			throw new Error(`Missing route ${id}.`);
+}
+
+export function assertNegativePolicyFixtures(source: OalSource): void {
+	const firstAgent = source.agents[0];
+	const firstRoute = source.routes[0];
+	if (!(firstAgent && firstRoute))
+		throw new Error("Negative fixtures require at least one agent and route.");
+	const badCodex = structuredClone(source);
+	badCodex.agents[0] = {
+		...firstAgent,
+		models: { ...firstAgent.models, codex: "gpt-5.4" },
+	};
+	const badClaude = structuredClone(source);
+	badClaude.agents[0] = {
+		...firstAgent,
+		models: { ...firstAgent.models, claude: "claude-opus-4-6" },
+	};
+	const shallow = structuredClone(source);
+	shallow.routes[0] = { ...firstRoute, body: "Output: done." };
+	for (const [name, candidate] of [
+		["bad codex model", badCodex],
+		["bad claude model", badClaude],
+		["shallow route", shallow],
+	] as const) {
+		const report = validateCandidate(candidate);
+		if (!report.issues.some((issue) => issue.severity === "error"))
+			throw new Error(`Negative policy fixture did not fail: ${name}`);
+	}
+}
+
+function validateCandidate(
+	source: OalSource,
+): import("@openagentlayer/policy").PolicyReport {
+	return validateSourceGraph({
+		source,
+		sourcePath: "negative-fixture",
+		agentIds: new Set(source.agents.map((agent) => agent.id)),
+		skillIds: new Set(source.skills.map((skill) => skill.id)),
+		routeIds: new Set(source.routes.map((route) => route.id)),
+		hookIds: new Set(source.hooks.map((hook) => hook.id)),
+		toolIds: new Set(source.tools.map((tool) => tool.id)),
+		provenance: new Map(),
+	});
+}
+
+async function listActiveProductFiles(root: string): Promise<string[]> {
+	const entries = await readdir(root, { withFileTypes: true });
+	const files: string[] = [];
+	for (const entry of entries) {
+		const path = join(root, entry.name);
+		if (entry.isDirectory())
+			files.push(...(await listActiveProductFiles(path)));
+		else if (ACTIVE_PRODUCT_FILE_PATTERN.test(entry.name)) files.push(path);
+	}
+	return files;
+}

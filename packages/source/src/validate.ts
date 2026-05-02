@@ -1,0 +1,117 @@
+import { type Provider, supportedProviders } from "./providers";
+import type {
+	AgentRecord,
+	HookRecord,
+	ProductSource,
+	RouteRecord,
+	SkillRecord,
+	ToolRecord,
+} from "./records";
+
+const PROVIDERS = new Set(supportedProviders());
+
+export function validateAgentRecord(record: AgentRecord): void {
+	requireText(record.id, "agent id");
+	requireText(record.name, `agent ${record.id} name`);
+	requireProviderList(record.providers, `agent ${record.id}`);
+	requireText(record.role, `agent ${record.id} role`);
+	requireStringList(record.triggers, `agent ${record.id} triggers`);
+	requireStringList(record.nonGoals, `agent ${record.id} nonGoals`);
+	requireStringList(record.tools, `agent ${record.id} tools`);
+	requireStringList(record.skills, `agent ${record.id} skills`);
+	requireStringList(record.routes, `agent ${record.id} routes`);
+	requireText(record.prompt, `agent ${record.id} prompt`);
+}
+
+export function validateSkillRecord(record: SkillRecord): void {
+	validateSkillRecordShape(record);
+	requireText(record.body, `skill ${record.id} body`);
+}
+
+export function validateSkillRecordShape(record: SkillRecord): void {
+	requireText(record.id, "skill id");
+	requireText(record.title, `skill ${record.id} title`);
+	requireProviderList(record.providers, `skill ${record.id}`);
+	requireText(record.description, `skill ${record.id} description`);
+	if (!record.upstream) requireText(record.body, `skill ${record.id} body`);
+	if (record.upstream) {
+		requireText(record.upstream.path, `skill ${record.id} upstream path`);
+		if (record.upstream.verbatim !== true)
+			throw new Error(`skill ${record.id} upstream must be verbatim.`);
+	}
+	for (const supportFile of record.supportFiles ?? []) {
+		requireText(supportFile.path, `skill ${record.id} support file path`);
+		requireText(supportFile.content, `skill ${record.id} support file content`);
+	}
+}
+
+export function validateRouteRecord(record: RouteRecord): void {
+	requireText(record.id, "route id");
+	requireProviderList(record.providers, `route ${record.id}`);
+	requireText(record.agent, `route ${record.id} agent`);
+	requireStringList(record.skills, `route ${record.id} skills`);
+	requireText(record.permissions, `route ${record.id} permissions`);
+	requireText(record.arguments, `route ${record.id} arguments`);
+	requireText(record.body, `route ${record.id} body`);
+}
+
+export function validateHookRecord(record: HookRecord): void {
+	requireText(record.id, "hook id");
+	requireText(record.script, `hook ${record.id} script`);
+	requireProviderList(record.providers, `hook ${record.id}`);
+	for (const provider of Object.keys(record.events))
+		if (!PROVIDERS.has(provider as Provider))
+			throw new Error(
+				`hook ${record.id} has unsupported event provider ${provider}`,
+			);
+}
+
+export function validateToolRecord(record: ToolRecord): void {
+	requireText(record.id, "tool id");
+	requireProvider(record.provider, `tool ${record.id}`);
+	requireText(record.description, `tool ${record.id} description`);
+	requireText(record.body, `tool ${record.id} body`);
+}
+
+export function validateProductSource(record: ProductSource): void {
+	if (
+		record.product?.name !== "OpenAgentLayer" ||
+		record.product?.shortName !== "OAL"
+	)
+		throw new Error("Product source must identify OpenAgentLayer/OAL.");
+	if (record.promptContracts) {
+		requireText(
+			record.promptContracts.rtkEfficiency,
+			"product promptContracts.rtkEfficiency",
+		);
+		requireText(
+			record.promptContracts.responseBoundaries,
+			"product promptContracts.responseBoundaries",
+		);
+	}
+}
+
+function requireProviderList(value: Provider[], label: string): void {
+	if (!Array.isArray(value) || value.length === 0)
+		throw new Error(`${label} providers must be a non-empty array.`);
+	for (const provider of value) requireProvider(provider, label);
+}
+
+function requireProvider(value: Provider, label: string): void {
+	if (!PROVIDERS.has(value))
+		throw new Error(`${label} has unsupported provider ${String(value)}.`);
+}
+
+function requireStringList(value: string[], label: string): void {
+	if (
+		!Array.isArray(value) ||
+		value.length === 0 ||
+		value.some((entry) => typeof entry !== "string" || entry.length === 0)
+	)
+		throw new Error(`${label} must be a non-empty string array.`);
+}
+
+function requireText(value: string, label: string): void {
+	if (typeof value !== "string" || value.trim().length === 0)
+		throw new Error(`${label} must be a non-empty string.`);
+}

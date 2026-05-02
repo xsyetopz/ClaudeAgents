@@ -1,0 +1,20 @@
+{
+  "id": "inject_package_scripts",
+  "script": "inject-package-scripts.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "SessionStart"
+    ],
+    "claude": [
+      "SessionStart"
+    ],
+    "opencode": [
+      "session.created"
+    ]
+  }
+}

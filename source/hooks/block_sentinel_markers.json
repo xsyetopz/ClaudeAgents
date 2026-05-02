@@ -1,0 +1,20 @@
+{
+  "id": "block_sentinel_markers",
+  "script": "block-sentinel-markers.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "Stop"
+    ],
+    "claude": [
+      "Stop"
+    ],
+    "opencode": [
+      "session.idle"
+    ]
+  }
+}

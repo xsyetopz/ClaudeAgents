@@ -1,0 +1,16 @@
+{
+  "id": "inject_subagent_context",
+  "script": "inject-subagent-context.mjs",
+  "providers": [
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "claude": [
+      "SubagentStart"
+    ],
+    "opencode": [
+      "tool.execute.before"
+    ]
+  }
+}

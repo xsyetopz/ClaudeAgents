@@ -1,14 +1,8 @@
 {
   "name": "openagentlayer",
-  "devDependencies": {
-    "@biomejs/biome": "2.4.13",
-    "ajv": "^8.20.0",
-    "bun-types": "1.3.13"
-  },
-  "engines": {
-    "node": ">=24.14.1"
-  },
+  "version": "0.1.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
@@ -19,7 +13,38 @@
     "biome:lint": "bunx biome lint . --max-diagnostics 16384",
     "biome:lint:fix": "bunx biome lint . --write --max-diagnostics 16384",
     "biome:fix": "bunx biome check . --write --max-diagnostics 16384",
-    "biome:format": "bunx biome format . --write --max-diagnostics 16384"
+    "biome:format": "bunx biome format . --write --max-diagnostics 16384",
+    "accept": "bun packages/cli/src/main.ts accept",
+    "check": "bun packages/cli/src/main.ts check",
+    "generate": "bun packages/cli/src/main.ts generate",
+    "deploy": "bun packages/cli/src/main.ts deploy",
+    "uninstall": "bun packages/cli/src/main.ts uninstall",
+    "render": "bun packages/cli/src/main.ts render",
+    "preview": "bun packages/cli/src/main.ts preview",
+    "roadmap:evidence": "bun packages/cli/src/main.ts roadmap-evidence",
+    "test": "bun test packages/*/__tests__/*.test.ts tests/*.test.ts",
+    "test:unit": "bun test packages/*/__tests__/*.test.ts",
+    "test:e2e": "bun test tests/*.test.ts",
+    "toolchain": "bun packages/cli/src/main.ts toolchain"
   },
-  "type": "module"
+  "dependencies": {
+    "@openagentlayer/accept": "workspace:*",
+    "@openagentlayer/adapter": "workspace:*",
+    "@openagentlayer/artifact": "workspace:*",
+    "@openagentlayer/cli": "workspace:*",
+    "@openagentlayer/deploy": "workspace:*",
+    "@openagentlayer/manifest": "workspace:*",
+    "@openagentlayer/policy": "workspace:*",
+    "@openagentlayer/runtime": "workspace:*",
+    "@openagentlayer/source": "workspace:*",
+    "@openagentlayer/toolchain": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.13",
+    "ajv": "^8.20.0",
+    "bun-types": "1.3.13"
+  },
+  "engines": {
+    "node": ">=24.14.1"
+  }
 }

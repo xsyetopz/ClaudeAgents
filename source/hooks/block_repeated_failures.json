@@ -1,0 +1,20 @@
+{
+  "id": "block_repeated_failures",
+  "script": "block-repeated-failures.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PostToolUse"
+    ],
+    "claude": [
+      "PostToolUseFailure"
+    ],
+    "opencode": [
+      "tool.execute.after"
+    ]
+  }
+}

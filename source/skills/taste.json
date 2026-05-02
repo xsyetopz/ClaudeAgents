@@ -1,0 +1,16 @@
+{
+  "id": "taste",
+  "title": "Taste and Product Polish",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "description": "Improve UI, UX, copy, spacing, accessibility, and product feel with concrete evidence and no generic AI decoration.",
+  "body": "",
+  "supportFiles": [],
+  "upstream": {
+    "path": "third_party/taste-skill/skills/taste-skill/SKILL.md",
+    "verbatim": true
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "prefer_ripgrep_search",
+  "script": "prefer-ripgrep.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PreToolUse"
+    ],
+    "claude": [
+      "PreToolUse"
+    ],
+    "opencode": [
+      "tool.execute.before"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "block_explanation_only",
+  "script": "block-explanation-only.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "Stop"
+    ],
+    "claude": [
+      "Stop"
+    ],
+    "opencode": [
+      "session.idle"
+    ]
+  }
+}

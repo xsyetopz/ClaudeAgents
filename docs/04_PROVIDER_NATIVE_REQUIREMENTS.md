@@ -56,7 +56,7 @@ Reference v3 OpenCode surfaces:
 - role prompts under `opencode/templates/agents/`
 - generated skills
 - commands under `opencode/src/commands.ts`
-- plugin guardrails under `opencode/templates/plugins/openagentsbtw.ts`
+- plugin guardrails under `opencode/templates/plugins/legacy project.ts`
 - instructions
 - native continuation concepts such as `--continue`, `/sessions`, `/compact`, and `task_id`
 

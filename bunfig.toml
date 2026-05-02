@@ -2,4 +2,4 @@
 linker = "isolated"
 
 [test]
-pathIgnorePatterns = ["v3_to_be_removed/**"]
+pathIgnorePatterns = ["v3_legacy/**"]

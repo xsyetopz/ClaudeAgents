@@ -1,0 +1,21 @@
+{
+  "id": "enforce_route_contract",
+  "script": "enforce-route-contract.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "Stop"
+    ],
+    "claude": [
+      "Stop",
+      "SubagentStop"
+    ],
+    "opencode": [
+      "session.idle"
+    ]
+  }
+}

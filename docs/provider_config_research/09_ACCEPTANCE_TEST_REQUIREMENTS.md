@@ -69,7 +69,7 @@ Acceptance must fail on:
 - OpenCode tool references without tool files.
 - plugin entries without plugin payload.
 - provider config with unsupported models.
-- any `openagentsbtw`/`oabtw` naming in new OAL product output.
+- any `legacy project`/`legacy project` naming in new OAL product output.
 
 ## Why this matters
 

@@ -1,0 +1,6 @@
+{
+  "id": "manifest_inspect",
+  "provider": "opencode",
+  "description": "Inspect OAL manifest ownership for the current project.",
+  "body": "Read the installed OAL manifest and return owned files, structured keys, marked blocks, and hash status."
+}

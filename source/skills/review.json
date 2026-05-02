@@ -1,0 +1,11 @@
+{
+  "id": "review",
+  "title": "Product Review",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "description": "Review changes against the no-stub standard, provider-native rendering, manifest ownership, runtime hook execution, and ",
+  "body": "Review changes against the no-stub standard, provider-native rendering, manifest ownership, runtime hook execution, and OAL naming. Findings require exact evidence and concrete fixes. This skill is used by OAL acceptance and route execution to keep investigation evidence-based and avoid speculative fixes. It must be rendered into provider skill surfaces and referenced by route or agent contracts."
+}

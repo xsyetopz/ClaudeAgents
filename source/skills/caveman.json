@@ -1,0 +1,16 @@
+{
+  "id": "caveman",
+  "title": "Caveman Output Mode",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "description": "Compress prose when explicitly requested while preserving code, commands, paths, exact errors, configs, and validation evidence unchanged.",
+  "body": "",
+  "supportFiles": [],
+  "upstream": {
+    "path": "third_party/caveman/skills/caveman/SKILL.md",
+    "verbatim": true
+  }
+}

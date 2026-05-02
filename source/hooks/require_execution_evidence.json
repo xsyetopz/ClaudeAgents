@@ -1,0 +1,20 @@
+{
+  "id": "require_execution_evidence",
+  "script": "require-execution-evidence.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "Stop"
+    ],
+    "claude": [
+      "Stop"
+    ],
+    "opencode": [
+      "session.idle"
+    ]
+  }
+}

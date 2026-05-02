@@ -62,7 +62,7 @@ Useful v3 behavior can be recovered only by re-implementing it as OAL behavior.
 
 ## Naming rule
 
-Internal discussions may call this `oabtw v4`. Product code and generated artifacts must not.
+Internal discussions may call this `legacy reference line`. Product code and generated artifacts must not.
 
 Allowed product language:
 
@@ -73,9 +73,9 @@ Allowed product language:
 
 Disallowed in OAL user-facing output:
 
-- `openagentsbtw`
-- `oabtw`
-- `v4`
+- `legacy project`
+- `legacy project`
+- `OAL`
 - `legacy v3`
 
 ## Production-quality bar

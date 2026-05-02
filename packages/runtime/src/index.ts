@@ -1,0 +1,46 @@
+import { readdir, stat } from "node:fs/promises";
+import { join } from "node:path";
+export const runtimeHooks: readonly string[] = [
+	"block-caveman-filler.mjs",
+	"block-demo-artifacts.mjs",
+	"block-destructive-commands.mjs",
+	"block-env-file-access.mjs",
+	"block-explanation-only.mjs",
+	"block-generated-drift.mjs",
+	"block-generated-edits.mjs",
+	"block-non-rtk-commands.mjs",
+	"block-sentinel-markers.mjs",
+	"block-protected-branch.mjs",
+	"block-repeated-failures.mjs",
+	"block-secret-files.mjs",
+	"block-secret-output.mjs",
+	"block-test-failure-loop.mjs",
+	"block-unsafe-git.mjs",
+	"block-weak-blocked.mjs",
+	"enforce-route-contract.mjs",
+	"inject-changed-files.mjs",
+	"inject-git-context.mjs",
+	"inject-package-scripts.mjs",
+	"inject-project-memory.mjs",
+	"inject-route-context.mjs",
+	"inject-subagent-context.mjs",
+	"prefer-ripgrep.mjs",
+	"require-completion-evidence.mjs",
+	"require-execution-evidence.mjs",
+	"require-jq-yq-edits.mjs",
+	"require-validation-evidence.mjs",
+	"warn-large-diff.mjs",
+];
+export async function assertRuntimeHooksExecutable(
+	repoRoot: string,
+): Promise<void> {
+	const hookRoot = join(repoRoot, "packages/runtime/hooks");
+	const discovered = await readdir(hookRoot);
+	for (const hookName of runtimeHooks) {
+		if (!discovered.includes(hookName))
+			throw new Error(`Missing runtime hook ${hookName}`);
+		const hookStat = await stat(join(hookRoot, hookName));
+		if ((hookStat.mode & 0o111) === 0)
+			throw new Error(`Runtime hook is not executable: ${hookName}`);
+	}
+}

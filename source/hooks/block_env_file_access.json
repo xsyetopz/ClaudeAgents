@@ -1,0 +1,20 @@
+{
+  "id": "block_env_file_access",
+  "script": "block-env-file-access.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PreToolUse"
+    ],
+    "claude": [
+      "PreToolUse"
+    ],
+    "opencode": [
+      "tool.execute.before"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "block_demo_artifacts",
+  "script": "block-demo-artifacts.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "Stop"
+    ],
+    "claude": [
+      "Stop"
+    ],
+    "opencode": [
+      "session.idle"
+    ]
+  }
+}

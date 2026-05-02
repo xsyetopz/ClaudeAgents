@@ -72,7 +72,7 @@ OAL requirement: `accept` must prove render + deploy + manifest + uninstall + ho
 
 ## The reboot principle
 
-OAL is not “v4 code.” OAL is a reboot that studies v3 and keeps only the proven product behaviors:
+OAL is not “OAL code.” OAL is a reboot that studies v3 and keeps only the proven product behaviors:
 
 - real generation
 - real deployment
@@ -83,4 +83,4 @@ OAL is not “v4 code.” OAL is a reboot that studies v3 and keeps only the pro
 - usable generated artifacts
 - install/uninstall ownership
 
-The new codebase must not mention internal `oabtw v4` language in user-facing code or generated artifacts.
+The new codebase must not mention internal `legacy reference line` language in user-facing code or generated artifacts.

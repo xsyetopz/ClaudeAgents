@@ -1,6 +1,6 @@
 # OAL Reboot Product Requirements
 
-OAL is a reboot, not an “oabtw v4” codebase. The product may be called OpenAgentLayer or OAL. Product code and generated artifacts must not mention “oabtw v4.” V3 is reference material only.
+OAL is a reboot, not an “legacy reference line” codebase. The product may be called OpenAgentLayer or OAL. Product code and generated artifacts must not mention “legacy reference line.” V3 is reference material only.
 
 ## Product definition
 
@@ -36,7 +36,7 @@ OAL is not complete unless the product can do all of this as running code:
 11. Execute `.mjs` hook fixtures.
 12. Verify OpenCode tools/commands are wired when generated.
 13. Enforce allowed model sets.
-14. Prove v3_legacy is reference-only and not imported by v4.
+14. Prove v3_legacy is reference-only and not imported by OAL.
 15. Detect generated/source drift.
 
 ## File validity rule

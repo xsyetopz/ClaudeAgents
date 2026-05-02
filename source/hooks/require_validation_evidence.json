@@ -1,0 +1,20 @@
+{
+  "id": "require_validation_evidence",
+  "script": "require-validation-evidence.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "Stop"
+    ],
+    "claude": [
+      "Stop"
+    ],
+    "opencode": [
+      "session.idle"
+    ]
+  }
+}

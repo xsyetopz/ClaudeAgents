@@ -1,8 +1,8 @@
 # OAL Reboot Evidence Pack
 
-This pack studies `xsyetopz/OpenAgentLayer` at commit `bd7fb00663153af0aca90b12b9c525895f1a7a0d`, the pinned oabtw v3 reference, and derives reboot requirements for OAL.
+This pack studies `xsyetopz/OpenAgentLayer` at commit `bd7fb00663153af0aca90b12b9c525895f1a7a0d`, the pinned legacy project v3 reference, and derives reboot requirements for OAL.
 
-Important naming rule: the reboot must not mention `openagentsbtw`, `oabtw`, or `v4` in product code or generated user-facing artifacts. Those terms are reference-only for this audit. The new product is OAL / OpenAgentLayer.
+Important naming rule: the reboot must not mention `legacy project`, `legacy project`, or `OAL` in product code or generated user-facing artifacts. Those terms are reference-only for this audit. The new product is OAL / OpenAgentLayer.
 
 ## Files
 

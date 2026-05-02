@@ -1,0 +1,20 @@
+{
+  "id": "block_generated_drift",
+  "script": "block-generated-drift.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "PostToolUse"
+    ],
+    "claude": [
+      "PostToolUse"
+    ],
+    "opencode": [
+      "tool.execute.after"
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-# oabtw v3 Evidence Audit
+# legacy project v3 Evidence Audit
 
 Pinned reference: `xsyetopz/OpenAgentLayer@bd7fb00663153af0aca90b12b9c525895f1a7a0d`.
 
