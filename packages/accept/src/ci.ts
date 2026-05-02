@@ -15,6 +15,7 @@ const REQUIRED_WORKFLOW_TERMS = [
 	"rtk proxy -- bunx tsc --noEmit",
 	"rtk proxy -- bun run test",
 	"rtk proxy -- bun run accept",
+	"rtk proxy -- bun run rtk-gain -- --allow-empty-history",
 	"test -f third_party/caveman/skills/caveman/SKILL.md",
 	"test -f third_party/taste-skill/skills/taste-skill/SKILL.md",
 	"needs: [quality, dry-run]",

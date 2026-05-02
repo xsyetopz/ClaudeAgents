@@ -90,6 +90,18 @@ test("CLI toolchain shows OS package-manager install plan", async () => {
 	expect(stdout).toContain("ctx7 setup --cli --universal");
 });
 
+test("CLI RTK gain check reports status", async () => {
+	const command = Bun.spawn(
+		["bun", "packages/cli/src/main.ts", "rtk-gain", "--allow-empty-history"],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain("STATUS PASS");
+});
+
 test("CLI plugins dry-run reports provider plugin payloads without writing", async () => {
 	const home = await mkdtemp(join(tmpdir(), "oal-plugins-e2e-"));
 	const command = Bun.spawn(

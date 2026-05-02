@@ -5,6 +5,30 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.1-beta.5] - 2026-05-03
+
+### Added
+
+- Added a dedicated `rtk-gain` CLI check for enforcing RTK token savings outside
+  full product acceptance.
+- Added empty-history handling so fresh CI runners do not fail product acceptance
+  before RTK has usable command history.
+
+### Changed
+
+- Kept RTK gain policy fixture-backed in acceptance while moving live machine
+  history checks to the dedicated RTK gain command.
+- Updated CI to run `rtk-gain --allow-empty-history` after acceptance.
+
+### Verified
+
+- `rtk bun run test`
+- `rtk bun run accept`
+- `rtk bunx biome check . --error-on-warnings --max-diagnostics 16384`
+- `rtk bunx tsc --noEmit`
+- `rtk ruby -c homebrew/Casks/openagentlayer.rb`
+- `rtk bun run rtk-gain -- --allow-empty-history`
+
 ## [0.1.1-beta.4] - 2026-05-03
 
 ### Added

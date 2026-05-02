@@ -48,6 +48,8 @@ jobs:
         run: rtk proxy -- bun run test
       - name: Acceptance
         run: rtk proxy -- bun run accept
+      - name: RTK gain
+        run: rtk proxy -- bun run rtk-gain -- --allow-empty-history
       - name: Lint
         run: rtk proxy -- bun run biome:check
       - name: Roadmap evidence

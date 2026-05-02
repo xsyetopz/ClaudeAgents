@@ -36,7 +36,7 @@ import { assertPluginMarketplace } from "./plugins";
 import { assertProviderConfigContracts } from "./provider";
 import { assertRoadmapEvidence, buildRoadmapEvidence } from "./roadmap";
 import { assertStrictRoadmapChecks } from "./roadmap-strict";
-import { assertRtkGainThreshold } from "./rtk";
+import { assertRtkGainPolicyFixtures } from "./rtk";
 import {
 	assertAuthoredMarkdownStyle,
 	assertHookScriptsAreRuntimeOwned,
@@ -69,7 +69,7 @@ export async function runAcceptance(
 	await assertCiCdWorkflow(repoRoot);
 	await assertPluginMarketplace(repoRoot, graph.source);
 	await assertVersionBumpTool(repoRoot);
-	await assertRtkGainThreshold(repoRoot);
+	assertRtkGainPolicyFixtures();
 	await assertTestInventory(repoRoot);
 	assertRoadmapSource(graph.source);
 	assertHookScriptsAreRuntimeOwned(graph.source);
@@ -140,3 +140,4 @@ function assertManifestDepth(artifactCount: number, entryCount: number): void {
 }
 
 export { buildRoadmapEvidence, renderRoadmapEvidenceMarkdown } from "./roadmap";
+export { assertRtkGainThreshold, evaluateRtkGainOutput } from "./rtk";

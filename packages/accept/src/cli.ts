@@ -6,6 +6,9 @@ const CLI_ENTRY = "packages/cli/src/main.ts";
 
 export async function assertCliContracts(repoRoot: string): Promise<void> {
 	await runCli(repoRoot, ["check"]);
+	const rtkGain = await runCli(repoRoot, ["rtk-gain", "--allow-empty-history"]);
+	if (!rtkGain.stdout.includes("STATUS PASS"))
+		throw new Error("CLI rtk-gain did not report pass status.");
 	const toolchain = await runCli(repoRoot, [
 		"toolchain",
 		"--os",

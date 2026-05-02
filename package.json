@@ -1,6 +1,6 @@
 {
   "name": "openagentlayer",
-  "version": "0.1.1-beta.4",
+  "version": "0.1.1-beta.5",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -23,6 +23,7 @@
     "render": "bun packages/cli/src/main.ts render",
     "preview": "bun packages/cli/src/main.ts preview",
     "roadmap:evidence": "bun packages/cli/src/main.ts roadmap-evidence",
+    "rtk-gain": "bun packages/cli/src/main.ts rtk-gain",
     "test": "bun test packages/*/__tests__/*.test.ts tests/*.test.ts",
     "test:unit": "bun test packages/*/__tests__/*.test.ts",
     "test:e2e": "bun test tests/*.test.ts",
