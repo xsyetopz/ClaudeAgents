@@ -5,7 +5,7 @@ This is a product plan, not a prompt plan. V3 is reference only.
 ## Phase 1 — Evidence and boundary setup
 
 - [ ] Move/confirm original v3 reference under `v3_legacy/`.
-- [ ] Remove 'openagentsbtw/oabtw' wording from OAL product code and generated output.
+- [ ] Remove “oabtw v4” wording from OAL product code and generated output.
 - [ ] Inventory existing generated artifacts, source records, hooks, commands, tools, configs, and installer behavior.
 
 ## Phase 2 — Product spine
