@@ -9,8 +9,6 @@ import {
 	writeFile,
 } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
-import { renderProvider } from "@openagentlayer/adapter";
-import type { Artifact } from "@openagentlayer/artifact";
 import type { OalSource, Provider } from "@openagentlayer/source";
 
 export interface PluginSyncOptions {
@@ -46,14 +44,10 @@ export async function syncPlugins(
 	const version = options.source.version;
 	const changes: PluginSyncChange[] = [];
 	for (const provider of options.providers) {
-		const artifacts = (
-			await renderProvider(provider, options.source, options.repoRoot)
-		).artifacts;
 		await syncProvider({
 			...options,
 			provider,
 			version,
-			artifacts,
 			changes,
 		});
 	}
@@ -67,7 +61,6 @@ export function allPluginProviders(): Provider[] {
 interface ProviderSyncOptions extends PluginSyncOptions {
 	provider: Provider;
 	version: string;
-	artifacts: Artifact[];
 	changes: PluginSyncChange[];
 }
 

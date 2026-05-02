@@ -44,6 +44,7 @@ import {
 } from "./source";
 import { assertTestInventory } from "./tests";
 import { assertOpenCodeTools, assertSkillSupportFiles } from "./tools";
+import { assertVersionBumpTool } from "./version";
 
 export interface AcceptanceReport {
 	status: "PASS";
@@ -62,6 +63,7 @@ export async function runAcceptance(
 	await assertHomebrewCask(repoRoot);
 	await assertCiCdWorkflow(repoRoot);
 	await assertPluginMarketplace(repoRoot, graph.source);
+	await assertVersionBumpTool(repoRoot);
 	await assertTestInventory(repoRoot);
 	assertRoadmapSource(graph.source);
 	assertHookScriptsAreRuntimeOwned(graph.source);

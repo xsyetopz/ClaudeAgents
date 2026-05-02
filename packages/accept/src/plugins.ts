@@ -74,6 +74,7 @@ async function assertRepositoryPluginPayloads(
 	for (const path of [
 		".agents/plugins/marketplace.json",
 		".claude-plugin/marketplace.json",
+		"plugins/codex/openagentlayer/AGENTS.md",
 		"plugins/codex/openagentlayer/.codex-plugin/plugin.json",
 		"plugins/codex/openagentlayer/skills/review/SKILL.md",
 		"plugins/codex/openagentlayer/hooks/inject-route-context.mjs",
@@ -120,6 +121,7 @@ async function assertPluginSync(
 			throw new Error("Plugin sync did not prune stale OAL caches.");
 		for (const path of [
 			".codex/plugins/openagentlayer/.codex-plugin/plugin.json",
+			".codex/plugins/openagentlayer/AGENTS.md",
 			".codex/plugins/cache/openagentlayer-local/openagentlayer/0.1.0/.codex-plugin/plugin.json",
 			".claude/plugins/marketplaces/openagentlayer/.claude-plugin/plugin.json",
 			".claude/plugins/cache/openagentlayer/openagentlayer/0.1.0/.claude-plugin/plugin.json",

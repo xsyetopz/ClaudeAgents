@@ -63,6 +63,7 @@ async function assertCodexConfig(targetRoot: string): Promise<void> {
 	for (const marker of CODEX_MARKERS)
 		if (!config.includes(marker))
 			throw new Error(`Codex config missing managed marker ${marker}`);
+	await assertCodexInstructionBaseline(config, targetRoot);
 	for (const flag of CODEX_REQUIRED_FLAGS)
 		if (!config.includes(flag)) throw new Error(`Codex config missing ${flag}`);
 	assertCodexFeatureComments(config);
@@ -75,6 +76,34 @@ async function assertCodexConfig(targetRoot: string): Promise<void> {
 			throw new Error(
 				`Codex config emitted forbidden key or value ${forbidden}`,
 			);
+}
+
+async function assertCodexInstructionBaseline(
+	config: string,
+	targetRoot: string,
+): Promise<void> {
+	for (const profile of [
+		"openagentlayer",
+		"openagentlayer-implement",
+		"openagentlayer-utility",
+	]) {
+		const profileBlock = config.match(
+			new RegExp(String.raw`\[profiles\.${profile}\]([\s\S]*?)(?=\n\[|$)`),
+		)?.[1];
+		if (!profileBlock?.includes('model_instructions_file = "AGENTS.md"'))
+			throw new Error(
+				`Codex profile ${profile} does not pin model_instructions_file.`,
+			);
+	}
+	const agents = await readFile(join(targetRoot, "AGENTS.md"), "utf8");
+	for (const required of [
+		"Codex baseline",
+		"model_instructions_file",
+		"stable OAL baseline",
+		"Do not edit generated files directly",
+	])
+		if (!agents.includes(required))
+			throw new Error(`AGENTS.md missing Codex baseline text: ${required}`);
 }
 
 function assertCodexFeatureComments(config: string): void {

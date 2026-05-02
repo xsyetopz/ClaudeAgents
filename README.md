@@ -25,6 +25,7 @@ bun run render -- --provider codex --out generated
 bun run deploy -- --target /path/to/project --scope project --provider codex
 bun run uninstall -- --target /path/to/project --scope project --provider codex
 bun run plugins -- --home "$HOME" --provider all --dry-run
+./bump-version.sh --dry-run patch
 bun run accept
 ```
 
@@ -88,6 +89,27 @@ OAL cache versions:
 bun run plugins -- --home "$HOME" --provider all --dry-run
 bun run plugins -- --home "$HOME" --provider all
 ```
+
+## Codex baseline instructions
+
+Codex OAL profiles set `model_instructions_file = "AGENTS.md"` so sessions use
+the generated OAL baseline instead of changing server defaults. To inspect what
+Codex received, start a Codex thread and check the first line of the newest
+`~/.codex/sessions/**/*.jsonl`.
+
+## Version bumps
+
+Use `bump-version.sh` for product releases:
+
+```bash
+./bump-version.sh --dry-run patch
+./bump-version.sh minor
+./bump-version.sh 1.2.3-beta.1
+```
+
+The script updates the root product version, source metadata, plugin manifests,
+Homebrew cask, Claude marketplace entry, and changelog heading. Workspace
+package versions stay internal.
 
 ## Validation
 

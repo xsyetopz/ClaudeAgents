@@ -140,11 +140,13 @@ ${renderCodexFeatures()}
 model = "gpt-5.3-codex"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
+model_instructions_file = "AGENTS.md"
 
 [profiles.openagentlayer-utility]
 model = "gpt-5.4-mini"
 approval_policy = "never"
 sandbox_mode = "read-only"
+model_instructions_file = "AGENTS.md"
 
 [agents]
 max_threads = 4

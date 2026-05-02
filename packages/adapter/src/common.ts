@@ -40,7 +40,11 @@ export function instructions(
 	sourceRoutes: RouteRecord[],
 	provider: Provider,
 ): string {
-	return `# OpenAgentLayer Instructions\n\nThis project is managed by OAL for ${provider}. Treat authored source as the source of truth and generated artifacts as disposable outputs. Use provider-native capabilities only when OAL renders and validates them. Do not modify generated files by hand; update source and regenerate.\n\nRoutes:\n${sourceRoutes
+	const baseline =
+		provider === "codex"
+			? "\n## Codex baseline\n\n- Treat this file as the stable OAL baseline selected by `model_instructions_file`.\n- Follow OAL source records, generated artifact contracts, manifest ownership, and route evidence before general assistant defaults.\n- Do not edit generated files directly; update `source/`, renderer code, plugin payloads, or deploy logic, then regenerate or validate.\n- Use provider-native Codex surfaces that OAL renders and acceptance verifies.\n- Final responses must include concrete validation evidence or a precise blocker.\n"
+			: "";
+	return `# OpenAgentLayer Instructions\n\nThis project is managed by OAL for ${provider}. Treat authored source as the source of truth and generated artifacts as disposable outputs. Use provider-native capabilities only when OAL renders and validates them. Do not modify generated files by hand; update source and regenerate.${baseline}\n\nRoutes:\n${sourceRoutes
 		.filter((route) => route.providers.includes(provider))
 		.map((route) => `- ${route.id}: ${route.body}`)
 		.join("\n")}\n`;

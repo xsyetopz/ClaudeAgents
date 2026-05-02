@@ -90,8 +90,6 @@
       "name": "@openagentlayer/plugins",
       "version": "0.0.0",
       "dependencies": {
-        "@openagentlayer/adapter": "workspace:*",
-        "@openagentlayer/artifact": "workspace:*",
         "@openagentlayer/source": "workspace:*",
       },
     },
