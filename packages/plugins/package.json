@@ -1,0 +1,12 @@
+{
+  "name": "@openagentlayer/plugins",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@openagentlayer/adapter": "workspace:*",
+    "@openagentlayer/artifact": "workspace:*",
+    "@openagentlayer/source": "workspace:*"
+  }
+}

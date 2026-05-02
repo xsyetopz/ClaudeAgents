@@ -33,6 +33,7 @@ import {
 import { assertHomebrewCask } from "./homebrew";
 import { assertHooks } from "./hooks";
 import { assertRepositoryInventory } from "./inventory";
+import { assertPluginMarketplace } from "./plugins";
 import { assertProviderConfigContracts } from "./provider";
 import { assertRoadmapEvidence, buildRoadmapEvidence } from "./roadmap";
 import { assertStrictRoadmapChecks } from "./roadmap-strict";
@@ -62,6 +63,7 @@ export async function runAcceptance(
 	await assertRepositoryInventory(repoRoot);
 	await assertHomebrewCask(repoRoot);
 	await assertCiCdWorkflow(repoRoot);
+	await assertPluginMarketplace(repoRoot, graph.source);
 	await assertTestInventory(repoRoot);
 	await assertRuntimeIsolation(repoRoot);
 	assertRoadmapSource(graph.source);

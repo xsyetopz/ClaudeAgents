@@ -1,0 +1,11 @@
+{
+  "name": "openagentlayer",
+  "plugins": [
+    {
+      "name": "openagentlayer",
+      "version": "0.1.0",
+      "path": ".",
+      "description": "OpenAgentLayer provider-native Claude Code plugin payload."
+    }
+  ]
+}

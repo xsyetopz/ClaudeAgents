@@ -37,6 +37,8 @@ material only and is not part of the OAL release line.
 - Added Homebrew cask definition for `openagentlayer`.
 - Added CI/CD that runs quality gates and deploy dry-runs before guarded
   Homebrew submission.
+- Added repo-hosted provider plugin marketplace payloads and user-level plugin
+  sync for Claude Code, Codex, and OpenCode with stale OAL cache pruning.
 
 ### Changed
 

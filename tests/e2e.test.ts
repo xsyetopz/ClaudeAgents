@@ -89,3 +89,34 @@ test("CLI toolchain shows OS package-manager install plan", async () => {
 	expect(stdout).toContain("rtk find --help");
 	expect(stdout).toContain("ctx7 setup --cli --universal");
 });
+
+test("CLI plugins dry-run reports provider plugin payloads without writing", async () => {
+	const home = await mkdtemp(join(tmpdir(), "oal-plugins-e2e-"));
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"plugins",
+			"--home",
+			home,
+			"--provider",
+			"all",
+			"--dry-run",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain(".codex-plugin/plugin.json");
+	expect(stdout).toContain(".claude/plugins/marketplaces/openagentlayer");
+	expect(stdout).toContain(".opencode/plugins/openagentlayer");
+	await expect(
+		readFile(
+			join(home, ".codex/plugins/openagentlayer/.codex-plugin/plugin.json"),
+			"utf8",
+		),
+	).rejects.toThrow();
+	await rm(home, { recursive: true, force: true });
+});

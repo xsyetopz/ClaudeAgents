@@ -11,6 +11,7 @@
         "@openagentlayer/cli": "workspace:*",
         "@openagentlayer/deploy": "workspace:*",
         "@openagentlayer/manifest": "workspace:*",
+        "@openagentlayer/plugins": "workspace:*",
         "@openagentlayer/policy": "workspace:*",
         "@openagentlayer/runtime": "workspace:*",
         "@openagentlayer/source": "workspace:*",
@@ -30,6 +31,7 @@
         "@openagentlayer/artifact": "workspace:*",
         "@openagentlayer/deploy": "workspace:*",
         "@openagentlayer/manifest": "workspace:*",
+        "@openagentlayer/plugins": "workspace:*",
         "@openagentlayer/policy": "workspace:*",
         "@openagentlayer/runtime": "workspace:*",
         "@openagentlayer/source": "workspace:*",
@@ -61,6 +63,7 @@
         "@openagentlayer/adapter": "workspace:*",
         "@openagentlayer/artifact": "workspace:*",
         "@openagentlayer/deploy": "workspace:*",
+        "@openagentlayer/plugins": "workspace:*",
         "@openagentlayer/policy": "workspace:*",
         "@openagentlayer/source": "workspace:*",
         "@openagentlayer/toolchain": "workspace:*",
@@ -79,6 +82,15 @@
       "name": "@openagentlayer/manifest",
       "version": "0.0.0",
       "dependencies": {
+        "@openagentlayer/artifact": "workspace:*",
+        "@openagentlayer/source": "workspace:*",
+      },
+    },
+    "packages/plugins": {
+      "name": "@openagentlayer/plugins",
+      "version": "0.0.0",
+      "dependencies": {
+        "@openagentlayer/adapter": "workspace:*",
         "@openagentlayer/artifact": "workspace:*",
         "@openagentlayer/source": "workspace:*",
       },
@@ -132,6 +144,8 @@
     "@openagentlayer/deploy": ["@openagentlayer/deploy@workspace:packages/deploy"],
 
     "@openagentlayer/manifest": ["@openagentlayer/manifest@workspace:packages/manifest"],
+
+    "@openagentlayer/plugins": ["@openagentlayer/plugins@workspace:packages/plugins"],
 
     "@openagentlayer/policy": ["@openagentlayer/policy@workspace:packages/policy"],
 

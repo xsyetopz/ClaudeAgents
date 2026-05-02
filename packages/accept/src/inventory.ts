@@ -6,6 +6,7 @@ const TRACKED_PRODUCT_ROOTS = [
 	"source",
 	"tests",
 	"homebrew",
+	"marketplace",
 ] as const;
 const REFERENCE_ROOTS = ["v3_legacy", "docs", "third_party"] as const;
 const ROOT_PRODUCT_FILES = [

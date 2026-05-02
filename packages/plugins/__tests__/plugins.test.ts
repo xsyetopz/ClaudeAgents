@@ -1,0 +1,128 @@
+import { expect, test } from "bun:test";
+import {
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	stat,
+	writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { loadSource } from "@openagentlayer/source";
+import { allPluginProviders, syncPlugins } from "../src";
+
+const repoRoot = resolve(import.meta.dir, "../../..");
+
+test("plugin sync writes provider payloads and prunes stale OAL caches", async () => {
+	const home = await mkdtemp(join(tmpdir(), "oal-plugins-"));
+	try {
+		await seedStaleCaches(home);
+		const graph = await loadSource(resolve(repoRoot, "source"));
+		const preview = await syncPlugins({
+			repoRoot,
+			home,
+			source: graph.source,
+			providers: allPluginProviders(),
+			dryRun: true,
+		});
+		expect(
+			preview.changes.some((change) =>
+				change.path.endsWith(".codex-plugin/plugin.json"),
+			),
+		).toBe(true);
+
+		const applied = await syncPlugins({
+			repoRoot,
+			home,
+			source: graph.source,
+			providers: allPluginProviders(),
+		});
+		expect(applied.changes.some((change) => change.action === "remove")).toBe(
+			true,
+		);
+		expect(
+			await readFile(
+				join(home, ".codex/plugins/openagentlayer/.codex-plugin/plugin.json"),
+				"utf8",
+			),
+		).toContain('"openagentlayer"');
+		expect(
+			await readFile(
+				join(
+					home,
+					".codex/plugins/cache/openagentlayer-local/openagentlayer/0.1.0/skills/review/SKILL.md",
+				),
+				"utf8",
+			),
+		).toContain("Review");
+		expect(
+			(
+				await stat(
+					join(
+						home,
+						".codex/plugins/cache/openagentlayer-local/openagentlayer/0.1.0/hooks/inject-route-context.mjs",
+					),
+				)
+			).mode & 0o111,
+		).not.toBe(0);
+		expect(
+			await readFile(
+				join(
+					home,
+					".claude/plugins/marketplaces/openagentlayer/.claude-plugin/marketplace.json",
+				),
+				"utf8",
+			),
+		).toContain('"openagentlayer"');
+		expect(
+			await readFile(
+				join(home, ".opencode/plugins/openagentlayer/package.json"),
+				"utf8",
+			),
+		).toContain("openagentlayer-opencode-plugin");
+		expect(
+			await readFile(join(home, ".agents/plugins/marketplace.json"), "utf8"),
+		).toContain("openagentlayer-local");
+		await expect(
+			readFile(
+				join(
+					home,
+					".codex/plugins/cache/openagentlayer-local/openagentlayer/0.0.1/stale.txt",
+				),
+				"utf8",
+			),
+		).rejects.toThrow();
+		expect(
+			await readFile(
+				join(home, ".codex/plugins/cache/openagentlayer-local/other/keep.txt"),
+				"utf8",
+			),
+		).toBe("keep");
+	} finally {
+		await rm(home, { recursive: true, force: true });
+	}
+});
+
+async function seedStaleCaches(home: string): Promise<void> {
+	const staleCodex = join(
+		home,
+		".codex/plugins/cache/openagentlayer-local/openagentlayer/0.0.1",
+	);
+	const otherCodex = join(
+		home,
+		".codex/plugins/cache/openagentlayer-local/other",
+	);
+	const staleClaude = join(
+		home,
+		".claude/plugins/cache/temp_local_openagentlayer",
+	);
+	const staleOpenCode = join(
+		home,
+		".opencode/plugins/cache/openagentlayer/0.0.1",
+	);
+	for (const path of [staleCodex, otherCodex, staleClaude, staleOpenCode])
+		await mkdir(path, { recursive: true });
+	await writeFile(join(staleCodex, "stale.txt"), "stale");
+	await writeFile(join(otherCodex, "keep.txt"), "keep");
+}

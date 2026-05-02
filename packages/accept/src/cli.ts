@@ -74,6 +74,26 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 	if (!dryRun.stdout.includes(".codex/config.toml"))
 		throw new Error("CLI deploy dry-run did not report Codex config changes.");
 	await rm(deployRoot, { recursive: true, force: true });
+	const pluginRoot = await mkdtemp(join(tmpdir(), "oal-cli-plugins-"));
+	const pluginDryRun = await runCli(repoRoot, [
+		"plugins",
+		"--home",
+		pluginRoot,
+		"--provider",
+		"all",
+		"--dry-run",
+	]);
+	if (
+		!(
+			pluginDryRun.stdout.includes(".codex-plugin/plugin.json") &&
+			pluginDryRun.stdout.includes(
+				".claude/plugins/marketplaces/openagentlayer",
+			) &&
+			pluginDryRun.stdout.includes(".opencode/plugins/openagentlayer")
+		)
+	)
+		throw new Error("CLI plugins dry-run did not report provider plugin sync.");
+	await rm(pluginRoot, { recursive: true, force: true });
 	await assertCliFails(repoRoot, ["render", "--provider", "bogus"], "provider");
 	await assertCliFails(
 		repoRoot,

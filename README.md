@@ -24,6 +24,7 @@ bun run preview -- --provider all
 bun run render -- --provider codex --out generated
 bun run deploy -- --target /path/to/project --scope project --provider codex
 bun run uninstall -- --target /path/to/project --scope project --provider codex
+bun run plugins -- --home "$HOME" --provider all --dry-run
 bun run accept
 ```
 
@@ -59,6 +60,23 @@ openagentlayer-<version>-macos-universal.tar.gz
 ```
 
 The archive must contain `bin/oal`.
+
+## Provider plugin payloads
+
+OAL hosts marketplace payload metadata in `marketplace/`:
+
+- `marketplace/claude` for Claude Code
+- `marketplace/codex` for Codex
+- `marketplace/opencode` for OpenCode user plugins
+
+User-level plugin sync copies those payloads into provider homes, writes the
+Codex local marketplace entry, populates active plugin caches, and prunes stale
+OAL cache versions:
+
+```bash
+bun run plugins -- --home "$HOME" --provider all --dry-run
+bun run plugins -- --home "$HOME" --provider all
+```
 
 ## Validation
 

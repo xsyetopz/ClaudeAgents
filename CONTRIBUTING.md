@@ -69,6 +69,7 @@ bun run check
 bun run preview -- --provider all
 bun run preview -- --provider codex --path .codex/config.toml --content
 bun run deploy -- --target /tmp/oal-check --scope project --provider all --dry-run
+bun run plugins -- --home /tmp/oal-home --provider all --dry-run
 ```
 
 ### Release surfaces
