@@ -4,14 +4,16 @@ This guide covers the supported OpenAgentLayer install and setup paths. Use `--d
 
 ## Contents
 
-- [Prerequisites](#prerequisites)
-- [Install from source](#install-from-source)
-- [Install with Homebrew](#install-with-homebrew)
-- [Set up provider plugins](#set-up-provider-plugins)
-- [Deploy into a project](#deploy-into-a-project)
-- [Verify the install](#verify-the-install)
-- [Uninstall](#uninstall)
-- [Troubleshooting](#troubleshooting)
+1. [Installation](#installation)
+   1. [Contents](#contents)
+   2. [Prerequisites](#prerequisites)
+   3. [Install from source](#install-from-source)
+   4. [Install with Homebrew](#install-with-homebrew)
+   5. [Set up provider plugins](#set-up-provider-plugins)
+   6. [Deploy into a project](#deploy-into-a-project)
+   7. [Verify the install](#verify-the-install)
+   8. [Uninstall](#uninstall)
+   9. [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
 
@@ -160,11 +162,11 @@ After uninstall, inspect the target project's git status. User-owned files and u
 
 ## Troubleshooting
 
-| Symptom | Check |
-| ------- | ----- |
-| `bun run check` fails on missing upstream skills. | Run `git submodule update --init --recursive`. |
-| Preview shows stale provider output. | Edit `source/`, not generated artifacts, then rerun `bun run preview -- --provider all`. |
-| Deploy wants to touch unexpected paths. | Stop and inspect `--dry-run` output before applying. |
-| Codex sessions do not show OAL instructions. | Confirm generated `.codex/config.toml` sets `model_instructions_file = "AGENTS.md"`. |
-| OpenCode tools fail to load. | Confirm dependencies include `@opencode-ai/plugin` and rerun `bun install --frozen-lockfile`. |
-| RTK gain fails in local release checks. | Run RTK-wrapped commands, then rerun `bun run rtk-gain -- --allow-empty-history`. |
+| Symptom                                           | Check                                                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `bun run check` fails on missing upstream skills. | Run `git submodule update --init --recursive`.                                                |
+| Preview shows stale provider output.              | Edit `source/`, not generated artifacts, then rerun `bun run preview -- --provider all`.      |
+| Deploy wants to touch unexpected paths.           | Stop and inspect `--dry-run` output before applying.                                          |
+| Codex sessions do not show OAL instructions.      | Confirm generated `.codex/config.toml` sets `model_instructions_file = "AGENTS.md"`.          |
+| OpenCode tools fail to load.                      | Confirm dependencies include `@opencode-ai/plugin` and rerun `bun install --frozen-lockfile`. |
+| RTK gain fails in local release checks.           | Run RTK-wrapped commands, then rerun `bun run rtk-gain -- --allow-empty-history`.             |
