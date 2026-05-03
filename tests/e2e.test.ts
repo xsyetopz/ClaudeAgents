@@ -69,6 +69,7 @@ test("CLI help is Commander-backed and non-interactive-safe", async () => {
 	expect(stdout).toContain("Usage: oal [options] [command]");
 	expect(stdout).toContain("interactive");
 	expect(stdout).toContain("deploy [options]");
+	expect(stdout).toContain("setup [options]");
 	expect(stdout).not.toContain("generate [options]");
 });
 
@@ -455,6 +456,66 @@ test("CLI rejects unsupported Caveman mode cleanly", async () => {
 	const stderr = await new Response(command.stderr).text();
 	expect(await command.exited).toBe(1);
 	expect(stderr).toContain("Unsupported caveman mode yell");
+});
+
+test("CLI setup dry-run plans deploy plugins tools and checks", async () => {
+	const home = await mkdtemp(join(tmpdir(), "oal-setup-e2e-"));
+	const env = await fakeProviderPath(home, ["codex", "opencode"]);
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"setup",
+			"--scope",
+			"global",
+			"--home",
+			home,
+			"--provider",
+			"all",
+			"--optional",
+			"ctx7,playwright,deepwiki",
+			"--rtk",
+			"--dry-run",
+		],
+		{ cwd: repoRoot, env, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain("OpenAgentLayer setup DRY RUN");
+	expect(stdout).toContain("providers: codex, opencode");
+	expect(stdout).toContain("skip provider: claude");
+	expect(stdout).toContain("rtk init -g --codex");
+	expect(stdout).toContain("bunx ctx7 setup --cli --universal");
+	expect(stdout).toContain("bunx -p playwright playwright install --with-deps");
+	expect(stdout).toContain("Configure DeepWiki MCP");
+	expect(stdout).toContain("OpenAgentLayer deploy DRY RUN");
+	expect(stdout).toContain("OpenAgentLayer plugins DRY RUN");
+	expect(stdout).toContain("Validate source and installed state");
+	await rm(home, { recursive: true, force: true });
+});
+
+test("CLI Codex agent artifacts omit unsupported color fields", async () => {
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"preview",
+			"--provider",
+			"codex",
+			"--path",
+			".codex/agents/athena.toml",
+			"--content",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain('model = "gpt-5.5"');
+	expect(stdout).not.toContain("color =");
 });
 
 test("CLI toolchain shows OS package-manager install plan", async () => {

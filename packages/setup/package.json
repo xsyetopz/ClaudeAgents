@@ -1,0 +1,11 @@
+{
+  "name": "@openagentlayer/setup",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@openagentlayer/source": "workspace:*",
+    "@openagentlayer/toolchain": "workspace:*"
+  }
+}

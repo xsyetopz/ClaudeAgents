@@ -24,7 +24,7 @@ export async function assertInstalledFlowSmoke(
 		await runCli(
 			repoRoot,
 			[
-				"deploy",
+				"setup",
 				"--scope",
 				"global",
 				"--home",

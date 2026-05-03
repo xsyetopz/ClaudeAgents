@@ -82,6 +82,7 @@ const SKILL_PROMPT_CONTRACT_TERMS = [
 	"Attribution contract:",
 ] as const;
 const HEX_COLOR_PATTERN = /#[0-9a-f]{6}/;
+const CODEX_COLOR_PATTERN = /^color\s*=/m;
 const FORBIDDEN_MODEL_TERMS = [
 	'gpt-5.4"',
 	"gpt-5.2",
@@ -118,8 +119,8 @@ function assertCoreAgentArtifacts(artifacts: Artifact[]): void {
 	for (const agent of CORE_AGENTS) {
 		assertArtifact(`.codex/agents/${agent}.toml`, artifacts, [
 			...AGENT_CONTRACT_TERMS,
-			'color = "#',
 		]);
+		assertNoCodexColor(`.codex/agents/${agent}.toml`, artifacts);
 		assertArtifact(`.claude/agents/${agent}.md`, artifacts, [
 			...AGENT_CONTRACT_TERMS,
 			'color: "#',
@@ -130,6 +131,7 @@ function assertCoreAgentArtifacts(artifacts: Artifact[]): void {
 		]);
 	}
 	assertDistinctAgentColors(artifacts);
+	assertNoCodexColor(".codex/config.toml", artifacts);
 }
 
 function assertRouteArtifacts(artifacts: Artifact[]): void {
@@ -271,7 +273,7 @@ function findArtifact(path: string, artifacts: Artifact[]): Artifact {
 function assertDistinctAgentColors(artifacts: Artifact[]): void {
 	const colors = new Map<string, string>();
 	for (const agent of CORE_AGENTS) {
-		const artifact = findArtifact(`.codex/agents/${agent}.toml`, artifacts);
+		const artifact = findArtifact(`.claude/agents/${agent}.md`, artifacts);
 		const color = artifact.content.match(HEX_COLOR_PATTERN)?.[0];
 		if (!color) throw new Error(`Agent ${agent} missing hex color.`);
 		const owner = colors.get(color);
@@ -279,6 +281,12 @@ function assertDistinctAgentColors(artifacts: Artifact[]): void {
 			throw new Error(`Agents ${owner} and ${agent} share color ${color}.`);
 		colors.set(color, agent);
 	}
+}
+
+function assertNoCodexColor(path: string, artifacts: Artifact[]): void {
+	const artifact = findArtifact(path, artifacts);
+	if (CODEX_COLOR_PATTERN.test(artifact.content))
+		throw new Error(`${path} emitted unsupported Codex color field.`);
 }
 
 function assertNoForbiddenModels(artifacts: Artifact[]): void {

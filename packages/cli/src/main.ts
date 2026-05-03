@@ -10,6 +10,7 @@ import { runPreviewCommand } from "./commands/preview";
 import { runRenderCommand } from "./commands/render";
 import { runRoadmapEvidenceCommand } from "./commands/roadmap-evidence";
 import { runRtkGainCommand } from "./commands/rtk-gain";
+import { runSetupCommand } from "./commands/setup";
 import { runFeaturesCommand, runToolchainCommand } from "./commands/toolchain";
 import { runUninstallCommand } from "./commands/uninstall";
 import { runInteractiveCommand } from "./interactive";
@@ -33,7 +34,32 @@ program
 	.command("check")
 	.description("validate OAL source and renderability")
 	.option("--verbose", "print source and render internals")
+	.option("--installed", "also validate installed provider state")
+	.option(
+		"--provider <provider>",
+		"all, codex, claude, opencode, or comma-separated set",
+		"all",
+	)
+	.option("--home <dir>", "home directory for global installed checks")
+	.option("--target <dir>", "project target directory for installed checks")
 	.action((options) => runCheckCommand(repoRoot, argsFromOptions(options)));
+
+addRenderOptions(
+	program
+		.command("setup")
+		.description("set up or update OAL across provider homes"),
+)
+	.option("--target <dir>", "project target directory")
+	.option("--bin-dir <dir>", "global executable directory")
+	.option("--dry-run", "print planned setup without writing")
+	.option("--verbose", "print detailed setup output")
+	.option("--quiet", "suppress normal setup output")
+	.option("--optional <tools>", "comma-separated ctx7,deepwiki,playwright")
+	.option("--rtk", "install/init RTK policy surfaces")
+	.option("--ctx7-cli", "install/configure Context7 CLI")
+	.option("--playwright-cli", "install/configure Playwright CLI")
+	.option("--deepwiki-mcp", "configure DeepWiki MCP where supported")
+	.action((options) => runSetupCommand(repoRoot, argsFromOptions(options)));
 
 program
 	.command("bin")
@@ -215,6 +241,11 @@ function argsFromOptions(options: Record<string, unknown>): string[] {
 	pushValue(args, "--remove", options["remove"]);
 	pushValue(args, "--from-file", options["fromFile"]);
 	pushFlag(args, "--content", options["content"]);
+	pushFlag(args, "--installed", options["installed"]);
+	pushFlag(args, "--rtk", options["rtk"]);
+	pushFlag(args, "--ctx7-cli", options["ctx7Cli"]);
+	pushFlag(args, "--playwright-cli", options["playwrightCli"]);
+	pushFlag(args, "--deepwiki-mcp", options["deepwikiMcp"]);
 	pushFlag(args, "--dry-run", options["dryRun"]);
 	pushFlag(args, "--skip-bin", options["skipBin"]);
 	pushFlag(args, "--verbose", options["verbose"]);

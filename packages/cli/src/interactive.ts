@@ -15,11 +15,14 @@ import { runCheckCommand } from "./commands/check";
 import { runDeployCommand } from "./commands/deploy";
 import { runPluginsCommand } from "./commands/plugins";
 import { runPreviewCommand } from "./commands/preview";
+import { runSetupCommand } from "./commands/setup";
 import { runFeaturesCommand } from "./commands/toolchain";
 import { runUninstallCommand } from "./commands/uninstall";
 import { cavemanModes } from "./source";
 
 type InteractiveAction =
+	| "setup"
+	| "update"
 	| "preview"
 	| "deploy"
 	| "plugins"
@@ -38,6 +41,8 @@ export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 	for (;;) {
 		const action = await workflowPrompt();
 		if (action === "check") await runCheckCommand(repoRoot);
+		else if (action === "setup" || action === "update")
+			await interactiveSetup(repoRoot);
 		else if (action === "preview") await interactivePreview(repoRoot);
 		else if (action === "deploy") await interactiveDeploy(repoRoot);
 		else if (action === "plugins") await interactivePlugins(repoRoot);
@@ -59,6 +64,8 @@ function workflowPrompt(): Promise<InteractiveAction> {
 		select({
 			message: "Choose workflow",
 			options: [
+				{ value: "setup", label: "Set up OAL", hint: "guided install/update" },
+				{ value: "update", label: "Update OAL", hint: "rerun managed setup" },
 				{ value: "preview", label: "Preview", hint: "no writes" },
 				{
 					value: "deploy",
@@ -84,6 +91,30 @@ function workflowPrompt(): Promise<InteractiveAction> {
 			],
 		}),
 	);
+}
+
+async function interactiveSetup(repoRoot: string): Promise<void> {
+	const provider = await providerPrompt();
+	const scope = await scopePrompt();
+	const args = ["--provider", provider, "--scope", scope];
+	if (scope === "global") args.push("--home", await globalHomePrompt());
+	else args.push("--target", await targetPrompt());
+	appendCavemanMode(args, await cavemanModePrompt());
+	if (
+		await ask<boolean>(
+			confirm({ message: "Initialize RTK?", initialValue: true }),
+		)
+	)
+		args.push("--rtk");
+	const optional = await optionalToolPrompt();
+	if (optional.length > 0) args.push("--optional", optional.join(","));
+	if (
+		await ask<boolean>(
+			confirm({ message: "Dry-run only?", initialValue: true }),
+		)
+	)
+		args.push("--dry-run");
+	await runSetupCommand(repoRoot, args);
 }
 
 async function interactivePreview(repoRoot: string): Promise<void> {
@@ -160,6 +191,28 @@ async function interactiveFeatures(): Promise<void> {
 		}),
 	);
 	runFeaturesCommand([`--${action}`, feature]);
+}
+
+function optionalToolPrompt(): Promise<string[]> {
+	return ask<string[]>(
+		multiselect({
+			message: "Optional tool phases",
+			required: false,
+			options: [
+				{ value: "ctx7", label: "Context7 [CLI]", hint: "current docs lookup" },
+				{
+					value: "playwright",
+					label: "Playwright [CLI]",
+					hint: "browser automation",
+				},
+				{
+					value: "deepwiki",
+					label: "DeepWiki [MCP]",
+					hint: "repository knowledge MCP",
+				},
+			],
+		}),
+	);
 }
 
 function appendCavemanMode(args: string[], mode: string): void {

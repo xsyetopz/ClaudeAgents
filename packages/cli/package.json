@@ -1,22 +1,23 @@
 {
-  "name": "@openagentlayer/cli",
-  "version": "0.0.0",
-  "type": "module",
-  "private": true,
-  "exports": "./src/index.ts",
-  "bin": {
-    "oal": "./src/main.ts"
-  },
-  "dependencies": {
-    "@clack/prompts": "^1.3.0",
-    "@openagentlayer/adapter": "workspace:*",
-    "@openagentlayer/artifact": "workspace:*",
-    "@openagentlayer/accept": "workspace:*",
-    "@openagentlayer/deploy": "workspace:*",
-    "@openagentlayer/plugins": "workspace:*",
-    "@openagentlayer/policy": "workspace:*",
-    "@openagentlayer/source": "workspace:*",
-    "@openagentlayer/toolchain": "workspace:*",
-    "commander": "^14.0.3"
-  }
+	"name": "@openagentlayer/cli",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"exports": "./src/index.ts",
+	"bin": {
+		"oal": "./src/main.ts"
+	},
+	"dependencies": {
+		"@clack/prompts": "^1.3.0",
+		"@openagentlayer/adapter": "workspace:*",
+		"@openagentlayer/artifact": "workspace:*",
+		"@openagentlayer/accept": "workspace:*",
+		"@openagentlayer/deploy": "workspace:*",
+		"@openagentlayer/plugins": "workspace:*",
+		"@openagentlayer/policy": "workspace:*",
+		"@openagentlayer/source": "workspace:*",
+		"@openagentlayer/toolchain": "workspace:*",
+		"commander": "^14.0.3",
+		"@openagentlayer/setup": "workspace:*"
+	}
 }

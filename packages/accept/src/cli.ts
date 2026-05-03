@@ -34,6 +34,35 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 		throw new Error(
 			"CLI toolchain plan did not include required install steps.",
 		);
+	const setupRoot = await mkdtemp(join(tmpdir(), "oal-cli-setup-"));
+	const setupEnv = await fakeProviderPath(setupRoot, ["codex", "opencode"]);
+	const setup = await runCli(
+		repoRoot,
+		[
+			"setup",
+			"--scope",
+			"global",
+			"--home",
+			setupRoot,
+			"--provider",
+			"all",
+			"--optional",
+			"ctx7,playwright,deepwiki",
+			"--rtk",
+			"--dry-run",
+		],
+		{ env: setupEnv },
+	);
+	if (
+		!(
+			setup.stdout.includes("OpenAgentLayer setup DRY RUN") &&
+			setup.stdout.includes("OpenAgentLayer deploy DRY RUN") &&
+			setup.stdout.includes("OpenAgentLayer plugins DRY RUN") &&
+			setup.stdout.includes("Validate source and installed state")
+		)
+	)
+		throw new Error("CLI setup dry-run did not report full setup phases.");
+	await rm(setupRoot, { recursive: true, force: true });
 	const preview = await runCli(repoRoot, ["preview", "--provider", "opencode"]);
 	if (
 		!(

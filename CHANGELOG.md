@@ -5,6 +5,35 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.2-beta.11] - 2026-05-03
+
+### Added
+
+- Added `oal setup` as the guided setup/update workflow that plans optional
+  tools, deploys provider artifacts, syncs plugins, installs the `oal` shim,
+  and runs checks.
+- Added `check --installed` validation for installed provider state, including
+  Codex agent TOML schema guards.
+- Added setup dry-run and Codex agent schema coverage to CLI and acceptance
+  tests.
+
+### Changed
+
+- Removed unsupported Codex `color` fields from generated Codex agent config and
+  agent role TOML while preserving Claude Code and OpenCode agent colors.
+- Made Codex plugin sync prune stale OAL/openagentsbtw marketplace entries and
+  best-effort register the local marketplace with the native Codex CLI.
+- Reworked interactive entrypoints to put setup/update ahead of lower-level
+  deploy/plugin primitives and include optional RTK, Context7, Playwright, and
+  DeepWiki phases.
+
+### Verified
+
+- `rtk proxy -- bun run test`
+- `rtk proxy -- bun run biome:check`
+- `rtk proxy -- bunx tsc --noEmit`
+- `rtk proxy -- bun run accept`
+
 ## [0.1.2-beta.10] - 2026-05-03
 
 ### Added

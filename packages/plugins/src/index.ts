@@ -92,6 +92,7 @@ async function syncCodex(options: ProviderSyncOptions): Promise<void> {
 	await copyPluginPayload(options, "codex", pluginRoot);
 	await copyPluginPayload(options, "codex", cacheTarget);
 	await writeCodexMarketplace(options, pluginRoot);
+	await activateCodexMarketplace(options);
 	await pruneVersionCache(options, cacheRoot);
 }
 
@@ -255,7 +256,11 @@ async function writeCodexMarketplace(
 		? (current["plugins"] as unknown[])
 		: [];
 	const nextPlugins = plugins.filter(
-		(entry) => !(isRecord(entry) && entry["name"] === PLUGIN_NAME),
+		(entry) =>
+			!(
+				isRecord(entry) &&
+				[PLUGIN_NAME, "oal", "openagentsbtw"].includes(String(entry["name"]))
+			),
 	);
 	nextPlugins.push({
 		name: PLUGIN_NAME,
@@ -284,6 +289,37 @@ async function writeCodexMarketplace(
 		)}\n`,
 		"Codex marketplace entry",
 	);
+}
+
+async function activateCodexMarketplace(
+	options: ProviderSyncOptions,
+): Promise<void> {
+	const marketplaceRoot = join(options.home, ".agents/plugins");
+	options.changes.push({
+		action: "skip",
+		path: marketplaceRoot,
+		reason: "Codex marketplace activation is best-effort through native CLI",
+	});
+	if (options.dryRun) return;
+	const child = Bun.spawn(
+		["codex", "plugin", "marketplace", "add", marketplaceRoot],
+		{
+			stdout: "pipe",
+			stderr: "pipe",
+		},
+	);
+	const [_stdout, stderr, code] = await Promise.all([
+		new Response(child.stdout).text(),
+		new Response(child.stderr).text(),
+		child.exited,
+	]);
+	if (code !== 0) {
+		options.changes.push({
+			action: "skip",
+			path: marketplaceRoot,
+			reason: `Codex CLI did not activate marketplace automatically: ${stderr.trim() || "manual plugin selection may be required"}`,
+		});
+	}
 }
 
 async function pruneVersionCache(

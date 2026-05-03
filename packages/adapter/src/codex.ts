@@ -4,7 +4,6 @@ import {
 	withProvenance,
 } from "@openagentlayer/artifact";
 import type { AgentRecord, OalSource, Provider } from "@openagentlayer/source";
-import { agentHexColor } from "./agent-colors";
 import { agentPrompt, instructions, quoteToml } from "./common";
 import { renderHookArtifacts } from "./hooks";
 import type { RenderOptions } from "./model-routing";
@@ -173,7 +172,6 @@ ${source.agents
 [agents.${agent.id}]
 description = ${quoteToml(agent.role)}
 nickname_candidates = [${quoteToml(agent.id)}]
-color = ${quoteToml(agentHexColor(agent.id))}
 config_file = "./agents/${agent.id}.toml"`,
 	)
 	.join("\n")}
@@ -195,7 +193,6 @@ function renderCodexAgent(
 	const model = resolveCodexModel(agent, options);
 	return `model = ${quoteToml(model.model)}
 sandbox_mode = ${quoteToml(agent.tools.includes("write") ? "workspace-write" : "read-only")}
-color = ${quoteToml(agentHexColor(agent.id))}
 ${model.reasoningEffort ? `model_reasoning_effort = ${quoteToml(model.reasoningEffort)}\n` : ""}model_class = ${quoteToml(agent.modelClass)}
 developer_instructions = ${quoteToml(agentPrompt(agent, source))}
 `;
