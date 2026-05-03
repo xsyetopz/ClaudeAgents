@@ -5,6 +5,7 @@ import {
 	confirm,
 	intro,
 	isCancel,
+	multiselect,
 	outro,
 	select,
 	text,
@@ -25,6 +26,7 @@ type InteractiveAction =
 	| "check";
 type InteractiveProvider = "all" | "codex" | "claude" | "opencode";
 type ProviderSingle = Exclude<InteractiveProvider, "all">;
+type ProviderMulti = ProviderSingle[];
 type Scope = "project" | "global";
 
 export async function runInteractiveCommand(repoRoot: string): Promise<void> {
@@ -36,8 +38,16 @@ export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 			message: "Choose workflow",
 			options: [
 				{ value: "preview", label: "Preview", hint: "no writes" },
-				{ value: "deploy", label: "Deploy", hint: "dry-run by default" },
-				{ value: "plugins", label: "Plugins", hint: "sync provider plugins" },
+				{
+					value: "deploy",
+					label: "Deploy",
+					hint: "render and merge managed artifacts",
+				},
+				{
+					value: "plugins",
+					label: "Plugins",
+					hint: "sync provider plugin payloads",
+				},
 				{
 					value: "features",
 					label: "Features",
@@ -48,7 +58,7 @@ export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 					label: "Uninstall",
 					hint: "remove OAL-owned files",
 				},
-				{ value: "check", label: "Check", hint: "validate source" },
+				{ value: "check", label: "Check", hint: "validate source graph" },
 			],
 		}),
 	);
@@ -66,10 +76,10 @@ export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 }
 
 async function interactivePreview(repoRoot: string): Promise<void> {
-	const provider = await providerPrompt({ allowAll: true });
+	const provider = await providerPrompt();
 	const scope = await scopePrompt();
 	const args = ["--provider", provider, "--scope", scope];
-	if (scope === "global") args.push("--home", await homePrompt());
+	if (scope === "global") args.push("--home", await globalHomePrompt());
 	if (
 		await ask<boolean>(
 			confirm({ message: "Include artifact contents?", initialValue: false }),
@@ -80,10 +90,10 @@ async function interactivePreview(repoRoot: string): Promise<void> {
 }
 
 async function interactiveDeploy(repoRoot: string): Promise<void> {
-	const provider = await providerPrompt({ allowAll: true });
+	const provider = await providerPrompt();
 	const scope = await scopePrompt();
 	const args = ["--provider", provider, "--scope", scope];
-	if (scope === "global") args.push("--home", await homePrompt());
+	if (scope === "global") args.push("--home", await globalHomePrompt());
 	else args.push("--target", await targetPrompt());
 	if (
 		await ask<boolean>(
@@ -95,8 +105,8 @@ async function interactiveDeploy(repoRoot: string): Promise<void> {
 }
 
 async function interactivePlugins(repoRoot: string): Promise<void> {
-	const provider = await providerPrompt({ allowAll: true });
-	const args = ["--provider", provider, "--home", await homePrompt()];
+	const provider = await providerPrompt();
+	const args = ["--provider", provider, "--home", await globalHomePrompt()];
 	if (
 		await ask<boolean>(
 			confirm({ message: "Dry-run only?", initialValue: true }),
@@ -107,10 +117,10 @@ async function interactivePlugins(repoRoot: string): Promise<void> {
 }
 
 async function interactiveUninstall(): Promise<void> {
-	const provider = await providerPrompt({ allowAll: false });
+	const provider = await providerSinglePrompt();
 	const scope = await scopePrompt();
 	const args = ["--provider", provider, "--scope", scope];
-	if (scope === "global") args.push("--home", await homePrompt());
+	if (scope === "global") args.push("--home", await globalHomePrompt());
 	else args.push("--target", await targetPrompt());
 	await runUninstallCommand(args);
 }
@@ -138,23 +148,45 @@ async function interactiveFeatures(): Promise<void> {
 	runFeaturesCommand([`--${action}`, feature]);
 }
 
-function providerPrompt(options: {
-	allowAll: true;
-}): Promise<InteractiveProvider>;
-function providerPrompt(options: { allowAll: false }): Promise<ProviderSingle>;
-function providerPrompt(options: {
-	allowAll: boolean;
-}): Promise<InteractiveProvider> {
-	return ask<InteractiveProvider>(
-		select({
-			message: "Provider",
+async function providerPrompt(): Promise<string> {
+	const providers = await ask<ProviderMulti>(
+		multiselect({
+			message: "Providers",
+			required: true,
 			options: [
-				...(options.allowAll
-					? [{ value: "all" as const, label: "All providers" }]
-					: []),
-				{ value: "codex", label: "Codex" },
-				{ value: "claude", label: "Claude Code" },
-				{ value: "opencode", label: "OpenCode" },
+				{ value: "codex", label: "Codex", hint: "AGENTS.md, TOML, hooks" },
+				{
+					value: "claude",
+					label: "Claude Code",
+					hint: "CLAUDE.md, settings, hooks",
+				},
+				{
+					value: "opencode",
+					label: "OpenCode",
+					hint: "JSONC, plugins, tools",
+				},
+			],
+		}),
+	);
+	return providers.length === 3 ? "all" : providers.join(",");
+}
+
+function providerSinglePrompt(): Promise<ProviderSingle> {
+	return ask<ProviderSingle>(
+		select({
+			message: "Provider to remove",
+			options: [
+				{ value: "codex", label: "Codex", hint: "owned Codex artifacts" },
+				{
+					value: "claude",
+					label: "Claude Code",
+					hint: "owned Claude artifacts",
+				},
+				{
+					value: "opencode",
+					label: "OpenCode",
+					hint: "owned OpenCode artifacts",
+				},
 			],
 		}),
 	);
@@ -165,11 +197,11 @@ function scopePrompt(): Promise<Scope> {
 		select({
 			message: "Scope",
 			options: [
-				{ value: "project", label: "Project", hint: "write into one repo" },
+				{ value: "project", label: "Project", hint: "target repository" },
 				{
 					value: "global",
 					label: "Global",
-					hint: "write provider home config",
+					hint: "provider home plus oal shim",
 				},
 			],
 		}),
@@ -198,6 +230,18 @@ async function homePrompt(): Promise<string> {
 			}),
 		),
 	);
+}
+
+async function globalHomePrompt(): Promise<string> {
+	const detectedHome = resolve(homedir());
+	const useDetectedHome = await ask<boolean>(
+		confirm({
+			message: `Use detected home ${detectedHome}?`,
+			initialValue: true,
+		}),
+	);
+	if (useDetectedHome) return detectedHome;
+	return homePrompt();
 }
 
 async function ask<T>(prompt: Promise<unknown>): Promise<T> {

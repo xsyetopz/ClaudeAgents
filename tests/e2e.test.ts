@@ -48,6 +48,7 @@ test("CLI help is Commander-backed and non-interactive-safe", async () => {
 	expect(stdout).toContain("Usage: oal [options] [command]");
 	expect(stdout).toContain("interactive");
 	expect(stdout).toContain("deploy [options]");
+	expect(stdout).not.toContain("generate [options]");
 });
 
 test("CLI global dry-run maps provider artifacts into global homes", async () => {
@@ -64,6 +65,7 @@ test("CLI global dry-run maps provider artifacts into global homes", async () =>
 			"--provider",
 			"all",
 			"--dry-run",
+			"--verbose",
 		],
 		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
 	);
@@ -76,9 +78,79 @@ test("CLI global dry-run maps provider artifacts into global homes", async () =>
 	expect(stdout).toContain(".config/opencode/opencode.jsonc");
 	expect(stdout).toContain(".codex/AGENTS.md");
 	expect(stdout).toContain(".claude/CLAUDE.md");
+	expect(stdout).toContain("OpenAgentLayer deploy DRY RUN");
+	expect(stdout).toContain("binary: write");
 	await expect(
 		readFile(join(home, ".openagentlayer/manifest/global/codex.json"), "utf8"),
 	).rejects.toThrow();
+	await rm(home, { recursive: true, force: true });
+});
+
+test("CLI global deploy installs usable oal shim", async () => {
+	const home = await mkdtemp(join(tmpdir(), "oal-global-bin-e2e-"));
+	const binDir = join(home, "bin");
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"deploy",
+			"--scope",
+			"global",
+			"--home",
+			home,
+			"--bin-dir",
+			binDir,
+			"--provider",
+			"codex",
+			"--quiet",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	const shim = join(binDir, "oal");
+	expect(await readFile(shim, "utf8")).toContain("packages/cli/src/main.ts");
+	const check = Bun.spawn([shim, "check"], {
+		cwd: repoRoot,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	const stdout = await new Response(check.stdout).text();
+	const checkStderr = await new Response(check.stderr).text();
+	expect(await check.exited).toBe(0);
+	expect(checkStderr).toBe("");
+	expect(stdout).toContain("STATUS PASS");
+	await rm(home, { recursive: true, force: true });
+});
+
+test("CLI global deploy can skip oal shim", async () => {
+	const home = await mkdtemp(join(tmpdir(), "oal-global-no-bin-e2e-"));
+	const binDir = join(home, "bin");
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"deploy",
+			"--scope",
+			"global",
+			"--home",
+			home,
+			"--bin-dir",
+			binDir,
+			"--provider",
+			"codex",
+			"--skip-bin",
+			"--dry-run",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).not.toContain("binary:");
+	await expect(readFile(join(binDir, "oal"), "utf8")).rejects.toThrow();
 	await rm(home, { recursive: true, force: true });
 });
 
@@ -198,6 +270,8 @@ test("CLI toolchain shows OS package-manager install plan", async () => {
 	expect(stdout).toContain("sudo apt-get update");
 	expect(stdout).toContain("sudo apt-get install -y bun ripgrep");
 	expect(stdout).toContain("rtk gain");
+	expect(stdout).toContain("rtk init -g --codex");
+	expect(stdout).toContain("rtk init -g --opencode");
 	expect(stdout).toContain("rtk grep --help");
 	expect(stdout).toContain("rtk find --help");
 	expect(stdout).toContain("bunx ctx7 setup --cli --universal");

@@ -12,6 +12,9 @@ test("macOS plan installs Homebrew before core tools when missing", () => {
 	expect(plan.commands[1]).toContain("brew install bun ripgrep fd fzf");
 	expect(plan.requiredTools).toContain("bun");
 	expect(plan.commands).toContain("rtk gain");
+	expect(plan.commands).toContain("rtk init -g --auto-patch");
+	expect(plan.commands).toContain("rtk init -g --codex");
+	expect(plan.commands).toContain("rtk init -g --opencode");
 	expect(plan.commands).toContain("rtk grep --help");
 	expect(plan.commands).toContain("rtk find --help");
 	expect(renderToolchainPlan(plan)).toContain("confirm token savings");

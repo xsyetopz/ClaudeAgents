@@ -42,8 +42,15 @@ Install RTK when it is missing:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh
+rtk --version
 rtk gain
+rtk init -g --auto-patch
+rtk init -g --codex
+rtk init -g --opencode
+rtk init --show
 ```
+
+RTK must be the `rtk-ai/rtk` binary. `rtk gain` verifies the correct package. `rtk init` must create an `RTK.md` policy in global tool config or the current project before OAL hooks enforce RTK-wrapped commands.
 
 ## Install from source
 
@@ -94,7 +101,7 @@ Run without a command in a TTY for guided prompts:
 bun packages/cli/src/main.ts
 ```
 
-The interactive path uses Commander-parsed commands plus Clack prompts. It covers preview, deploy, plugin sync, uninstall, and check. Non-TTY usage prints help instead of blocking for input.
+The interactive path uses Commander-parsed commands plus Clack prompts. It covers preview, deploy, plugin sync, uninstall, and check. Provider prompts use multiselect where the command can act on multiple providers. Global flows detect the home directory automatically and only ask when you override it. Non-TTY usage prints help instead of blocking for input.
 
 Optional feature commands can be printed separately:
 
@@ -150,10 +157,11 @@ Generated files that support comments include OAL managed markers. Edit `source/
 
 ## Deploy globally
 
-Global deploy writes provider-native artifacts under the selected home directory. Dry-run first:
+Global deploy writes provider-native artifacts under the selected home directory. It also installs an owned source-checkout `oal` shim into `$HOME/.local/bin/oal` unless `--skip-bin` is passed. Dry-run first:
 
 ```bash
 bun run deploy -- --scope global --provider all --dry-run
+bun run deploy -- --scope global --provider all --dry-run --verbose
 ```
 
 Apply all providers:
@@ -171,6 +179,16 @@ bun run deploy -- --scope global --provider opencode
 ```
 
 Use `--home /path/to/home` for fixture installs or non-default provider homes. OAL records global ownership under `.openagentlayer/manifest/global/` in that home.
+
+If the binary directory is not in `PATH`, OAL prints the exact `export PATH=...` command. The current shell cannot see a newly available command until `PATH` is updated and the shell command cache is refreshed.
+
+Manage the source-checkout shim directly:
+
+```bash
+bun packages/cli/src/main.ts bin --dry-run
+bun packages/cli/src/main.ts bin
+bun packages/cli/src/main.ts bin --remove
+```
 
 ## Select model plans
 

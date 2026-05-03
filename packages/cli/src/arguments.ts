@@ -28,6 +28,16 @@ export function providerOption(rawProvider: string): Provider | "all" {
 	);
 }
 
+export function providerOptions(rawProvider: string): (Provider | "all")[] {
+	const providers = rawProvider
+		.split(",")
+		.map((provider) => provider.trim())
+		.filter(Boolean)
+		.map(providerOption);
+	if (providers.includes("all")) return ["all"];
+	return [...new Set(providers)] as Provider[];
+}
+
 export function scopeOption(rawScope: string): "project" | "global" {
 	if (rawScope === "project" || rawScope === "global") return rawScope;
 	throw new Error(`Unsupported scope ${rawScope}. Expected project or global.`);

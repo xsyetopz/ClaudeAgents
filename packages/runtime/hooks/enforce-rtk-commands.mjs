@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
 import { bunRewrite } from "./_bun-rewrite.mjs";
 import { asString, createHookRunner } from "./_runtime.mjs";
 
@@ -92,6 +96,31 @@ function evaluate(payload) {
 
 	const rtkExecutable = SUPPORTED_COMMANDS.get(executable);
 	if (rtkExecutable) {
+		const rtkState = inspectRtkState(payload);
+		if (!rtkState.installed) {
+			return {
+				decision: "block",
+				reason:
+					"RTK supports this command, but the rtk-ai/rtk binary is not installed or `rtk gain` failed.",
+				details: [
+					"Install: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh",
+					"Verify: rtk --version && rtk gain",
+				],
+			};
+		}
+		if (!rtkState.policyPresent) {
+			return {
+				decision: "block",
+				reason:
+					"RTK is installed, but no RTK.md was found in global or project policy paths.",
+				details: [
+					"Initialize Claude Code: rtk init -g --auto-patch",
+					"Initialize Codex: rtk init -g --codex",
+					"Initialize OpenCode: rtk init -g --opencode",
+					"Verify: rtk init --show",
+				],
+			};
+		}
 		return {
 			decision: "block",
 			reason: "RTK supports this command; run the RTK form instead.",
@@ -105,6 +134,48 @@ function evaluate(payload) {
 			"RTK has no native filter for this command; use RTK proxy when command output may be noisy.",
 		details: [`Use when useful: rtk proxy -- ${normalized}`],
 	};
+}
+
+function inspectRtkState(payload) {
+	if (typeof payload.rtkInstalled === "boolean") {
+		return {
+			installed: payload.rtkInstalled,
+			policyPresent:
+				typeof payload.rtkPolicyPresent === "boolean"
+					? payload.rtkPolicyPresent
+					: true,
+		};
+	}
+	return {
+		installed: rtkGainWorks(),
+		policyPresent: rtkPolicyPresent(asString(payload.cwd) || process.cwd()),
+	};
+}
+
+function rtkGainWorks() {
+	const result = spawnSync("rtk", ["gain"], {
+		stdio: "ignore",
+		timeout: 1000,
+	});
+	return result.status === 0;
+}
+
+function rtkPolicyPresent(cwd) {
+	return rtkPolicyPaths(cwd).some((path) => existsSync(path));
+}
+
+function rtkPolicyPaths(cwd) {
+	const home = homedir();
+	const projectRoot = resolve(cwd);
+	return [
+		join(home, ".codex/RTK.md"),
+		join(home, ".claude/RTK.md"),
+		join(home, ".config/opencode/RTK.md"),
+		join(projectRoot, "RTK.md"),
+		join(projectRoot, ".codex/RTK.md"),
+		join(projectRoot, ".claude/RTK.md"),
+		join(projectRoot, ".config/opencode/RTK.md"),
+	];
 }
 
 function firstCommandText(payload) {

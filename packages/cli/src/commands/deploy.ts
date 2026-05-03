@@ -1,7 +1,17 @@
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
 import { renderAllProviders, renderProvider } from "@openagentlayer/adapter";
-import { applyDeploy, planDeploy } from "@openagentlayer/deploy";
-import { option, providerOption } from "../arguments";
+import {
+	applyBinInstall,
+	applyDeploy,
+	pathContains,
+	planBinInstall,
+	planDeploy,
+	refineBinPlan,
+} from "@openagentlayer/deploy";
+import { flag, option, providerOptions } from "../arguments";
 import { renderOptions } from "../model-options";
+import { printDeployReport } from "../output";
 import { scopeArtifacts, scopeContext } from "../scope";
 import { loadCheckedSource } from "../source";
 
@@ -10,13 +20,18 @@ export async function runDeployCommand(
 	args: string[],
 ): Promise<void> {
 	const context = scopeContext(args, { requireTarget: true });
-	const provider = providerOption(option(args, "--provider") ?? "all");
+	const providers = providerOptions(option(args, "--provider") ?? "all");
 	const options = await renderOptions(args);
 	const source = await loadCheckedSource(repoRoot);
-	const artifacts =
-		provider === "all"
-			? (await renderAllProviders(source, repoRoot, options)).artifacts
-			: (await renderProvider(provider, source, repoRoot, options)).artifacts;
+	const artifacts = (
+		await Promise.all(
+			providers.map((provider) =>
+				provider === "all"
+					? renderAllProviders(source, repoRoot, options)
+					: renderProvider(provider, source, repoRoot, options),
+			),
+		)
+	).flatMap((set) => set.artifacts);
 	const plan = await planDeploy(
 		context.targetRoot,
 		scopeArtifacts(context, artifacts),
@@ -25,7 +40,47 @@ export async function runDeployCommand(
 			manifestRoot: context.manifestRoot,
 		},
 	);
-	if (args.includes("--dry-run"))
-		console.log(JSON.stringify(plan.changes, null, 2));
-	else await applyDeploy(plan);
+	const dryRun = flag(args, "--dry-run");
+	const quiet = flag(args, "--quiet");
+	const verbose = flag(args, "--verbose");
+	const binDir = resolve(
+		option(args, "--bin-dir") ?? join(homedir(), ".local/bin"),
+	);
+	const shouldInstallBin =
+		context.scope === "global" && !flag(args, "--skip-bin");
+	const binPlan = shouldInstallBin
+		? await refineBinPlan(
+				planBinInstall(binDir, join(repoRoot, "packages/cli/src/main.ts")),
+			)
+		: undefined;
+	printDeployReport(
+		{
+			sourceRoot: repoRoot,
+			providers,
+			scope: context.scope,
+			targetRoot: context.targetRoot,
+			manifestRoot: context.manifestRoot,
+			plan,
+			...(binPlan
+				? {
+						binary: {
+							path: binPlan.path,
+							action: binPlan.action,
+							reason: binPlan.reason,
+							pathReady: pathContains(binDir),
+						},
+					}
+				: {}),
+		},
+		{ dryRun, quiet, verbose },
+	);
+	if (!dryRun) {
+		await applyDeploy(plan);
+		if (binPlan)
+			await applyBinInstall(
+				context.manifestRoot,
+				binPlan,
+				join(repoRoot, "packages/cli/src/main.ts"),
+			);
+	}
 }

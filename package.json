@@ -1,6 +1,6 @@
 {
   "name": "openagentlayer",
-  "version": "0.1.2-beta.6",
+  "version": "0.1.2-beta.7",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -16,8 +16,8 @@
     "biome:format": "bunx biome format . --write --max-diagnostics 16384",
     "accept": "bun packages/cli/src/main.ts accept",
     "check": "bun packages/cli/src/main.ts check",
-    "generate": "bun packages/cli/src/main.ts generate",
     "deploy": "bun packages/cli/src/main.ts deploy",
+    "bin": "bun packages/cli/src/main.ts bin",
     "uninstall": "bun packages/cli/src/main.ts uninstall",
     "plugins": "bun packages/cli/src/main.ts plugins",
     "render": "bun packages/cli/src/main.ts render",

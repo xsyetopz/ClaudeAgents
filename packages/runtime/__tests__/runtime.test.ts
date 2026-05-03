@@ -29,22 +29,55 @@ async function runHook(
 }
 
 test("RTK hook enforces supported commands and proxies unsupported commands", async () => {
-	await expect(runHook({ command: "git status" })).resolves.toMatchObject({
+	await expect(
+		runHook({
+			command: "git status",
+			rtkInstalled: true,
+			rtkPolicyPresent: true,
+		}),
+	).resolves.toMatchObject({
 		decision: "block",
 		details: ["Use: rtk git status"],
 	});
 	await expect(runHook({ command: "rtk git status" })).resolves.toMatchObject({
 		decision: "pass",
 	});
-	await expect(runHook({ command: "cat package.json" })).resolves.toMatchObject(
-		{
-			decision: "block",
-			details: ["Use: rtk read package.json"],
-		},
-	);
+	await expect(
+		runHook({
+			command: "cat package.json",
+			rtkInstalled: true,
+			rtkPolicyPresent: true,
+		}),
+	).resolves.toMatchObject({
+		decision: "block",
+		details: ["Use: rtk read package.json"],
+	});
 	await expect(runHook({ command: "make check" })).resolves.toMatchObject({
 		decision: "warn",
 		details: ["Use when useful: rtk proxy -- make check"],
+	});
+});
+
+test("RTK hook requires binary and RTK.md before enforcing supported commands", async () => {
+	await expect(
+		runHook({
+			command: "git status",
+			rtkInstalled: false,
+			rtkPolicyPresent: false,
+		}),
+	).resolves.toMatchObject({
+		decision: "block",
+		reason: expect.stringContaining("binary"),
+	});
+	await expect(
+		runHook({
+			command: "git status",
+			rtkInstalled: true,
+			rtkPolicyPresent: false,
+		}),
+	).resolves.toMatchObject({
+		decision: "block",
+		details: expect.arrayContaining(["Initialize Codex: rtk init -g --codex"]),
 	});
 });
 

@@ -41,6 +41,8 @@ bun run check
 
 `bun` is a required OAL runtime dependency. The Homebrew cask depends on Bun, and `bun run toolchain` includes Bun in OS package-manager setup plans so generated Bun shims do not fail at use time.
 
+RTK setup must use `rtk-ai/rtk`: install it, verify with `rtk gain`, then initialize provider policies with `rtk init -g --auto-patch`, `rtk init -g --codex`, and `rtk init -g --opencode`. OAL RTK hooks enforce RTK only when the binary works and `RTK.md` exists globally or in the project.
+
 Preview exactly what OAL would generate before writing anything:
 
 ```bash
@@ -80,17 +82,24 @@ Detailed setup options are in [INSTALLATION.md](INSTALLATION.md).
 
 ## Provider support
 
-| Capability                          | Claude Code                                                     | Codex                                                                                      | OpenCode                                                                |
-| ----------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Provider-native agents or subagents | ✅ Markdown agents with models, tools, and colors.               | ✅ TOML agents with model routes and quoted hex colors.                                     | ✅ Config agents plus Markdown agent files with quoted hex colors.       |
-| Skills                              | ✅ `.claude/skills/*/SKILL.md`.                                  | ✅ `.codex/openagentlayer/skills/*/SKILL.md`.                                               | ✅ `.opencode/skills/*/SKILL.md`.                                        |
-| Commands and routes                 | ✅ Slash-command Markdown files.                                 | 🟡 Routes are rendered into `AGENTS.md` because Codex has no matching command-file surface. | ✅ Command Markdown files and config command entries.                    |
-| Hooks                               | ✅ Provider hook command entries plus executable `.mjs` scripts. | ✅ Executable `.mjs` hooks and Codex feature flags.                                         | 🟡 Executable `.mjs` scripts plus plugin guidance.                       |
-| Custom tools                        | ❌ No OpenCode-style custom tool surface.                        | ❌ No OpenCode-style custom tool surface.                                                   | ✅ TypeScript tools using `@opencode-ai/plugin`.                         |
-| Config rendering                    | ✅ `.claude/settings.json` and `CLAUDE.md`.                      | ✅ `.codex/config.toml` and `AGENTS.md`.                                                    | ✅ `opencode.jsonc`, plugins, instructions, tools, commands, and agents. |
-| Model routing                       | ✅ Claude allowlisted models only.                               | ✅ Codex allowlisted models only.                                                           | ✅ OAL OpenCode fallback model list.                                     |
-| RTK and privileged runtime          | 🟡 Privileged runtime helpers.                                   | ✅ RTK zsh shim, command shims, and privileged runtime helpers.                             | 🟡 Privileged runtime helpers.                                           |
-| Manifest deploy and uninstall       | ✅ OAL-owned artifact tracking.                                  | ✅ OAL-owned artifact tracking.                                                             | ✅ OAL-owned artifact tracking.                                          |
+Legend: ✅ supported, ⚠️ partial/provider-limited, 🚧 under construction, ❌ unsupported by provider surface, - not applicable.
+
+| Capability                | Claude Code                            | Codex                                   | OpenCode                                   |
+| ------------------------- | -------------------------------------- | --------------------------------------- | ------------------------------------------ |
+| Agents/subagents          | ✅ Markdown agents.                     | ✅ TOML agents.                          | ✅ Markdown plus config agents.             |
+| Per-agent model routing   | ✅ Claude allowlist.                    | ✅ Codex allowlist.                      | ✅ Auth model detection plus free fallback. |
+| Per-agent colors          | ✅ Quoted hex frontmatter.              | ✅ Quoted hex TOML values.               | ✅ Quoted hex frontmatter.                  |
+| Skills                    | ✅ `skills/*/SKILL.md`.                 | ✅ `openagentlayer/skills/*/SKILL.md`.   | ✅ `skills/*/SKILL.md`.                     |
+| Commands/routes           | ✅ Slash-command Markdown.              | ⚠️ Rendered into `AGENTS.md`.            | ✅ Command Markdown plus config entries.    |
+| Hooks                     | ✅ Hook entries plus executable `.mjs`. | ✅ Executable `.mjs` plus feature flags. | ⚠️ Plugin-mediated executable `.mjs`.       |
+| Custom tools              | ❌ No matching provider surface.        | ❌ No matching provider surface.         | ✅ `@opencode-ai/plugin` TypeScript tools.  |
+| Provider instructions     | ✅ `CLAUDE.md`.                         | ✅ `AGENTS.md`.                          | ✅ instruction file plus config reference.  |
+| Structured config merge   | ✅ `settings.json`.                     | ✅ `config.toml`.                        | ✅ `opencode.jsonc`.                        |
+| Plugin payload sync       | ✅ Claude plugin layout.                | ✅ Codex plugin layout.                  | ✅ OpenCode plugin layout.                  |
+| RTK command enforcement   | ⚠️ Requires `rtk init -g --auto-patch`. | ✅ OAL shims plus `rtk init -g --codex`. | ⚠️ Requires `rtk init -g --opencode`.       |
+| Privileged exec helper    | ✅ Executable helper scripts.           | ✅ Executable helper scripts.            | ✅ Executable helper scripts.               |
+| Manifest deploy/uninstall | ✅ OAL-owned artifact tracking.         | ✅ OAL-owned artifact tracking.          | ✅ OAL-owned artifact tracking.             |
+| Drift checks              | ✅ Generated edit guards.               | ✅ Generated edit guards.                | ✅ Generated edit guards.                   |
 
 ## Model plans
 
@@ -121,21 +130,22 @@ bun run preview -- --provider opencode --plan opencode-auto --opencode-models-fi
 
 Run through package scripts from a source checkout, or replace `bun run <script> --` with `oal` after installing the binary.
 
-| Command                | Purpose                                                                              | Common flags                                                                | Safe first command                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `check`                | Load source, validate policy, and prove renderability.                               | None.                                                                       | `bun run check`.                                                                        |
-| `preview`              | Show generated artifact paths and optional file contents without writing.            | `--scope`, `--home`, `--provider`, `--path`, `--content`, `--plan`.         | `bun run preview -- --provider all`.                                                    |
-| `render` or `generate` | Write generated artifacts into an output directory.                                  | `--scope`, `--home`, `--provider`, `--out`, `--plan`.                       | `bun run render -- --provider codex --out generated`.                                   |
-| `deploy`               | Merge OAL artifacts into a target project or global provider home.                   | `--target`, `--scope project\|global`, `--home`, `--provider`, `--dry-run`. | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
-| `uninstall`            | Remove one provider's OAL-owned artifacts from a target project or provider home.    | `--target`, `--scope project\|global`, `--home`, `--provider`.              | `bun run uninstall -- --target /path/to/project --scope project --provider codex`.      |
-| `plugins`              | Sync provider plugin payloads into user-level provider homes.                        | `--home`, `--provider`, `--dry-run`, `--plan`, `--opencode-models-file`.    | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
-| `toolchain`            | Print OS package-manager setup commands for OAL-friendly tools.                      | `--os`, `--pkg`, `--optional`, `--json`.                                    | `bun run toolchain -- --os macos --optional ctx7,playwright`.                           |
-| `features`             | Print optional feature install or removal commands.                                  | `--install`, `--remove`.                                                    | `bun run features -- --install ctx7,playwright`.                                        |
-| `rtk-gain`             | Check RTK token-savings policy.                                                      | `--from-file`, `--allow-empty-history`.                                     | `bun run rtk-gain -- --allow-empty-history`.                                            |
-| `roadmap-evidence`     | Print the acceptance evidence ledger.                                                | None.                                                                       | `bun run roadmap:evidence`.                                                             |
-| `accept`               | Run full product acceptance over source, rendering, deploy, uninstall, and fixtures. | None.                                                                       | `bun run accept`.                                                                       |
+| Command            | Purpose                                                                              | Common flags                                                                                        | Safe first command                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `check`            | Load source, validate policy, and prove renderability.                               | None.                                                                                               | `bun run check`.                                                                        |
+| `preview`          | Show generated artifact paths and optional file contents without writing.            | `--scope`, `--home`, `--provider`, `--path`, `--content`, `--plan`.                                 | `bun run preview -- --provider all`.                                                    |
+| `render`           | Write generated artifacts into an output directory.                                  | `--scope`, `--home`, `--provider`, `--out`, `--plan`.                                               | `bun run render -- --provider codex --out generated`.                                   |
+| `deploy`           | Merge OAL artifacts into a target project or global provider home.                   | `--target`, `--scope project\|global`, `--home`, `--provider`, `--dry-run`, `--verbose`, `--quiet`. | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
+| `bin`              | Install, inspect, or remove the source-checkout `oal` executable shim.               | `--home`, `--bin-dir`, `--remove`, `--dry-run`.                                                     | `bun packages/cli/src/main.ts bin --dry-run`.                                           |
+| `uninstall`        | Remove one provider's OAL-owned artifacts from a target project or provider home.    | `--target`, `--scope project\|global`, `--home`, `--provider`.                                      | `bun run uninstall -- --target /path/to/project --scope project --provider codex`.      |
+| `plugins`          | Sync provider plugin payloads into user-level provider homes.                        | `--home`, `--provider`, `--dry-run`, `--plan`, `--opencode-models-file`.                            | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
+| `toolchain`        | Print OS package-manager setup commands for OAL-friendly tools.                      | `--os`, `--pkg`, `--optional`, `--json`.                                                            | `bun run toolchain -- --os macos --optional ctx7,playwright`.                           |
+| `features`         | Print optional feature install or removal commands.                                  | `--install`, `--remove`.                                                                            | `bun run features -- --install ctx7,playwright`.                                        |
+| `rtk-gain`         | Check RTK token-savings policy.                                                      | `--from-file`, `--allow-empty-history`.                                                             | `bun run rtk-gain -- --allow-empty-history`.                                            |
+| `roadmap-evidence` | Print the acceptance evidence ledger.                                                | None.                                                                                               | `bun run roadmap:evidence`.                                                             |
+| `accept`           | Run full product acceptance over source, rendering, deploy, uninstall, and fixtures. | None.                                                                                               | `bun run accept`.                                                                       |
 
-Providers accepted by provider-aware commands are `all`, `codex`, `claude`, and `opencode`. `uninstall` requires one provider, not `all`.
+Providers accepted by provider-aware commands are `all`, `codex`, `claude`, `opencode`, or a comma-separated set such as `codex,opencode`. `uninstall` requires one provider, not `all`.
 
 ## Interactive CLI
 
@@ -146,7 +156,7 @@ bun packages/cli/src/main.ts
 bun packages/cli/src/main.ts interactive
 ```
 
-Interactive mode supports preview, deploy, plugin sync, uninstall, and check. Non-interactive commands remain script-safe and print help instead of prompting when stdin is not a TTY.
+Interactive mode supports preview, deploy, plugin sync, uninstall, and check. Provider prompts use multiselect where commands can act on multiple providers. Global deploy auto-detects the home directory and only asks when you override it. Non-interactive commands remain script-safe and print help instead of prompting when stdin is not a TTY.
 
 Optional features are explicit add/remove commands on top of OAL:
 

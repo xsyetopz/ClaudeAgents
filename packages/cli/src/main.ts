@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { Command } from "commander";
 import { runAcceptCommand } from "./commands/accept";
+import { runBinCommand } from "./commands/bin";
 import { runCheckCommand } from "./commands/check";
 import { runDeployCommand } from "./commands/deploy";
 import { runPluginsCommand } from "./commands/plugins";
@@ -31,6 +32,24 @@ program
 	.description("validate OAL source and renderability")
 	.action(() => runCheckCommand(repoRoot));
 
+program
+	.command("bin")
+	.description("install, inspect, or remove the local oal executable shim")
+	.option("--home <dir>", "home directory for global CLI ownership")
+	.option("--bin-dir <dir>", "directory that should contain oal")
+	.option("--remove", "remove owned oal executable shim")
+	.option("--dry-run", "print planned binary change without writing")
+	.addHelpText(
+		"after",
+		`
+Examples:
+  $ oal bin --dry-run
+  $ oal bin --bin-dir "$HOME/.local/bin"
+  $ oal bin --remove
+`,
+	)
+	.action((options) => runBinCommand(repoRoot, argsFromOptions(options)));
+
 addRenderOptions(
 	program
 		.command("preview")
@@ -40,14 +59,13 @@ addRenderOptions(
 	.option("--content", "include artifact content")
 	.action((options) => runPreviewCommand(repoRoot, argsFromOptions(options)));
 
-for (const name of ["render", "generate"] as const)
-	addRenderOptions(
-		program
-			.command(name)
-			.description("write generated artifacts to an output dir"),
-	)
-		.option("--out <dir>", "output directory")
-		.action((options) => runRenderCommand(repoRoot, argsFromOptions(options)));
+addRenderOptions(
+	program
+		.command("render")
+		.description("write generated artifacts to an output dir"),
+)
+	.option("--out <dir>", "output directory")
+	.action((options) => runRenderCommand(repoRoot, argsFromOptions(options)));
 
 addRenderOptions(
 	program
@@ -55,7 +73,20 @@ addRenderOptions(
 		.description("deploy OAL artifacts into project or global provider home"),
 )
 	.option("--target <dir>", "project target directory")
+	.option("--bin-dir <dir>", "global executable directory")
+	.option("--skip-bin", "skip global oal executable shim")
 	.option("--dry-run", "print planned changes without writing")
+	.option("--verbose", "print per-artifact deploy details")
+	.option("--quiet", "suppress normal progress output")
+	.addHelpText(
+		"after",
+		`
+Examples:
+  $ oal deploy --target /repo --scope project --provider all --dry-run
+  $ oal deploy --scope global --provider codex,opencode --dry-run --verbose
+  $ oal deploy --scope global --provider all --bin-dir "$HOME/.local/bin"
+`,
+	)
 	.action((options) => runDeployCommand(repoRoot, argsFromOptions(options)));
 
 program
@@ -64,7 +95,17 @@ program
 	.option("--target <dir>", "project target directory")
 	.option("--scope <scope>", "project or global", "project")
 	.option("--home <dir>", "home directory for global scope")
+	.option("--verbose", "print per-artifact uninstall details")
+	.option("--quiet", "suppress normal progress output")
 	.requiredOption("--provider <provider>", "codex, claude, or opencode")
+	.addHelpText(
+		"after",
+		`
+Examples:
+  $ oal uninstall --target /repo --scope project --provider codex
+  $ oal uninstall --scope global --provider opencode --verbose
+`,
+	)
 	.action((options) => runUninstallCommand(argsFromOptions(options)));
 
 addRenderOptions(
@@ -122,7 +163,11 @@ try {
 
 function addRenderOptions(command: Command): Command {
 	return command
-		.option("--provider <provider>", "all, codex, claude, or opencode", "all")
+		.option(
+			"--provider <provider>",
+			"all, codex, claude, opencode, or comma-separated set",
+			"all",
+		)
 		.option("--scope <scope>", "project or global", "project")
 		.option("--home <dir>", "home directory for global scope")
 		.option("--plan <plan>", "model plan")
@@ -139,6 +184,7 @@ function argsFromOptions(options: Record<string, unknown>): string[] {
 	pushValue(args, "--path", options["path"]);
 	pushValue(args, "--out", options["out"]);
 	pushValue(args, "--target", options["target"]);
+	pushValue(args, "--bin-dir", options["binDir"]);
 	pushValue(args, "--os", options["os"]);
 	pushValue(args, "--pkg", options["pkg"]);
 	pushValue(args, "--optional", options["optional"]);
@@ -147,6 +193,10 @@ function argsFromOptions(options: Record<string, unknown>): string[] {
 	pushValue(args, "--from-file", options["fromFile"]);
 	pushFlag(args, "--content", options["content"]);
 	pushFlag(args, "--dry-run", options["dryRun"]);
+	pushFlag(args, "--skip-bin", options["skipBin"]);
+	pushFlag(args, "--verbose", options["verbose"]);
+	pushFlag(args, "--quiet", options["quiet"]);
+	pushFlag(args, "--remove", options["remove"]);
 	pushFlag(args, "--json", options["json"]);
 	pushFlag(args, "--homebrew-missing", options["homebrewMissing"]);
 	pushFlag(args, "--allow-empty-history", options["allowEmptyHistory"]);
