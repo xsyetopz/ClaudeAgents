@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { evaluateContextInjection } from "./_context-injection.mjs";
+import { evaluateRouteContextInjection } from "./_context-injection.mjs";
 import { createHookRunner } from "./_runtime.mjs";
 
-createHookRunner("inject-route-context", evaluateContextInjection);
+createHookRunner("inject-route-context", evaluateRouteContextInjection);

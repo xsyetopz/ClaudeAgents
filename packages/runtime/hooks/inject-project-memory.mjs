@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { evaluateContextInjection } from "./_context-injection.mjs";
+import { evaluateLifecycleContextInjection } from "./_context-injection.mjs";
 import { createHookRunner } from "./_runtime.mjs";
 
-createHookRunner("inject-project-memory", evaluateContextInjection);
+createHookRunner("inject-project-memory", evaluateLifecycleContextInjection);

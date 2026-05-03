@@ -166,6 +166,49 @@ test("RTK hook rewrites replaceable Node.js package-manager commands to Bun", as
 	});
 });
 
+test("context injection hooks are quiet on lifecycle events without route metadata", async () => {
+	for (const hook of [
+		"inject-git-context.mjs",
+		"inject-package-scripts.mjs",
+		"inject-project-memory.mjs",
+	] as const) {
+		await expect(
+			runNamedHook(hook, { hook_event_name: "SessionStart" }),
+		).resolves.toMatchObject({ decision: "pass" });
+	}
+	await expect(
+		runNamedHook("inject-route-context.mjs", {
+			hook_event_name: "UserPromptSubmit",
+		}),
+	).resolves.toMatchObject({ decision: "pass" });
+	await expect(
+		runNamedHook("inject-route-context.mjs", {
+			hook_event_name: "UserPromptSubmit",
+			provider: "codex",
+			route: "implement",
+		}),
+	).resolves.toMatchObject({
+		decision: "pass",
+		details: ["provider=codex", "route=implement"],
+	});
+});
+
+test("context injection lifecycle passes emit no native provider output", async () => {
+	const codex = await runHookRaw("inject-git-context.mjs", {
+		hook_event_name: "SessionStart",
+	});
+	expect(codex.code).toBe(0);
+	expect(codex.stdout).toBe("");
+
+	const claude = await runHookRaw(
+		"inject-git-context.mjs",
+		{ hook_event_name: "SessionStart" },
+		{ OAL_HOOK_PROVIDER: "claude" },
+	);
+	expect(claude.code).toBe(0);
+	expect(claude.stdout).toBe("");
+});
+
 test("secret guard blocks nested provider inputs, auth headers, db URLs, and encoded secrets", async () => {
 	for (const input of [
 		{ tool_input: { file_path: ".aws/credentials" } },
