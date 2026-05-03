@@ -87,10 +87,10 @@ Detailed setup options are in [INSTALLATION.md](INSTALLATION.md).
 
 OAL routes generated agents by role class instead of giving every agent the same model. Use `--plan` with `preview`, `render`, `deploy`, or `plugins`.
 
-| Provider    | Plans                                       | Notes                                                                                                      |
-| ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Codex       | `plus`, `pro-5`, `pro-20`                   | Uses only `gpt-5.5`, `gpt-5.4-mini`, and `gpt-5.3-codex`.                                                  |
-| Claude Code | `max-5`, `max-20`, `max-20-long`            | `max-20-long` is the explicit `claude-opus-4-6[1m]` route for long-context Opus agents.                    |
+| Provider    | Plans                                             | Notes                                                                                                   |
+| ----------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Codex       | `plus`, `pro-5`, `pro-20`                         | Uses only `gpt-5.5`, `gpt-5.4-mini`, and `gpt-5.3-codex`.                                               |
+| Claude Code | `max-5`, `max-20`, `max-20-long`                  | `max-20-long` is the explicit `claude-opus-4-6[1m]` route for long-context Opus agents.                 |
 | OpenCode    | `opencode-auto`, `opencode-auth`, `opencode-free` | `opencode-auto` reads `opencode models` when available and falls back to OAL's free OpenCode model set. |
 
 Examples:
@@ -112,18 +112,18 @@ bun run preview -- --provider opencode --plan opencode-auto --opencode-models-fi
 
 Run through package scripts from a source checkout, or replace `bun run <script> --` with `oal` after installing the binary.
 
-| Command                | Purpose                                                                              | Common flags                                                                  | Safe first command                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `check`                | Load source, validate policy, and prove renderability.                               | None.                                                                         | `bun run check`.                                                                        |
-| `preview`              | Show generated artifact paths and optional file contents without writing.            | `--provider`, `--path`, `--content`, `--plan`, `--opencode-models-file`.      | `bun run preview -- --provider all`.                                                    |
-| `render` or `generate` | Write generated artifacts into an output directory.                                  | `--provider`, `--out`, `--plan`, `--opencode-models-file`.                    | `bun run render -- --provider codex --out generated`.                                   |
-| `deploy`               | Merge OAL artifacts into a target project and write ownership metadata.              | `--target`, `--scope project`, `--provider`, `--dry-run`, `--plan`.           | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
-| `uninstall`            | Remove one provider's OAL-owned artifacts from a target project.                     | `--target`, `--scope project`, `--provider`.                                  | `bun run uninstall -- --target /path/to/project --scope project --provider codex`.      |
-| `plugins`              | Sync provider plugin payloads into user-level provider homes.                        | `--home`, `--provider`, `--dry-run`, `--plan`, `--opencode-models-file`.      | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
-| `toolchain`            | Print OS package-manager setup commands for OAL-friendly tools.                      | `--os`, `--pkg`, `--optional`, `--json`.                                      | `bun run toolchain -- --os macos --optional ctx7,playwright`.                           |
-| `rtk-gain`             | Check RTK token-savings policy.                                                      | `--from-file`, `--allow-empty-history`.                                       | `bun run rtk-gain -- --allow-empty-history`.                                            |
-| `roadmap-evidence`     | Print the acceptance evidence ledger.                                                | None.                                                                         | `bun run roadmap:evidence`.                                                             |
-| `accept`               | Run full product acceptance over source, rendering, deploy, uninstall, and fixtures. | None.                                                                         | `bun run accept`.                                                                       |
+| Command                | Purpose                                                                              | Common flags                                                             | Safe first command                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `check`                | Load source, validate policy, and prove renderability.                               | None.                                                                    | `bun run check`.                                                                        |
+| `preview`              | Show generated artifact paths and optional file contents without writing.            | `--provider`, `--path`, `--content`, `--plan`, `--opencode-models-file`. | `bun run preview -- --provider all`.                                                    |
+| `render` or `generate` | Write generated artifacts into an output directory.                                  | `--provider`, `--out`, `--plan`, `--opencode-models-file`.               | `bun run render -- --provider codex --out generated`.                                   |
+| `deploy`               | Merge OAL artifacts into a target project and write ownership metadata.              | `--target`, `--scope project`, `--provider`, `--dry-run`, `--plan`.      | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
+| `uninstall`            | Remove one provider's OAL-owned artifacts from a target project.                     | `--target`, `--scope project`, `--provider`.                             | `bun run uninstall -- --target /path/to/project --scope project --provider codex`.      |
+| `plugins`              | Sync provider plugin payloads into user-level provider homes.                        | `--home`, `--provider`, `--dry-run`, `--plan`, `--opencode-models-file`. | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
+| `toolchain`            | Print OS package-manager setup commands for OAL-friendly tools.                      | `--os`, `--pkg`, `--optional`, `--json`.                                 | `bun run toolchain -- --os macos --optional ctx7,playwright`.                           |
+| `rtk-gain`             | Check RTK token-savings policy.                                                      | `--from-file`, `--allow-empty-history`.                                  | `bun run rtk-gain -- --allow-empty-history`.                                            |
+| `roadmap-evidence`     | Print the acceptance evidence ledger.                                                | None.                                                                    | `bun run roadmap:evidence`.                                                             |
+| `accept`               | Run full product acceptance over source, rendering, deploy, uninstall, and fixtures. | None.                                                                    | `bun run accept`.                                                                       |
 
 Providers accepted by provider-aware commands are `all`, `codex`, `claude`, and `opencode`. `uninstall` requires one provider, not `all`.
 
