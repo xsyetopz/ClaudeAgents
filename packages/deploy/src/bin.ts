@@ -118,7 +118,7 @@ async function writeManifest(
 ): Promise<void> {
 	const target = binManifestPath(home);
 	await mkdir(dirname(target), { recursive: true });
-	await writeFile(target, JSON.stringify(manifest, null, 2));
+	await writeFile(target, JSON.stringify(manifest, undefined, 2));
 }
 
 function hash(content: string): string {

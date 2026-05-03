@@ -81,8 +81,8 @@ function globalContent(
 				() => '"instructions/openagentlayer.md"',
 			)
 			.replaceAll(
-				'".opencode/plugins/openagentlayer.ts"',
-				() => '"plugins/openagentlayer.ts"',
+				'"./.opencode/plugins/openagentlayer.ts"',
+				() => '"./plugins/openagentlayer.ts"',
 			);
 	return content;
 }

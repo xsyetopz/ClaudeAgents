@@ -21,7 +21,7 @@ export function runToolchainCommand(args: string[]): void {
 	const plan = planToolchainInstall(
 		packageManager ? { ...baseOptions, packageManager } : baseOptions,
 	);
-	if (args.includes("--json")) console.log(JSON.stringify(plan, null, 2));
+	if (args.includes("--json")) console.log(JSON.stringify(plan, undefined, 2));
 	else console.log(renderToolchainPlan(plan));
 }
 

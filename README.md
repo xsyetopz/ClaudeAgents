@@ -236,20 +236,19 @@ rtk ruby -c homebrew/Casks/openagentlayer.rb
 
 ## Repository layout
 
-| Path                           | Responsibility                                                                                    |
-| ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `source/`                      | Authored OAL source records, prompt templates, skills, routes, hooks, tools, and provider inputs. |
-| `packages/source`              | Source loading and record validation.                                                             |
-| `packages/policy`              | Product policy validation, model allowlists, and generated text checks.                           |
-| `packages/adapter`             | Provider-native rendering for Claude Code, Codex, and OpenCode.                                   |
-| `packages/adapter/src/schemas` | Upstream provider schemas and their sync manifest.                                                |
-| `packages/deploy`              | Deploy planning, merging, backup, and uninstall behavior.                                         |
-| `packages/manifest`            | OAL ownership metadata.                                                                           |
-| `packages/runtime`             | Executable `.mjs` hooks and runtime helpers.                                                      |
-| `packages/accept`              | Full product acceptance gates.                                                                    |
-| `packages/cli`                 | User-facing command entrypoint.                                                                   |
-| `packages/toolchain`           | OS toolchain setup plan rendering.                                                                |
-| `plugins/`                     | Provider plugin metadata and sync roots, not duplicated generated content.                        |
+| Path                 | Responsibility                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| `source/`            | Authored OAL source records, prompt templates, skills, routes, hooks, tools, and provider inputs. |
+| `packages/source`    | Source loading and record validation.                                                             |
+| `packages/policy`    | Product policy validation, model allowlists, and generated text checks.                           |
+| `packages/adapter`   | Provider-native rendering for Claude Code, Codex, and OpenCode.                                   |
+| `packages/deploy`    | Deploy planning, merging, backup, and uninstall behavior.                                         |
+| `packages/manifest`  | OAL ownership metadata.                                                                           |
+| `packages/runtime`   | Executable `.mjs` hooks and runtime helpers.                                                      |
+| `packages/accept`    | Full product acceptance gates.                                                                    |
+| `packages/cli`       | User-facing command entrypoint.                                                                   |
+| `packages/toolchain` | OS toolchain setup plan rendering.                                                                |
+| `plugins/`           | Provider plugin metadata and sync roots, not duplicated generated content.                        |
 
 ## Validation
 
@@ -260,7 +259,6 @@ rtk bun run biome:format
 rtk bun run test
 rtk bun run accept
 rtk proxy -- bun run accept
-rtk proxy -- bun run schemas:check
 rtk bun run rtk-gain -- --allow-empty-history
 rtk bun run biome:check
 rtk bunx tsc --noEmit

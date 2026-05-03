@@ -4,10 +4,9 @@
   "type": "module",
   "private": true,
   "exports": "./src/index.ts",
-  "dependencies": {
-    "@openagentlayer/artifact": "workspace:*",
-    "@openagentlayer/source": "workspace:*",
-    "@opencode-ai/plugin": "^1.14.33",
-    "ajv": "^8.20.0"
-  }
+	"dependencies": {
+		"@openagentlayer/artifact": "workspace:*",
+		"@openagentlayer/source": "workspace:*",
+		"@opencode-ai/plugin": "^1.14.33"
+	}
 }

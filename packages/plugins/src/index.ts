@@ -247,7 +247,7 @@ function claudeHooksPluginArtifact(source: OalSource): Artifact {
 	return {
 		provider: "claude",
 		path: ".claude/hooks/hooks.json",
-		content: `${JSON.stringify({ hooks }, null, 2)}\n`,
+		content: `${JSON.stringify({ hooks }, undefined, 2)}\n`,
 		sourceId: "plugin:claude-hooks",
 		mode: "file",
 	};
@@ -295,7 +295,7 @@ async function writeCodexMarketplace(
 				interface: { displayName: "OpenAgentLayer" },
 				plugins: nextPlugins,
 			},
-			null,
+			undefined,
 			2,
 		)}\n`,
 		"Codex marketplace entry",
@@ -481,5 +481,7 @@ async function exists(path: string): Promise<boolean> {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object" && !Array.isArray(value);
+	return (
+		value !== undefined && typeof value === "object" && !Array.isArray(value)
+	);
 }

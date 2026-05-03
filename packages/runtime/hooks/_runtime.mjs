@@ -49,33 +49,109 @@ function printOutcome(outcome) {
 	process.stdout.write(`${JSON.stringify(outcome)}\n`);
 }
 
-function providerOutcome(payload, outcome) {
-	if (outcome.decision !== "block") return outcome;
-	const reason = [
+function hookEvent(payload) {
+	return (
+		asString(payload.hook_event_name) ||
+		asString(payload.hookEventName) ||
+		asString(process.env.OAL_HOOK_EVENT)
+	);
+}
+
+function hookProvider(payload) {
+	return (
+		asString(payload.provider) ||
+		asString(payload.hook_provider) ||
+		asString(process.env.OAL_HOOK_PROVIDER) ||
+		"codex"
+	);
+}
+
+function reasonText(outcome) {
+	return [
 		outcome.reason,
 		...(Array.isArray(outcome.details) ? outcome.details : []),
 	]
 		.filter(Boolean)
 		.join("\n");
-	if (payload.hook_event_name === "PreToolUse") {
-		return {
-			hookSpecificOutput: {
-				hookEventName: "PreToolUse",
-				permissionDecision: "deny",
-				permissionDecisionReason: reason,
-			},
-		};
-	}
+}
+
+function isStopEvent(event) {
+	return event === "Stop" || event === "SubagentStop";
+}
+
+function preToolUseDeny(reason) {
 	return {
-		...outcome,
 		hookSpecificOutput: {
 			hookEventName: "PreToolUse",
 			permissionDecision: "deny",
 			permissionDecisionReason: reason,
 		},
-		permissionDecision: "deny",
-		permissionDecisionReason: reason,
 	};
+}
+
+function codexOutcome(event, outcome) {
+	const reason = reasonText(outcome);
+	switch (outcome.decision) {
+		case "pass":
+			return undefined;
+		case "warn":
+			return event === "SessionStart"
+				? {
+						continue: true,
+						systemMessage: reason,
+						hookSpecificOutput: {
+							hookEventName: "SessionStart",
+							additionalContext: reason,
+						},
+					}
+				: undefined;
+		default:
+			if (event === "PreToolUse") {
+				return preToolUseDeny(reason);
+			}
+			if (isStopEvent(event)) {
+				return {
+					continue: false,
+					stopReason: reason,
+					systemMessage: reason,
+				};
+			}
+			return { continue: true, systemMessage: reason };
+	}
+}
+
+function claudeOutcome(event, outcome) {
+	const reason = reasonText(outcome);
+	switch (outcome.decision) {
+		case "pass":
+			return undefined;
+		case "warn":
+			return {
+				suppressOutput: false,
+				hookSpecificOutput: {
+					hookEventName: event || "SessionStart",
+					additionalContext: reason,
+				},
+			};
+		default:
+			if (event === "PreToolUse") return preToolUseDeny(reason);
+			if (isStopEvent(event)) return { decision: "block", reason };
+			return {
+				suppressOutput: false,
+				hookSpecificOutput: {
+					hookEventName: event || "PostToolUse",
+					additionalContext: reason,
+				},
+			};
+	}
+}
+
+function providerOutcome(payload, outcome) {
+	const event = hookEvent(payload);
+	const provider = hookProvider(payload);
+	if (process.env.OAL_HOOK_RAW_OUTCOME === "1") return outcome;
+	if (provider === "claude") return claudeOutcome(event, outcome);
+	return codexOutcome(event, outcome);
 }
 
 export function createHookRunner(hook, evaluate) {
@@ -83,36 +159,42 @@ export function createHookRunner(hook, evaluate) {
 	const { payload, malformed } = parsePayload(rawInput);
 
 	if (malformed) {
-		printOutcome({
-			hook,
-			decision: "block",
-			reason: "Malformed hook input.",
-			details: [malformed],
-		});
+		printOutcome(
+			providerOutcome(payload, {
+				hook,
+				decision: "block",
+				reason: "Malformed hook input.",
+				details: [malformed],
+			}) ?? { continue: false, systemMessage: malformed },
+		);
 		process.exitCode = 1;
 		return;
 	}
 
 	const outcome = evaluate(payload);
 	if (!(outcome && DECISIONS.has(outcome.decision))) {
-		printOutcome({
-			hook,
-			decision: "block",
-			reason: "Hook returned an invalid decision.",
-		});
+		printOutcome(
+			providerOutcome(payload, {
+				hook,
+				decision: "block",
+				reason: "Hook returned an invalid decision.",
+			}) ?? {
+				continue: false,
+				systemMessage: "Hook returned an invalid decision.",
+			},
+		);
 		process.exitCode = 1;
 		return;
 	}
 
-	printOutcome(
-		providerOutcome(payload, {
-			hook,
-			decision: outcome.decision,
-			reason: outcome.reason,
-			details: Array.isArray(outcome.details) ? outcome.details : undefined,
-		}),
-	);
-	if (outcome.decision === "block" && payload.hook_event_name !== "PreToolUse")
+	const formatted = providerOutcome(payload, {
+		hook,
+		decision: outcome.decision,
+		reason: outcome.reason,
+		details: Array.isArray(outcome.details) ? outcome.details : undefined,
+	});
+	if (formatted) printOutcome(formatted);
+	if (outcome.decision === "block" && hookEvent(payload) !== "PreToolUse")
 		process.exitCode = 2;
 }
 

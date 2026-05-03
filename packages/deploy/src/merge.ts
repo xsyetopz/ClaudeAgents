@@ -59,7 +59,7 @@ export function removeManagedConfig(
 		unknown
 	>;
 	for (const key of keys) delete currentObject[key];
-	return JSON.stringify(currentObject, null, 2);
+	return JSON.stringify(currentObject, undefined, 2);
 }
 
 function mergeJsonConfig(
@@ -77,7 +77,7 @@ function mergeJsonConfig(
 	>;
 	const mergedObject = deepMerge(currentObject, incomingObject);
 	if (path.endsWith("opencode.jsonc")) delete mergedObject["model_fallbacks"];
-	const merged = JSON.stringify(mergedObject, null, 2);
+	const merged = JSON.stringify(mergedObject, undefined, 2);
 	if (!path.endsWith(".jsonc")) return merged;
 	const comments = leadingJsonComments(incoming);
 	return comments.length > 0 ? `${comments}\n${merged}` : merged;
@@ -99,7 +99,9 @@ function deepMerge(
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object" && !Array.isArray(value);
+	return (
+		value !== undefined && typeof value === "object" && !Array.isArray(value)
+	);
 }
 
 function mergeTomlConfig(current: string, incoming: string): string {

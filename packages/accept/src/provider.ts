@@ -188,7 +188,7 @@ async function assertRuntimeArtifacts(targetRoot: string): Promise<void> {
 	if (
 		!(
 			plugin.includes('import type { Plugin } from "@opencode-ai/plugin"') &&
-			plugin.includes("export default OpenAgentLayerPlugin")
+			plugin.includes("export const OpenAgentLayerPlugin")
 		)
 	)
 		throw new Error("OpenCode plugin does not use native plugin typing.");

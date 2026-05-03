@@ -4,7 +4,6 @@ import { renderClaude } from "./claude";
 import { renderCodex } from "./codex";
 import type { RenderOptions } from "./model-routing";
 import { renderOpenCode } from "./opencode";
-import { validateProviderConfigArtifacts } from "./schema-validation";
 
 export type { ModelPlan, RenderOptions } from "./model-routing";
 export {
@@ -36,7 +35,6 @@ export async function renderAllProviders(
 		renderOpenCode(source, repoRoot, options),
 	]);
 	const artifacts = sets.flatMap((set) => set.artifacts);
-	await validateProviderConfigArtifacts(artifacts);
 	return {
 		artifacts,
 		unsupported: sets.flatMap((set) => set.unsupported),
@@ -55,6 +53,5 @@ export async function renderProvider(
 			: provider === "claude"
 				? await renderClaude(source, repoRoot, options)
 				: await renderOpenCode(source, repoRoot, options);
-	await validateProviderConfigArtifacts(set.artifacts);
 	return set;
 }

@@ -1,0 +1,29 @@
+import { asArray, asString } from "./_runtime.mjs";
+
+export function evaluateRouteContract(payload) {
+	const routeKind = asString(payload.routeKind) || asString(payload.kind);
+	const commandEvidence =
+		asString(payload.commandEvidence) || asString(payload.validationEvidence);
+	if (
+		routeKind === "edit-required" &&
+		asArray(payload.changedFiles).length === 0
+	) {
+		return {
+			decision: "block",
+			reason: "Edit-required route needs changed-file evidence.",
+		};
+	}
+	if (routeKind === "execution-required" && !commandEvidence) {
+		return {
+			decision: "block",
+			reason: "Execution-required route needs command evidence.",
+		};
+	}
+	if (payload.explanationOnly === true) {
+		return {
+			decision: "block",
+			reason: "Completion flagged as explanation-only by structured signal.",
+		};
+	}
+	return { decision: "pass", reason: "Route contract satisfied." };
+}

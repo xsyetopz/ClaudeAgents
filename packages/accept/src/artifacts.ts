@@ -230,7 +230,7 @@ function assertProvenanceMarkers(artifacts: Artifact[]): void {
 	]);
 	assertArtifact(".opencode/plugins/openagentlayer.ts", artifacts, [
 		'import type { Plugin } from "@opencode-ai/plugin"',
-		"export default OpenAgentLayerPlugin",
+		"export const OpenAgentLayerPlugin",
 	]);
 	const hook = findArtifact(
 		".codex/openagentlayer/hooks/block-destructive-commands.mjs",

@@ -24,6 +24,6 @@ export async function applyDeploy(plan: DeployPlan): Promise<void> {
 		};
 		const target = join(plan.manifestRoot, manifestPath(provider, plan.scope));
 		await mkdir(dirname(target), { recursive: true });
-		await writeFile(target, JSON.stringify(providerManifest, null, 2));
+		await writeFile(target, JSON.stringify(providerManifest, undefined, 2));
 	}
 }

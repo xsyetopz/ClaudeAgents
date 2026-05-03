@@ -13,11 +13,11 @@ export async function seedUserFiles(targetRoot: string): Promise<void> {
 	);
 	await writeFile(
 		join(targetRoot, ".claude/settings.json"),
-		JSON.stringify({ userOwned: true }, null, 2),
+		JSON.stringify({ userOwned: true }, undefined, 2),
 	);
 	await writeFile(
 		join(targetRoot, "opencode.jsonc"),
-		JSON.stringify({ userOwned: true }, null, 2),
+		JSON.stringify({ userOwned: true }, undefined, 2),
 	);
 	await writeFile(
 		join(targetRoot, "AGENTS.md"),

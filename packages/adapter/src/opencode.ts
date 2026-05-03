@@ -35,7 +35,11 @@ export async function renderOpenCode(
 		withProvenance({
 			provider: PROVIDER,
 			path: "opencode.jsonc",
-			content: JSON.stringify(renderOpenCodeConfig(source, options), null, 2),
+			content: JSON.stringify(
+				renderOpenCodeConfig(source, options),
+				undefined,
+				2,
+			),
 			sourceId: "config:opencode",
 			mode: "config",
 		}),
@@ -118,7 +122,7 @@ function renderOpenCodeConfig(
 		small_model: OPENCODE_MODEL_FALLBACKS[1],
 		default_agent: "hephaestus",
 		instructions: [".opencode/instructions/openagentlayer.md"],
-		plugin: [".opencode/plugins/openagentlayer.ts"],
+		plugin: ["./.opencode/plugins/openagentlayer.ts"],
 		permission: {
 			read: "allow",
 			grep: "allow",
@@ -240,20 +244,62 @@ export const ${camelCase(tool.id)} = tool({
 }
 
 function renderOpenCodePlugin(source: OalSource): string {
+	const hookScripts = JSON.stringify(source.hooks.map((hook) => hook.script));
 	return `import type { Plugin } from "@opencode-ai/plugin";
+import { evaluateCommandPolicy } from "../openagentlayer/hooks/_command-policy.mjs";
+import { bunRewrite } from "../openagentlayer/hooks/_bun-rewrite.mjs";
+import { evaluateDestructiveCommand, evaluateUnsafeGit } from "../openagentlayer/hooks/_command-safety.mjs";
+import { evaluateSecretGuard } from "../openagentlayer/hooks/_secret-guard.mjs";
 
-const OpenAgentLayerPlugin: Plugin = async () => ({
+function commandArg(output: { args?: Record<string, unknown> }) {
+	const command = output.args?.command;
+	return typeof command === "string" ? command : "";
+}
+
+function blockIfNeeded(result: { decision?: string; reason?: string; details?: unknown[] }) {
+	if (result.decision === "block")
+		throw new Error([result.reason, ...(result.details ?? [])].join("\\n"));
+}
+
+function replacementFrom(details: unknown) {
+	if (!Array.isArray(details)) return "";
+	const line = details.find((item) => typeof item === "string" && item.startsWith("Use: "));
+	return typeof line === "string" ? line.slice("Use: ".length) : "";
+}
+
+export const OpenAgentLayerPlugin: Plugin = async () => ({
 	"tool.execute.before": async (input, output) => {
+		const payload = { tool_input: output.args, args: output.args };
+		blockIfNeeded(evaluateSecretGuard(payload));
 		if (input.tool === "bash") {
-			output.metadata = {
-				...(output.metadata ?? {}),
-				openagentlayer: "Guard hooks are installed under .opencode/openagentlayer/hooks",
-			};
+			const command = commandArg(output);
+			blockIfNeeded(evaluateSecretGuard({ ...payload, command }));
+			blockIfNeeded(evaluateDestructiveCommand({ ...payload, command }));
+			blockIfNeeded(evaluateUnsafeGit({ ...payload, command }));
+			const result = evaluateCommandPolicy(command, {
+				bunRewrite,
+				rtkInstalled: true,
+				rtkPolicyPresent: true
+			});
+			if (result.decision === "block") {
+				const replacement = replacementFrom(result.details);
+				if (replacement) {
+					output.args.command = replacement;
+					return;
+				}
+				throw new Error([result.reason, ...(result.details ?? [])].join("\\n"));
+			}
 		}
+	},
+	"tool.execute.after": async (_input, output) => {
+		const text = String(output.output ?? output.stdout ?? output.stderr ?? "");
+		blockIfNeeded(evaluateSecretGuard({ output: text }));
+	},
+	event: async ({ event }) => {
+		if (event.type === "session.idle") return;
 	},
 });
 
-export default OpenAgentLayerPlugin;
-export const hookScripts = ${JSON.stringify(source.hooks.map((hook) => hook.script))};
+export const hookScripts = ${hookScripts};
 `;
 }

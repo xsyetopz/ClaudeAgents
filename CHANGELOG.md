@@ -5,6 +5,30 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.4-beta.1] - 2026-05-03
+
+### Added
+
+- Added Gitleaks upstream as the secret-rule source with an OAL patch layer for developer and provider gaps.
+- Added Codex/OpenCode provider-e2e live checks for hook and plugin behavior.
+
+### Changed
+
+- Replaced OAL-maintained secret regex tables with synced Gitleaks rules plus `patches/gitleaks-oal-rules.patch`.
+- Removed provider schema drift checks tied to upstream schemas that OAL does not own.
+- Fixed provider hook output and deployment for Codex hooks, Claude hook events, and OpenCode plugin hooks.
+- Updated OpenCode plugin rendering to use documented local plugin paths and named plugin exports.
+
+### Verified
+
+- `rtk proxy -- bun run gitleaks:check`
+- `rtk proxy -- bunx tsc --noEmit`
+- `rtk proxy -- bun run biome:check`
+- `rtk proxy -- bun run test`
+- `rtk proxy -- bun run accept`
+- `rtk proxy -- bun packages/cli/src/main.ts provider-e2e --provider codex --live`
+- `rtk proxy -- bun packages/cli/src/main.ts provider-e2e --provider opencode --live`
+
 ## [0.1.3-beta.4] - 2026-05-03
 
 ### Added
@@ -40,7 +64,6 @@ material only and is not part of the OAL release line.
 - `rtk proxy -- bunx tsc --noEmit`
 - `rtk proxy -- bun run test`
 - `rtk proxy -- bun run biome:check`
-- `rtk proxy -- bun run schemas:check`
 - `rtk proxy -- bun run accept`
 - `rtk proxy -- ruby -c homebrew/Casks/openagentlayer.rb`
 
@@ -73,7 +96,6 @@ material only and is not part of the OAL release line.
 - `rtk proxy -- bunx tsc --noEmit`
 - `rtk proxy -- bun run test`
 - `rtk proxy -- bun run biome:check`
-- `rtk proxy -- bun run schemas:check`
 - `rtk proxy -- bun run accept`
 - `rtk proxy -- ruby -c homebrew/Casks/openagentlayer.rb`
 
@@ -81,16 +103,12 @@ material only and is not part of the OAL release line.
 
 ### Added
 
-- Added upstream provider schema sync metadata and `schemas:sync` / `schemas:check` commands for Codex, Claude Code, and OpenCode config schemas.
-- Added generated provider config validation against synced upstream schemas before artifacts are returned.
-- Added CI schema drift checking so provider schema updates are visible before release.
 
 ### Changed
 
 - Removed internal model class routing from source records, validation, docs, tests, and generated provider artifacts.
 - Routed provider models directly from subscription-specific plans.
-- Updated Codex profile rendering to use schema-valid reasoning, verbosity, notice, and zsh shim keys.
-- Updated Claude and OpenCode generated config shapes to match their upstream schemas.
+- Updated Codex profile rendering for reasoning, verbosity, notice, and zsh shim keys.
 - Kept current-code naming clean by removing stale product-name traces outside excluded legacy material.
 
 ### Verified
@@ -98,7 +116,6 @@ material only and is not part of the OAL release line.
 - `rtk proxy -- bunx tsc --noEmit`
 - `rtk proxy -- bun run test`
 - `rtk proxy -- bun run biome:check`
-- `rtk proxy -- bun run schemas:check`
 - `rtk proxy -- bun run accept`
 - `rtk proxy -- ruby -c homebrew/Casks/openagentlayer.rb`
 

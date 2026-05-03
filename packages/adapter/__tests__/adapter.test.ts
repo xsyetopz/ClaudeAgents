@@ -14,7 +14,8 @@ test("OpenCode config renders OAL fallback models", async () => {
 			rendered.artifacts.find((artifact) => artifact.path === "opencode.jsonc")
 				?.content ?? "{}",
 		),
-	) as { model: string; small_model: string };
+	) as { model: string; small_model: string; plugin: string[] };
+	expect(config.plugin).toContain("./.opencode/plugins/openagentlayer.ts");
 	expect(config.model).toBe(OPENCODE_MODEL_FALLBACKS[0]);
 	expect(config.small_model).toBe(OPENCODE_MODEL_FALLBACKS[1]);
 });
@@ -119,6 +120,36 @@ test("Codex shims use shared unshim helper and RTK command wrappers", async () =
 	expect(cargo).toContain('oal_shim_exec rtk cargo "$@"');
 });
 
+test("Codex renders hooks only in hooks.json with provider event env", async () => {
+	const graph = await loadSource(resolve(repoRoot, "source"));
+	const rendered = await renderProvider("codex", graph.source, repoRoot);
+	const config = rendered.artifacts.find(
+		(artifact) => artifact.path === ".codex/config.toml",
+	)?.content;
+	expect(config).not.toContain("[hooks]");
+	const hooks = JSON.parse(
+		rendered.artifacts.find((artifact) => artifact.path === ".codex/hooks.json")
+			?.content ?? "{}",
+	) as { hooks: Record<string, Array<{ hooks: Array<{ command: string }> }>> };
+	expect(hooks.hooks["PreToolUse"]?.[0]?.hooks[0]?.command).toContain(
+		"OAL_HOOK_PROVIDER=codex OAL_HOOK_EVENT=PreToolUse",
+	);
+});
+
+test("Claude renders every authored hook event with provider event env", async () => {
+	const graph = await loadSource(resolve(repoRoot, "source"));
+	const rendered = await renderProvider("claude", graph.source, repoRoot);
+	const settings = JSON.parse(
+		rendered.artifacts.find(
+			(artifact) => artifact.path === ".claude/settings.json",
+		)?.content ?? "{}",
+	) as { hooks: Record<string, Array<{ hooks: Array<{ command: string }> }>> };
+	expect(settings.hooks["Stop"]?.length).toBeGreaterThan(1);
+	expect(settings.hooks["SubagentStop"]?.[0]?.hooks[0]?.command).toContain(
+		"OAL_HOOK_PROVIDER=claude OAL_HOOK_EVENT=SubagentStop",
+	);
+});
+
 test("OpenCode renders real OAL command policy and RTK tools", async () => {
 	const graph = await loadSource(resolve(repoRoot, "source"));
 	const rendered = await renderProvider("opencode", graph.source, repoRoot);
@@ -136,6 +167,19 @@ test("OpenCode renders real OAL command policy and RTK tools", async () => {
 		(artifact) => artifact.path === ".opencode/tools/provider_surface_map.ts",
 	)?.content;
 	expect(surfaceTool).toContain(".opencode/plugins/openagentlayer.ts");
+	const plugin = rendered.artifacts.find(
+		(artifact) => artifact.path === ".opencode/plugins/openagentlayer.ts",
+	)?.content;
+	expect(plugin).toContain("export const OpenAgentLayerPlugin");
+	expect(plugin).not.toContain("export default OpenAgentLayerPlugin");
+	expect(plugin).toContain('"tool.execute.before"');
+	expect(plugin).toContain('"tool.execute.after"');
+	expect(plugin).toContain("evaluateCommandPolicy");
+	expect(plugin).toContain("evaluateSecretGuard");
+	expect(plugin).toContain("evaluateDestructiveCommand");
+	expect(plugin).toContain("evaluateUnsafeGit");
+	expect(plugin).toContain("output.args.command = replacement");
+	expect(plugin).not.toContain("output.metadata");
 });
 
 function stripJsonComments(text: string): string {

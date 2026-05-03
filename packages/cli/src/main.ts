@@ -193,7 +193,7 @@ program
 	)
 	.option(
 		"--provider <provider>",
-		"all, codex, opencode, or comma-separated set",
+		"all, codex, claude, opencode, or comma-separated set",
 		"all",
 	)
 	.option("--live", "run live headless prompts in temp fixtures")

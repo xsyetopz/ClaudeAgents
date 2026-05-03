@@ -23,7 +23,6 @@ function evaluate(payload) {
 			details: asArray(payload.contractViolations).map(String),
 		};
 	}
-
 	if (payload.cavemanCompliant === true) {
 		return { decision: "pass", reason: "Caveman contract satisfied." };
 	}

@@ -9,4 +9,4 @@ const generated =
 		path,
 	);
 const source = path.startsWith("source/") || path.startsWith("packages/");
-console.log(JSON.stringify({ path, generated, source }, null, 2));
+console.log(JSON.stringify({ path, generated, source }, undefined, 2));

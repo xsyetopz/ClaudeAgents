@@ -12,9 +12,10 @@ import { flag, option, providerOptions } from "../arguments";
 import { expandProviders } from "../provider-binaries";
 import { runDeployCommand } from "./deploy";
 
-type E2eProvider = "codex" | "opencode";
+type E2eProvider = "codex" | "claude" | "opencode";
 
 const OAL_EVIDENCE_PATTERN = /OAL|OpenAgentLayer|\.codex|\.opencode/i;
+const CLAUDE_EVIDENCE_PATTERN = /OAL|OpenAgentLayer|\.claude\/settings\.json/i;
 const BUNX_HOOK_PATTERN = /rtk proxy -- bunx prettier foo\.js/;
 
 export async function runProviderE2eCommand(
@@ -25,41 +26,61 @@ export async function runProviderE2eCommand(
 		providerOptions(option(args, "--provider") ?? "all"),
 	).filter(
 		(provider): provider is E2eProvider =>
-			provider === "codex" || provider === "opencode",
+			provider === "codex" || provider === "claude" || provider === "opencode",
 	);
 	const live = flag(args, "--live");
 	console.log("# OAL Provider E2E");
 	for (const provider of requested) {
-		await printVersion(provider);
+		const available = await printVersion(provider);
+		if (!available) continue;
 		if (provider === "opencode") await printOpenCodeModels();
 		if (live) await runLivePrompt(repoRoot, provider);
 		else
 			console.log(
-				`${provider}: STATUS BLOCKED live prompt not run; pass --live to spend provider tokens and test hooks/shims.`,
+				`${provider}: STATUS READY live prompt skipped; pass --live to spend provider tokens and test hooks/shims.`,
 			);
 	}
 }
 
-async function printVersion(provider: E2eProvider): Promise<void> {
+async function printVersion(provider: E2eProvider): Promise<boolean> {
 	const result = await run(
 		provider,
 		provider === "codex" ? ["--version"] : ["--version"],
 		process.cwd(),
 	);
-	if (result.code !== 0)
-		throw new Error(`${provider} binary check failed: ${result.stderr}`);
+	if (result.code === 127) {
+		console.log(`${provider}: STATUS BLOCKED binary not found in PATH`);
+		return false;
+	}
+	if (result.code !== 0) {
+		console.log(
+			`${provider}: STATUS BLOCKED binary check failed: ${result.stderr.trim() || result.stdout.trim()}`,
+		);
+		return false;
+	}
 	console.log(`${provider}: version ${result.stdout.trim()}`);
+	return true;
 }
 
 async function printOpenCodeModels(): Promise<void> {
-	const result = await run("opencode", ["models"], process.cwd());
-	if (result.code === 0) {
-		console.log("opencode: models OK");
-		return;
-	}
-	console.log(
-		`opencode: STATUS BLOCKED model/auth check failed: ${result.stderr.trim() || result.stdout.trim()}`,
+	const stateRoot = await mkdtemp(
+		join(tmpdir(), "oal-provider-e2e-opencode-state-"),
 	);
+	try {
+		const result = await run("opencode", ["models", "--pure"], process.cwd(), {
+			XDG_CONFIG_HOME: join(stateRoot, "config"),
+			XDG_DATA_HOME: join(stateRoot, "data"),
+		});
+		if (result.code === 0) {
+			console.log("opencode: models OK");
+			return;
+		}
+		console.log(
+			`opencode: STATUS BLOCKED model/auth check failed: ${result.stderr.trim() || result.stdout.trim()}`,
+		);
+	} finally {
+		await rm(stateRoot, { recursive: true, force: true });
+	}
 }
 
 async function runLivePrompt(
@@ -70,8 +91,15 @@ async function runLivePrompt(
 		await runCodexLivePrompt(repoRoot);
 		return;
 	}
+	if (provider === "claude") {
+		await runClaudeLivePrompt(repoRoot);
+		return;
+	}
 	const fixture = await mkdtemp(
 		join(tmpdir(), `oal-provider-e2e-${provider}-`),
+	);
+	const stateRoot = await mkdtemp(
+		join(tmpdir(), "oal-provider-e2e-opencode-state-"),
 	);
 	try {
 		await runDeployCommand(repoRoot, [
@@ -100,6 +128,10 @@ async function runLivePrompt(
 				prompt,
 			],
 			fixture,
+			{
+				XDG_CONFIG_HOME: join(stateRoot, "config"),
+				XDG_DATA_HOME: join(stateRoot, "data"),
+			},
 		);
 		const output = `${result.stdout}\n${result.stderr}`;
 		if (result.code === 0 && OAL_EVIDENCE_PATTERN.test(output))
@@ -111,6 +143,43 @@ async function runLivePrompt(
 		else
 			throw new Error(
 				`${provider}: STATUS BLOCKED live prompt failed: ${result.stderr.trim() || result.stdout.trim()}`,
+			);
+	} finally {
+		await rm(fixture, { recursive: true, force: true });
+		await rm(stateRoot, { recursive: true, force: true });
+	}
+}
+
+async function runClaudeLivePrompt(repoRoot: string): Promise<void> {
+	const fixture = await mkdtemp(join(tmpdir(), "oal-provider-e2e-claude-"));
+	try {
+		await runDeployCommand(repoRoot, [
+			"--target",
+			fixture,
+			"--provider",
+			"claude",
+			"--scope",
+			"project",
+			"--quiet",
+		]);
+		await runDeployedRuntimeChecks(fixture, "claude");
+		const prompt =
+			"Report whether OAL Claude config loaded. Do not edit files. Final answer must mention OAL and .claude/settings.json only.";
+		const result = await run(
+			"claude",
+			["-p", prompt, "--output-format", "json"],
+			fixture,
+		);
+		const output = `${result.stdout}\n${result.stderr}`;
+		if (result.code === 0 && CLAUDE_EVIDENCE_PATTERN.test(output))
+			console.log("claude: STATUS PASS live prompt completed");
+		else if (result.code === 0)
+			throw new Error(
+				`claude: STATUS BLOCKED live prompt missed expected evidence. output=${snippet(result.stdout || result.stderr)}`,
+			);
+		else
+			throw new Error(
+				`claude: STATUS BLOCKED live prompt failed: ${result.stderr.trim() || result.stdout.trim()}`,
 			);
 	} finally {
 		await rm(fixture, { recursive: true, force: true });
@@ -206,13 +275,16 @@ async function runDeployedRuntimeChecks(
 	const hookRoot =
 		provider === "codex"
 			? ".codex/openagentlayer/hooks"
-			: ".opencode/openagentlayer/hooks";
+			: provider === "claude"
+				? ".claude/hooks/scripts"
+				: ".opencode/openagentlayer/hooks";
 	const hook = join(fixture, hookRoot, "enforce-rtk-commands.mjs");
 	const hookResult = await runWithStdin(
 		"bun",
 		[hook],
 		fixture,
 		JSON.stringify({ command: "npx prettier foo.js" }),
+		{ OAL_HOOK_RAW_OUTCOME: "1" },
 	);
 	if (!hookResult.stdout.includes('"decision":"block"'))
 		throw new Error(
@@ -265,12 +337,18 @@ async function run(
 	cwd: string,
 	env: NodeJS.ProcessEnv = {},
 ): Promise<{ code: number; stdout: string; stderr: string }> {
-	const proc = Bun.spawn([command, ...args], {
-		cwd,
-		env: { ...process.env, ...env },
-		stdout: "pipe",
-		stderr: "pipe",
-	});
+	let proc: Bun.Subprocess<"ignore", "pipe", "pipe">;
+	try {
+		proc = Bun.spawn([command, ...args], {
+			cwd,
+			env: { ...process.env, ...env },
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		return { code: 127, stdout: "", stderr: message };
+	}
 	let timedOut = false;
 	const timeout = setTimeout(() => {
 		timedOut = true;
@@ -294,9 +372,11 @@ async function runWithStdin(
 	args: string[],
 	cwd: string,
 	stdin: string,
+	env: NodeJS.ProcessEnv = {},
 ): Promise<{ code: number; stdout: string; stderr: string }> {
 	const proc = Bun.spawn([command, ...args], {
 		cwd,
+		env: { ...process.env, ...env },
 		stdin: "pipe",
 		stdout: "pipe",
 		stderr: "pipe",

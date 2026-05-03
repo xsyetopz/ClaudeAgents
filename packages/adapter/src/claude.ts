@@ -23,7 +23,7 @@ export async function renderClaude(
 		withProvenance({
 			provider: PROVIDER,
 			path: ".claude/settings.json",
-			content: JSON.stringify(renderClaudeSettings(source), null, 2),
+			content: JSON.stringify(renderClaudeSettings(source), undefined, 2),
 			sourceId: "config:claude",
 			mode: "config",
 		}),
@@ -98,22 +98,26 @@ function renderClaudeSettings(source: OalSource): unknown {
 				},
 			},
 		},
-		hooks: Object.fromEntries(
-			source.hooks.map((hook) => [
-				hook.events.claude?.[0] ?? hook.id,
-				[
+		hooks: renderClaudeHooks(source),
+	};
+}
+
+function renderClaudeHooks(source: OalSource): Record<string, unknown[]> {
+	const hooks: Record<string, unknown[]> = {};
+	for (const hook of source.hooks) {
+		for (const event of hook.events.claude ?? []) {
+			hooks[event] ??= [];
+			hooks[event].push({
+				hooks: [
 					{
-						hooks: [
-							{
-								type: "command",
-								command: `.claude/hooks/scripts/${hook.script}`,
-							},
-						],
+						type: "command",
+						command: `OAL_HOOK_PROVIDER=claude OAL_HOOK_EVENT=${event} .claude/hooks/scripts/${hook.script}`,
 					},
 				],
-			]),
-		),
-	};
+			});
+		}
+	}
+	return hooks;
 }
 
 function renderClaudeAgent(

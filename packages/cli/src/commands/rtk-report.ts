@@ -9,7 +9,7 @@ interface RtkReportRow {
 	input: number;
 	output: number;
 	saved: number;
-	pct: number | null;
+	pct: number | undefined;
 	minutes: number;
 }
 
@@ -173,6 +173,6 @@ function printReport(
 	);
 }
 
-function formatPct(value: number | null): string {
+function formatPct(value: number | undefined): string {
 	return typeof value === "number" ? `${value.toFixed(1)}%` : "n/a";
 }

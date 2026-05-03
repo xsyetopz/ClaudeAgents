@@ -1,9 +1,11 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Artifact } from "@openagentlayer/artifact";
 import type { HookRecord, Provider } from "@openagentlayer/source";
 
 const RUNTIME_HOOK_DIR = "packages/runtime/hooks";
+const MJS_EXTENSION_PATTERN = /\.mjs$/;
+const SUPPORT_PREFIX_PATTERN = /^_/;
 
 export async function renderHookArtifacts(
 	provider: Provider,
@@ -14,50 +16,32 @@ export async function renderHookArtifacts(
 	const providerHooks = hooks.filter((hook) =>
 		hook.providers.includes(provider),
 	);
-	const runtimeSupport = await renderHookArtifact(
-		provider,
-		{
-			id: "runtime_support",
-			script: "_runtime.mjs",
-			providers: [provider],
-			events: {},
-		},
-		`${prefix}/_runtime.mjs`,
-		repoRoot,
-	);
-	const bunRewriteSupport = await renderHookArtifact(
-		provider,
-		{
-			id: "bun_rewrite_support",
-			script: "_bun-rewrite.mjs",
-			providers: [provider],
-			events: {},
-		},
-		`${prefix}/_bun-rewrite.mjs`,
-		repoRoot,
-	);
-	const commandPolicySupport = await renderHookArtifact(
-		provider,
-		{
-			id: "command_policy_support",
-			script: "_command-policy.mjs",
-			providers: [provider],
-			events: {},
-		},
-		`${prefix}/_command-policy.mjs`,
-		repoRoot,
+	const supportScripts = (await readdir(join(repoRoot, RUNTIME_HOOK_DIR)))
+		.filter((script) => script.startsWith("_") && script.endsWith(".mjs"))
+		.sort();
+	const runtimeSupport = await Promise.all(
+		supportScripts.map((script) =>
+			renderHookArtifact(
+				provider,
+				{
+					id: script
+						.replace(MJS_EXTENSION_PATTERN, "")
+						.replace(SUPPORT_PREFIX_PATTERN, ""),
+					script,
+					providers: [provider],
+					events: {},
+				},
+				`${prefix}/${script}`,
+				repoRoot,
+			),
+		),
 	);
 	const hookArtifacts = await Promise.all(
 		providerHooks.map((hook) =>
 			renderHookArtifact(provider, hook, `${prefix}/${hook.script}`, repoRoot),
 		),
 	);
-	return [
-		runtimeSupport,
-		bunRewriteSupport,
-		commandPolicySupport,
-		...hookArtifacts,
-	];
+	return [...runtimeSupport, ...hookArtifacts];
 }
 
 async function renderHookArtifact(

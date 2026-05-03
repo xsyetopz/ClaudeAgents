@@ -156,6 +156,7 @@ export async function assertHooks(
 ): Promise<void> {
 	for (const hook of source.hooks) await assertSourceHook(targetRoot, hook);
 	await assertRtkHookBehavior(targetRoot);
+	await assertProviderNativeHookOutput(targetRoot);
 	await assertMalformedInput(
 		join(targetRoot, ".codex/openagentlayer/hooks/inject-route-context.mjs"),
 	);
@@ -187,6 +188,7 @@ async function assertHook(
 	expected: "pass" | "warn" | "block",
 ): Promise<void> {
 	const proc = Bun.spawn(["bun", scriptPath], {
+		env: { ...process.env, OAL_HOOK_RAW_OUTCOME: "1" },
 		stdin: "pipe",
 		stdout: "pipe",
 		stderr: "pipe",
@@ -214,6 +216,11 @@ async function assertHook(
 
 async function assertMalformedInput(scriptPath: string): Promise<void> {
 	const proc = Bun.spawn(["bun", scriptPath], {
+		env: {
+			...process.env,
+			OAL_HOOK_PROVIDER: "codex",
+			OAL_HOOK_EVENT: "PreToolUse",
+		},
 		stdin: "pipe",
 		stdout: "pipe",
 		stderr: "pipe",
@@ -222,11 +229,84 @@ async function assertMalformedInput(scriptPath: string): Promise<void> {
 	proc.stdin.end();
 	const stdout = await new Response(proc.stdout).text();
 	await proc.exited;
-	const decision = JSON.parse(stdout) as { decision?: string };
-	if (decision.decision !== "block")
+	const output = JSON.parse(stdout) as {
+		hookSpecificOutput?: { permissionDecision?: string };
+	};
+	if (output.hookSpecificOutput?.permissionDecision !== "deny")
 		throw new Error(
 			`Hook ${scriptPath} did not fail closed on malformed input.`,
 		);
+}
+
+async function assertProviderNativeHookOutput(
+	targetRoot: string,
+): Promise<void> {
+	const scriptPath = join(
+		targetRoot,
+		".codex/openagentlayer/hooks/enforce-rtk-commands.mjs",
+	);
+	const pass = await runNativeHook(
+		scriptPath,
+		{ hook_event_name: "PreToolUse", command: "rtk git status" },
+		{ OAL_HOOK_PROVIDER: "codex", OAL_HOOK_EVENT: "PreToolUse" },
+	);
+	if (pass.stdout !== "")
+		throw new Error(
+			"Codex pass hook emitted stdout instead of passing through.",
+		);
+	const codexDeny = await runNativeHook(
+		scriptPath,
+		{ hook_event_name: "PreToolUse", command: "git status" },
+		{ OAL_HOOK_PROVIDER: "codex", OAL_HOOK_EVENT: "PreToolUse" },
+	);
+	if (
+		JSON.parse(codexDeny.stdout).hookSpecificOutput?.permissionDecision !==
+		"deny"
+	)
+		throw new Error("Codex PreToolUse hook did not emit native deny output.");
+	const claudeDeny = await runNativeHook(
+		join(targetRoot, ".claude/hooks/scripts/enforce-rtk-commands.mjs"),
+		{ hook_event_name: "PreToolUse", command: "git status" },
+		{ OAL_HOOK_PROVIDER: "claude", OAL_HOOK_EVENT: "PreToolUse" },
+	);
+	if (
+		JSON.parse(claudeDeny.stdout).hookSpecificOutput?.permissionDecision !==
+		"deny"
+	)
+		throw new Error("Claude PreToolUse hook did not emit native deny output.");
+	const plugin = await readFile(
+		join(targetRoot, ".opencode/plugins/openagentlayer.ts"),
+		"utf8",
+	);
+	for (const term of [
+		'"tool.execute.before"',
+		'"tool.execute.after"',
+		"output.args.command = replacement",
+		"throw new Error",
+	])
+		if (!plugin.includes(term))
+			throw new Error(`OpenCode plugin missing active hook behavior: ${term}`);
+	if (plugin.includes("output.metadata"))
+		throw new Error("OpenCode plugin uses metadata-only hook behavior.");
+}
+
+async function runNativeHook(
+	scriptPath: string,
+	input: unknown,
+	env: Record<string, string>,
+): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+	const proc = Bun.spawn(["bun", scriptPath], {
+		env: { ...process.env, ...env },
+		stdin: "pipe",
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	proc.stdin.write(JSON.stringify(input));
+	proc.stdin.end();
+	const stdout = await new Response(proc.stdout).text();
+	const stderr = await new Response(proc.stderr).text();
+	const exitCode = await proc.exited;
+	return { stdout, stderr, exitCode };
 }
 
 async function assertRtkHookBehavior(targetRoot: string): Promise<void> {

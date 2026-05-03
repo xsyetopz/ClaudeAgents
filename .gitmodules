@@ -6,3 +6,7 @@
 	path = third_party/taste-skill
 	url = https://github.com/Leonxlnx/taste-skill.git
 	branch = main
+[submodule "third_party/gitleaks"]
+	path = third_party/gitleaks
+	url = https://github.com/gitleaks/gitleaks.git
+	branch = master

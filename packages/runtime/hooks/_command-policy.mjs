@@ -59,12 +59,23 @@ const ENV_PREFIX_PATTERN = /^env\s+(?:[A-Za-z_][A-Za-z0-9_]*=[^\s]+\s+)*/;
 const WHITESPACE_PATTERN = /\s+/;
 
 export function evaluateCommandPolicy(command, options = {}) {
-	const normalized = normalizeCommand(command);
-	if (!normalized)
+	const normalizedCommands = commandLines(command).map(stripCommandPrefixes);
+	if (normalizedCommands.length === 0)
 		return {
 			decision: "pass",
 			reason: "Command inspection complete: executable command absent.",
 		};
+	let firstWarning;
+	for (const normalized of normalizedCommands) {
+		const result = evaluateSingleCommand(normalized, options);
+		if (result.decision === "block") return result;
+		if (result.decision === "warn") firstWarning ??= result;
+	}
+	if (firstWarning) return firstWarning;
+	return { decision: "pass", reason: "Command already uses RTK." };
+}
+
+function evaluateSingleCommand(normalized, options) {
 	if (normalized.startsWith("rtk ") || normalized === "rtk")
 		return { decision: "pass", reason: "Command already uses RTK." };
 
@@ -123,12 +134,20 @@ export function evaluateCommandPolicy(command, options = {}) {
 }
 
 export function normalizeCommand(command) {
-	const firstLine = String(command ?? "")
+	const firstLine = commandLines(command)[0];
+	if (!firstLine) return "";
+	return stripCommandPrefixes(firstLine);
+}
+
+function commandLines(command) {
+	return String(command ?? "")
 		.split("\n")
 		.map((line) => line.trim())
-		.find((line) => line.length > 0);
-	if (!firstLine) return "";
-	return firstLine
+		.filter((line) => line.length > 0 && !line.startsWith("#"));
+}
+
+function stripCommandPrefixes(command) {
+	return command
 		.replace(SUDO_PREFIX_PATTERN, "")
 		.replace(ENV_PREFIX_PATTERN, "")
 		.trim();

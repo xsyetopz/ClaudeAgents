@@ -39,7 +39,7 @@ export async function runPluginsCommand(
 		console.log(
 			JSON.stringify(
 				{ changes: result.changes, skippedProviders: availability.skipped },
-				null,
+				undefined,
 				2,
 			),
 		);

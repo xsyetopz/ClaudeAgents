@@ -169,8 +169,6 @@ config_file = "./agents/${agent.id}.toml"`,
 
 [plugins."oal@openagentlayer-local"]
 enabled = true
-
-${renderCodexHooks(source)}
 `;
 }
 
@@ -253,24 +251,6 @@ function renderCodexFeatures(): string {
 	).join("\n");
 }
 
-function renderCodexHooks(source: OalSource): string {
-	const groups = codexHookGroups(source);
-	if (groups.size === 0) return "";
-	return `[hooks]
-${[...groups.entries()]
-	.map(
-		([event, commands]) => `${event} = [
-${commands
-	.map(
-		(command) =>
-			`  { hooks = [{ type = "command", command = ${quoteToml(command)} }] },`,
-	)
-	.join("\n")}
-]`,
-	)
-	.join("\n")}`;
-}
-
 function renderCodexHooksJson(source: OalSource): string {
 	return `${JSON.stringify(
 		{
@@ -283,7 +263,7 @@ function renderCodexHooksJson(source: OalSource): string {
 				]),
 			),
 		},
-		null,
+		undefined,
 		2,
 	)}\n`;
 }
@@ -293,7 +273,7 @@ function codexHookGroups(source: OalSource): Map<string, string[]> {
 		.flatMap((hook) =>
 			(hook.events.codex ?? []).map((event) => ({
 				event,
-				command: `.codex/openagentlayer/hooks/${hook.script}`,
+				command: `OAL_HOOK_PROVIDER=codex OAL_HOOK_EVENT=${event} .codex/openagentlayer/hooks/${hook.script}`,
 			})),
 		)
 		.reduce((byEvent, hook) => {

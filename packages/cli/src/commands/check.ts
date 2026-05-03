@@ -109,8 +109,8 @@ function assertOpenCodeInstalledConfig(config: string): void {
 	if (
 		!(
 			Array.isArray(parsed.plugin) &&
-			(parsed.plugin.includes("plugins/openagentlayer.ts") ||
-				parsed.plugin.includes(".opencode/plugins/openagentlayer.ts"))
+			(parsed.plugin.includes("./plugins/openagentlayer.ts") ||
+				parsed.plugin.includes("./.opencode/plugins/openagentlayer.ts"))
 		)
 	)
 		throw new Error("Installed OpenCode config does not activate OAL plugin.");

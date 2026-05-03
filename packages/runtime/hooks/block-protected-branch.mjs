@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { isProtectedBranchMutation } from "./_command-safety.mjs";
 import {
 	asArray,
 	asString,
@@ -8,14 +9,6 @@ import {
 } from "./_runtime.mjs";
 
 const DEFAULT_PROTECTED_BRANCHES = ["main", "master", "release", "production"];
-
-const RISKY_COMMAND_PATTERNS = [
-	/\bgit\s+push\b/i,
-	/\bgit\s+rebase\b/i,
-	/\bgit\s+reset\b/i,
-	/\bgit\s+commit\b/i,
-	/\bgit\s+merge\b/i,
-];
 
 function evaluate(payload) {
 	if (payload.allowProtectedBranchMutation === true) {
@@ -46,31 +39,21 @@ function evaluate(payload) {
 		};
 	}
 
-	const command =
-		asString(payload.command) ||
-		asString(payload.toolCommand) ||
-		asString(payload.input) ||
-		asString(payload.operation);
-	if (!command) {
+	if (!isProtectedBranchMutation(payload)) {
 		return {
-			decision: "warn",
-			reason: `Protected branch ${currentBranch} needs command context.`,
+			decision: "pass",
+			reason: `Protected branch (${currentBranch}) operation is non-mutating.`,
 		};
 	}
 
-	for (const pattern of RISKY_COMMAND_PATTERNS) {
-		if (pattern.test(command)) {
-			return {
-				decision: "block",
-				reason: `Protected branch mutation blocked on ${currentBranch}.`,
-				details: [command],
-			};
-		}
-	}
-
 	return {
-		decision: "pass",
-		reason: `Protected branch (${currentBranch}) operation is non-mutating.`,
+		decision: "block",
+		reason: `Protected branch mutation blocked on ${currentBranch}.`,
+		details: [
+			asString(payload.command) ||
+				asString(payload.toolCommand) ||
+				asString(payload.operation),
+		].filter(Boolean),
 	};
 }
 

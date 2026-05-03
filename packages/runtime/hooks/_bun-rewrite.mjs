@@ -29,13 +29,18 @@ export function bunRewrite(command) {
 	const executable = tokens[0];
 	const commandArguments = tokens.slice(1);
 	if (!executable) return undefined;
-
-	if (executable === "npx")
-		return ["bunx", ...stripYesFlag(commandArguments)].join(" ");
-	if (executable === "npm") return npmRewrite(commandArguments);
-	if (executable === "pnpm") return pnpmRewrite(commandArguments);
-	if (executable === "yarn") return yarnRewrite(commandArguments);
-	return undefined;
+	switch (executable) {
+		case "npx":
+			return ["bunx", ...stripYesFlag(commandArguments)].join(" ");
+		case "npm":
+			return npmRewrite(commandArguments);
+		case "pnpm":
+			return pnpmRewrite(commandArguments);
+		case "yarn":
+			return yarnRewrite(commandArguments);
+		default:
+			return undefined;
+	}
 }
 
 function npmRewrite(commandArguments) {

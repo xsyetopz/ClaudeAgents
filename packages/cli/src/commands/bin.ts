@@ -20,7 +20,8 @@ export async function runBinCommand(
 	const dryRun = flag(args, "--dry-run");
 	if (flag(args, "--remove")) {
 		if (dryRun) console.log(`DRY RUN remove ${binManifestPath(home)}`);
-		else console.log(JSON.stringify(await removeBinInstall(home), null, 2));
+		else
+			console.log(JSON.stringify(await removeBinInstall(home), undefined, 2));
 		return;
 	}
 	const plan = await refineBinPlan(planBinInstall(binDir, entrypoint));
