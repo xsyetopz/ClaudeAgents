@@ -17,6 +17,7 @@ import { runPluginsCommand } from "./commands/plugins";
 import { runPreviewCommand } from "./commands/preview";
 import { runFeaturesCommand } from "./commands/toolchain";
 import { runUninstallCommand } from "./commands/uninstall";
+import { cavemanModes } from "./source";
 
 type InteractiveAction =
 	| "preview"
@@ -105,6 +106,7 @@ async function interactiveDeploy(repoRoot: string): Promise<void> {
 	const args = ["--provider", provider, "--scope", scope];
 	if (scope === "global") args.push("--home", await globalHomePrompt());
 	else args.push("--target", await targetPrompt());
+	appendCavemanMode(args, await cavemanModePrompt());
 	if (
 		await ask<boolean>(
 			confirm({ message: "Dry-run only?", initialValue: true }),
@@ -117,6 +119,7 @@ async function interactiveDeploy(repoRoot: string): Promise<void> {
 async function interactivePlugins(repoRoot: string): Promise<void> {
 	const provider = await providerPrompt();
 	const args = ["--provider", provider, "--home", await globalHomePrompt()];
+	appendCavemanMode(args, await cavemanModePrompt());
 	if (
 		await ask<boolean>(
 			confirm({ message: "Dry-run only?", initialValue: true }),
@@ -157,6 +160,29 @@ async function interactiveFeatures(): Promise<void> {
 		}),
 	);
 	runFeaturesCommand([`--${action}`, feature]);
+}
+
+function appendCavemanMode(args: string[], mode: string): void {
+	if (mode !== "source") args.push("--caveman-mode", mode);
+}
+
+function cavemanModePrompt(): Promise<string> {
+	return ask<string>(
+		select({
+			message: "Caveman output mode",
+			options: [
+				{
+					value: "source",
+					label: "Source default",
+					hint: "use source/product.json",
+				},
+				...cavemanModes.map((mode) => ({
+					value: mode,
+					label: mode,
+				})),
+			],
+		}),
+	);
 }
 
 async function providerPrompt(): Promise<string> {

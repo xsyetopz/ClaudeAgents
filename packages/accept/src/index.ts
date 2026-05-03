@@ -31,6 +31,7 @@ import {
 } from "./fixture";
 import { assertHomebrewCask } from "./homebrew";
 import { assertHooks } from "./hooks";
+import { assertInstalledFlowSmoke } from "./install-smoke";
 import { assertRepositoryInventory } from "./inventory";
 import { assertPluginMarketplace } from "./plugins";
 import { assertProviderConfigContracts } from "./provider";
@@ -75,6 +76,7 @@ export async function runAcceptance(
 	assertHookScriptsAreRuntimeOwned(graph.source);
 	assertNegativePolicyFixtures(graph.source);
 	await assertCliContracts(repoRoot);
+	await assertInstalledFlowSmoke(repoRoot);
 	assertRoadmapEvidence(await buildRoadmapEvidence(repoRoot));
 	await assertRuntimeHooksExecutable(repoRoot);
 	const rendered = await renderAllProviders(graph.source, repoRoot);

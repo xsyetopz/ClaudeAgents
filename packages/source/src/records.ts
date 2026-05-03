@@ -72,9 +72,23 @@ export interface ToolRecord {
 	body: string;
 }
 
+export type CavemanMode =
+	| "off"
+	| "lite"
+	| "full"
+	| "ultra"
+	| "wenyan-lite"
+	| "wenyan"
+	| "wenyan-ultra";
+
+export interface CavemanConfig {
+	mode: CavemanMode;
+}
+
 export interface ProductSource {
 	version: string;
 	product: { name: "OpenAgentLayer"; shortName: "OAL" };
+	caveman?: CavemanConfig;
 	promptContracts?: ProductPromptContracts;
 	promptTemplates?: ProductPromptTemplates;
 }

@@ -91,17 +91,34 @@ jobs:
       - name: Source check
         run: rtk proxy -- bun run check
       - name: Preview generated artifacts
-        run: rtk proxy -- bun run preview -- --provider all --path .codex/config.toml --content
+        run: rtk proxy -- bun run preview -- --provider all --path .codex/config.toml
+          --content
       - name: Deploy dry-run
         run: |
           target="$(mktemp -d)"
           rtk proxy -- bun run deploy -- --target "$target" --scope project --provider all --dry-run
+      - name: Installed CLI smoke
+        run: |
+          smoke="$(mktemp -d)"
+          mkdir -p "$smoke/provider-bin" "$smoke/project"
+          for provider in codex claude opencode; do
+            printf '#!/usr/bin/env sh\nexit 0\n' > "$smoke/provider-bin/$provider"
+            chmod +x "$smoke/provider-bin/$provider"
+          done
+          export PATH="$smoke/provider-bin:$PATH"
+          rtk proxy -- bun packages/cli/src/main.ts deploy --scope global --home "$smoke/home" --bin-dir "$smoke/bin" --provider all --quiet
+          rtk proxy -- "$smoke/bin/oal" check --verbose
+          rtk proxy -- "$smoke/bin/oal" deploy --target "$smoke/project" --scope project --provider all --quiet
+          test -f "$smoke/project/.codex/config.toml"
+          test -f "$smoke/project/.claude/settings.json"
+          test -f "$smoke/project/opencode.jsonc"
 
   homebrew-submission:
     name: Homebrew submission
     runs-on: macos-15
     needs: [quality, dry-run]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'xsyetopz/OpenAgentLayer'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+      github.repository == 'xsyetopz/OpenAgentLayer'
     env:
       HOMEBREW_TAP_REPOSITORY: ${{ vars.HOMEBREW_TAP_REPOSITORY }}
       HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

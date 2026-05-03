@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { allPluginProviders, syncPlugins } from "@openagentlayer/plugins";
 import { flag, option, providerOptions } from "../arguments";
 import { renderOptions } from "../model-options";
+import { printChanges } from "../output";
 import { installableProviders } from "../provider-binaries";
 import { loadCheckedSource } from "../source";
 
@@ -20,7 +21,7 @@ export async function runPluginsCommand(
 	);
 	const home = resolve(option(args, "--home") ?? homedir());
 	const options = await renderOptions(args);
-	const source = await loadCheckedSource(repoRoot);
+	const source = await loadCheckedSource(repoRoot, args);
 	const result = await syncPlugins({
 		repoRoot,
 		home,
@@ -29,11 +30,24 @@ export async function runPluginsCommand(
 		dryRun: flag(args, "--dry-run"),
 		renderOptions: options,
 	});
-	console.log(
-		JSON.stringify(
-			{ changes: result.changes, skippedProviders: availability.skipped },
-			null,
-			2,
-		),
-	);
+	if (flag(args, "--json")) {
+		console.log(
+			JSON.stringify(
+				{ changes: result.changes, skippedProviders: availability.skipped },
+				null,
+				2,
+			),
+		);
+		return;
+	}
+	if (flag(args, "--quiet")) return;
+	const mode = flag(args, "--dry-run") ? "DRY RUN" : "APPLY";
+	console.log(`OpenAgentLayer plugins ${mode}`);
+	console.log(`home: ${home}`);
+	console.log(`providers: ${availability.providers.join(", ") || "none"}`);
+	for (const skipped of availability.skipped)
+		console.log(`skip provider: ${skipped.provider} (${skipped.reason})`);
+	printChanges("plugin changes", result.changes, {
+		verbose: flag(args, "--verbose") || flag(args, "--dry-run"),
+	});
 }

@@ -117,6 +117,9 @@ addRenderOptions(
 		.description("sync provider plugin payloads into provider homes"),
 )
 	.option("--dry-run", "print planned changes without writing")
+	.option("--verbose", "print per-artifact plugin sync details")
+	.option("--quiet", "suppress normal progress output")
+	.option("--json", "print structured JSON")
 	.action((options) => runPluginsCommand(repoRoot, argsFromOptions(options)));
 
 program
@@ -186,7 +189,11 @@ function addRenderOptions(command: Command): Command {
 		.option("--scope <scope>", "project or global", "project")
 		.option("--home <dir>", "home directory for global scope")
 		.option("--plan <plan>", "model plan")
-		.option("--opencode-models-file <path>", "saved `opencode models` output");
+		.option("--opencode-models-file <path>", "saved `opencode models` output")
+		.option(
+			"--caveman-mode <mode>",
+			"off, lite, full, ultra, wenyan-lite, wenyan, or wenyan-ultra",
+		);
 }
 
 function argsFromOptions(options: Record<string, unknown>): string[] {
@@ -196,6 +203,7 @@ function argsFromOptions(options: Record<string, unknown>): string[] {
 	pushValue(args, "--home", options["home"]);
 	pushValue(args, "--plan", options["plan"]);
 	pushValue(args, "--opencode-models-file", options["opencodeModelsFile"]);
+	pushValue(args, "--caveman-mode", options["cavemanMode"]);
 	pushValue(args, "--path", options["path"]);
 	pushValue(args, "--out", options["out"]);
 	pushValue(args, "--target", options["target"]);

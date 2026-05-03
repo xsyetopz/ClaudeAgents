@@ -72,6 +72,10 @@ async function assertCodexConfig(targetRoot: string): Promise<void> {
 	await assertCodexInstructionBaseline(config, targetRoot);
 	for (const flag of CODEX_REQUIRED_FLAGS)
 		if (!config.includes(flag)) throw new Error(`Codex config missing ${flag}`);
+	if (!config.includes("interrupt_message = true"))
+		throw new Error("Codex config has invalid agents.interrupt_message.");
+	if (config.includes('interrupt_message = "'))
+		throw new Error("Codex config emitted string agents.interrupt_message.");
 	assertCodexFeatureComments(config);
 	for (const forbidden of [
 		'approval_policy = "on-failure"',

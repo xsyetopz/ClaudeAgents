@@ -4,6 +4,7 @@ export type { ModelMap, Provider } from "./providers";
 export { supportedProviders } from "./providers";
 export type {
 	AgentRecord,
+	CavemanMode,
 	HookRecord,
 	ModelClass,
 	OalSource,

@@ -28,7 +28,7 @@ export async function runDeployCommand(
 			? await installableProviders(providers)
 			: { providers: expandedProviders, skipped: [] };
 	const options = await renderOptions(args);
-	const source = await loadCheckedSource(repoRoot);
+	const source = await loadCheckedSource(repoRoot, args);
 	const artifacts = (
 		await Promise.all(
 			installable.providers.map((provider) =>

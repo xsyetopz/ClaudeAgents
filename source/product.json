@@ -1,8 +1,11 @@
 {
-  "version": "0.1.2-beta.9",
+  "version": "0.1.2-beta.10",
   "product": {
     "name": "OpenAgentLayer",
     "shortName": "OAL"
+  },
+  "caveman": {
+    "mode": "lite"
   },
   "promptContracts": {
     "rtkEfficiency": "RTK efficiency: OAL hooks enforce `rtk` for RTK-supported shell commands. Use `rtk proxy -- <command>` when RTK has no native filter and command output may be noisy. Keep command output bounded, request summaries before raw logs, and keep `rtk gain` at or above 80%; drops below 80% require command/output efficiency work.",

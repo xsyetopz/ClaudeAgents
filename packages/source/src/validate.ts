@@ -11,6 +11,16 @@ import type {
 
 const PROVIDERS = new Set(supportedProviders());
 const AGENT_SKILL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const CAVEMAN_MODES = new Set([
+	"off",
+	"lite",
+	"full",
+	"ultra",
+	"wenyan-lite",
+	"wenyan",
+	"wenyan-ultra",
+]);
+
 const MODEL_CLASSES = new Set<ModelClass>([
 	"architect",
 	"orchestrator",
@@ -133,6 +143,12 @@ export function validateToolRecord(record: ToolRecord): void {
 }
 
 export function validateProductSource(record: ProductSource): void {
+	if (record.caveman) {
+		if (!CAVEMAN_MODES.has(record.caveman.mode))
+			throw new Error(
+				`Product caveman mode ${String(record.caveman.mode)} is unsupported.`,
+			);
+	}
 	if (
 		record.product?.name !== "OpenAgentLayer" ||
 		record.product?.shortName !== "OAL"

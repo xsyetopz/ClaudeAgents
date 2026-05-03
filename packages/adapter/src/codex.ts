@@ -166,7 +166,7 @@ shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"
 max_threads = 4
 max_depth = 1
 job_max_runtime_seconds = 1800
-interrupt_message = "Return a concise OAL status update."
+interrupt_message = true
 ${source.agents
 	.map(
 		(agent) => `

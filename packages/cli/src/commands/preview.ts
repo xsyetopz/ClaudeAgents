@@ -14,7 +14,7 @@ export async function runPreviewCommand(
 	const includeContent = flag(args, "--content");
 	const options = await renderOptions(args);
 	const context = scopeContext(args);
-	const source = await loadCheckedSource(repoRoot);
+	const source = await loadCheckedSource(repoRoot, args);
 	const rendered = combineArtifactSets(
 		await Promise.all(
 			providers.map((provider) =>

@@ -15,7 +15,7 @@ export async function runRenderCommand(
 	const providers = providerOptions(option(args, "--provider") ?? "all");
 	const options = await renderOptions(args);
 	const context = scopeContext(args);
-	const source = await loadCheckedSource(repoRoot);
+	const source = await loadCheckedSource(repoRoot, args);
 	await mkdir(out, { recursive: true });
 	const rendered = (
 		await Promise.all(

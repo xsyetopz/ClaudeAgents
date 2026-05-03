@@ -290,6 +290,8 @@ test("CLI preview shows generated artifact set without writing files", async () 
 	expect(stdout).toContain("source: config:codex");
 	expect(stdout).toContain("## Artifact Contents");
 	expect(stdout).toContain('model = "gpt-5.5"');
+	expect(stdout).toContain("interrupt_message = true");
+	expect(stdout).not.toContain('interrupt_message = "');
 	await expect(
 		readFile(join(root, ".codex/config.toml"), "utf8"),
 	).rejects.toThrow();
@@ -411,6 +413,48 @@ test("CLI preview routes OpenCode detected models and free fallbacks", async () 
 	expect(stdout).not.toContain("opencode/gpt-5.3-codex-spark");
 	expect(stdout).not.toContain("opencode/claude-opus-4-7");
 	await rm(root, { recursive: true, force: true });
+});
+
+test("CLI preview applies configurable Caveman mode", async () => {
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"preview",
+			"--provider",
+			"codex",
+			"--caveman-mode",
+			"off",
+			"--path",
+			"AGENTS.md",
+			"--content",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain("Caveman mode: off");
+	expect(stdout).not.toContain("Caveman mode: lite");
+});
+
+test("CLI rejects unsupported Caveman mode cleanly", async () => {
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"preview",
+			"--provider",
+			"codex",
+			"--caveman-mode",
+			"yell",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(1);
+	expect(stderr).toContain("Unsupported caveman mode yell");
 });
 
 test("CLI toolchain shows OS package-manager install plan", async () => {
@@ -569,7 +613,7 @@ test("CLI plugins skips missing provider binaries without failing", async () => 
 	expect(await command.exited).toBe(0);
 	expect(stderr).toBe("");
 	expect(stdout).toContain(".codex-plugin/plugin.json");
-	expect(stdout).toContain('"provider": "claude"');
+	expect(stdout).toContain("skip provider: claude");
 	expect(stdout).toContain("claude binary not found in PATH");
 	expect(stdout).not.toContain(".claude/plugins/marketplaces/openagentlayer");
 	await rm(home, { recursive: true, force: true });

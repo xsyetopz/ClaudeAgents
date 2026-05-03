@@ -92,6 +92,11 @@ export function assertCodexTomlSchema(toml: string): void {
 	}
 	if (!(parsed.agents["max_threads"] && parsed.agents["max_depth"]))
 		throw new Error("Codex agents table missing concurrency settings.");
+	if (
+		"interrupt_message" in parsed.agents &&
+		typeof parsed.agents["interrupt_message"] !== "boolean"
+	)
+		throw new Error("Codex agents.interrupt_message must be boolean.");
 }
 
 export function assertClaudeSettingsSchema(settings: unknown): void {

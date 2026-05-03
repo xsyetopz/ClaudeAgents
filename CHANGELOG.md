@@ -5,6 +5,33 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.2-beta.10] - 2026-05-03
+
+### Added
+
+- Added installed-flow smoke acceptance that deploys into disposable global and
+  project roots, installs the `oal` shim, runs the installed CLI, previews
+  Codex config, deploys all providers, and uninstalls owned Codex artifacts.
+- Added configurable Caveman output mode through source config, CLI flags, and
+  interactive deploy/plugin prompts.
+- Added CI installed CLI smoke coverage after dry-run rendering.
+
+### Changed
+
+- Rendered provider instructions now describe the active Caveman mode instead of
+  relying on hardcoded runtime prose.
+- Plugin sync now uses human output by default with `--verbose`, `--quiet`, and
+  `--json` modes.
+- Codex generated config keeps `agents.interrupt_message` as a boolean so Codex
+  can load `config.toml`.
+
+### Verified
+
+- `rtk proxy -- bun run test`
+- `rtk proxy -- bun run biome:check`
+- `rtk proxy -- bunx tsc --noEmit`
+- `rtk proxy -- bun run accept`
+
 ## [0.1.2-beta.9] - 2026-05-03
 
 ### Added

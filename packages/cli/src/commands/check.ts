@@ -8,7 +8,7 @@ export async function runCheckCommand(
 	const verbose = flag(args, "--verbose");
 	console.log("◇ Load OAL source");
 	console.log("◇ Validate provider renderability");
-	const report = await renderableSourceReport(repoRoot);
+	const report = await renderableSourceReport(repoRoot, args);
 	if (verbose) {
 		console.log(`source: ${report.sourceRoot}`);
 		console.log(`providers: ${report.providers.join(", ")}`);

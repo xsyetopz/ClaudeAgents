@@ -75,7 +75,15 @@ function renderProductPromptContracts(source: OalSource): string {
 		`- ${contracts.sourceBackedBehavior}`,
 		`- ${contracts.accountabilityPressure}`,
 		`- ${contracts.simplicityDiscipline}`,
+		renderCavemanContract(source),
 	].join("\n");
+}
+
+function renderCavemanContract(source: OalSource): string {
+	const mode = source.caveman?.mode ?? "off";
+	if (mode === "off")
+		return "- Caveman mode: off. Answer normally unless the user explicitly invokes Caveman output.";
+	return `- Caveman mode: ${mode}. Compress assistant prose according to this mode while preserving code, commands, paths, URLs, exact errors, versions, commit messages, review findings, and file contents.`;
 }
 
 function renderSkillSupportFiles(skill: SkillRecord): string {
