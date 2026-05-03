@@ -70,7 +70,7 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 				requireIncludes(config, model, "Codex config");
 			requireIncludes(
 				config,
-				'shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"',
+				'zsh_path = ".codex/openagentlayer/shim/oal-zsh"',
 				"Codex config",
 			);
 			for (const forbidden of [

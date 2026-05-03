@@ -32,7 +32,7 @@ test("global deploy maps provider artifacts into provider homes", async () => {
 			provider: "codex" as const,
 			path: ".codex/config.toml",
 			content:
-				'model_instructions_file = "AGENTS.md"\nshell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"\nconfig_file = "./agents/athena.toml"\n',
+				'model_instructions_file = "AGENTS.md"\nzsh_path = ".codex/openagentlayer/shim/oal-zsh"\nconfig_file = "./agents/athena.toml"\n',
 			sourceId: "config:codex",
 			mode: "config" as const,
 		},

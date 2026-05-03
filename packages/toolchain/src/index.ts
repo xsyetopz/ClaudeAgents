@@ -8,6 +8,8 @@ export type PackageManager =
 	| "apk";
 export type OptionalTool = "ctx7" | "deepwiki" | "playwright";
 export type OptionalToolAction = "install" | "remove";
+export type OptionalToolProvider = "codex" | "claude" | "opencode";
+export type OptionalToolScope = "global" | "project";
 
 export interface ToolchainOptions {
 	os: OperatingSystem;
@@ -23,6 +25,11 @@ export interface ToolchainPlan {
 	optionalTools: string[];
 	commands: string[];
 	notes: string[];
+}
+
+export interface OptionalFeatureCommandOptions {
+	providers?: OptionalToolProvider[];
+	scope?: OptionalToolScope;
 }
 
 const OPTIONAL_TOOL_LABELS: Record<OptionalTool, string> = {
@@ -73,7 +80,10 @@ export function planToolchainInstall(options: ToolchainOptions): ToolchainPlan {
 		"rtk init --show",
 		"rtk grep --help",
 		"rtk find --help",
-		...optionalFeatureCommands("install", optionalTools),
+		...optionalFeatureCommands("install", optionalTools, {
+			providers: ["codex", "claude", "opencode"],
+			scope: "global",
+		}),
 	];
 	return {
 		os: options.os,
@@ -171,14 +181,11 @@ function linuxRefreshCommand(packageManager: PackageManager): string {
 export function optionalFeatureCommands(
 	action: OptionalToolAction,
 	optionalTools: OptionalTool[],
+	options: OptionalFeatureCommandOptions = {},
 ): string[] {
 	const commands: string[] = [];
 	if (optionalTools.includes("ctx7")) {
-		commands.push(
-			action === "install"
-				? "bunx ctx7 setup --cli --universal"
-				: "bunx ctx7 remove --cli",
-		);
+		commands.push(ctx7Command(action, options));
 	}
 	if (optionalTools.includes("deepwiki"))
 		commands.push(
@@ -193,4 +200,23 @@ export function optionalFeatureCommands(
 				: "bunx -p playwright playwright uninstall --all",
 		);
 	return commands;
+}
+
+function ctx7Command(
+	action: OptionalToolAction,
+	options: OptionalFeatureCommandOptions,
+): string {
+	const verb = action === "install" ? "setup" : "remove";
+	const providers = options.providers ?? ["codex", "claude", "opencode"];
+	const providerFlags = providers.map((provider) => `--${provider}`);
+	const scopeFlags = options.scope === "project" ? ["--project"] : [];
+	return [
+		"bunx",
+		"ctx7",
+		verb,
+		"--cli",
+		"--yes",
+		...providerFlags,
+		...scopeFlags,
+	].join(" ");
 }

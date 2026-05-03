@@ -120,7 +120,10 @@ function assertCoreAgentArtifacts(artifacts: Artifact[]): void {
 		assertArtifact(`.codex/agents/${agent}.toml`, artifacts, [
 			...AGENT_CONTRACT_TERMS,
 		]);
-		assertNoCodexColor(`.codex/agents/${agent}.toml`, artifacts);
+		assertNoUnsupportedCodexAgentFields(
+			`.codex/agents/${agent}.toml`,
+			artifacts,
+		);
 		assertArtifact(`.claude/agents/${agent}.md`, artifacts, [
 			...AGENT_CONTRACT_TERMS,
 			'color: "#',
@@ -131,7 +134,7 @@ function assertCoreAgentArtifacts(artifacts: Artifact[]): void {
 		]);
 	}
 	assertDistinctAgentColors(artifacts);
-	assertNoCodexColor(".codex/config.toml", artifacts);
+	assertNoUnsupportedCodexAgentFields(".codex/config.toml", artifacts);
 }
 
 function assertRouteArtifacts(artifacts: Artifact[]): void {
@@ -283,7 +286,10 @@ function assertDistinctAgentColors(artifacts: Artifact[]): void {
 	}
 }
 
-function assertNoCodexColor(path: string, artifacts: Artifact[]): void {
+function assertNoUnsupportedCodexAgentFields(
+	path: string,
+	artifacts: Artifact[],
+): void {
 	const artifact = findArtifact(path, artifacts);
 	if (CODEX_COLOR_PATTERN.test(artifact.content))
 		throw new Error(`${path} emitted unsupported Codex color field.`);

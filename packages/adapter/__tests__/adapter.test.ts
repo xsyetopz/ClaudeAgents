@@ -15,13 +15,12 @@ test("OpenCode config renders OAL fallback models", async () => {
 			rendered.artifacts.find((artifact) => artifact.path === "opencode.jsonc")
 				?.content ?? "{}",
 		),
-	) as { model: string; small_model: string; model_fallbacks: string[] };
+	) as { model: string; small_model: string };
 	expect(config.model).toBe(OPENCODE_MODEL_FALLBACKS[0]);
 	expect(config.small_model).toBe(OPENCODE_MODEL_FALLBACKS[1]);
-	expect(config.model_fallbacks).toEqual([...OPENCODE_MODEL_FALLBACKS]);
 });
 
-test("model plans route Greek agents by class", async () => {
+test("model plans route Greek agents by subscription", async () => {
 	const graph = await loadSource(resolve(repoRoot, "source"));
 	const codex = await renderProvider("codex", graph.source, repoRoot, {
 		plan: "pro-20",
@@ -65,8 +64,7 @@ opencode/nemotron-3-super-free
 			auth.artifacts.find((artifact) => artifact.path === "opencode.jsonc")
 				?.content ?? "{}",
 		),
-	) as { model_fallbacks: string[]; agent: Record<string, { model: string }> };
-	expect(config.model_fallbacks).toEqual([...OPENCODE_MODEL_FALLBACKS]);
+	) as { agent: Record<string, { model: string }> };
 	expect(config.agent["athena"]?.model).toBe("opencode/gpt-5.5");
 	expect(config.agent["hephaestus"]?.model).toBe("opencode/gpt-5.3-codex");
 	expect(JSON.stringify(config)).not.toContain('opencode/gpt-5.4"');

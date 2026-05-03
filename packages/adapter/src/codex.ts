@@ -23,6 +23,7 @@ const CODEX_FEATURES = [
 	{ key: "sqlite", enabled: true, reason: "local state persistence" },
 	{ key: "plugins", enabled: true, reason: "plugin skill payloads" },
 	{ key: "codex_hooks", enabled: true, reason: "runtime hooks" },
+	{ key: "shell_zsh_fork", enabled: true, reason: "RTK command shim" },
 	{ key: "goals", enabled: true, reason: "goal state tracking" },
 	{
 		key: "responses_websockets",
@@ -137,34 +138,34 @@ export async function renderCodex(
 
 function renderCodexConfig(source: OalSource, options: RenderOptions): string {
 	const profile = resolveCodexProfilePlan(options);
-	return `[profiles.openagentlayer]
-model = "gpt-5.5"
-${profile.lead ? `model_reasoning_effort = ${quoteToml(profile.lead)}\n` : ""}
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-model_instructions_file = "AGENTS.md"
-shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"
-tools_view_image = true
+	return `[notice]
+hide_rate_limit_model_nudge = true
 
+${renderCodexProfile({
+	name: "openagentlayer",
+	model: "gpt-5.5",
+	approvalPolicy: "on-request",
+	sandboxMode: "workspace-write",
+	...optionalReasoningEfforts(profile.plan, profile.model),
+	toolsViewImage: true,
+})}
 [profiles.openagentlayer.features]
 ${renderCodexFeatures()}
 
-[profiles.openagentlayer-implement]
-model = "gpt-5.3-codex"
-${profile.implement ? `model_reasoning_effort = ${quoteToml(profile.implement)}\n` : ""}
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-model_instructions_file = "AGENTS.md"
-shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"
-
-[profiles.openagentlayer-utility]
-model = "gpt-5.4-mini"
-${profile.utility ? `model_reasoning_effort = ${quoteToml(profile.utility)}\n` : ""}
-approval_policy = "never"
-sandbox_mode = "read-only"
-model_instructions_file = "AGENTS.md"
-shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"
-
+${renderCodexProfile({
+	name: "openagentlayer-implement",
+	model: "gpt-5.3-codex",
+	approvalPolicy: "on-request",
+	sandboxMode: "workspace-write",
+	...optionalReasoningEfforts(profile.implementPlan, profile.implementModel),
+})}
+${renderCodexProfile({
+	name: "openagentlayer-utility",
+	model: "gpt-5.4-mini",
+	approvalPolicy: "never",
+	sandboxMode: "read-only",
+	...optionalReasoningEfforts(profile.utilityPlan, profile.utilityModel),
+})}
 [agents]
 max_threads = 4
 max_depth = 1
@@ -182,18 +183,74 @@ config_file = "./agents/${agent.id}.toml"`,
 `;
 }
 
+interface CodexProfileConfig {
+	name: string;
+	model: string;
+	approvalPolicy: "never" | "on-request";
+	sandboxMode: "read-only" | "workspace-write";
+	planReasoningEffort?: "low" | "medium" | "high";
+	modelReasoningEffort?: "low" | "medium" | "high";
+	toolsViewImage?: boolean;
+}
+
+function optionalReasoningEfforts(
+	planReasoningEffort: CodexProfileConfig["planReasoningEffort"],
+	modelReasoningEffort: CodexProfileConfig["modelReasoningEffort"],
+): Pick<CodexProfileConfig, "planReasoningEffort" | "modelReasoningEffort"> {
+	return {
+		...(planReasoningEffort ? { planReasoningEffort } : {}),
+		...(modelReasoningEffort ? { modelReasoningEffort } : {}),
+	};
+}
+
+function renderCodexProfile(profile: CodexProfileConfig): string {
+	return `[profiles.${profile.name}]
+model = ${quoteToml(profile.model)}
+${profile.planReasoningEffort ? `plan_mode_reasoning_effort = ${quoteToml(profile.planReasoningEffort)}\n` : ""}${profile.modelReasoningEffort ? `model_reasoning_effort = ${quoteToml(profile.modelReasoningEffort)}\n` : ""}model_verbosity = "low"
+approval_policy = ${quoteToml(profile.approvalPolicy)}
+sandbox_mode = ${quoteToml(profile.sandboxMode)}
+model_instructions_file = "AGENTS.md"
+zsh_path = ".codex/openagentlayer/shim/oal-zsh"
+${profile.toolsViewImage ? "tools_view_image = true\n" : ""}
+`;
+}
+
 function resolveCodexProfilePlan(options: RenderOptions): {
-	lead?: "low" | "medium" | "high";
-	implement?: "medium" | "high";
-	utility?: "low" | "medium";
+	plan?: "medium" | "high";
+	model?: "medium" | "high";
+	implementPlan?: "medium" | "high";
+	implementModel?: "medium" | "high";
+	utilityPlan?: "low" | "medium";
+	utilityModel?: "low" | "medium";
 } {
 	const plan = options.codexPlan ?? options.plan;
 	if (plan === "plus")
-		return { lead: "low", implement: "medium", utility: "low" };
+		return {
+			plan: "medium",
+			model: "medium",
+			implementPlan: "medium",
+			implementModel: "medium",
+			utilityPlan: "low",
+			utilityModel: "low",
+		};
 	if (plan === "pro-5")
-		return { lead: "medium", implement: "high", utility: "low" };
+		return {
+			plan: "medium",
+			model: "high",
+			implementPlan: "medium",
+			implementModel: "high",
+			utilityPlan: "low",
+			utilityModel: "low",
+		};
 	if (plan === "pro-20")
-		return { lead: "high", implement: "high", utility: "medium" };
+		return {
+			plan: "high",
+			model: "high",
+			implementPlan: "high",
+			implementModel: "high",
+			utilityPlan: "medium",
+			utilityModel: "medium",
+		};
 	return {};
 }
 
@@ -212,7 +269,6 @@ function renderCodexAgent(
 	const model = resolveCodexModel(agent, options);
 	return `model = ${quoteToml(model.model)}
 sandbox_mode = ${quoteToml(agent.tools.includes("write") ? "workspace-write" : "read-only")}
-${model.reasoningEffort ? `model_reasoning_effort = ${quoteToml(model.reasoningEffort)}\n` : ""}model_class = ${quoteToml(agent.modelClass)}
-developer_instructions = ${quoteToml(agentPrompt(agent, source))}
+${model.reasoningEffort ? `model_reasoning_effort = ${quoteToml(model.reasoningEffort)}\n` : ""}developer_instructions = ${quoteToml(agentPrompt(agent, source))}
 `;
 }

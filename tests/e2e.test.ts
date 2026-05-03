@@ -374,7 +374,8 @@ test("CLI preview applies subscription model plans", async () => {
 	expect(stderr).toBe("");
 	expect(stdout).toContain('model = "gpt-5.5"');
 	expect(stdout).toContain('model_reasoning_effort = "medium"');
-	expect(stdout).toContain('model_class = "architect"');
+	expect(stdout).toContain("developer_instructions =");
+	expect(stdout).not.toContain("color =");
 });
 
 test("CLI preview routes OpenCode detected models and free fallbacks", async () => {
@@ -478,7 +479,10 @@ test("CLI preview applies Codex subscription plan to profile reasoning", async (
 	);
 	const pro5Stdout = await new Response(pro5.stdout).text();
 	expect(await pro5.exited).toBe(0);
-	expect(pro5Stdout).toContain('model_reasoning_effort = "medium"');
+	expect(pro5Stdout).toContain('plan_mode_reasoning_effort = "medium"');
+	expect(pro5Stdout).toContain('model_reasoning_effort = "high"');
+	expect(pro5Stdout).toContain('model_verbosity = "low"');
+	expect(pro5Stdout).toContain("hide_rate_limit_model_nudge = true");
 	const pro20 = Bun.spawn(
 		[
 			"bun",
@@ -496,7 +500,10 @@ test("CLI preview applies Codex subscription plan to profile reasoning", async (
 	);
 	const pro20Stdout = await new Response(pro20.stdout).text();
 	expect(await pro20.exited).toBe(0);
+	expect(pro20Stdout).toContain('plan_mode_reasoning_effort = "high"');
 	expect(pro20Stdout).toContain('model_reasoning_effort = "high"');
+	expect(pro20Stdout).toContain('model_verbosity = "low"');
+	expect(pro20Stdout).toContain("hide_rate_limit_model_nudge = true");
 });
 
 test("CLI setup dry-run plans deploy plugins tools and checks", async () => {
@@ -532,7 +539,7 @@ test("CLI setup dry-run plans deploy plugins tools and checks", async () => {
 	expect(stdout).toContain("providers: codex, opencode");
 	expect(stdout).toContain("skip claude");
 	expect(stdout).toContain("rtk init -g --codex");
-	expect(stdout).toContain("bunx ctx7 setup --cli --universal");
+	expect(stdout).toContain("bunx ctx7 setup --cli --yes --codex --opencode");
 	expect(stdout).toContain("bunx -p playwright playwright install --with-deps");
 	expect(stdout).toContain("Configure DeepWiki MCP");
 	expect(stdout).toContain("OpenAgentLayer deploy · dry-run");
@@ -587,7 +594,9 @@ test("CLI toolchain shows OS package-manager install plan", async () => {
 	expect(stdout).toContain("rtk init -g --opencode");
 	expect(stdout).toContain("rtk grep --help");
 	expect(stdout).toContain("rtk find --help");
-	expect(stdout).toContain("bunx ctx7 setup --cli --universal");
+	expect(stdout).toContain(
+		"bunx ctx7 setup --cli --yes --codex --claude --opencode",
+	);
 	expect(stdout).toContain("bunx -p playwright playwright install --with-deps");
 	expect(stdout).not.toContain("- bunx");
 });
@@ -609,7 +618,9 @@ test("CLI features shows optional install and removal commands", async () => {
 	const stderr = await new Response(command.stderr).text();
 	expect(await command.exited).toBe(0);
 	expect(stderr).toBe("");
-	expect(stdout).toContain("bunx ctx7 setup --cli --universal");
+	expect(stdout).toContain(
+		"bunx ctx7 setup --cli --yes --codex --claude --opencode",
+	);
 	expect(stdout).toContain("bunx -p playwright playwright install --with-deps");
 	expect(stdout).toContain("bunx -p playwright playwright uninstall --all");
 });

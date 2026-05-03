@@ -1,20 +1,8 @@
 import type { ModelMap, Provider } from "./providers";
 
-export type ModelClass =
-	| "architect"
-	| "orchestrator"
-	| "reviewer"
-	| "implementer"
-	| "specialist"
-	| "explorer"
-	| "validator"
-	| "maintainer"
-	| "taste";
-
 export interface AgentRecord {
 	id: string;
 	name: string;
-	modelClass: ModelClass;
 	providers: Provider[];
 	role: string;
 	triggers: string[];

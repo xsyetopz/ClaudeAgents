@@ -116,7 +116,6 @@ function renderOpenCodeConfig(
 		$schema: "https://opencode.ai/config.json",
 		model: OPENCODE_MODEL_FALLBACKS[0],
 		small_model: OPENCODE_MODEL_FALLBACKS[1],
-		model_fallbacks: OPENCODE_MODEL_FALLBACKS,
 		default_agent: "hephaestus",
 		instructions: [".opencode/instructions/openagentlayer.md"],
 		plugin: [".opencode/plugins/openagentlayer.ts"],
@@ -134,7 +133,6 @@ function renderOpenCodeConfig(
 				{
 					description: agent.role,
 					model: resolveOpenCodeModel(agent, options),
-					model_class: agent.modelClass,
 					color: agentHexColor(agent.id),
 					permission: agent.tools.includes("write")
 						? { edit: "ask", write: "ask", bash: "ask" }
@@ -145,7 +143,11 @@ function renderOpenCodeConfig(
 		command: Object.fromEntries(
 			source.routes.map((route) => [
 				route.id,
-				{ agent: route.agent, description: route.body.slice(0, 120) },
+				{
+					template: route.body,
+					agent: route.agent,
+					description: route.body.slice(0, 120),
+				},
 			]),
 		),
 	};

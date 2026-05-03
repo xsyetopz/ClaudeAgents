@@ -5,6 +5,31 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.3-beta.1] - 2026-05-03
+
+### Added
+
+- Added upstream provider schema sync metadata and `schemas:sync` / `schemas:check` commands for Codex, Claude Code, and OpenCode config schemas.
+- Added generated provider config validation against synced upstream schemas before artifacts are returned.
+- Added CI schema drift checking so provider schema updates are visible before release.
+
+### Changed
+
+- Removed internal model class routing from source records, validation, docs, tests, and generated provider artifacts.
+- Routed provider models directly from subscription-specific plans.
+- Updated Codex profile rendering to use schema-valid reasoning, verbosity, notice, and zsh shim keys.
+- Updated Claude and OpenCode generated config shapes to match their upstream schemas.
+- Kept current-code naming clean by removing stale product-name traces outside excluded legacy material.
+
+### Verified
+
+- `rtk proxy -- bunx tsc --noEmit`
+- `rtk proxy -- bun run test`
+- `rtk proxy -- bun run biome:check`
+- `rtk proxy -- bun run schemas:check`
+- `rtk proxy -- bun run accept`
+- `rtk proxy -- ruby -c homebrew/Casks/openagentlayer.rb`
+
 ## [0.1.2-beta.13] - 2026-05-03
 
 ### Added
@@ -68,8 +93,8 @@ material only and is not part of the OAL release line.
 
 - Removed unsupported Codex `color` fields from generated Codex agent config and
   agent role TOML while preserving Claude Code and OpenCode agent colors.
-- Made Codex plugin sync prune stale OAL/openagentsbtw marketplace entries and
-  best-effort register the local marketplace with the native Codex CLI.
+- Made Codex plugin sync prune stale OAL marketplace entries and best-effort
+  register the local marketplace with the native Codex CLI.
 - Reworked interactive entrypoints to put setup/update ahead of lower-level
   deploy/plugin primitives and include optional RTK, Context7, Playwright, and
   DeepWiki phases.

@@ -105,11 +105,9 @@ async function assertCodexInstructionBaseline(
 				`Codex profile ${profile} does not pin model_instructions_file.`,
 			);
 		if (
-			!profileBlock?.includes(
-				'shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"',
-			)
+			!profileBlock?.includes('zsh_path = ".codex/openagentlayer/shim/oal-zsh"')
 		)
-			throw new Error(`Codex profile ${profile} does not pin shell_zsh_fork.`);
+			throw new Error(`Codex profile ${profile} does not pin zsh_path.`);
 	}
 	const agents = await readFile(join(targetRoot, "AGENTS.md"), "utf8");
 	for (const required of [
@@ -164,7 +162,6 @@ async function assertOpenCodeConfig(targetRoot: string): Promise<void> {
 		default_agent?: string;
 		model?: string;
 		small_model?: string;
-		model_fallbacks?: string[];
 	};
 	assertOpenCodeConfigSchema(config);
 	if (!(config.permission && config.plugin && config.command && config.agent))
@@ -177,11 +174,6 @@ async function assertOpenCodeConfig(targetRoot: string): Promise<void> {
 		throw new Error("OpenCode model fallback default is not first free model.");
 	if (config.small_model !== OPENCODE_MODEL_FALLBACKS[1])
 		throw new Error("OpenCode small model fallback is not second free model.");
-	if (
-		JSON.stringify(config.model_fallbacks) !==
-		JSON.stringify(OPENCODE_MODEL_FALLBACKS)
-	)
-		throw new Error("OpenCode model fallbacks do not match OAL defaults.");
 	assertOpenCodeAgentColors(config.agent);
 	for (const command of [
 		"plan",

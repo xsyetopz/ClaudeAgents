@@ -1,6 +1,6 @@
 {
 	"name": "openagentlayer",
-	"version": "0.1.2-beta.13",
+	"version": "0.1.3-beta.1",
 	"private": true,
 	"type": "module",
 	"workspaces": [
@@ -28,7 +28,9 @@
 		"test": "bun test packages/*/__tests__/*.test.ts tests/*.test.ts",
 		"test:unit": "bun test packages/*/__tests__/*.test.ts",
 		"test:e2e": "bun test tests/*.test.ts",
-		"toolchain": "bun packages/cli/src/main.ts toolchain"
+		"toolchain": "bun packages/cli/src/main.ts toolchain",
+		"schemas:sync": "bun scripts/sync-provider-schemas.mjs",
+		"schemas:check": "bun scripts/sync-provider-schemas.mjs --check"
 	},
 	"dependencies": {
 		"@clack/prompts": "^1.3.0",

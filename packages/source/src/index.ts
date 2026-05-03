@@ -6,7 +6,6 @@ export type {
 	AgentRecord,
 	CavemanMode,
 	HookRecord,
-	ModelClass,
 	OalSource,
 	ProductSource,
 	RouteRecord,

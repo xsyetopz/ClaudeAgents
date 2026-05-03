@@ -83,14 +83,23 @@ function renderClaudeSettings(source: OalSource): unknown {
 	return {
 		model: "claude-sonnet-4-6",
 		permissions: {
-			deny: ["Read(.env*)", "Read(**/*_rsa)", "Bash(rm -rf:*)"],
-			ask: ["Bash(git push:*)", "Bash(chmod:*)", "Bash(npm publish:*)"],
-			allow: ["Read(*)", "Grep(*)", "Glob(*)"],
+			deny: ["Read(.env)", "Read(id_rsa)", "Bash(rm -rf)"],
+			ask: ["Bash(git push)", "Bash(chmod)", "Bash(npm publish)"],
+			allow: ["Read", "Grep", "Glob"],
 		},
 		hooks: Object.fromEntries(
 			source.hooks.map((hook) => [
 				hook.events.claude?.[0] ?? hook.id,
-				[{ type: "command", command: `.claude/hooks/scripts/${hook.script}` }],
+				[
+					{
+						hooks: [
+							{
+								type: "command",
+								command: `.claude/hooks/scripts/${hook.script}`,
+							},
+						],
+					},
+				],
 			]),
 		),
 	};
@@ -105,7 +114,6 @@ function renderClaudeAgent(
 name: ${agent.id}
 description: ${agent.role}. Use when: ${agent.triggers.join("; ")}
 model: ${resolveClaudeModel(agent, options)}
-model_class: ${agent.modelClass}
 tools: ${agent.tools.join(", ")}
 color: "${agentHexColor(agent.id)}"
 ---

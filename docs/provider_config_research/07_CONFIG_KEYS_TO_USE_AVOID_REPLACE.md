@@ -6,8 +6,8 @@ Use:
 
 - `model`
 - `model_provider` when intentionally controlling provider.
-- `model_reasoning_effort` -- at top-level, is used for "Plan mode"
-- `plan_mode_reasoning_effort` -- at top-level, is used for "edit/implement mode"
+- `plan_mode_reasoning_effort` -- top-level plan mode reasoning effort.
+- `model_reasoning_effort` -- top-level edit/implementation reasoning effort
 - `model_reasoning_summary`
 - `model_verbosity`
 - `approval_policy`

@@ -3,7 +3,10 @@ interface CodexProfile {
 	approval_policy?: string;
 	sandbox_mode?: string;
 	model_instructions_file?: string;
-	shell_zsh_fork?: string;
+	zsh_path?: string;
+	model_reasoning_effort?: string;
+	plan_mode_reasoning_effort?: string;
+	model_verbosity?: string;
 	tools_view_image?: boolean;
 }
 
@@ -30,6 +33,7 @@ const ALLOWED_CODEX_FEATURES = new Set([
 	"sqlite",
 	"plugins",
 	"codex_hooks",
+	"shell_zsh_fork",
 	"goals",
 	"responses_websockets",
 	"responses_websockets_v2",
@@ -73,11 +77,15 @@ export function assertCodexTomlSchema(toml: string): void {
 				`Codex profile ${profileName} has unsupported sandbox mode ${profile.sandbox_mode}`,
 			);
 		if (
-			profile.shell_zsh_fork &&
-			profile.shell_zsh_fork !== ".codex/openagentlayer/shim/oal-zsh"
+			profile.zsh_path &&
+			profile.zsh_path !== ".codex/openagentlayer/shim/oal-zsh"
 		)
 			throw new Error(
-				`Codex profile ${profileName} has unmanaged shell_zsh_fork ${profile.shell_zsh_fork}`,
+				`Codex profile ${profileName} has unmanaged zsh_path ${profile.zsh_path}`,
+			);
+		if (profile.model_verbosity && profile.model_verbosity !== "low")
+			throw new Error(
+				`Codex profile ${profileName} has unsupported verbosity ${profile.model_verbosity}`,
 			);
 	}
 	for (const [profileName, features] of Object.entries(parsed.features)) {
@@ -108,15 +116,21 @@ export function assertClaudeSettingsSchema(settings: unknown): void {
 		if (!Array.isArray(permissions[key]))
 			throw new Error(`Claude permissions.${key} must be an array.`);
 	const hooks = asRecord(object["hooks"], "Claude hooks");
-	for (const handlers of Object.values(hooks)) {
-		if (!Array.isArray(handlers))
-			throw new Error("Claude hook handlers must be arrays.");
-		for (const handler of handlers) {
-			const hook = asRecord(handler, "Claude hook handler");
-			if (hook["type"] !== "command")
-				throw new Error("Claude hooks must use command handlers.");
-			if (!asString(hook["command"], "Claude hook command").endsWith(".mjs"))
-				throw new Error("Claude hook command must reference .mjs script.");
+	for (const groups of Object.values(hooks)) {
+		if (!Array.isArray(groups))
+			throw new Error("Claude hook groups must be arrays.");
+		for (const group of groups) {
+			const record = asRecord(group, "Claude hook group");
+			const handlers = record["hooks"];
+			if (!Array.isArray(handlers))
+				throw new Error("Claude hook group hooks must be arrays.");
+			for (const handler of handlers) {
+				const hook = asRecord(handler, "Claude hook handler");
+				if (hook["type"] !== "command")
+					throw new Error("Claude hooks must use command handlers.");
+				if (!asString(hook["command"], "Claude hook command").endsWith(".mjs"))
+					throw new Error("Claude hook command must reference .mjs script.");
+			}
 		}
 	}
 }
@@ -125,12 +139,6 @@ export function assertOpenCodeConfigSchema(config: unknown): void {
 	const object = asRecord(config, "OpenCode config");
 	for (const key of ["model", "small_model", "default_agent"])
 		asString(object[key], `OpenCode ${key}`);
-	const modelFallbacks = object["model_fallbacks"];
-	if (
-		!Array.isArray(modelFallbacks) ||
-		modelFallbacks.some((entry) => typeof entry !== "string")
-	)
-		throw new Error("OpenCode model_fallbacks must be a string array.");
 	const permission = asRecord(object["permission"], "OpenCode permission");
 	for (const [tool, value] of Object.entries(permission))
 		if (!ALLOWED_OPENCODE_PERMISSION_VALUES.has(String(value)))

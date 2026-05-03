@@ -54,9 +54,9 @@ function globalContent(
 					`model_instructions_file = ${JSON.stringify(join(home, ".codex/AGENTS.md"))}`,
 			)
 			.replaceAll(
-				'shell_zsh_fork = ".codex/openagentlayer/shim/oal-zsh"',
+				'zsh_path = ".codex/openagentlayer/shim/oal-zsh"',
 				() =>
-					`shell_zsh_fork = ${JSON.stringify(join(home, ".codex/openagentlayer/shim/oal-zsh"))}`,
+					`zsh_path = ${JSON.stringify(join(home, ".codex/openagentlayer/shim/oal-zsh"))}`,
 			)
 			.replaceAll(
 				CODEX_AGENT_CONFIG_FILE,

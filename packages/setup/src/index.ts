@@ -53,7 +53,10 @@ export function planSetup(options: SetupPlanOptions): SetupPlan {
 							"rtk init -g --opencode",
 						]
 					: []),
-				...optionalFeatureCommands("install", optionalTools),
+				...optionalFeatureCommands("install", optionalTools, {
+					providers: options.providers,
+					scope: options.scope,
+				}),
 			],
 		});
 	}

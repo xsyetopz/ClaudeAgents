@@ -73,7 +73,7 @@ Do not render:
 
 OAL capability-maximizing routing:
 
-| Route class                                                         | Model           | Effort      |
+| Route focus                                                         | Model           | Effort      |
 | ------------------------------------------------------------------- | --------------- | ----------- |
 | architecture, hard review, orchestration                            | `gpt-5.5`       | medium/high |
 | implementation, refactor, bug fix                                   | `gpt-5.3-codex` | medium/high |
@@ -111,7 +111,7 @@ nickname_candidates = ["hephaestus", "implementer"]
 config_file = "./agents/hephaestus.toml"
 ```
 
-Then `agents/hephaestus.toml` can carry role-specific model, sandbox, tooling, and deep instructions if Codex supports that config-file layer in the installed version. OAL should validate this against the schema.
+Then `agents/hephaestus.toml` can carry only Codex-supported role config keys such as role-specific model, sandbox, tooling, and deep instructions when the installed version accepts them. OAL routing must use subscription-specific provider model maps rather than rendering extra role metadata into provider files.
 
 ## Feature flags OAL should exploit
 

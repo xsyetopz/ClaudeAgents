@@ -29,7 +29,7 @@ test("Linux plan uses selected distro package manager and optional tools", () =>
 	});
 	expect(plan.commands[0]).toBe("sudo dnf check-update || true");
 	expect(renderToolchainPlan(plan)).toContain(
-		"bunx ctx7 setup --cli --universal",
+		"bunx ctx7 setup --cli --yes --codex --claude --opencode",
 	);
 	expect(renderToolchainPlan(plan)).toContain(
 		"bunx -p playwright playwright install --with-deps",
@@ -40,11 +40,17 @@ test("Linux plan uses selected distro package manager and optional tools", () =>
 
 test("optional feature commands support install and removal", () => {
 	expect(optionalFeatureCommands("install", ["ctx7", "playwright"])).toEqual([
-		"bunx ctx7 setup --cli --universal",
+		"bunx ctx7 setup --cli --yes --codex --claude --opencode",
 		"bunx -p playwright playwright install --with-deps",
 	]);
 	expect(optionalFeatureCommands("remove", ["ctx7", "playwright"])).toEqual([
-		"bunx ctx7 remove --cli",
+		"bunx ctx7 remove --cli --yes --codex --claude --opencode",
 		"bunx -p playwright playwright uninstall --all",
 	]);
+	expect(
+		optionalFeatureCommands("install", ["ctx7"], {
+			providers: ["codex", "opencode"],
+			scope: "project",
+		}),
+	).toEqual(["bunx ctx7 setup --cli --yes --codex --opencode --project"]);
 });

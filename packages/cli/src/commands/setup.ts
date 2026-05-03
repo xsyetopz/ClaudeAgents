@@ -146,7 +146,7 @@ async function runOptionalSetup(
 		]);
 		if (code !== 0)
 			throw new Error(
-				`Setup optional command failed (${command}):\n${stdout}\n${stderr}`,
+				`Setup optional command failed (${command}) with exit code ${code}:\nstdout:\n${stdout}\nstderr:\n${stderr}`,
 			);
 	}
 }

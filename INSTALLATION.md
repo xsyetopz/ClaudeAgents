@@ -192,7 +192,7 @@ bun packages/cli/src/main.ts bin --remove
 
 ## Select model plans
 
-Model plans are optional. Without a plan, OAL uses the source record defaults. With a plan, OAL routes each Greek agent by `modelClass`.
+Model plans are optional. Without a plan, OAL uses the source record defaults. With a plan, OAL applies subscription-specific provider model and reasoning choices for each Greek agent.
 
 Codex plans:
 

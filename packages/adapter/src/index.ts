@@ -4,6 +4,7 @@ import { renderClaude } from "./claude";
 import { renderCodex } from "./codex";
 import type { RenderOptions } from "./model-routing";
 import { renderOpenCode } from "./opencode";
+import { validateProviderConfigArtifacts } from "./schema-validation";
 
 export type { ModelPlan, RenderOptions } from "./model-routing";
 export {
@@ -34,19 +35,26 @@ export async function renderAllProviders(
 		renderClaude(source, repoRoot, options),
 		renderOpenCode(source, repoRoot, options),
 	]);
+	const artifacts = sets.flatMap((set) => set.artifacts);
+	await validateProviderConfigArtifacts(artifacts);
 	return {
-		artifacts: sets.flatMap((set) => set.artifacts),
+		artifacts,
 		unsupported: sets.flatMap((set) => set.unsupported),
 	};
 }
 
-export function renderProvider(
+export async function renderProvider(
 	provider: Provider,
 	source: OalSource,
 	repoRoot: string,
 	options: RenderOptions = {},
 ): Promise<ArtifactSet> {
-	if (provider === "codex") return renderCodex(source, repoRoot, options);
-	if (provider === "claude") return renderClaude(source, repoRoot, options);
-	return renderOpenCode(source, repoRoot, options);
+	const set =
+		provider === "codex"
+			? await renderCodex(source, repoRoot, options)
+			: provider === "claude"
+				? await renderClaude(source, repoRoot, options)
+				: await renderOpenCode(source, repoRoot, options);
+	await validateProviderConfigArtifacts(set.artifacts);
+	return set;
 }

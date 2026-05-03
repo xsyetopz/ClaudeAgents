@@ -258,8 +258,7 @@ async function writeCodexMarketplace(
 	const nextPlugins = plugins.filter(
 		(entry) =>
 			!(
-				isRecord(entry) &&
-				[PLUGIN_NAME, "oal", "openagentsbtw"].includes(String(entry["name"]))
+				isRecord(entry) && [PLUGIN_NAME, "oal"].includes(String(entry["name"]))
 			),
 	);
 	nextPlugins.push({

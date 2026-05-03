@@ -2,9 +2,9 @@ name: OAL CI/CD
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
 permissions:
   contents: read
@@ -44,6 +44,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Typecheck
         run: rtk proxy -- bunx tsc --noEmit
+      - name: Provider schema drift
+        run: rtk proxy -- bun run schemas:check
       - name: Test
         run: rtk proxy -- bun run test
       - name: Acceptance
@@ -116,7 +118,7 @@ jobs:
   homebrew-submission:
     name: Homebrew submission
     runs-on: macos-15
-    needs: [quality, dry-run]
+    needs: [ quality, dry-run ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' &&
       github.repository == 'xsyetopz/OpenAgentLayer'
     env:
