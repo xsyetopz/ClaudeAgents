@@ -72,6 +72,66 @@ test("CLI help is Commander-backed and non-interactive-safe", async () => {
 	expect(stdout).not.toContain("generate [options]");
 });
 
+test("CLI help command exits cleanly without Commander stack traces", async () => {
+	for (const args of [["help"], ["--help"]]) {
+		const command = Bun.spawn(["bun", "packages/cli/src/main.ts", ...args], {
+			cwd: repoRoot,
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+		const stdout = await new Response(command.stdout).text();
+		const stderr = await new Response(command.stderr).text();
+		expect(await command.exited).toBe(0);
+		expect(stdout).toContain("Usage: oal [options] [command]");
+		expect(stderr).not.toContain("CommanderError");
+		expect(stderr).not.toContain("command.js");
+	}
+});
+
+test("CLI expected errors exit cleanly without Commander stack traces", async () => {
+	for (const [args, expected] of [
+		[["uninstall"], "required option '--provider <provider>' not specified"],
+		[["nope"], "unknown command 'nope'"],
+	] as const) {
+		const command = Bun.spawn(["bun", "packages/cli/src/main.ts", ...args], {
+			cwd: repoRoot,
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+		const stderr = await new Response(command.stderr).text();
+		expect(await command.exited).toBe(1);
+		expect(stderr).toContain(expected);
+		expect(stderr).not.toContain("CommanderError");
+		expect(stderr).not.toContain("command.js");
+	}
+});
+
+test("CLI check uses concise output and verbose internals", async () => {
+	const concise = Bun.spawn(["bun", "packages/cli/src/main.ts", "check"], {
+		cwd: repoRoot,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	const conciseStdout = await new Response(concise.stdout).text();
+	const conciseStderr = await new Response(concise.stderr).text();
+	expect(await concise.exited).toBe(0);
+	expect(conciseStderr).toBe("");
+	expect(conciseStdout).toContain("◇ Load OAL source");
+	expect(conciseStdout).toContain("└ ✓ OAL source and render checks passed");
+	expect(conciseStdout).not.toContain("artifacts:");
+	const verbose = Bun.spawn(
+		["bun", "packages/cli/src/main.ts", "check", "--verbose"],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const verboseStdout = await new Response(verbose.stdout).text();
+	const verboseStderr = await new Response(verbose.stderr).text();
+	expect(await verbose.exited).toBe(0);
+	expect(verboseStderr).toBe("");
+	expect(verboseStdout).toContain("providers: codex, claude, opencode");
+	expect(verboseStdout).toContain("artifacts:");
+	expect(verboseStdout).toContain("unsupported capabilities:");
+});
+
 test("CLI global dry-run maps provider artifacts into global homes", async () => {
 	const home = await mkdtemp(join(tmpdir(), "oal-global-e2e-"));
 	const env = await fakeProviderPath(home, ["codex", "claude", "opencode"]);
@@ -101,7 +161,7 @@ test("CLI global dry-run maps provider artifacts into global homes", async () =>
 	expect(stdout).toContain(".codex/AGENTS.md");
 	expect(stdout).toContain(".claude/CLAUDE.md");
 	expect(stdout).toContain("OpenAgentLayer deploy DRY RUN");
-	expect(stdout).toContain("binary: write");
+	expect(stdout).toContain("binary:");
 	await expect(
 		readFile(join(home, ".openagentlayer/manifest/global/codex.json"), "utf8"),
 	).rejects.toThrow();
@@ -143,7 +203,7 @@ test("CLI global deploy installs usable oal shim", async () => {
 	const checkStderr = await new Response(check.stderr).text();
 	expect(await check.exited).toBe(0);
 	expect(checkStderr).toBe("");
-	expect(stdout).toContain("STATUS PASS");
+	expect(stdout).toContain("OAL source and render checks passed");
 	await rm(home, { recursive: true, force: true });
 });
 

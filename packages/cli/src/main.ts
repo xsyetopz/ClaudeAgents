@@ -19,6 +19,8 @@ const repoRoot = resolve(import.meta.dir, "../../..");
 const program = new Command()
 	.name("oal")
 	.description("OpenAgentLayer provider-native generator and deployer")
+	.enablePositionalOptions(false)
+	.showSuggestionAfterError()
 	.showHelpAfterError()
 	.exitOverride();
 
@@ -30,7 +32,8 @@ program
 program
 	.command("check")
 	.description("validate OAL source and renderability")
-	.action(() => runCheckCommand(repoRoot));
+	.option("--verbose", "print source and render internals")
+	.action((options) => runCheckCommand(repoRoot, argsFromOptions(options)));
 
 program
 	.command("bin")
@@ -151,6 +154,11 @@ program
 	.action(() => runInteractiveCommand(repoRoot));
 
 try {
+	if (unknownCommand(process.argv)) {
+		console.error(`error: unknown command '${process.argv[2]}'`);
+		program.outputHelp({ error: true });
+		process.exit(1);
+	}
 	if (process.argv.slice(2).length === 0 && !process.stdin.isTTY) {
 		program.outputHelp();
 		process.exit(0);
@@ -159,6 +167,13 @@ try {
 } catch (error) {
 	if (isCommanderExit(error)) process.exit(error.exitCode);
 	throw error;
+}
+
+function unknownCommand(argv: string[]): boolean {
+	const command = argv[2];
+	if (!command || command.startsWith("-")) return false;
+	if (command === "help") return false;
+	return !program.commands.some((candidate) => candidate.name() === command);
 }
 
 function addRenderOptions(command: Command): Command {
@@ -215,8 +230,6 @@ function isCommanderExit(error: unknown): error is { exitCode: number } {
 	return (
 		typeof error === "object" &&
 		error !== null &&
-		"code" in error &&
-		error["code"] === "commander.helpDisplayed" &&
 		"exitCode" in error &&
 		typeof error["exitCode"] === "number"
 	);

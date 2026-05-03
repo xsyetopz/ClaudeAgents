@@ -5,6 +5,7 @@ import {
 	confirm,
 	intro,
 	isCancel,
+	log,
 	multiselect,
 	outro,
 	select,
@@ -33,7 +34,27 @@ export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 	if (!process.stdin.isTTY)
 		throw new Error("Interactive mode requires a TTY. Pass a command instead.");
 	intro("OpenAgentLayer");
-	const action = await ask<InteractiveAction>(
+	for (;;) {
+		const action = await workflowPrompt();
+		if (action === "check") await runCheckCommand(repoRoot);
+		else if (action === "preview") await interactivePreview(repoRoot);
+		else if (action === "deploy") await interactiveDeploy(repoRoot);
+		else if (action === "plugins") await interactivePlugins(repoRoot);
+		else if (action === "features") await interactiveFeatures();
+		else await interactiveUninstall();
+		const again = await ask<boolean>(
+			confirm({
+				message: "Run another OAL workflow?",
+				initialValue: true,
+			}),
+		);
+		if (!again) break;
+	}
+	outro("✓ Done");
+}
+
+function workflowPrompt(): Promise<InteractiveAction> {
+	return ask<InteractiveAction>(
 		select({
 			message: "Choose workflow",
 			options: [
@@ -62,17 +83,6 @@ export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 			],
 		}),
 	);
-	if (action === "check") {
-		await runCheckCommand(repoRoot);
-		outro("✓ Source graph valid");
-		return;
-	}
-	if (action === "preview") await interactivePreview(repoRoot);
-	else if (action === "deploy") await interactiveDeploy(repoRoot);
-	else if (action === "plugins") await interactivePlugins(repoRoot);
-	else if (action === "features") await interactiveFeatures();
-	else await interactiveUninstall();
-	outro("✓ Done");
 }
 
 async function interactivePreview(repoRoot: string): Promise<void> {
@@ -114,6 +124,7 @@ async function interactivePlugins(repoRoot: string): Promise<void> {
 	)
 		args.push("--dry-run");
 	await runPluginsCommand(repoRoot, args);
+	log.success(`Plugin sync complete for ${provider}.`);
 }
 
 async function interactiveUninstall(): Promise<void> {

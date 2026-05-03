@@ -5,22 +5,22 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.1.2-beta.8] - 2026-05-03
+## [0.1.2-beta.9] - 2026-05-03
 
 ### Added
 
-- Added comma-separated provider selection for `preview`, `render`, and
-  `plugins`, matching `deploy` behavior.
-- Added provider binary availability checks for global deploy and plugin sync so
-  missing provider CLIs skip that provider instead of failing OAL installation.
-- Added acceptance and e2e fixtures that prove missing provider binaries are
-  reported and skipped safely.
+- Added concise human output for `check` plus `check --verbose` internals for
+  source root, rendered providers, artifact count, and unsupported capability
+  count.
+- Added CLI coverage for clean `help`, `--help`, missing required option, and
+  unknown command exits without Commander/Bun stack traces.
 
 ### Changed
 
-- Kept `uninstall` single-provider only while making non-destructive
-  provider-aware commands accept provider sets.
-- Made plugin dry-runs report skipped providers in structured JSON.
+- Made Commander exits terminate cleanly instead of rethrowing expected CLI
+  help/error paths.
+- Made interactive mode session-oriented by looping back to the workflow picker
+  after each completed action.
 
 ### Verified
 
