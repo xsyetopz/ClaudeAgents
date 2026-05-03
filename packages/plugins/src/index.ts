@@ -345,14 +345,15 @@ async function activateCodexMarketplace(
 		reason: "Codex marketplace activation is best-effort through native CLI",
 	});
 	if (options.dryRun) return;
-	const child = Bun.spawn(
-		["codex", "plugin", "marketplace", "add", marketplaceRoot],
-		{
-			env: { ...process.env, HOME: options.home },
-			stdout: "pipe",
-			stderr: "pipe",
-		},
-	);
+	const child = spawnCodexMarketplaceActivation(options.home, marketplaceRoot);
+	if (!child) {
+		options.changes.push({
+			action: "skip",
+			path: marketplaceRoot,
+			reason: "Codex CLI is not available for native marketplace activation",
+		});
+		return;
+	}
 	const [_stdout, stderr, code] = await Promise.all([
 		new Response(child.stdout).text(),
 		new Response(child.stderr).text(),
@@ -364,6 +365,24 @@ async function activateCodexMarketplace(
 			path: marketplaceRoot,
 			reason: `Codex CLI did not activate marketplace automatically: ${stderr.trim() || "manual plugin selection may be required"}`,
 		});
+	}
+}
+
+function spawnCodexMarketplaceActivation(
+	home: string,
+	marketplaceRoot: string,
+): Bun.Subprocess<"pipe", "pipe", "pipe"> | undefined {
+	try {
+		return Bun.spawn(
+			["codex", "plugin", "marketplace", "add", marketplaceRoot],
+			{
+				env: { ...process.env, HOME: home },
+				stdout: "pipe",
+				stderr: "pipe",
+			},
+		);
+	} catch {
+		return undefined;
 	}
 }
 
