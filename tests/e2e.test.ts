@@ -35,6 +35,53 @@ test("CLI dry-run reports Codex and OpenCode changes without writing", async () 
 	}
 });
 
+test("CLI help is Commander-backed and non-interactive-safe", async () => {
+	const command = Bun.spawn(["bun", "packages/cli/src/main.ts"], {
+		cwd: repoRoot,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain("Usage: oal [options] [command]");
+	expect(stdout).toContain("interactive");
+	expect(stdout).toContain("deploy [options]");
+});
+
+test("CLI global dry-run maps provider artifacts into global homes", async () => {
+	const home = await mkdtemp(join(tmpdir(), "oal-global-e2e-"));
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"deploy",
+			"--scope",
+			"global",
+			"--home",
+			home,
+			"--provider",
+			"all",
+			"--dry-run",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain(".codex/config.toml");
+	expect(stdout).toContain(".claude/settings.json");
+	expect(stdout).toContain(".config/opencode/opencode.jsonc");
+	expect(stdout).toContain(".codex/AGENTS.md");
+	expect(stdout).toContain(".claude/CLAUDE.md");
+	await expect(
+		readFile(join(home, ".openagentlayer/manifest/global/codex.json"), "utf8"),
+	).rejects.toThrow();
+	await rm(home, { recursive: true, force: true });
+});
+
 test("CLI preview shows generated artifact set without writing files", async () => {
 	const root = await mkdtemp(join(tmpdir(), "oal-preview-"));
 	const command = Bun.spawn(
@@ -154,7 +201,30 @@ test("CLI toolchain shows OS package-manager install plan", async () => {
 	expect(stdout).toContain("rtk grep --help");
 	expect(stdout).toContain("rtk find --help");
 	expect(stdout).toContain("bunx ctx7 setup --cli --universal");
-	expect(stdout).toContain("bunx playwright install --with-deps");
+	expect(stdout).toContain("bunx -p playwright playwright install --with-deps");
+	expect(stdout).not.toContain("- bunx");
+});
+
+test("CLI features shows optional install and removal commands", async () => {
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"features",
+			"--install",
+			"ctx7,playwright",
+			"--remove",
+			"playwright",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain("bunx ctx7 setup --cli --universal");
+	expect(stdout).toContain("bunx -p playwright playwright install --with-deps");
+	expect(stdout).toContain("bunx -p playwright playwright uninstall --all");
 });
 
 test("CLI RTK gain check reports status", async () => {

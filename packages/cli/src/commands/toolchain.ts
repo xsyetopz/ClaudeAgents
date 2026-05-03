@@ -1,6 +1,8 @@
 import {
 	type OperatingSystem,
 	type OptionalTool,
+	optionalFeatureCommands,
+	optionalToolLabel,
 	type PackageManager,
 	planToolchainInstall,
 	renderToolchainPlan,
@@ -21,6 +23,30 @@ export function runToolchainCommand(args: string[]): void {
 	);
 	if (args.includes("--json")) console.log(JSON.stringify(plan, null, 2));
 	else console.log(renderToolchainPlan(plan));
+}
+
+export function runFeaturesCommand(args: string[]): void {
+	const install = optionalTools(option(args, "--install"));
+	const remove = optionalTools(option(args, "--remove"));
+	if (install.length === 0 && remove.length === 0)
+		throw new Error(
+			"Expected --install or --remove with ctx7,deepwiki,playwright.",
+		);
+	const commands = [
+		...optionalFeatureCommands("install", install),
+		...optionalFeatureCommands("remove", remove),
+	];
+	console.log(
+		[
+			"# OpenAgentLayer Optional Feature Commands",
+			`Features: ${[...install, ...remove].map(optionalToolLabel).join(", ")}`,
+			"",
+			"```bash",
+			...commands,
+			"```",
+			"",
+		].join("\n"),
+	);
 }
 
 function osOption(rawOs: string | undefined): OperatingSystem {

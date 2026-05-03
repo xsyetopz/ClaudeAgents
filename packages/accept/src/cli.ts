@@ -24,7 +24,11 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 			toolchain.stdout.includes("rtk gain") &&
 			toolchain.stdout.includes("rtk grep --help") &&
 			toolchain.stdout.includes("rtk find --help") &&
-			toolchain.stdout.includes("bunx ctx7 setup")
+			toolchain.stdout.includes("bunx ctx7 setup") &&
+			toolchain.stdout.includes(
+				"bunx -p playwright playwright install --with-deps",
+			) &&
+			!toolchain.stdout.includes("- bunx")
 		)
 	)
 		throw new Error(
@@ -77,6 +81,26 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 	if (!dryRun.stdout.includes(".codex/config.toml"))
 		throw new Error("CLI deploy dry-run did not report Codex config changes.");
 	await rm(deployRoot, { recursive: true, force: true });
+	const globalRoot = await mkdtemp(join(tmpdir(), "oal-cli-global-"));
+	const globalDryRun = await runCli(repoRoot, [
+		"deploy",
+		"--scope",
+		"global",
+		"--home",
+		globalRoot,
+		"--provider",
+		"all",
+		"--dry-run",
+	]);
+	if (
+		!(
+			globalDryRun.stdout.includes(".codex/AGENTS.md") &&
+			globalDryRun.stdout.includes(".claude/CLAUDE.md") &&
+			globalDryRun.stdout.includes(".config/opencode/opencode.jsonc")
+		)
+	)
+		throw new Error("CLI global dry-run did not report provider home changes.");
+	await rm(globalRoot, { recursive: true, force: true });
 	const pluginRoot = await mkdtemp(join(tmpdir(), "oal-cli-plugins-"));
 	const pluginDryRun = await runCli(repoRoot, [
 		"plugins",
@@ -98,11 +122,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 		throw new Error("CLI plugins dry-run did not report provider plugin sync.");
 	await rm(pluginRoot, { recursive: true, force: true });
 	await assertCliFails(repoRoot, ["render", "--provider", "bogus"], "provider");
-	await assertCliFails(
-		repoRoot,
-		["deploy", "--target", deployRoot, "--scope", "global"],
-		"scope",
-	);
+	await assertCliFails(repoRoot, ["deploy", "--scope", "workspace"], "scope");
 }
 
 async function runRtkGainFixture(

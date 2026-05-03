@@ -7,6 +7,7 @@ export type PackageManager =
 	| "zypper"
 	| "apk";
 export type OptionalTool = "ctx7" | "deepwiki" | "playwright";
+export type OptionalToolAction = "install" | "remove";
 
 export interface ToolchainOptions {
 	os: OperatingSystem;
@@ -19,10 +20,16 @@ export interface ToolchainPlan {
 	os: OperatingSystem;
 	packageManager: PackageManager;
 	requiredTools: string[];
-	optionalTools: OptionalTool[];
+	optionalTools: string[];
 	commands: string[];
 	notes: string[];
 }
+
+const OPTIONAL_TOOL_LABELS: Record<OptionalTool, string> = {
+	ctx7: "ctx7 [CLI]",
+	deepwiki: "deepwiki [MCP]",
+	playwright: "playwright [CLI]",
+};
 
 const CORE_TOOLS = [
 	"bun",
@@ -61,13 +68,13 @@ export function planToolchainInstall(options: ToolchainOptions): ToolchainPlan {
 		"rtk gain",
 		"rtk grep --help",
 		"rtk find --help",
-		...optionalCommands(optionalTools),
+		...optionalFeatureCommands("install", optionalTools),
 	];
 	return {
 		os: options.os,
 		packageManager,
 		requiredTools: [...CORE_TOOLS, "rtk"],
-		optionalTools,
+		optionalTools: optionalTools.map(optionalToolLabel),
 		commands,
 		notes: [
 			"Run as dry-run first; install mutates user machine state.",
@@ -89,12 +96,18 @@ export function renderToolchainPlan(plan: ToolchainPlan): string {
 		`Optional tools: ${plan.optionalTools.join(", ") || "none"}`,
 		"",
 		"Commands:",
-		...plan.commands.map((command) => `- ${command}`),
+		"```bash",
+		...plan.commands,
+		"```",
 		"",
 		"Notes:",
 		...plan.notes.map((note) => `- ${note}`),
 		"",
 	].join("\n");
+}
+
+export function optionalToolLabel(tool: OptionalTool): string {
+	return OPTIONAL_TOOL_LABELS[tool];
 }
 
 function defaultPackageManager(os: OperatingSystem): PackageManager {
@@ -149,14 +162,29 @@ function linuxRefreshCommand(packageManager: PackageManager): string {
 	}
 }
 
-function optionalCommands(optionalTools: OptionalTool[]): string[] {
+export function optionalFeatureCommands(
+	action: OptionalToolAction,
+	optionalTools: OptionalTool[],
+): string[] {
 	const commands: string[] = [];
 	if (optionalTools.includes("ctx7")) {
-		commands.push("bunx ctx7 setup --cli --universal");
+		commands.push(
+			action === "install"
+				? "bunx ctx7 setup --cli --universal"
+				: "bunx ctx7 remove --cli",
+		);
 	}
 	if (optionalTools.includes("deepwiki"))
-		commands.push("echo 'Configure DeepWiki MCP manually from provider docs.'");
+		commands.push(
+			action === "install"
+				? "echo 'Configure DeepWiki MCP manually from provider docs.'"
+				: "echo 'Remove DeepWiki MCP entries from provider config manually.'",
+		);
 	if (optionalTools.includes("playwright"))
-		commands.push("bunx playwright install --with-deps");
+		commands.push(
+			action === "install"
+				? "bunx -p playwright playwright install --with-deps"
+				: "bunx -p playwright playwright uninstall --all",
+		);
 	return commands;
 }

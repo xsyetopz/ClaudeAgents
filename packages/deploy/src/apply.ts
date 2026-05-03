@@ -22,7 +22,7 @@ export async function applyDeploy(plan: DeployPlan): Promise<void> {
 				(entry) => entry.provider === provider,
 			),
 		};
-		const target = join(plan.targetRoot, manifestPath(provider));
+		const target = join(plan.manifestRoot, manifestPath(provider, plan.scope));
 		await mkdir(dirname(target), { recursive: true });
 		await writeFile(target, JSON.stringify(providerManifest, null, 2));
 	}

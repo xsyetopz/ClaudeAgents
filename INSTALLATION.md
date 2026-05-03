@@ -9,12 +9,14 @@ This guide covers the supported OpenAgentLayer install and setup paths. Use `--d
    2. [Prerequisites](#prerequisites)
    3. [Install from source](#install-from-source)
    4. [Install with Homebrew](#install-with-homebrew)
-   5. [Set up provider plugins](#set-up-provider-plugins)
-   6. [Deploy into a project](#deploy-into-a-project)
-   7. [Select model plans](#select-model-plans)
-   8. [Verify the install](#verify-the-install)
-   9. [Uninstall](#uninstall)
-   10. [Troubleshooting](#troubleshooting)
+   5. [Interactive CLI](#interactive-cli)
+   6. [Set up provider plugins](#set-up-provider-plugins)
+   7. [Deploy into a project](#deploy-into-a-project)
+   8. [Deploy globally](#deploy-globally)
+   9. [Select model plans](#select-model-plans)
+   10. [Verify the install](#verify-the-install)
+   11. [Uninstall](#uninstall)
+   12. [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
 
@@ -31,6 +33,8 @@ Recommended toolchain plan:
 bun run toolchain -- --os macos --optional ctx7,playwright
 bun run toolchain -- --os linux --pkg apt --optional ctx7,playwright
 ```
+
+The plan prints copy-safe `bash` blocks. Paste command lines without Markdown list bullets.
 
 The toolchain plan includes Bun itself. OAL-generated npm/pnpm/yarn/npx shims rely on Bun being present before provider usage starts.
 
@@ -82,6 +86,25 @@ Before submitting cask changes, run:
 rtk ruby -c homebrew/Casks/openagentlayer.rb
 ```
 
+## Interactive CLI
+
+Run without a command in a TTY for guided prompts:
+
+```bash
+bun packages/cli/src/main.ts
+```
+
+The interactive path uses Commander-parsed commands plus Clack prompts. It covers preview, deploy, plugin sync, uninstall, and check. Non-TTY usage prints help instead of blocking for input.
+
+Optional feature commands can be printed separately:
+
+```bash
+bun run features -- --install ctx7,playwright
+bun run features -- --remove ctx7,playwright
+```
+
+Feature labels use `[CLI]` for command-line setup and `[MCP]` for provider MCP configuration.
+
 ## Set up provider plugins
 
 User-level plugin sync writes provider-native plugin payloads into provider homes. Always inspect the dry-run first:
@@ -124,6 +147,30 @@ bun run deploy -- --target /path/to/project --scope project --provider opencode
 ```
 
 Generated files that support comments include OAL managed markers. Edit `source/` and rerender instead of editing generated files directly.
+
+## Deploy globally
+
+Global deploy writes provider-native artifacts under the selected home directory. Dry-run first:
+
+```bash
+bun run deploy -- --scope global --provider all --dry-run
+```
+
+Apply all providers:
+
+```bash
+bun run deploy -- --scope global --provider all
+```
+
+Apply one provider:
+
+```bash
+bun run deploy -- --scope global --provider codex
+bun run deploy -- --scope global --provider claude
+bun run deploy -- --scope global --provider opencode
+```
+
+Use `--home /path/to/home` for fixture installs or non-default provider homes. OAL records global ownership under `.openagentlayer/manifest/global/` in that home.
 
 ## Select model plans
 
@@ -195,9 +242,12 @@ Uninstall removes OAL-owned artifacts for one provider. It does not accept `all`
 bun run uninstall -- --target /path/to/project --scope project --provider codex
 bun run uninstall -- --target /path/to/project --scope project --provider claude
 bun run uninstall -- --target /path/to/project --scope project --provider opencode
+bun run uninstall -- --scope global --provider codex
+bun run uninstall -- --scope global --provider claude
+bun run uninstall -- --scope global --provider opencode
 ```
 
-After uninstall, inspect the target project's git status. User-owned files and user-authored blocks should remain.
+After project uninstall, inspect the target project's git status. User-owned files and user-authored blocks should remain.
 
 ## Troubleshooting
 

@@ -2,20 +2,29 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type Artifact, artifactHash } from "@openagentlayer/artifact";
 import { createManifest } from "@openagentlayer/manifest";
-import type { DeployChange, DeployPlan } from "./types";
+import type { DeployChange, DeployPlan, DeployScope } from "./types";
+
+export interface PlanDeployOptions {
+	scope?: DeployScope;
+	manifestRoot?: string;
+}
 
 export async function planDeploy(
 	targetRoot: string,
 	artifacts: Artifact[],
+	options: PlanDeployOptions = {},
 ): Promise<DeployPlan> {
+	const scope = options.scope ?? "project";
 	const changes: DeployChange[] = [];
 	for (const artifact of artifacts)
 		changes.push(await planArtifact(targetRoot, artifact));
 	return {
 		targetRoot,
+		manifestRoot: options.manifestRoot ?? targetRoot,
+		scope,
 		changes,
 		artifacts,
-		manifest: createManifest(artifacts),
+		manifest: createManifest(artifacts, scope),
 		backups: [],
 	};
 }

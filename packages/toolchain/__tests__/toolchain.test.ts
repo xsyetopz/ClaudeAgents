@@ -1,5 +1,9 @@
 import { expect, test } from "bun:test";
-import { planToolchainInstall, renderToolchainPlan } from "../src";
+import {
+	optionalFeatureCommands,
+	planToolchainInstall,
+	renderToolchainPlan,
+} from "../src";
 
 test("macOS plan installs Homebrew before core tools when missing", () => {
 	const plan = planToolchainInstall({ os: "macos", hasHomebrew: false });
@@ -25,6 +29,19 @@ test("Linux plan uses selected distro package manager and optional tools", () =>
 		"bunx ctx7 setup --cli --universal",
 	);
 	expect(renderToolchainPlan(plan)).toContain(
-		"bunx playwright install --with-deps",
+		"bunx -p playwright playwright install --with-deps",
 	);
+	expect(renderToolchainPlan(plan)).toContain("```bash");
+	expect(renderToolchainPlan(plan)).not.toContain("- bunx");
+});
+
+test("optional feature commands support install and removal", () => {
+	expect(optionalFeatureCommands("install", ["ctx7", "playwright"])).toEqual([
+		"bunx ctx7 setup --cli --universal",
+		"bunx -p playwright playwright install --with-deps",
+	]);
+	expect(optionalFeatureCommands("remove", ["ctx7", "playwright"])).toEqual([
+		"bunx ctx7 remove --cli",
+		"bunx -p playwright playwright uninstall --all",
+	]);
 });

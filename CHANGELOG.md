@@ -5,6 +5,32 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.2-beta.6] - 2026-05-03
+
+### Added
+
+- Added global provider-home deploy and uninstall for Claude Code, Codex, and
+  OpenCode.
+- Added Commander-backed CLI command parsing plus Clack interactive prompts for
+  preview, deploy, plugin sync, uninstall, and source checks.
+
+### Changed
+
+- Kept provider plugin sync separate from global deploy so plugin caches and
+  active provider config remain distinct operations.
+- Added global manifests under `.openagentlayer/manifest/global/` so uninstall
+  removes only OAL-owned global files.
+
+### Verified
+
+- `rtk bun run test`
+- `rtk bun run accept`
+- `rtk proxy -- bun run accept`
+- `rtk bun run rtk-gain -- --allow-empty-history`
+- `rtk bun run biome:check`
+- `rtk bunx tsc --noEmit`
+- `rtk ruby -c homebrew/Casks/openagentlayer.rb`
+
 ## [0.1.2-beta.5] - 2026-05-03
 
 ### Added

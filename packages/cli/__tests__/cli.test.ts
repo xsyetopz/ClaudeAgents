@@ -7,7 +7,8 @@ test("CLI provider parser accepts OAL providers and rejects unknown providers", 
 	expect(() => providerOption("other")).toThrow("Unsupported provider other");
 });
 
-test("CLI scope parser only accepts project scope", () => {
+test("CLI scope parser accepts deploy scopes and rejects unknown scopes", () => {
 	expect(scopeOption("project")).toBe("project");
-	expect(() => scopeOption("global")).toThrow("Unsupported scope global");
+	expect(scopeOption("global")).toBe("global");
+	expect(() => scopeOption("workspace")).toThrow("Unsupported scope workspace");
 });

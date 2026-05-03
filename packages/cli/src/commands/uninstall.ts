@@ -1,14 +1,20 @@
-import { resolve } from "node:path";
 import { uninstall } from "@openagentlayer/deploy";
-import { option, providerOption, required, scopeOption } from "../arguments";
+import { providerOption, required } from "../arguments";
+import { scopeContext } from "../scope";
 
 export async function runUninstallCommand(args: string[]): Promise<void> {
-	const target = required(args, "--target");
+	const context = scopeContext(args, { requireTarget: true });
 	const provider = providerOption(required(args, "--provider"));
-	scopeOption(option(args, "--scope") ?? "project");
 	if (provider === "all")
 		throw new Error("Uninstall requires one provider, not all.");
 	console.log(
-		JSON.stringify(await uninstall(resolve(target), provider), null, 2),
+		JSON.stringify(
+			await uninstall(context.targetRoot, provider, {
+				scope: context.scope,
+				manifestRoot: context.manifestRoot,
+			}),
+			null,
+			2,
+		),
 	);
 }

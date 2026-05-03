@@ -4,9 +4,10 @@ import {
 	managedBlockMarker,
 } from "@openagentlayer/artifact";
 import type { Provider } from "@openagentlayer/source";
+export type ManifestScope = "project" | "global";
 export interface ManifestEntry {
 	provider: Provider;
-	scope: "project";
+	scope: ManifestScope;
 	path: string;
 	mode: "file" | "block" | "config";
 	hash: string;
@@ -21,7 +22,10 @@ export interface Manifest {
 	oalVersion: string;
 	entries: ManifestEntry[];
 }
-export function createManifest(artifacts: Artifact[]): Manifest {
+export function createManifest(
+	artifacts: Artifact[],
+	scope: ManifestScope = "project",
+): Manifest {
 	return {
 		product: "OpenAgentLayer",
 		version: 1,
@@ -29,7 +33,7 @@ export function createManifest(artifacts: Artifact[]): Manifest {
 		entries: artifacts.map((artifact) => {
 			const entry: ManifestEntry = {
 				provider: artifact.provider,
-				scope: "project",
+				scope,
 				path: artifact.path,
 				mode: artifact.mode,
 				hash: artifactHash(artifact.content),
@@ -61,7 +65,12 @@ function blockMarker(artifact: Artifact): string {
 	return managedBlockMarker(artifact);
 }
 
-export function manifestPath(provider: Provider): string {
+export function manifestPath(
+	provider: Provider,
+	scope: ManifestScope = "project",
+): string {
+	if (scope === "global")
+		return `.openagentlayer/manifest/global/${provider}.json`;
 	return `.oal/manifest/${provider}.json`;
 }
 

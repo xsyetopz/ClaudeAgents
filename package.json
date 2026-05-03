@@ -1,6 +1,6 @@
 {
   "name": "openagentlayer",
-  "version": "0.1.2-beta.5",
+  "version": "0.1.2-beta.6",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -22,6 +22,7 @@
     "plugins": "bun packages/cli/src/main.ts plugins",
     "render": "bun packages/cli/src/main.ts render",
     "preview": "bun packages/cli/src/main.ts preview",
+    "features": "bun packages/cli/src/main.ts features",
     "roadmap:evidence": "bun packages/cli/src/main.ts roadmap-evidence",
     "rtk-gain": "bun packages/cli/src/main.ts rtk-gain",
     "test": "bun test packages/*/__tests__/*.test.ts tests/*.test.ts",
@@ -30,6 +31,7 @@
     "toolchain": "bun packages/cli/src/main.ts toolchain"
   },
   "dependencies": {
+    "@clack/prompts": "^1.3.0",
     "@openagentlayer/accept": "workspace:*",
     "@openagentlayer/adapter": "workspace:*",
     "@openagentlayer/artifact": "workspace:*",
@@ -41,7 +43,8 @@
     "@openagentlayer/runtime": "workspace:*",
     "@openagentlayer/source": "workspace:*",
     "@openagentlayer/toolchain": "workspace:*",
-    "@opencode-ai/plugin": "1.14.33"
+    "@opencode-ai/plugin": "1.14.33",
+    "commander": "^14.0.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",

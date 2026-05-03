@@ -13,17 +13,19 @@ OAL keeps authored product input in `source/`, renders disposable provider artif
    4. [Provider support](#provider-support)
    5. [Model plans](#model-plans)
    6. [CLI commands](#cli-commands)
-   7. [Common workflows](#common-workflows)
+   7. [Interactive CLI](#interactive-cli)
+   8. [Common workflows](#common-workflows)
       1. [Inspect generated output](#inspect-generated-output)
       2. [Deploy to one project](#deploy-to-one-project)
-      3. [Sync provider plugins into your home directory](#sync-provider-plugins-into-your-home-directory)
-      4. [Remove OAL from a project](#remove-oal-from-a-project)
-   8. [Homebrew](#homebrew)
-   9. [Repository layout](#repository-layout)
-   10. [Validation](#validation)
-   11. [Contributing](#contributing)
-   12. [Star History](#star-history)
-   13. [License](#license)
+      3. [Deploy globally](#deploy-globally)
+      4. [Sync provider plugins into your home directory](#sync-provider-plugins-into-your-home-directory)
+      5. [Remove OAL from a project or provider home](#remove-oal-from-a-project-or-provider-home)
+   9. [Homebrew](#homebrew)
+   10. [Repository layout](#repository-layout)
+   11. [Validation](#validation)
+   12. [Contributing](#contributing)
+   13. [Star History](#star-history)
+   14. [License](#license)
 
 ## Quick start
 
@@ -58,6 +60,12 @@ Apply only after the dry-run paths are correct:
 bun run deploy -- --target /path/to/project --scope project --provider all
 ```
 
+In a terminal, run the CLI without a command for guided prompts:
+
+```bash
+bun packages/cli/src/main.ts
+```
+
 Detailed setup options are in [INSTALLATION.md](INSTALLATION.md).
 
 ## Install paths
@@ -68,6 +76,7 @@ Detailed setup options are in [INSTALLATION.md](INSTALLATION.md).
 | Homebrew cask        | You want the packaged `oal` binary after a release archive exists.       | Use the tap cask described in [Homebrew](#homebrew).                                    |
 | Provider plugin sync | You want OAL available from provider plugin locations in your user home. | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
 | Project deploy       | You want OAL artifacts in one project repository.                        | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
+| Global deploy        | You want OAL active in global provider config.                           | `bun run deploy -- --scope global --provider all --dry-run`.                            |
 
 ## Provider support
 
@@ -112,20 +121,43 @@ bun run preview -- --provider opencode --plan opencode-auto --opencode-models-fi
 
 Run through package scripts from a source checkout, or replace `bun run <script> --` with `oal` after installing the binary.
 
-| Command                | Purpose                                                                              | Common flags                                                             | Safe first command                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `check`                | Load source, validate policy, and prove renderability.                               | None.                                                                    | `bun run check`.                                                                        |
-| `preview`              | Show generated artifact paths and optional file contents without writing.            | `--provider`, `--path`, `--content`, `--plan`, `--opencode-models-file`. | `bun run preview -- --provider all`.                                                    |
-| `render` or `generate` | Write generated artifacts into an output directory.                                  | `--provider`, `--out`, `--plan`, `--opencode-models-file`.               | `bun run render -- --provider codex --out generated`.                                   |
-| `deploy`               | Merge OAL artifacts into a target project and write ownership metadata.              | `--target`, `--scope project`, `--provider`, `--dry-run`, `--plan`.      | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
-| `uninstall`            | Remove one provider's OAL-owned artifacts from a target project.                     | `--target`, `--scope project`, `--provider`.                             | `bun run uninstall -- --target /path/to/project --scope project --provider codex`.      |
-| `plugins`              | Sync provider plugin payloads into user-level provider homes.                        | `--home`, `--provider`, `--dry-run`, `--plan`, `--opencode-models-file`. | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
-| `toolchain`            | Print OS package-manager setup commands for OAL-friendly tools.                      | `--os`, `--pkg`, `--optional`, `--json`.                                 | `bun run toolchain -- --os macos --optional ctx7,playwright`.                           |
-| `rtk-gain`             | Check RTK token-savings policy.                                                      | `--from-file`, `--allow-empty-history`.                                  | `bun run rtk-gain -- --allow-empty-history`.                                            |
-| `roadmap-evidence`     | Print the acceptance evidence ledger.                                                | None.                                                                    | `bun run roadmap:evidence`.                                                             |
-| `accept`               | Run full product acceptance over source, rendering, deploy, uninstall, and fixtures. | None.                                                                    | `bun run accept`.                                                                       |
+| Command                | Purpose                                                                              | Common flags                                                                | Safe first command                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `check`                | Load source, validate policy, and prove renderability.                               | None.                                                                       | `bun run check`.                                                                        |
+| `preview`              | Show generated artifact paths and optional file contents without writing.            | `--scope`, `--home`, `--provider`, `--path`, `--content`, `--plan`.         | `bun run preview -- --provider all`.                                                    |
+| `render` or `generate` | Write generated artifacts into an output directory.                                  | `--scope`, `--home`, `--provider`, `--out`, `--plan`.                       | `bun run render -- --provider codex --out generated`.                                   |
+| `deploy`               | Merge OAL artifacts into a target project or global provider home.                   | `--target`, `--scope project\|global`, `--home`, `--provider`, `--dry-run`. | `bun run deploy -- --target /path/to/project --scope project --provider all --dry-run`. |
+| `uninstall`            | Remove one provider's OAL-owned artifacts from a target project or provider home.    | `--target`, `--scope project\|global`, `--home`, `--provider`.              | `bun run uninstall -- --target /path/to/project --scope project --provider codex`.      |
+| `plugins`              | Sync provider plugin payloads into user-level provider homes.                        | `--home`, `--provider`, `--dry-run`, `--plan`, `--opencode-models-file`.    | `bun run plugins -- --home "$HOME" --provider all --dry-run`.                           |
+| `toolchain`            | Print OS package-manager setup commands for OAL-friendly tools.                      | `--os`, `--pkg`, `--optional`, `--json`.                                    | `bun run toolchain -- --os macos --optional ctx7,playwright`.                           |
+| `features`             | Print optional feature install or removal commands.                                  | `--install`, `--remove`.                                                    | `bun run features -- --install ctx7,playwright`.                                        |
+| `rtk-gain`             | Check RTK token-savings policy.                                                      | `--from-file`, `--allow-empty-history`.                                     | `bun run rtk-gain -- --allow-empty-history`.                                            |
+| `roadmap-evidence`     | Print the acceptance evidence ledger.                                                | None.                                                                       | `bun run roadmap:evidence`.                                                             |
+| `accept`               | Run full product acceptance over source, rendering, deploy, uninstall, and fixtures. | None.                                                                       | `bun run accept`.                                                                       |
 
 Providers accepted by provider-aware commands are `all`, `codex`, `claude`, and `opencode`. `uninstall` requires one provider, not `all`.
+
+## Interactive CLI
+
+OAL uses Commander for option parsing and Clack for simple terminal prompts. Run without a command in a TTY, or call `interactive` explicitly:
+
+```bash
+bun packages/cli/src/main.ts
+bun packages/cli/src/main.ts interactive
+```
+
+Interactive mode supports preview, deploy, plugin sync, uninstall, and check. Non-interactive commands remain script-safe and print help instead of prompting when stdin is not a TTY.
+
+Optional features are explicit add/remove commands on top of OAL:
+
+```bash
+bun run features -- --install ctx7,playwright
+bun run features -- --remove playwright
+```
+
+Feature labels use `[CLI]` for command-line setup and `[MCP]` for provider MCP configuration.
+
+Copy commands from fenced `bash` blocks. Do not paste Markdown list bullets.
 
 ## Common workflows
 
@@ -143,6 +175,15 @@ bun run deploy -- --target /path/to/project --scope project --provider all --dry
 bun run deploy -- --target /path/to/project --scope project --provider all
 ```
 
+### Deploy globally
+
+```bash
+bun run deploy -- --scope global --provider all --dry-run
+bun run deploy -- --scope global --provider all
+```
+
+Global deploy writes provider-native config under your provider homes and records global ownership under `.openagentlayer/manifest/global/`.
+
 ### Sync provider plugins into your home directory
 
 ```bash
@@ -150,12 +191,13 @@ bun run plugins -- --home "$HOME" --provider all --dry-run
 bun run plugins -- --home "$HOME" --provider all
 ```
 
-### Remove OAL from a project
+### Remove OAL from a project or provider home
 
 ```bash
 bun run uninstall -- --target /path/to/project --scope project --provider codex
 bun run uninstall -- --target /path/to/project --scope project --provider claude
 bun run uninstall -- --target /path/to/project --scope project --provider opencode
+bun run uninstall -- --scope global --provider codex
 ```
 
 Uninstall removes OAL-owned artifacts from the manifest. It must preserve user-owned files and user-authored config blocks.

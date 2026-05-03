@@ -1,5 +1,7 @@
 import type { Artifact } from "@openagentlayer/artifact";
-import type { Manifest } from "@openagentlayer/manifest";
+import type { Manifest, ManifestScope } from "@openagentlayer/manifest";
+
+export type DeployScope = ManifestScope;
 
 export interface DeployChange {
 	action: "write" | "update" | "remove" | "skip" | "backup";
@@ -9,6 +11,8 @@ export interface DeployChange {
 
 export interface DeployPlan {
 	targetRoot: string;
+	manifestRoot: string;
+	scope: DeployScope;
 	changes: DeployChange[];
 	artifacts: Artifact[];
 	manifest: Manifest;
