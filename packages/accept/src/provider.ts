@@ -45,6 +45,7 @@ const OPENCODE_MODEL_FALLBACKS = [
 	"opencode/minimax-m2.5-free",
 	"opencode/hy3-preview-free",
 	"opencode/big-pickle",
+	"opencode/gpt-5-nano",
 ] as const;
 const CODEX_ZSH_PATH_EXPORT = [
 	'export PATH="$',

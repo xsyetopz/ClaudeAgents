@@ -5,6 +5,7 @@ export { supportedProviders } from "./providers";
 export type {
 	AgentRecord,
 	HookRecord,
+	ModelClass,
 	OalSource,
 	ProductSource,
 	RouteRecord,

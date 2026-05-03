@@ -102,6 +102,9 @@ export function assertRoadmapSource(source: OalSource): void {
 	for (const id of ["elevate", "delete", "parse"])
 		if (!source.skills.some((skill) => skill.id === id))
 			throw new Error(`Missing runtime safety skill ${id}.`);
+	for (const agent of source.agents)
+		if (!agent.modelClass)
+			throw new Error(`Agent ${agent.id} has no model class.`);
 }
 
 export function assertNegativePolicyFixtures(source: OalSource): void {

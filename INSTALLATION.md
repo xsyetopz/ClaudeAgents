@@ -11,9 +11,10 @@ This guide covers the supported OpenAgentLayer install and setup paths. Use `--d
    4. [Install with Homebrew](#install-with-homebrew)
    5. [Set up provider plugins](#set-up-provider-plugins)
    6. [Deploy into a project](#deploy-into-a-project)
-   7. [Verify the install](#verify-the-install)
-   8. [Uninstall](#uninstall)
-   9. [Troubleshooting](#troubleshooting)
+   7. [Select model plans](#select-model-plans)
+   8. [Verify the install](#verify-the-install)
+   9. [Uninstall](#uninstall)
+   10. [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
 
@@ -123,6 +124,42 @@ bun run deploy -- --target /path/to/project --scope project --provider opencode
 ```
 
 Generated files that support comments include OAL managed markers. Edit `source/` and rerender instead of editing generated files directly.
+
+## Select model plans
+
+Model plans are optional. Without a plan, OAL uses the source record defaults. With a plan, OAL routes each Greek agent by `modelClass`.
+
+Codex plans:
+
+```bash
+bun run deploy -- --target /path/to/project --scope project --provider codex --plan plus --dry-run
+bun run deploy -- --target /path/to/project --scope project --provider codex --plan pro-5 --dry-run
+bun run deploy -- --target /path/to/project --scope project --provider codex --plan pro-20 --dry-run
+```
+
+Claude Code plans:
+
+```bash
+bun run deploy -- --target /path/to/project --scope project --provider claude --plan max-5 --dry-run
+bun run deploy -- --target /path/to/project --scope project --provider claude --plan max-20 --dry-run
+bun run deploy -- --target /path/to/project --scope project --provider claude --plan max-20-long --dry-run
+```
+
+OpenCode plans:
+
+```bash
+bun run preview -- --provider opencode --plan opencode-auto --path opencode.jsonc --content
+bun run preview -- --provider opencode --plan opencode-free --path opencode.jsonc --content
+```
+
+`opencode-auto` runs `opencode models` and uses authenticated allowed models when available. If `opencode models` is unavailable, it falls back to OAL's free OpenCode set. Use `opencode-auth` when fallback should be an error.
+
+For reproducible dry-runs:
+
+```bash
+opencode models > /tmp/opencode-models.txt
+bun run preview -- --provider opencode --plan opencode-auto --opencode-models-file /tmp/opencode-models.txt --path opencode.jsonc --content
+```
 
 ## Verify the install
 

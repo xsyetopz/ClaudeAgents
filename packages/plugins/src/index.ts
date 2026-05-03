@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import {
+	type RenderOptions,
 	renderClaude,
 	renderCodex,
 	renderOpenCode,
@@ -22,6 +23,7 @@ export interface PluginSyncOptions {
 	source: OalSource;
 	providers: Provider[];
 	dryRun?: boolean;
+	renderOptions?: RenderOptions;
 }
 
 export interface PluginSyncChange {
@@ -180,13 +182,27 @@ async function renderProviderPluginArtifacts(
 	provider: Provider,
 ): Promise<Artifact[]> {
 	if (provider === "codex")
-		return (await renderCodex(options.source, options.repoRoot)).artifacts;
+		return (
+			await renderCodex(options.source, options.repoRoot, options.renderOptions)
+		).artifacts;
 	if (provider === "claude")
 		return [
-			...(await renderClaude(options.source, options.repoRoot)).artifacts,
+			...(
+				await renderClaude(
+					options.source,
+					options.repoRoot,
+					options.renderOptions,
+				)
+			).artifacts,
 			claudeHooksPluginArtifact(options.source),
 		];
-	return (await renderOpenCode(options.source, options.repoRoot)).artifacts;
+	return (
+		await renderOpenCode(
+			options.source,
+			options.repoRoot,
+			options.renderOptions,
+		)
+	).artifacts;
 }
 
 function providerPluginPath(provider: Provider, artifactPath: string): string {

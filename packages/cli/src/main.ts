@@ -53,7 +53,7 @@ switch (command) {
 
 function usage(): never {
 	console.log(
-		"Usage: oal accept|roadmap-evidence|rtk-gain [--from-file path] [--allow-empty-history]|check|preview [--provider all|codex|claude|opencode] [--path artifact] [--content]|render|generate [--provider all|codex|claude|opencode] [--out dir]|deploy --target dir [--scope project] [--provider all|codex|claude|opencode] [--dry-run]|uninstall --target dir --scope project --provider <provider>|plugins [--home dir] [--provider all|codex|claude|opencode] [--dry-run]|toolchain [--os macos|linux] [--pkg brew|apt|dnf|pacman|zypper|apk] [--optional ctx7,deepwiki,playwright]",
+		"Usage: oal accept|roadmap-evidence|rtk-gain [--from-file path] [--allow-empty-history]|check|preview [--provider all|codex|claude|opencode] [--plan plan] [--opencode-models-file path] [--path artifact] [--content]|render|generate [--provider all|codex|claude|opencode] [--plan plan] [--opencode-models-file path] [--out dir]|deploy --target dir [--scope project] [--provider all|codex|claude|opencode] [--plan plan] [--opencode-models-file path] [--dry-run]|uninstall --target dir --scope project --provider <provider>|plugins [--home dir] [--provider all|codex|claude|opencode] [--plan plan] [--opencode-models-file path] [--dry-run]|toolchain [--os macos|linux] [--pkg brew|apt|dnf|pacman|zypper|apk] [--optional ctx7,deepwiki,playwright]",
 	);
 	process.exit(command ? 2 : 0);
 }

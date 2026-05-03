@@ -1,6 +1,7 @@
 import { renderAllProviders, renderProvider } from "@openagentlayer/adapter";
 import type { Artifact, ArtifactSet } from "@openagentlayer/artifact";
 import { flag, option, providerOption } from "../arguments";
+import { renderOptions } from "../model-options";
 import { loadCheckedSource } from "../source";
 
 export async function runPreviewCommand(
@@ -10,11 +11,12 @@ export async function runPreviewCommand(
 	const provider = providerOption(option(args, "--provider") ?? "all");
 	const selectedPath = option(args, "--path");
 	const includeContent = flag(args, "--content");
+	const options = await renderOptions(args);
 	const source = await loadCheckedSource(repoRoot);
 	const rendered =
 		provider === "all"
-			? await renderAllProviders(source, repoRoot)
-			: await renderProvider(provider, source, repoRoot);
+			? await renderAllProviders(source, repoRoot, options)
+			: await renderProvider(provider, source, repoRoot, options);
 	const artifacts = selectArtifacts(rendered.artifacts, selectedPath);
 	if (selectedPath && artifacts.length === 0)
 		throw new Error(`No generated artifact path matched ${selectedPath}.`);

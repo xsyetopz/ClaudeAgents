@@ -82,6 +82,12 @@ const SKILL_PROMPT_CONTRACT_TERMS = [
 	"Attribution contract:",
 ] as const;
 const HEX_COLOR_PATTERN = /#[0-9a-f]{6}/;
+const FORBIDDEN_MODEL_TERMS = [
+	'gpt-5.4"',
+	"gpt-5.2",
+	"gpt-5.3-codex-spark",
+	"claude-opus-4-7",
+] as const;
 
 export function assertGeneratedArtifactContracts(
 	source: OalSource,
@@ -93,6 +99,7 @@ export function assertGeneratedArtifactContracts(
 	assertSkillArtifacts(source, artifacts);
 	assertInstructionBlocks(artifacts);
 	assertProvenanceMarkers(artifacts);
+	assertNoForbiddenModels(artifacts);
 }
 
 function assertProviderCoverage(artifacts: Artifact[]): void {
@@ -272,4 +279,11 @@ function assertDistinctAgentColors(artifacts: Artifact[]): void {
 			throw new Error(`Agents ${owner} and ${agent} share color ${color}.`);
 		colors.set(color, agent);
 	}
+}
+
+function assertNoForbiddenModels(artifacts: Artifact[]): void {
+	for (const artifact of artifacts)
+		for (const model of FORBIDDEN_MODEL_TERMS)
+			if (artifact.content.includes(model))
+				throw new Error(`${artifact.path} contains forbidden model ${model}.`);
 }

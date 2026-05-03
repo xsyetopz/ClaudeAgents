@@ -5,6 +5,40 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
+## [0.1.2-beta.5] - 2026-05-03
+
+### Added
+
+- Added subscription-aware model plans for Codex, Claude Code, and OpenCode
+  generated agents.
+- Added Greek-agent model classes so OAL routes architects, orchestrators,
+  reviewers, implementers, explorers, validators, maintainers, specialists, and
+  taste agents independently.
+- Added OpenCode model detection through `opencode models`, with authenticated
+  model selection when allowed models are available and free-model fallback
+  routing otherwise.
+
+### Changed
+
+- Kept Codex model plans inside OAL's allowed `gpt-5.5`, `gpt-5.4-mini`, and
+  `gpt-5.3-codex` policy.
+- Kept Claude model plans on `claude-opus-4-6`, `claude-opus-4-6[1m]`,
+  `claude-sonnet-4-6`, and `claude-haiku-4-5`, with the 1M Opus route limited
+  to the explicit long-context plan.
+- Blocked forbidden OpenCode detections such as `opencode/gpt-5.4`,
+  `opencode/gpt-5.2`, `opencode/gpt-5.3-codex-spark`, and
+  `opencode/claude-opus-4-7` from rendered artifacts.
+
+### Verified
+
+- `rtk bun run test`
+- `rtk bun run accept`
+- `rtk proxy -- bun run accept`
+- `rtk bun run rtk-gain -- --allow-empty-history`
+- `rtk bun run biome:check`
+- `rtk bunx tsc --noEmit`
+- `rtk ruby -c homebrew/Casks/openagentlayer.rb`
+
 ## [0.1.2-beta.4] - 2026-05-03
 
 ### Added

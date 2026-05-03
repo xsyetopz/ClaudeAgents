@@ -7,6 +7,8 @@ import type { AgentRecord, OalSource, Provider } from "@openagentlayer/source";
 import { agentHexColor } from "./agent-colors";
 import { agentPrompt, commandMarkdown, instructions } from "./common";
 import { renderHookArtifacts } from "./hooks";
+import type { RenderOptions } from "./model-routing";
+import { resolveClaudeModel } from "./model-routing";
 import { renderPrivilegedExecArtifacts } from "./runtime";
 import { renderSkillArtifacts } from "./skills";
 
@@ -15,6 +17,7 @@ const PROVIDER: Provider = "claude";
 export async function renderClaude(
 	source: OalSource,
 	repoRoot: string,
+	options: RenderOptions = {},
 ): Promise<ArtifactSet> {
 	const artifacts: Artifact[] = [
 		withProvenance({
@@ -31,7 +34,7 @@ export async function renderClaude(
 		artifacts.push({
 			provider: PROVIDER,
 			path: `.claude/agents/${agent.id}.md`,
-			content: renderClaudeAgent(agent, source),
+			content: renderClaudeAgent(agent, source, options),
 			sourceId: `agent:${agent.id}`,
 			mode: "file",
 		});
@@ -93,11 +96,16 @@ function renderClaudeSettings(source: OalSource): unknown {
 	};
 }
 
-function renderClaudeAgent(agent: AgentRecord, source: OalSource): string {
+function renderClaudeAgent(
+	agent: AgentRecord,
+	source: OalSource,
+	options: RenderOptions,
+): string {
 	return `---
 name: ${agent.id}
 description: ${agent.role}. Use when: ${agent.triggers.join("; ")}
-model: ${agent.models.claude ?? "claude-haiku-4-5"}
+model: ${resolveClaudeModel(agent, options)}
+model_class: ${agent.modelClass}
 tools: ${agent.tools.join(", ")}
 color: "${agentHexColor(agent.id)}"
 ---

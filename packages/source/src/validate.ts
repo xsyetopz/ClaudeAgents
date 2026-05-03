@@ -2,6 +2,7 @@ import { type Provider, supportedProviders } from "./providers";
 import type {
 	AgentRecord,
 	HookRecord,
+	ModelClass,
 	ProductSource,
 	RouteRecord,
 	SkillRecord,
@@ -10,10 +11,23 @@ import type {
 
 const PROVIDERS = new Set(supportedProviders());
 const AGENT_SKILL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MODEL_CLASSES = new Set<ModelClass>([
+	"architect",
+	"orchestrator",
+	"reviewer",
+	"implementer",
+	"specialist",
+	"explorer",
+	"validator",
+	"maintainer",
+	"taste",
+]);
 
 export function validateAgentRecord(record: AgentRecord): void {
 	requireText(record.id, "agent id");
 	requireText(record.name, `agent ${record.id} name`);
+	if (!MODEL_CLASSES.has(record.modelClass))
+		throw new Error(`agent ${record.id} has unsupported model class.`);
 	requireProviderList(record.providers, `agent ${record.id}`);
 	requireText(record.role, `agent ${record.id} role`);
 	requireStringList(record.triggers, `agent ${record.id} triggers`);

@@ -65,6 +65,72 @@ test("CLI preview shows generated artifact set without writing files", async () 
 	await rm(root, { recursive: true, force: true });
 });
 
+test("CLI preview applies subscription model plans", async () => {
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"preview",
+			"--provider",
+			"codex",
+			"--plan",
+			"pro-20",
+			"--path",
+			".codex/agents/athena.toml",
+			"--content",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain('model = "gpt-5.5"');
+	expect(stdout).toContain('model_reasoning_effort = "medium"');
+	expect(stdout).toContain('model_class = "architect"');
+});
+
+test("CLI preview routes OpenCode detected models and free fallbacks", async () => {
+	const root = await mkdtemp(join(tmpdir(), "oal-opencode-models-"));
+	const modelsFile = join(root, "models.txt");
+	await writeFile(
+		modelsFile,
+		[
+			"opencode/gpt-5.5",
+			"opencode/gpt-5.3-codex",
+			"opencode/gpt-5.3-codex-spark",
+			"opencode/claude-opus-4-7",
+		].join("\n"),
+	);
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"preview",
+			"--provider",
+			"opencode",
+			"--plan",
+			"opencode-auto",
+			"--opencode-models-file",
+			modelsFile,
+			"--path",
+			"opencode.jsonc",
+			"--content",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	expect(stdout).toContain('"model": "opencode/gpt-5.5"');
+	expect(stdout).toContain('"model": "opencode/gpt-5.3-codex"');
+	expect(stdout).toContain("opencode/gpt-5-nano");
+	expect(stdout).not.toContain("opencode/gpt-5.3-codex-spark");
+	expect(stdout).not.toContain("opencode/claude-opus-4-7");
+	await rm(root, { recursive: true, force: true });
+});
+
 test("CLI toolchain shows OS package-manager install plan", async () => {
 	const command = Bun.spawn(
 		[

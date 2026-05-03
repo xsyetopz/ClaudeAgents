@@ -18,26 +18,24 @@ import {
 	quoteToml,
 } from "./common";
 import { renderHookArtifacts } from "./hooks";
+import type { RenderOptions } from "./model-routing";
+import { OPENCODE_FREE_MODELS, resolveOpenCodeModel } from "./model-routing";
 import { renderPrivilegedExecArtifacts } from "./runtime";
 import { renderSkillArtifacts } from "./skills";
 
 const PROVIDER: Provider = "opencode";
-export const OPENCODE_MODEL_FALLBACKS = [
-	"opencode/nemotron-3-super-free",
-	"opencode/minimax-m2.5-free",
-	"opencode/hy3-preview-free",
-	"opencode/big-pickle",
-] as const;
+export const OPENCODE_MODEL_FALLBACKS = [...OPENCODE_FREE_MODELS] as const;
 
 export async function renderOpenCode(
 	source: OalSource,
 	repoRoot: string,
+	options: RenderOptions = {},
 ): Promise<ArtifactSet> {
 	const artifacts: Artifact[] = [
 		withProvenance({
 			provider: PROVIDER,
 			path: "opencode.jsonc",
-			content: JSON.stringify(renderOpenCodeConfig(source), null, 2),
+			content: JSON.stringify(renderOpenCodeConfig(source, options), null, 2),
 			sourceId: "config:opencode",
 			mode: "config",
 		}),
@@ -110,7 +108,10 @@ export async function renderOpenCode(
 	return { artifacts, unsupported: [] };
 }
 
-function renderOpenCodeConfig(source: OalSource): unknown {
+function renderOpenCodeConfig(
+	source: OalSource,
+	options: RenderOptions,
+): unknown {
 	return {
 		$schema: "https://opencode.ai/config.json",
 		model: OPENCODE_MODEL_FALLBACKS[0],
@@ -132,7 +133,8 @@ function renderOpenCodeConfig(source: OalSource): unknown {
 				agent.id,
 				{
 					description: agent.role,
-					model: agent.models.opencode ?? OPENCODE_MODEL_FALLBACKS[0],
+					model: resolveOpenCodeModel(agent, options),
+					model_class: agent.modelClass,
 					color: agentHexColor(agent.id),
 					permission: agent.tools.includes("write")
 						? { edit: "ask", write: "ask", bash: "ask" }

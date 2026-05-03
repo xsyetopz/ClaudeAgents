@@ -7,6 +7,8 @@ import type { AgentRecord, OalSource, Provider } from "@openagentlayer/source";
 import { agentHexColor } from "./agent-colors";
 import { agentPrompt, instructions, quoteToml } from "./common";
 import { renderHookArtifacts } from "./hooks";
+import type { RenderOptions } from "./model-routing";
+import { resolveCodexModel } from "./model-routing";
 import {
 	renderCodexShellShimArtifacts,
 	renderPrivilegedExecArtifacts,
@@ -63,6 +65,7 @@ const CODEX_FEATURES = [
 export async function renderCodex(
 	source: OalSource,
 	repoRoot: string,
+	options: RenderOptions = {},
 ): Promise<ArtifactSet> {
 	const artifacts: Artifact[] = [
 		withProvenance({
@@ -80,7 +83,7 @@ export async function renderCodex(
 			withProvenance({
 				provider: PROVIDER,
 				path: `.codex/agents/${agent.id}.toml`,
-				content: renderCodexAgent(agent, source),
+				content: renderCodexAgent(agent, source, options),
 				sourceId: `agent:${agent.id}`,
 				mode: "file",
 			}),
@@ -184,10 +187,16 @@ function renderCodexFeatures(): string {
 	).join("\n");
 }
 
-function renderCodexAgent(agent: AgentRecord, source: OalSource): string {
-	return `model = ${quoteToml(agent.models.codex ?? "gpt-5.4-mini")}
+function renderCodexAgent(
+	agent: AgentRecord,
+	source: OalSource,
+	options: RenderOptions,
+): string {
+	const model = resolveCodexModel(agent, options);
+	return `model = ${quoteToml(model.model)}
 sandbox_mode = ${quoteToml(agent.tools.includes("write") ? "workspace-write" : "read-only")}
 color = ${quoteToml(agentHexColor(agent.id))}
+${model.reasoningEffort ? `model_reasoning_effort = ${quoteToml(model.reasoningEffort)}\n` : ""}model_class = ${quoteToml(agent.modelClass)}
 developer_instructions = ${quoteToml(agentPrompt(agent, source))}
 `;
 }
