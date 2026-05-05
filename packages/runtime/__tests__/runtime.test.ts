@@ -283,6 +283,8 @@ test("RTK hook ignores patch and edit payload text that is not a shell command",
 			hook_event_name: "PreToolUse",
 			tool_name: "functions.shell_command",
 			tool_input: { input: "format = OJDGenericGamepadFormat()" },
+			rtkInstalled: true,
+			rtkPolicyPresent: true,
 		}),
 	).resolves.toMatchObject({
 		decision: "block",
