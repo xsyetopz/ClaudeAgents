@@ -102,6 +102,16 @@ function plainReasonText(outcome) {
 	return suffix ? `${outcome.reason}: ${suffix}` : outcome.reason;
 }
 
+function plainContextText(outcome) {
+	return [
+		outcome.reason,
+		...(Array.isArray(outcome.details) ? outcome.details : []),
+	]
+		.filter(Boolean)
+		.map((line) => String(line))
+		.join("\n");
+}
+
 function outcomeLevel(outcome, event) {
 	if (outcome.decision === "warn") return "warn";
 	if (outcome.decision === "block" && event !== "PreToolUse") return "fatal";
@@ -132,10 +142,9 @@ function codexOutcome(event, outcome) {
 			return event === "SessionStart"
 				? {
 						continue: true,
-						systemMessage: reason,
 						hookSpecificOutput: {
 							hookEventName: "SessionStart",
-							additionalContext: reason,
+							additionalContext: plainContextText(outcome),
 						},
 					}
 				: undefined;
@@ -164,7 +173,8 @@ function claudeOutcome(event, outcome) {
 				suppressOutput: false,
 				hookSpecificOutput: {
 					hookEventName: event || "SessionStart",
-					additionalContext: reason,
+					additionalContext:
+						event === "SessionStart" ? plainContextText(outcome) : reason,
 				},
 			};
 		default:

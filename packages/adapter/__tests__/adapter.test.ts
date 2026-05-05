@@ -148,6 +148,9 @@ test("provider agents render inspection and correction discipline contracts", as
 			"examples, corrections, suggested names, and partial ideas are input evidence for the requested behavior only",
 		);
 		expect(agent).toContain(
+			"use bounded python3 rewrites for broad mechanical changes",
+		);
+		expect(agent).toContain(
 			"inferred compatibility enters only through explicit user request or controlling source requirement",
 		);
 	}

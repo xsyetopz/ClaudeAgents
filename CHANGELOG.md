@@ -5,7 +5,7 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.2.0-beta.10] - 2026-05-05
+## [0.2.0-beta.11] - 2026-05-05
 
 ### Added
 
@@ -22,6 +22,8 @@ material only and is not part of the OAL release line.
 
 ### Changed
 
+- Changed Codex SessionStart scope receipts to emit one plain-text hook context without a duplicate warning or ANSI styling inside model context.
+- Documented bounded `python3` rewrites as the preferred path for broad mechanical edits when many manual patch hunks would be fragile, with final diff inspection required.
 - Fixed RTK command enforcement so edit/patch payload text is treated as patch content unless it arrives through an explicit shell command field or shell tool payload.
 - Strengthened agent and provider prompt contracts so examples, corrections, suggested names, and partial ideas authorize only the requested behavior; compatibility aliases, fallbacks, extra behavior, guardrails, docs, cleanup, and adjacent changes now require explicit user request or controlling source evidence.
 - Changed setup so `--profile` can load saved setup choices while explicit CLI flags override matching profile flags.

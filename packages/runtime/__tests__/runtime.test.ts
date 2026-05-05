@@ -345,10 +345,26 @@ test("session scope hook injects consent boundary at session start", async () =>
 			expect.stringContaining("Before work"),
 			expect.stringContaining("input evidence for the requested behavior only"),
 			expect.stringContaining("need explicit user request"),
+			expect.stringContaining("bounded python3 rewrites"),
 			expect.stringContaining("ask when blocked"),
 			expect.stringContaining("STATUS BLOCKED"),
 		],
 	});
+	const codexSessionStart = await runHookRaw("inject-session-scope.mjs", {
+		hook_event_name: "SessionStart",
+	});
+	expect(codexSessionStart.code).toBe(0);
+	const codexSessionStartOutput = JSON.parse(codexSessionStart.stdout) as {
+		systemMessage?: string;
+		hookSpecificOutput?: { additionalContext?: string };
+	};
+	expect(codexSessionStartOutput.systemMessage).toBeUndefined();
+	expect(
+		codexSessionStartOutput.hookSpecificOutput?.additionalContext,
+	).toContain("OAL session scope receipt\nBefore work:");
+	expect(
+		codexSessionStartOutput.hookSpecificOutput?.additionalContext,
+	).not.toContain("\u001b[");
 	await expect(
 		runNamedHook("inject-session-scope.mjs", {
 			hook_event_name: "PreToolUse",

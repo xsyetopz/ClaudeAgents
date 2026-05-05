@@ -7,6 +7,7 @@ const SESSION_SCOPE_DETAILS = [
 	"Before work: read repo instructions plus route and skill contracts that match the task",
 	"Consent boundary: examples, corrections, suggested names, and partial ideas are input evidence for the requested behavior only",
 	"Scope rule: compatibility aliases, parser fallbacks, extra behavior, guardrails, docs, cleanup, and adjacent changes need explicit user request or controlling source requirement",
+	"Edit rule: use apply_patch for focused edits; use bounded python3 rewrites for broad mechanical changes when many patch hunks would be fragile, then inspect the final diff",
 	"Workflow rule: use required route, skill, and subagent paths; ask when blocked instead of silently changing workflow",
 	"Blocked path: when source truth or scope is ambiguous, return STATUS BLOCKED with Attempted, Evidence, and Need",
 ];
