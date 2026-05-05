@@ -3,6 +3,8 @@ import { extractCommands, extractPaths, extractText } from "./_payload.mjs";
 import { asArray, asObject, uniqueValues } from "./_runtime.mjs";
 
 const BASE64_CANDIDATE_PATTERN = /\b[A-Za-z0-9+/]{32,}={0,2}\b/g;
+const GITHUB_ACTIONS_SECRET_REF_PATTERN =
+	/\$\{\{\s*secrets\.[A-Za-z_][A-Za-z0-9_]*\s*\}\}/g;
 const MIN_DECODED_LENGTH = 12;
 const MAX_DECODE_DEPTH = 2;
 
@@ -42,17 +44,18 @@ function pathFindings(paths) {
 }
 
 function textFindings(text, depth = 0) {
+	const scannedText = sanitizeText(text);
 	const findings = [];
 	for (const rule of GITLEAKS_RULES) {
 		if (!rule.regex) continue;
-		if (!keywordMatch(rule, text)) continue;
+		if (!keywordMatch(rule, scannedText)) continue;
 		const pattern = new RegExp(rule.regex.source, rule.regex.flags);
-		for (const match of text.matchAll(pattern)) {
+		for (const match of scannedText.matchAll(pattern)) {
 			findings.push(`${rule.id}:${match[1] ?? match[0]}`);
 		}
 	}
 	if (depth < MAX_DECODE_DEPTH) {
-		for (const candidate of text.match(BASE64_CANDIDATE_PATTERN) ?? []) {
+		for (const candidate of scannedText.match(BASE64_CANDIDATE_PATTERN) ?? []) {
 			const decoded = decodeBase64(candidate);
 			if (!decoded) continue;
 			const decodedFindings = textFindings(decoded, depth + 1);
@@ -61,6 +64,10 @@ function textFindings(text, depth = 0) {
 		}
 	}
 	return uniqueValues(findings);
+}
+
+function sanitizeText(text) {
+	return text.replace(GITHUB_ACTIONS_SECRET_REF_PATTERN, "gha-ref");
 }
 
 function keywordMatch(rule, text) {

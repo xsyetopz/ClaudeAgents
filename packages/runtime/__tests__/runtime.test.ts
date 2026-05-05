@@ -407,6 +407,16 @@ test("secret guard blocks nested provider inputs, auth headers, db URLs, and enc
 			output: "ordinary build output",
 		}),
 	).resolves.toMatchObject({ decision: "pass" });
+	await expect(
+		runNamedHook("block-secret-files.mjs", {
+			content: [
+				"name: release",
+				"env:",
+				`  KUBE_CONFIG: ${"$"}{{ secrets.KUBE_CONFIG }}`,
+				`  APP_STORE_KEY: ${"$"}{{secrets.APP_STORE_CONNECT_API_KEY}}`,
+			].join("\n"),
+		}),
+	).resolves.toMatchObject({ decision: "pass" });
 });
 
 test("command safety hooks inspect nested commands and subtle destructive forms", async () => {
