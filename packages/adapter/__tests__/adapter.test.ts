@@ -120,6 +120,12 @@ test("provider instructions render inspection and correction discipline contract
 		expect(instructions).toContain("git ls-files");
 		expect(instructions).toContain("Correction discipline:");
 		expect(instructions).toContain("verify before accepting a correction");
+		expect(instructions).toContain(
+			"Examples, corrections, suggested names, and partial ideas are input evidence for the requested behavior only",
+		);
+		expect(instructions).toContain(
+			"Treat inferred compatibility, aliases, fallbacks, extra behavior, guardrails, docs, and cleanup as out of scope",
+		);
 	}
 });
 
@@ -138,6 +144,12 @@ test("provider agents render inspection and correction discipline contracts", as
 		expect(agent).toContain("git ls-files");
 		expect(agent).toContain("Correction discipline:");
 		expect(agent).toContain("verify before accepting a correction");
+		expect(agent).toContain(
+			"examples, corrections, suggested names, and partial ideas are input evidence for the requested behavior only",
+		);
+		expect(agent).toContain(
+			"inferred compatibility enters only through explicit user request or controlling source requirement",
+		);
 	}
 });
 
@@ -175,6 +187,13 @@ test("Codex renders hooks only in hooks.json with provider event env", async () 
 	expect(hooks.hooks["PreToolUse"]?.[0]?.hooks[0]?.command).toContain(
 		"OAL_HOOK_PROVIDER=codex OAL_HOOK_EVENT=PreToolUse",
 	);
+	expect(
+		hooks.hooks["SessionStart"]?.some((group) =>
+			group.hooks.some((hook) =>
+				hook.command.includes("inject-session-scope.mjs"),
+			),
+		),
+	).toBe(true);
 });
 
 test("Claude renders every authored hook event with provider event env", async () => {
@@ -185,6 +204,13 @@ test("Claude renders every authored hook event with provider event env", async (
 			(artifact) => artifact.path === ".claude/settings.json",
 		)?.content ?? "{}",
 	) as { hooks: Record<string, Array<{ hooks: Array<{ command: string }> }>> };
+	expect(
+		settings.hooks["SessionStart"]?.some((group) =>
+			group.hooks.some((hook) =>
+				hook.command.includes("inject-session-scope.mjs"),
+			),
+		),
+	).toBe(true);
 	expect(settings.hooks["Stop"]?.length).toBeGreaterThan(1);
 	expect(settings.hooks["SubagentStop"]?.[0]?.hooks[0]?.command).toContain(
 		"OAL_HOOK_PROVIDER=claude OAL_HOOK_EVENT=SubagentStop",

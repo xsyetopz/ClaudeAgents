@@ -8,7 +8,11 @@ import {
 } from "@openagentlayer/setup";
 import type { OptionalTool } from "@openagentlayer/toolchain";
 import { flag, option, providerOptions } from "../arguments";
-import { loadProfileSelection, setupArgsForProfile } from "../config-state";
+import {
+	configPathFromArgs,
+	loadConfig,
+	setupArgsForProfile,
+} from "../config-state";
 import { installableProviders } from "../provider-binaries";
 import { runCheckCommand } from "./check";
 import { runDeployCommand } from "./deploy";
@@ -18,12 +22,14 @@ export async function runSetupCommand(
 	repoRoot: string,
 	args: string[],
 ): Promise<void> {
-	const profileSelection = await loadProfileSelection(args);
-	if (profileSelection.profile)
-		return runSetupWithArgs(
-			repoRoot,
-			setupArgsForProfile(profileSelection.profile, args),
-		);
+	const profileName = option(args, "--profile");
+	if (profileName) {
+		const config = await loadConfig(configPathFromArgs(args));
+		const profile = config.profiles[profileName];
+		if (!profile)
+			throw new Error(`Profile \`${profileName}\` is available to save first`);
+		return runSetupWithArgs(repoRoot, setupArgsForProfile(profile, args));
+	}
 	return runSetupWithArgs(repoRoot, args);
 }
 

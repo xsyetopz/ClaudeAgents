@@ -5,10 +5,11 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.2.0-beta.8] - 2026-05-05
+## [0.2.0-beta.9] - 2026-05-05
 
 ### Added
 
+- Added `inject-session-scope` SessionStart hook for Codex, Claude Code, and OpenCode so new sessions receive a concise scope, consent-boundary, workflow, and blocker-path receipt before work starts.
 - Added persisted setup profiles with `oal profiles list`, `show`, `save`, `use`, `remove`, and `args`.
 - Added `oal state inspect` for profile selection, provider availability, deploy write/update/skip counts, owned-manifest removal eligibility, and optional feature command state.
 - Added interactive setup profile saving plus interactive state/profile workflows.
@@ -21,6 +22,7 @@ material only and is not part of the OAL release line.
 
 ### Changed
 
+- Strengthened agent and provider prompt contracts so examples, corrections, suggested names, and partial ideas authorize only the requested behavior; compatibility aliases, fallbacks, extra behavior, guardrails, docs, cleanup, and adjacent changes now require explicit user request or controlling source evidence.
 - Changed setup so `--profile` can load saved setup choices while explicit CLI flags override matching profile flags.
 - Changed hook feedback wrapping to keep one separator when provider UIs flatten wrapped lines and to reapply ANSI color to every wrapped line.
 - Reworked interactive setup as a high-level wrapper over the low-level setup command path.
@@ -47,6 +49,7 @@ material only and is not part of the OAL release line.
 
 ### Verified
 
+- `rtk proxy -- bun test packages/adapter/__tests__/adapter.test.ts`
 - `rtk proxy -- bun test packages/runtime/__tests__/runtime.test.ts tests/e2e.test.ts packages/cli/__tests__/cli.test.ts`
 - `rtk proxy -- bunx biome check packages/runtime/hooks packages/runtime/__tests__/runtime.test.ts packages/cli/src tests/e2e.test.ts README.md INSTALLATION.md package.json --max-diagnostics 300`
 - `rtk bunx tsc --noEmit`

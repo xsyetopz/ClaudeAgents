@@ -1,0 +1,20 @@
+{
+  "id": "inject_session_scope",
+  "script": "inject-session-scope.mjs",
+  "providers": [
+    "codex",
+    "claude",
+    "opencode"
+  ],
+  "events": {
+    "codex": [
+      "SessionStart"
+    ],
+    "claude": [
+      "SessionStart"
+    ],
+    "opencode": [
+      "session.created"
+    ]
+  }
+}

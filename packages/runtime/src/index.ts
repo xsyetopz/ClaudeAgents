@@ -22,6 +22,7 @@ export const runtimeHooks: readonly string[] = [
 	"inject-package-scripts.mjs",
 	"inject-project-memory.mjs",
 	"inject-route-context.mjs",
+	"inject-session-scope.mjs",
 	"inject-subagent-context.mjs",
 	"advise-command-tools.mjs",
 	"require-completion-evidence.mjs",

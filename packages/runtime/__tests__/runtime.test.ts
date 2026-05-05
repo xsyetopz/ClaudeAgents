@@ -305,6 +305,31 @@ test("context injection lifecycle passes emit no native provider output", async 
 	expect(claude.stdout).toBe("");
 });
 
+test("session scope hook injects consent boundary at session start", async () => {
+	await expect(
+		runNamedHook("inject-session-scope.mjs", {
+			hook_event_name: "SessionStart",
+		}),
+	).resolves.toMatchObject({
+		decision: "warn",
+		reason: "OAL session scope receipt",
+		details: [
+			expect.stringContaining("Before work"),
+			expect.stringContaining("input evidence for the requested behavior only"),
+			expect.stringContaining("need explicit user request"),
+			expect.stringContaining("ask when blocked"),
+			expect.stringContaining("STATUS BLOCKED"),
+		],
+	});
+	await expect(
+		runNamedHook("inject-session-scope.mjs", {
+			hook_event_name: "PreToolUse",
+		}),
+	).resolves.toMatchObject({
+		decision: "pass",
+	});
+});
+
 test("command tool guidance advises search and structured config tools", async () => {
 	await expect(
 		runNamedHook("advise-command-tools.mjs", { command: "grep -R Token ." }),

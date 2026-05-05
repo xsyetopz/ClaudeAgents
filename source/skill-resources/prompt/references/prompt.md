@@ -11,3 +11,5 @@ Good operational prompts define:
 - high-risk shortcuts as named blocker signals
 
 Use affirmative target states and mechanical gates. For current-state cleanup, say what the artifact should become and how the final diff is checked.
+
+Corrections and examples are evidence for the requested result. They approve only the requested result; compatibility aliases, parser fallbacks, extra behavior, guardrails, adjacent cleanup, and docs enter scope when the user says them out loud or controlling source requires them.

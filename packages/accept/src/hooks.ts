@@ -100,6 +100,10 @@ const HOOK_BEHAVIOR_FIXTURES: Record<string, HookFixture> = {
 		input: { provider: "opencode", route: "resume" },
 		decision: "pass",
 	},
+	inject_session_scope: {
+		input: { provider: "codex", hook_event_name: "SessionStart" },
+		decision: "warn",
+	},
 	block_repeated_failures: {
 		input: { failures: ["one", "two", "three"], threshold: 3 },
 		decision: "block",
