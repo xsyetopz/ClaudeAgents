@@ -45,6 +45,18 @@ async function runHookRaw(
 	return { code, stdout, stderr };
 }
 
+function stripAnsi(text: string): string {
+	let output = "";
+	for (let index = 0; index < text.length; index += 1) {
+		if (text.charCodeAt(index) !== 27) {
+			output += text[index];
+			continue;
+		}
+		while (index < text.length && text[index] !== "m") index += 1;
+	}
+	return output;
+}
+
 test("RTK hook enforces supported commands and proxies unsupported commands", async () => {
 	await expect(
 		runHook({
@@ -330,6 +342,31 @@ test("hook feedback wraps colored lines before terminal word-wrap", async () => 
 	expect(stderrLines.every((line) => line.endsWith("\u001b[0m"))).toBe(true);
 	expect(codex.stderr).toContain("Use: rtk dotnet test");
 	expect(codex.stderr).toContain("OsuDroid.App.Tests.csproj");
+
+	const preToolUse = await runHookRaw(
+		"enforce-rtk-commands.mjs",
+		{
+			hook_event_name: "PreToolUse",
+			command,
+			rtkInstalled: true,
+			rtkPolicyPresent: true,
+		},
+		{ COLUMNS: "80" },
+	);
+	expect(preToolUse.code).toBe(0);
+	const preToolUseOutput = JSON.parse(preToolUse.stdout) as {
+		hookSpecificOutput: { permissionDecisionReason: string };
+	};
+	const feedbackLines =
+		preToolUseOutput.hookSpecificOutput.permissionDecisionReason.split("\n");
+	expect(feedbackLines.length).toBeGreaterThan(2);
+	expect(feedbackLines.every((line) => line.startsWith("\u001b["))).toBe(true);
+	expect(feedbackLines.every((line) => line.endsWith("\u001b[0m"))).toBe(true);
+	expect(
+		feedbackLines.every(
+			(line) => `  feedback: ${stripAnsi(line)}`.length <= 64,
+		),
+	).toBe(true);
 });
 
 test("secret guard blocks nested provider inputs, auth headers, db URLs, and encoded secrets", async () => {

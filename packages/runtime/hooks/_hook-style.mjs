@@ -7,6 +7,8 @@ const COLORS = {
 	reset: "\x1b[0m",
 };
 const DEFAULT_WRAP_COLUMNS = 88;
+const DEFAULT_TERMINAL_COLUMNS = 80;
+const DEFAULT_PROVIDER_PREFIX_COLUMNS = 28;
 const INDENT_PATTERN = /^\s*/;
 const WORD_SPLIT_PATTERN = /(\s+)/;
 const WHITESPACE_ONLY_PATTERN = /^\s+$/;
@@ -41,7 +43,17 @@ function wrapHookText(text) {
 function wrapColumns() {
 	const configured = Number(process.env.OAL_HOOK_WRAP_COLUMNS);
 	if (Number.isFinite(configured) && configured >= 24) return configured;
-	return DEFAULT_WRAP_COLUMNS;
+	const terminalColumns = Number(process.env.COLUMNS);
+	const width =
+		Number.isFinite(terminalColumns) && terminalColumns >= 40
+			? terminalColumns
+			: DEFAULT_TERMINAL_COLUMNS;
+	const prefixColumns = Number(process.env.OAL_HOOK_PREFIX_COLUMNS);
+	const reservedPrefix =
+		Number.isFinite(prefixColumns) && prefixColumns >= 0
+			? prefixColumns
+			: DEFAULT_PROVIDER_PREFIX_COLUMNS;
+	return Math.max(24, Math.min(DEFAULT_WRAP_COLUMNS, width - reservedPrefix));
 }
 
 function wrapLine(line, width) {
