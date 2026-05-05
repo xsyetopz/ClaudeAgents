@@ -37,5 +37,7 @@ function requireSupportFileContent(
 	content: string | undefined,
 ): string {
 	if (content) return content;
-	throw new Error(`skill ${skill.id} support file ${path} was not hydrated.`);
+	throw new Error(
+		`skill \`${skill.id}\` support file \`${path}\` was not hydrated.`,
+	);
 }

@@ -233,7 +233,7 @@ export function resolveOpenCodeModel(
 		if (selected) return selected;
 		if (plan === "opencode-auth")
 			throw new Error(
-				`OpenCode auth plan has no allowed detected model for ${agent.id}.`,
+				`OpenCode auth plan has no allowed detected model for \`${agent.id}\`.`,
 			);
 		return OPENCODE_FREE_BY_AGENT[agent.id] ?? OPENCODE_FREE_MODELS[0];
 	}
@@ -304,5 +304,5 @@ export function assertKnownModelPlan(plan: string): asserts plan is ModelPlan {
 			"opencode-free",
 		].includes(plan)
 	)
-		throw new Error(`Unsupported model plan ${plan}.`);
+		throw new Error(`Unsupported model plan \`${plan}\`.`);
 }
