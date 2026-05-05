@@ -273,7 +273,9 @@ function assertSimplicityDiscipline(source: OalSource): void {
 			"source-backed blockers",
 		])
 			if (!content.includes(term))
-				throw new Error(`${skillId} simplicity discipline missing ${term}.`);
+				throw new Error(
+					`\`${skillId}\` simplicity discipline missing ${term}.`,
+				);
 	}
 }
 
@@ -285,7 +287,7 @@ function assertRuntimeSafetySkills(source: OalSource): void {
 	} as const;
 	for (const [skillId, terms] of Object.entries(required)) {
 		const skill = source.skills.find((candidate) => candidate.id === skillId);
-		if (!skill) throw new Error(`Missing ${skillId} skill.`);
+		if (!skill) throw new Error(`Missing \`${skillId}\` skill.`);
 		const supportPath =
 			skillId === "elevate"
 				? "references/runtime.md"
