@@ -262,16 +262,18 @@ test("RTK hook rewrites replaceable Node.js package-manager commands to Bun", as
 	});
 });
 
-test("RTK hook routes Codex delegation to native subagents", async () => {
+test("RTK hook routes Codex delegation to OAL-managed Codex commands", async () => {
 	for (const command of [
 		'codex exec -c agent="nemesis" -s read-only -C /repo -o /tmp/nemesis.md "review this"',
 		'rtk proxy -- codex exec -c agent="nemesis" -s read-only -C /repo -o /tmp/nemesis.md "review this"',
 	]) {
 		await expect(runHook({ command })).resolves.toMatchObject({
 			decision: "block",
-			reason: "Use Codex native subagent workflow for delegated Codex work",
+			reason: "Use OAL-managed Codex delegation for delegated Codex work",
 			details: [
-				"Use: ask Codex to spawn focused agents by name or role, wait for their summaries, and merge evidence in the parent thread",
+				"Use: oal codex agent <agent> <task>",
+				"Use: oal codex route <route> <task>",
+				"Use: oal codex peer batch <task>",
 				"Use when explicit automation is requested: codex exec",
 			],
 		});

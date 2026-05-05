@@ -251,6 +251,73 @@ test("CLI global deploy can skip oal shim", async () => {
 	await rm(home, { recursive: true, force: true });
 });
 
+test("CLI Codex peer dry-run writes a coordinated run plan", async () => {
+	const root = await mkdtemp(join(tmpdir(), "oal-codex-peer-"));
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"codex",
+			"peer",
+			"batch",
+			"--cwd",
+			root,
+			"--dry-run",
+			"investigate and fix routing",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	const plan = JSON.parse(stdout) as {
+		root: string;
+		steps: Array<{ id: string; args: string[]; output: string }>;
+	};
+	expect(plan.root).toContain(".openagentlayer/codex-peer");
+	expect(plan.steps.map((step) => step.id)).toEqual([
+		"orchestrator",
+		"validate",
+		"worker",
+		"review",
+	]);
+	expect(plan.steps[0]?.args).toContain("route");
+	expect(await readFile(join(plan.root, "brief.md"), "utf8")).toContain(
+		"investigate and fix routing",
+	);
+	await rm(root, { recursive: true, force: true });
+});
+
+test("CLI Codex agent dry-run plans a custom-agent exec", async () => {
+	const command = Bun.spawn(
+		[
+			"bun",
+			"packages/cli/src/main.ts",
+			"codex",
+			"agent",
+			"hermes",
+			"--cwd",
+			repoRoot,
+			"--dry-run",
+			"map hooks",
+		],
+		{ cwd: repoRoot, stdout: "pipe", stderr: "pipe" },
+	);
+	const stdout = await new Response(command.stdout).text();
+	const stderr = await new Response(command.stderr).text();
+	expect(await command.exited).toBe(0);
+	expect(stderr).toBe("");
+	const run = JSON.parse(stdout) as { command: string; args: string[] };
+	expect(run.command).toBe("codex");
+	expect(run.args).toContain("exec");
+	expect(run.args).toContain("-m");
+	expect(run.args).toContain("gpt-5.4-mini");
+	expect(run.args).toContain("read-only");
+	expect(run.args.join("\n")).toContain("Use OpenAgentLayer agent `hermes`");
+	expect(run.args.join("\n")).toContain("map hooks");
+});
+
 test("CLI global deploy skips missing provider binaries without failing", async () => {
 	const home = await mkdtemp(join(tmpdir(), "oal-global-missing-provider-"));
 	const env = await fakeProviderPath(home, ["codex"]);

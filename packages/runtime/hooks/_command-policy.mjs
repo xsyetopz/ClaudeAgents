@@ -198,9 +198,11 @@ function evaluateCodexExecDelegation(command) {
 	if (tokens[0] !== "codex" || tokens[1] !== "exec") return undefined;
 	return {
 		decision: "block",
-		reason: "Use Codex native subagent workflow for delegated Codex work",
+		reason: "Use OAL-managed Codex delegation for delegated Codex work",
 		details: [
-			"Use: ask Codex to spawn focused agents by name or role, wait for their summaries, and merge evidence in the parent thread",
+			"Use: oal codex agent <agent> <task>",
+			"Use: oal codex route <route> <task>",
+			"Use: oal codex peer batch <task>",
 			"Use when explicit automation is requested: codex exec",
 		],
 	};

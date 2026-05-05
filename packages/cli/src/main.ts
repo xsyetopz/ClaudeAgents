@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { runAcceptCommand } from "./commands/accept";
 import { runBinCommand } from "./commands/bin";
 import { runCheckCommand } from "./commands/check";
+import { runCodexCommand } from "./commands/codex";
 import { runDeployCommand } from "./commands/deploy";
 import { runInspectCommand } from "./commands/inspect";
 import { runMcpCommand } from "./commands/mcp";
@@ -135,6 +136,27 @@ Examples:
 `,
 	)
 	.action((options) => runBinCommand(repoRoot, argsFromOptions(options)));
+
+program
+	.command("codex")
+	.description("run OAL-managed Codex agent, route, or peer workflows")
+	.argument("<action>", "agent, route, or peer")
+	.argument("[values...]", "agent/route/mode plus prompt text")
+	.option("--cwd <dir>", "working directory for Codex")
+	.option("--out <path>", "write Codex output to a file")
+	.option("--dry-run", "print the planned Codex command without launching")
+	.addHelpText(
+		"after",
+		`
+Examples:
+  $ oal codex agent hermes --dry-run "map the runtime hooks"
+  $ oal codex route review --dry-run "audit the current diff"
+  $ oal codex peer batch --dry-run "investigate, implement, validate, and review"
+`,
+	)
+	.action((action: string, values: string[], options) =>
+		runCodexCommand(repoRoot, [action, ...values, ...argsFromOptions(options)]),
+	);
 
 addRenderOptions(
 	program
@@ -351,6 +373,7 @@ function argsFromOptions(options: Record<string, unknown>): string[] {
 	pushValue(args, "--caveman-mode", options["cavemanMode"]);
 	pushValue(args, "--path", options["path"]);
 	pushValue(args, "--out", options["out"]);
+	pushValue(args, "--cwd", options["cwd"]);
 	pushValue(args, "--target", options["target"]);
 	pushValue(args, "--profile", options["profile"]);
 	pushValue(args, "--config", options["config"]);

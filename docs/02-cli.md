@@ -30,6 +30,18 @@ bun packages/cli/src/main.ts inspect release-witness
 bun packages/cli/src/main.ts mcp serve oal-inspect
 ```
 
+## Codex delegation
+
+Use `codex` for OAL-managed Codex role runs:
+
+```bash
+bun packages/cli/src/main.ts codex agent hermes --dry-run "map runtime hooks"
+bun packages/cli/src/main.ts codex route review --dry-run "audit the current diff"
+bun packages/cli/src/main.ts codex peer batch --dry-run "investigate, implement, validate, and review"
+```
+
+`agent` runs one generated Codex custom agent. `route` maps an OAL route to its owning generated agent. `peer batch` restores the v3-style coordinated run shape with orchestrator, validate, worker, and review passes, plus a `.openagentlayer/codex-peer/<run-id>/` handoff directory. Use `--dry-run` to inspect the plan before launching Codex.
+
 ## Model Plans
 
 Use plan flags when rendering subscription-specific model routes:

@@ -3,6 +3,12 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { providerOption, providerOptions, scopeOption } from "../src/arguments";
+import {
+	buildPeerSteps,
+	makeRunId,
+	peerRunPaths,
+	renderPeerSummary,
+} from "../src/commands/codex";
 import { buildSetupArgs } from "../src/workflows";
 
 const repoRoot = resolve(import.meta.dir, "../../..");
@@ -107,6 +113,39 @@ test("MCP command serves OAL inspect tools", async () => {
 		"# OAL Capability Report",
 	);
 	expect(inspect[2]?.result?.content?.[0]?.text).toContain("codex");
+});
+
+test("Codex peer runner builds v3-style role steps", () => {
+	const runId = makeRunId(new Date("2026-05-06T12:00:00Z"), "seed1234");
+	const steps = buildPeerSteps(repoRoot, "/repo", runId);
+	expect(steps.map((step) => [step.id, step.mode])).toEqual([
+		["orchestrator", "orchestrate"],
+		["validate", "validate"],
+		["worker", "implement"],
+		["review", "review"],
+	]);
+	expect(steps[0]?.args).toContain("codex");
+	expect(steps[0]?.args).toContain("route");
+	expect(steps[1]?.args.join("\n")).toContain("Reproduce broadly");
+	expect(steps[2]?.args.join("\n")).toContain(
+		"Implement the smallest cohesive fix",
+	);
+});
+
+test("Codex peer summary renders status evidence", () => {
+	const summary = renderPeerSummary(
+		"fix the auth race",
+		"run-123",
+		"batch",
+		peerRunPaths("/repo", "run-123").root,
+		[
+			{ id: "orchestrator", status: "ok", exitCode: 0 },
+			{ id: "worker", status: "failed", exitCode: 1 },
+		],
+	);
+	expect(summary).toContain("Run ID: `run-123`");
+	expect(summary).toContain("`worker`: failed (exit 1)");
+	expect(summary).toContain("fix the auth race");
 });
 
 async function runDocsMcp(

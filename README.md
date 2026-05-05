@@ -112,6 +112,16 @@ Legend: ✅ supported, ⚠️ partial/provider-limited, 🚧 under construction,
 | Manifest deploy/uninstall | ✅ OAL-owned artifact tracking.         | ✅ OAL-owned artifact tracking.              | ✅ OAL-owned artifact tracking.             |
 | Drift checks              | ✅ Generated edit guards.               | ✅ Generated edit guards.                    | ✅ Generated edit guards.                   |
 
+Codex also has an OAL-managed delegation CLI for environments where the native subagent launcher is unavailable to the current session:
+
+```bash
+oal codex agent hermes --dry-run "map runtime hooks"
+oal codex route review --dry-run "audit the current diff"
+oal codex peer batch --dry-run "investigate, implement, validate, and review"
+```
+
+`oal codex peer batch` creates a `.openagentlayer/codex-peer/<run-id>/` run directory and coordinates orchestrator, validate, worker, and review passes.
+
 ## Model plans
 
 OAL applies subscription-specific model and reasoning choices instead of giving every generated agent the same model. Use `--plan` with `preview`, `render`, `deploy`, or `plugins`.
