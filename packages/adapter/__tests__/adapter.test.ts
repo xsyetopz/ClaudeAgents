@@ -185,6 +185,21 @@ test("orchestration agents render concrete delegation task contracts", async () 
 	}
 });
 
+test("Claude agents render provider-native tools for delegation", async () => {
+	const graph = await loadSource(resolve(repoRoot, "source"));
+	const rendered = await renderProvider("claude", graph.source, repoRoot);
+	const odysseus = rendered.artifacts.find(
+		(artifact) => artifact.path === ".claude/agents/odysseus.md",
+	)?.content;
+	expect(odysseus).toContain("tools: Read, Grep, Glob, Bash, Task");
+	const hephaestus = rendered.artifacts.find(
+		(artifact) => artifact.path === ".claude/agents/hephaestus.md",
+	)?.content;
+	expect(hephaestus).toContain(
+		"tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write, Task",
+	);
+});
+
 test("Codex default render uses normal shell and hook-based RTK enforcement", async () => {
 	const graph = await loadSource(resolve(repoRoot, "source"));
 	const rendered = await renderProvider("codex", graph.source, repoRoot);
@@ -203,6 +218,12 @@ test("Codex default render uses normal shell and hook-based RTK enforcement", as
 				".codex/openagentlayer/hooks/enforce-rtk-commands.mjs",
 		),
 	).toBe(true);
+	const instructions = rendered.artifacts.find(
+		(artifact) => artifact.path === "AGENTS.md",
+	)?.content;
+	expect(instructions).toContain("Subagent surface:");
+	expect(instructions).toContain("use Codex native subagent workflow");
+	expect(instructions).toContain("This is not an OAL shell launcher");
 });
 
 test("Codex renders hooks only in hooks.json with provider event env", async () => {

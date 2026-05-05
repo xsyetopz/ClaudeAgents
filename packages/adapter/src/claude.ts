@@ -129,10 +129,50 @@ function renderClaudeAgent(
 name: ${agent.id}
 description: ${agent.role}. Use when: ${agent.triggers.join("; ")}
 model: ${resolveClaudeModel(agent, options)}
-tools: ${agent.tools.join(", ")}
+tools: ${claudeTools(agent).join(", ")}
 color: "${agentHexColor(agent.id)}"
 ---
 
 ${agentPrompt(agent, source)}
 `;
+}
+
+function claudeTools(agent: AgentRecord): string[] {
+	const tools = new Set<string>();
+	for (const tool of agent.tools) {
+		for (const claudeTool of claudeToolNames(tool)) tools.add(claudeTool);
+	}
+	if (delegationCapable(agent)) tools.add("Task");
+	return [...tools];
+}
+
+function claudeToolNames(tool: string): string[] {
+	switch (tool) {
+		case "read":
+			return ["Read"];
+		case "search":
+			return ["Grep", "Glob"];
+		case "shell":
+			return ["Bash"];
+		case "write":
+			return ["Edit", "MultiEdit", "Write"];
+		case "patch":
+			return ["Edit", "MultiEdit"];
+		default:
+			return [tool];
+	}
+}
+
+function delegationCapable(agent: AgentRecord): boolean {
+	return (
+		agent.routes.includes("orchestrate") ||
+		agent.routes.includes("implement") ||
+		agent.routes.includes("plan") ||
+		agent.routes.includes("explore") ||
+		agent.routes.includes("trace") ||
+		agent.routes.includes("validate") ||
+		agent.routes.includes("test") ||
+		agent.routes.includes("review") ||
+		agent.routes.includes("document")
+	);
 }
