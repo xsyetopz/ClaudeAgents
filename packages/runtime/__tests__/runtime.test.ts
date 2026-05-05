@@ -60,6 +60,38 @@ test("RTK hook enforces supported commands and proxies unsupported commands", as
 		decision: "pass",
 	});
 	await expect(
+		runHook({
+			command: 'rtk grep -R -n "touch" third_party --include="*.java"',
+		}),
+	).resolves.toMatchObject({
+		decision: "block",
+		reason: "RTK grep works best with native compact options",
+	});
+	await expect(
+		runHook({ command: 'rtk grep "touch" third_party' }),
+	).resolves.toMatchObject({
+		decision: "block",
+		reason: "RTK grep needs an explicit result cap",
+	});
+	await expect(
+		runHook({
+			command: 'rtk grep "touch" third_party --max 80 --file-type java',
+		}),
+	).resolves.toMatchObject({
+		decision: "pass",
+	});
+	await expect(
+		runHook({ command: "rtk read package.json" }),
+	).resolves.toMatchObject({
+		decision: "block",
+		reason: "RTK read needs an explicit output bound",
+	});
+	await expect(
+		runHook({ command: "rtk read --max-lines 80 package.json" }),
+	).resolves.toMatchObject({
+		decision: "pass",
+	});
+	await expect(
 		runHook({ command: "rtk proxy -- rg Token ." }),
 	).resolves.toMatchObject({
 		decision: "block",

@@ -164,7 +164,10 @@ function printReport(
 		"- `nl -ba <file>` -> `rtk read --line-numbers --max-lines <n> <file>`",
 	);
 	console.log(
-		"- raw/proxy `grep` or `rg` -> `rtk grep <pattern> <path> --max <n>`",
+		"- raw/proxy `grep` or `rg` -> `rtk grep <pattern> <path> --max <n> --file-type <type>`",
+	);
+	console.log(
+		"- full `rtk read <file>` -> `rtk read --max-lines <n> <file>` or `rtk read --level minimal <file>`",
 	);
 	console.log(
 		"- raw/proxy `dotnet build|test|format` -> `rtk dotnet build|test|format`",

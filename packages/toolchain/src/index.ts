@@ -117,7 +117,7 @@ export function planToolchainInstall(options: ToolchainOptions): ToolchainPlan {
 			"RTK must be verified with `rtk gain` to avoid the wrong rtk package.",
 			"RTK init must create global or project RTK.md policy before OAL hooks enforce RTK-wrapped commands.",
 			"Keep `rtk gain` at or above 80%; drops below 80% require command/output efficiency work before release.",
-			"Use `rtk gain` to confirm token savings; prefer `rtk grep` and bounded `rtk find` for high-volume repository inspection.",
+			"Use `rtk gain` to confirm token savings; prefer capped `rtk grep`, bounded `rtk read`, and bounded `rtk find` for high-volume repository inspection.",
 			"Use `rg` and `fd` for provider-shared source discovery; both respect `.gitignore` by default.",
 			"Use `git ls-files` when a task explicitly requires tracked files only.",
 			"Use `jq`/`yq` for structured config, `shellcheck`/`shfmt` for shell, `hyperfine` for speed claims, `ast-grep`/`sd` for careful mechanical rewrites, and `gitleaks` for secret checks.",

@@ -100,7 +100,9 @@ flowchart TD
     Command[command text] --> Parse[parse shell command]
     Parse --> NativeProxy{rtk proxy wraps native RTK command?}
     NativeProxy -->|yes| BlockNative[block and show native RTK form]
-    NativeProxy -->|no| RawDump{raw cat/nl/file dump?}
+    NativeProxy -->|no| RtkBounds{rtk grep/read is bounded?}
+    RtkBounds -->|no| BlockBounds[block and show bounded RTK form]
+    RtkBounds -->|yes| RawDump{raw cat/nl/file dump?}
     RawDump -->|yes| BlockRead[block and show rtk read]
     RawDump -->|no| Bun{replaceable npm/npx/pnpm/yarn?}
     Bun -->|yes| BlockBun[block and show bun/bunx form]
@@ -120,6 +122,8 @@ flowchart TD
 - apply Bun rewrites
 - apply RTK-native command rules
 - block native RTK commands wrapped in `rtk proxy`
+- block legacy recursive `rtk grep` flags and uncapped `rtk grep`
+- block `rtk read` without `--max-lines`, `--tail-lines`, or `--level`
 - block raw file dumps that should use `rtk read`
 - return actionable `Use:` guidance when a replacement is known
 
@@ -179,7 +183,7 @@ Examples:
 
 ```text
 RTK supports this command; run the RTK form
-Use: rtk grep -n "pattern" source packages
+Use: rtk grep "pattern" source packages --max 80 --file-type ts
 Provider value `other` needs `codex`, `claude`, `opencode`, or `all`
 ```
 

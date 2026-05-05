@@ -66,6 +66,15 @@ const ENV_PREFIX_PATTERN = /^env\s+(?:[A-Za-z_][A-Za-z0-9_]*=[^\s]+\s+)*/;
 const RAW_DIAGNOSTIC_ENV_PATTERN =
 	/(?:^|\s)(?:env\s+)?OAL_RTK_RAW_DIAGNOSTIC=1(?:\s|$)/;
 const WHITESPACE_PATTERN = /\s+/;
+const RTK_GREP_LEGACY_FLAGS = new Set(["-R", "-r", "--include", "--exclude"]);
+const RTK_GREP_MAX_FLAGS = new Set(["-m", "--max"]);
+const RTK_READ_BOUND_FLAGS = new Set([
+	"-m",
+	"--max-lines",
+	"--tail-lines",
+	"-l",
+	"--level",
+]);
 
 export function evaluateCommandPolicy(command, options = {}) {
 	const commands = commandLines(command);
@@ -113,8 +122,11 @@ function evaluateSingleCommand(command, options) {
 				],
 			};
 	}
-	if (normalized.startsWith("rtk ") || normalized === "rtk")
+	if (normalized.startsWith("rtk ") || normalized === "rtk") {
+		const rtkBounds = evaluateRtkCommandBounds(normalized);
+		if (rtkBounds) return rtkBounds;
 		return { decision: "pass", reason: "Command already uses RTK" };
+	}
 
 	const rewriteCandidate = shellInnerCommand(normalized) ?? normalized;
 	const bunReplacement = options.bunRewrite?.(rewriteCandidate);
@@ -230,6 +242,53 @@ function rawDiagnosticRequested(command) {
 	if (RAW_DIAGNOSTIC_ENV_PATTERN.test(command)) return true;
 	const nested = shellInnerCommand(command);
 	return nested ? RAW_DIAGNOSTIC_ENV_PATTERN.test(nested) : false;
+}
+
+function evaluateRtkCommandBounds(command) {
+	const tokens = command.split(WHITESPACE_PATTERN).filter(Boolean);
+	if (tokens[0] !== "rtk") return undefined;
+	const subcommand = tokens[1] ?? "";
+	if (subcommand === "grep") return evaluateRtkGrepBounds(tokens);
+	if (subcommand === "read") return evaluateRtkReadBounds(tokens);
+	return undefined;
+}
+
+function evaluateRtkGrepBounds(tokens) {
+	if (tokens.some((token) => RTK_GREP_LEGACY_FLAGS.has(token)))
+		return {
+			decision: "block",
+			reason: "RTK grep works best with native compact options",
+			details: ["Use: rtk grep <pattern> <path> --max <n> --file-type <type>"],
+		};
+	if (!hasOption(tokens, RTK_GREP_MAX_FLAGS))
+		return {
+			decision: "block",
+			reason: "RTK grep needs an explicit result cap",
+			details: ["Use: rtk grep <pattern> <path> --max <n>"],
+		};
+	return undefined;
+}
+
+function evaluateRtkReadBounds(tokens) {
+	if (!hasOption(tokens, RTK_READ_BOUND_FLAGS))
+		return {
+			decision: "block",
+			reason: "RTK read needs an explicit output bound",
+			details: [
+				"Use: rtk read --max-lines <n> <file>",
+				"Use: rtk read --level minimal <file>",
+			],
+		};
+	return undefined;
+}
+
+function hasOption(tokens, options) {
+	return tokens.some((token) => {
+		for (const option of options) {
+			if (token === option || token.startsWith(`${option}=`)) return true;
+		}
+		return false;
+	});
 }
 
 function rtkProxyInnerCommand(command) {
