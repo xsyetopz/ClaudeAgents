@@ -262,6 +262,22 @@ test("RTK hook rewrites replaceable Node.js package-manager commands to Bun", as
 	});
 });
 
+test("RTK hook routes Codex delegation to native subagents", async () => {
+	for (const command of [
+		'codex exec -c agent="nemesis" -s read-only -C /repo -o /tmp/nemesis.md "review this"',
+		'rtk proxy -- codex exec -c agent="nemesis" -s read-only -C /repo -o /tmp/nemesis.md "review this"',
+	]) {
+		await expect(runHook({ command })).resolves.toMatchObject({
+			decision: "block",
+			reason: "Use Codex native subagent workflow for delegated Codex work",
+			details: [
+				"Use: ask Codex to spawn focused agents by name or role, wait for their summaries, and merge evidence in the parent thread",
+				"Use when explicit automation is requested: codex exec",
+			],
+		});
+	}
+});
+
 test("RTK hook ignores patch and edit payload text that is not a shell command", async () => {
 	await expect(
 		runHook({

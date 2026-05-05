@@ -105,6 +105,8 @@ function evaluateSingleCommand(command, options) {
 	const normalized = stripCommandPrefixes(command);
 	const proxied = rtkProxyInnerCommand(normalized);
 	if (proxied) {
+		const delegatedCodex = evaluateCodexExecDelegation(proxied);
+		if (delegatedCodex) return delegatedCodex;
 		const proxiedExecutable = commandExecutable(proxied);
 		if (proxiedExecutable === "nl")
 			return {
@@ -129,6 +131,8 @@ function evaluateSingleCommand(command, options) {
 	}
 
 	const rewriteCandidate = shellInnerCommand(normalized) ?? normalized;
+	const delegatedCodex = evaluateCodexExecDelegation(rewriteCandidate);
+	if (delegatedCodex) return delegatedCodex;
 	const bunReplacement = options.bunRewrite?.(rewriteCandidate);
 	if (bunReplacement)
 		return {
@@ -186,6 +190,19 @@ function evaluateSingleCommand(command, options) {
 		decision: "warn",
 		reason: "RTK proxy handles this command when output may be noisy",
 		details: [`Use when useful: rtk proxy -- ${normalized}`],
+	};
+}
+
+function evaluateCodexExecDelegation(command) {
+	const tokens = command.split(WHITESPACE_PATTERN).filter(Boolean);
+	if (tokens[0] !== "codex" || tokens[1] !== "exec") return undefined;
+	return {
+		decision: "block",
+		reason: "Use Codex native subagent workflow for delegated Codex work",
+		details: [
+			"Use: ask Codex to spawn focused agents by name or role, wait for their summaries, and merge evidence in the parent thread",
+			"Use when explicit automation is requested: codex exec",
+		],
 	};
 }
 
