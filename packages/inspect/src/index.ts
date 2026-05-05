@@ -75,7 +75,7 @@ export async function inspectTopic(
 			return JSON.stringify(await releaseWitness(context), undefined, 2);
 		default: {
 			const unsupported: never = topic;
-			throw new Error(`Unsupported inspect topic ${unsupported}.`);
+			throw new Error(`Unsupported inspect topic \`${unsupported}\``);
 		}
 	}
 }

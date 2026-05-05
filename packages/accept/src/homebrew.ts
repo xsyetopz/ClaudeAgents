@@ -29,10 +29,12 @@ export async function assertHomebrewCask(repoRoot: string): Promise<void> {
 	);
 	for (const snippet of REQUIRED_CASK_SNIPPETS)
 		if (!cask.includes(snippet))
-			throw new Error(`Homebrew cask missing required snippet: ${snippet}`);
+			throw new Error(`Homebrew cask missing required snippet: \`${snippet}\``);
 	if (!cask.includes(`version "${packageJson.version}"`))
-		throw new Error("Homebrew cask version does not match package.json.");
+		throw new Error("Homebrew cask version does not match package.json");
 	for (const snippet of FORBIDDEN_CASK_SNIPPETS)
 		if (cask.toLowerCase().includes(snippet.toLowerCase()))
-			throw new Error(`Homebrew cask contains forbidden snippet: ${snippet}`);
+			throw new Error(
+				`Homebrew cask contains forbidden snippet: \`${snippet}\``,
+			);
 }

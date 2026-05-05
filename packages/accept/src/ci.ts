@@ -41,7 +41,7 @@ export async function assertCiCdWorkflow(repoRoot: string): Promise<void> {
 	const workflow = await readFile(join(repoRoot, CI_WORKFLOW), "utf8");
 	for (const term of REQUIRED_WORKFLOW_TERMS)
 		if (!workflow.includes(term))
-			throw new Error(`CI/CD workflow missing required guard: ${term}`);
+			throw new Error(`CI/CD workflow missing required guard: \`${term}\``);
 	for (const forbidden of [
 		"pull_request_target:",
 		"contents: write",

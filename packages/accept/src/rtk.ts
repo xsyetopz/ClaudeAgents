@@ -53,8 +53,7 @@ export function parseRtkGainPercent(output: string): number {
 
 export function parseRtkGainTotalCommands(output: string): number {
 	const match = RTK_GAIN_TOTAL_COMMANDS_PATTERN.exec(output);
-	if (!match)
-		throw new Error("rtk gain output did not include Total commands.");
+	if (!match) throw new Error("rtk gain output did not include Total commands");
 	return Number(match[1]);
 }
 
@@ -71,7 +70,7 @@ export function evaluateRtkGainOutput(
 				percent,
 				totalCommands,
 				message:
-					"rtk gain has no command history; threshold check skipped for fresh runner.",
+					"rtk gain has no command history; threshold check skipped for fresh runner",
 			};
 		throw new Error(
 			"rtk gain has no command history; run RTK-wrapped commands before enforcing the 80% threshold.",
@@ -85,7 +84,7 @@ export function evaluateRtkGainOutput(
 		status: "pass",
 		percent,
 		totalCommands,
-		message: `rtk gain ${percent}% meets the required ${MINIMUM_RTK_GAIN_PERCENT}%.`,
+		message: `rtk gain \`${percent}\`% meets the required \`${MINIMUM_RTK_GAIN_PERCENT}\`%`,
 	};
 }
 
@@ -116,7 +115,7 @@ export function assertRtkGainPolicyFixtures(): void {
 		} catch {
 			continue;
 		}
-		throw new Error(`RTK gain policy fixture did not fail: ${name}`);
+		throw new Error(`RTK gain policy fixture did not fail: \`${name}\``);
 	}
 }
 

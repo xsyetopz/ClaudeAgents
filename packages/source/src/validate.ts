@@ -60,7 +60,7 @@ export function validateSkillRecordShape(
 	if (record.upstream) {
 		requireText(record.upstream.path, `skill ${record.id} upstream path`);
 		if (record.upstream.verbatim !== true)
-			throw new Error(`skill \`${record.id}\` upstream must be verbatim.`);
+			throw new Error(`skill \`${record.id}\` upstream must be verbatim`);
 	}
 	for (const supportFile of record.supportFiles ?? []) {
 		requireText(supportFile.path, `skill \`${record.id}\` support file path`);
@@ -141,7 +141,7 @@ export function validateProductSource(record: ProductSource): void {
 		record.product?.name !== "OpenAgentLayer" ||
 		record.product?.shortName !== "OAL"
 	)
-		throw new Error("Product source must identify OpenAgentLayer/OAL.");
+		throw new Error("Product source must identify OpenAgentLayer/OAL");
 	if (record.promptContracts) {
 		requireText(
 			record.promptContracts.rtkEfficiency,
@@ -202,13 +202,15 @@ export function validateProductSource(record: ProductSource): void {
 
 function requireProviderList(value: Provider[], label: string): void {
 	if (!Array.isArray(value) || value.length === 0)
-		throw new Error(`\`${label}\` providers must be a non-empty array.`);
+		throw new Error(`\`${label}\` providers must be a non-empty array`);
 	for (const provider of value) requireProvider(provider, label);
 }
 
 function requireProvider(value: Provider, label: string): void {
 	if (!PROVIDERS.has(value))
-		throw new Error(`\`${label}\` has unsupported provider ${String(value)}.`);
+		throw new Error(
+			`\`${label}\` has unsupported provider \`${String(value)}\``,
+		);
 }
 
 function requireStringList(value: string[], label: string): void {
@@ -217,12 +219,12 @@ function requireStringList(value: string[], label: string): void {
 		value.length === 0 ||
 		value.some((entry) => typeof entry !== "string" || entry.length === 0)
 	)
-		throw new Error(`\`${label}\` must be a non-empty string array.`);
+		throw new Error(`\`${label}\` must be a non-empty string array`);
 }
 
 function requireText(value: string, label: string): void {
 	if (typeof value !== "string" || value.trim().length === 0)
-		throw new Error(`\`${label}\` must be a non-empty string.`);
+		throw new Error(`\`${label}\` must be a non-empty string`);
 }
 
 function requireHydratedSupportContent(

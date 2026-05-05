@@ -64,7 +64,7 @@ test("RTK hook enforces supported commands and proxies unsupported commands", as
 	).resolves.toMatchObject({
 		decision: "block",
 		reason:
-			"RTK has a native filter for this command; do not route it through proxy.",
+			"RTK has a native filter for this command; do not route it through proxy",
 		details: ["Use: rtk grep Token ."],
 	});
 	await expect(
@@ -72,7 +72,7 @@ test("RTK hook enforces supported commands and proxies unsupported commands", as
 	).resolves.toMatchObject({
 		decision: "block",
 		reason:
-			"RTK proxy is leaking raw file output; use the bounded RTK read filter.",
+			"RTK proxy is leaking raw file output; use the bounded RTK read filter",
 	});
 	await expect(
 		runHook({
@@ -123,7 +123,7 @@ test("command policy enforces preferred QoL tool replacements", async () => {
 	] as const) {
 		await expect(runHook({ command })).resolves.toMatchObject({
 			decision: "block",
-			reason: "OpenAgentLayer has a preferred QoL tool for this command.",
+			reason: "OpenAgentLayer has a preferred QoL tool for this command",
 			details: [`Use: ${replacement}`],
 		});
 	}
@@ -263,7 +263,7 @@ test("command tool guidance advises search and structured config tools", async (
 		}),
 	).resolves.toMatchObject({
 		decision: "pass",
-		reason: "Search command uses bounded or tracked-file inventory.",
+		reason: "Search command uses bounded or tracked-file inventory",
 	});
 	await expect(
 		runNamedHook("advise-command-tools.mjs", {
@@ -271,7 +271,7 @@ test("command tool guidance advises search and structured config tools", async (
 		}),
 	).resolves.toMatchObject({
 		decision: "warn",
-		reason: "JSON/YAML edits use 'jq'/'yq' or typed code.",
+		reason: "JSON/YAML edits use 'jq'/'yq' or typed code",
 	});
 });
 
@@ -285,9 +285,9 @@ test("blocking post-tool hooks emit provider output and stderr feedback", async 
 	expect(codex.code).toBe(2);
 	expect(JSON.parse(codex.stdout)).toMatchObject({
 		continue: true,
-		systemMessage: expect.stringContaining("Repeated failure circuit opened."),
+		systemMessage: expect.stringContaining("Repeated failure circuit opened"),
 	});
-	expect(codex.stderr).toContain("Repeated failure circuit opened.");
+	expect(codex.stderr).toContain("Repeated failure circuit opened");
 	expect(codex.stderr).toContain("\u001b[35m");
 	expect(codex.stderr).toContain("one");
 
@@ -304,11 +304,11 @@ test("blocking post-tool hooks emit provider output and stderr feedback", async 
 		hookSpecificOutput: {
 			hookEventName: "PostToolUseFailure",
 			additionalContext: expect.stringContaining(
-				"Repeated failure circuit opened.",
+				"Repeated failure circuit opened",
 			),
 		},
 	});
-	expect(claude.stderr).toContain("Repeated failure circuit opened.");
+	expect(claude.stderr).toContain("Repeated failure circuit opened");
 	expect(claude.stderr).toContain("three");
 });
 

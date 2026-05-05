@@ -134,8 +134,11 @@ async function runMcp(
 		proc.exited,
 	]);
 	if (code !== 0)
-		throw new Error(`MCP command exited ${code} with stderr:\n${stderr}`);
-	if (stderr !== "") throw new Error(`MCP command wrote stderr:\n${stderr}`);
+		throw new Error(
+			`MCP command exited \`${code}\` with stderr:\n\`${stderr}\``,
+		);
+	if (stderr !== "")
+		throw new Error(`MCP command wrote stderr:\n\`${stderr}\``);
 	return stdout
 		.trim()
 		.split("\n")
@@ -160,7 +163,9 @@ test("CLI provider parser accepts comma-separated providers", () => {
 test("CLI scope parser accepts deploy scopes and rejects unknown scopes", () => {
 	expect(scopeOption("project")).toBe("project");
 	expect(scopeOption("global")).toBe("global");
-	expect(() => scopeOption("workspace")).toThrow("Unsupported scope workspace");
+	expect(() => scopeOption("workspace")).toThrow(
+		"Unsupported scope `workspace`",
+	);
 });
 
 test("interactive setup workflow builds low-level setup args", () => {

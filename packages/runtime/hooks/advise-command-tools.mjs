@@ -12,7 +12,7 @@ function evaluate(payload) {
 	if (REGEX_CONFIG_EDIT_PATTERN.test(command)) {
 		return {
 			decision: "warn",
-			reason: "JSON/YAML edits use 'jq'/'yq' or typed code.",
+			reason: "JSON/YAML edits use 'jq'/'yq' or typed code",
 			details: [command],
 		};
 	}
@@ -23,7 +23,7 @@ function evaluate(payload) {
 		return {
 			decision: "warn",
 			reason:
-				"Prefer rg or fd with explicit bounds; use tracked-file inventory when ignored files must stay out of scope.",
+				"Prefer rg or fd with explicit bounds; use tracked-file inventory when ignored files must stay out of scope",
 			details: [
 				"Use: rg <pattern> -g '<glob>'",
 				"Use: fd <pattern> <path>",
@@ -36,12 +36,12 @@ function evaluate(payload) {
 	if (TRACKED_ONLY_PATTERN.test(command)) {
 		return {
 			decision: "pass",
-			reason: "Search command uses bounded or tracked-file inventory.",
+			reason: "Search command uses bounded or tracked-file inventory",
 		};
 	}
 	return {
 		decision: "pass",
-		reason: "Command tool guidance found no advisory issue.",
+		reason: "Command tool guidance found no advisory issue",
 	};
 }
 

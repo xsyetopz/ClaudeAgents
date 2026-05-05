@@ -41,7 +41,7 @@ function parsePayload(raw) {
 	} catch (error) {
 		return {
 			payload: {},
-			malformed: error instanceof Error ? error.message : "Invalid JSON input.",
+			malformed: error instanceof Error ? error.message : "Invalid JSON input",
 		};
 	}
 }
@@ -180,7 +180,7 @@ export function createHookRunner(hook, evaluate) {
 			providerOutcome(payload, {
 				hook,
 				decision: "block",
-				reason: "Malformed hook input.",
+				reason: "Malformed hook input",
 				details: [malformed],
 			}) ?? { continue: false, systemMessage: malformed },
 		);
@@ -194,7 +194,7 @@ export function createHookRunner(hook, evaluate) {
 			providerOutcome(payload, {
 				hook,
 				decision: "block",
-				reason: "Hook returned an invalid decision.",
+				reason: "Hook returned an invalid decision",
 			}) ?? {
 				continue: false,
 				systemMessage: "Hook returned an invalid decision.",

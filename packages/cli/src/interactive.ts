@@ -42,7 +42,7 @@ type ProviderMulti = WorkflowProvider[];
 
 export async function runInteractiveCommand(repoRoot: string): Promise<void> {
 	if (!process.stdin.isTTY)
-		throw new Error("Interactive mode requires a TTY. Pass a command instead.");
+		throw new Error("Interactive mode requires a TTY. Pass a command instead");
 	intro("OpenAgentLayer");
 	for (;;) {
 		const action = await workflowPrompt();
@@ -578,7 +578,7 @@ async function globalHomePrompt(): Promise<string> {
 	const detectedHome = resolve(homedir());
 	const useDetectedHome = await ask<boolean>(
 		confirm({
-			message: `Use detected home ${detectedHome}?`,
+			message: `Use detected home \`${detectedHome}\`?`,
 			initialValue: true,
 		}),
 	);

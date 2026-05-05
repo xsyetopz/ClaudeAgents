@@ -57,20 +57,21 @@ async function assertCodexConfig(targetRoot: string): Promise<void> {
 	assertCodexTomlSchema(config);
 	for (const marker of CODEX_MARKERS)
 		if (!config.includes(marker))
-			throw new Error(`Codex config missing managed marker ${marker}`);
+			throw new Error(`Codex config missing managed marker \`${marker}\``);
 	await assertCodexInstructionBaseline(config, targetRoot);
 	for (const flag of CODEX_REQUIRED_FLAGS)
-		if (!config.includes(flag)) throw new Error(`Codex config missing ${flag}`);
+		if (!config.includes(flag))
+			throw new Error(`Codex config missing \`${flag}\``);
 	if (config.includes("model_instructions_file"))
 		throw new Error(
 			"Codex config should not replace bundled base instructions.",
 		);
 	if (!config.includes('approvals_reviewer = "auto_review"'))
-		throw new Error("Codex config missing auto approval reviewer.");
+		throw new Error("Codex config missing auto approval reviewer");
 	if (!config.includes("interrupt_message = true"))
-		throw new Error("Codex config has invalid agents.interrupt_message.");
+		throw new Error("Codex config has invalid agents.interrupt_message");
 	if (config.includes('interrupt_message = "'))
-		throw new Error("Codex config emitted string agents.interrupt_message.");
+		throw new Error("Codex config emitted string agents.interrupt_message");
 	for (const forbidden of [
 		'approval_policy = "on-failure"',
 		["guardian", "subagent"].join("_"),
@@ -95,7 +96,9 @@ async function assertCodexInstructionBaseline(
 			new RegExp(String.raw`\[profiles\.${profile}\]([\s\S]*?)(?=\n\[|$)`),
 		)?.[1];
 		if (profileBlock?.includes("zsh_path"))
-			throw new Error(`Codex profile ${profile} should use the normal shell.`);
+			throw new Error(
+				`Codex profile \`${profile}\` should use the normal shell`,
+			);
 	}
 	const agents = await readFile(join(targetRoot, "AGENTS.md"), "utf8");
 	for (const required of [
@@ -104,7 +107,7 @@ async function assertCodexInstructionBaseline(
 		"generated files are disposable outputs",
 	])
 		if (!agents.includes(required))
-			throw new Error(`AGENTS.md missing Codex baseline text: ${required}`);
+			throw new Error(`AGENTS.md missing Codex baseline text: \`${required}\``);
 }
 
 async function assertClaudeSettings(targetRoot: string): Promise<void> {
@@ -117,7 +120,7 @@ async function assertClaudeSettings(targetRoot: string): Promise<void> {
 			"Claude settings model route is not allowed baseline model.",
 		);
 	if (!(settings.permissions && settings.hooks))
-		throw new Error("Claude settings missing permissions or hooks.");
+		throw new Error("Claude settings missing permissions or hooks");
 }
 
 async function assertOpenCodeConfig(targetRoot: string): Promise<void> {
@@ -140,11 +143,11 @@ async function assertOpenCodeConfig(targetRoot: string): Promise<void> {
 			"OpenCode config missing native permission/plugin/command/agent surfaces.",
 		);
 	if (config.default_agent !== "hephaestus")
-		throw new Error("OpenCode default agent is not a primary OAL agent.");
+		throw new Error("OpenCode default agent is not a primary OAL agent");
 	if (config.model !== OPENCODE_MODEL_FALLBACKS[0])
-		throw new Error("OpenCode model fallback default is not first free model.");
+		throw new Error("OpenCode model fallback default is not first free model");
 	if (config.small_model !== OPENCODE_MODEL_FALLBACKS[1])
-		throw new Error("OpenCode small model fallback is not second free model.");
+		throw new Error("OpenCode small model fallback is not second free model");
 	assertOpenCodeAgentColors(config.agent);
 	for (const command of [
 		"plan",
@@ -160,16 +163,16 @@ async function assertOpenCodeConfig(targetRoot: string): Promise<void> {
 		"audit",
 	])
 		if (!config.command[command])
-			throw new Error(`OpenCode config missing command ${command}`);
+			throw new Error(`OpenCode config missing command \`${command}\``);
 }
 
 function assertOpenCodeAgentColors(agentConfig: Record<string, unknown>): void {
 	for (const [agentId, config] of Object.entries(agentConfig)) {
 		if (!(config && typeof config === "object" && "color" in config))
-			throw new Error(`OpenCode agent ${agentId} missing color.`);
+			throw new Error(`OpenCode agent \`${agentId}\` missing color`);
 		const color = (config as { color?: unknown }).color;
 		if (!(typeof color === "string" && HEX_COLOR_PATTERN.test(color)))
-			throw new Error(`OpenCode agent ${agentId} has invalid color.`);
+			throw new Error(`OpenCode agent \`${agentId}\` has invalid color`);
 	}
 }
 
@@ -184,7 +187,7 @@ async function assertRuntimeArtifacts(targetRoot: string): Promise<void> {
 			plugin.includes("export const OpenAgentLayerPlugin")
 		)
 	)
-		throw new Error("OpenCode plugin does not use native plugin typing.");
+		throw new Error("OpenCode plugin does not use native plugin typing");
 	for (const runtimePath of [
 		".codex/openagentlayer/runtime/privileged-exec.mjs",
 		".claude/openagentlayer/runtime/privileged-exec.mjs",
@@ -198,7 +201,9 @@ async function assertRuntimeArtifacts(targetRoot: string): Promise<void> {
 				content.includes("dryRun")
 			)
 		)
-			throw new Error(`Privileged exec runtime is incomplete: ${runtimePath}`);
+			throw new Error(
+				`Privileged exec runtime is incomplete: \`${runtimePath}\``,
+			);
 	}
 }
 

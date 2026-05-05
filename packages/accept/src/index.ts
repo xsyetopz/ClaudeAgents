@@ -33,6 +33,7 @@ import { assertHomebrewCask } from "./homebrew";
 import { assertHooks } from "./hooks";
 import { assertInstalledFlowSmoke } from "./install-smoke";
 import { assertRepositoryInventory } from "./inventory";
+import { assertMessageStyle } from "./message-style";
 import { assertPluginMarketplace } from "./plugins";
 import { assertProviderConfigContracts } from "./provider";
 import { assertRoadmapEvidence, buildRoadmapEvidence } from "./roadmap";
@@ -66,6 +67,7 @@ export async function runAcceptance(
 	await assertAuthoredMarkdownStyle(repoRoot);
 	await assertCheckboxDiscipline(repoRoot);
 	await assertRepositoryInventory(repoRoot);
+	await assertMessageStyle(repoRoot);
 	await assertHomebrewCask(repoRoot);
 	await assertCiCdWorkflow(repoRoot);
 	await assertPluginMarketplace(repoRoot, graph.source);
@@ -114,14 +116,14 @@ export async function runAcceptance(
 	);
 	const driftBefore = await compareArtifacts(targetRoot, comparableArtifacts);
 	if (driftBefore.length > 0)
-		throw new Error(`Fresh deploy drifted: ${driftBefore.join(", ")}`);
+		throw new Error(`Fresh deploy drifted: \`${driftBefore.join(", ")}\``);
 	await writeFile(
 		join(targetRoot, comparableArtifacts[0]?.path ?? "missing"),
 		"manual edit\n",
 	);
 	const driftAfter = await compareArtifacts(targetRoot, comparableArtifacts);
 	if (driftAfter.length === 0)
-		throw new Error("Drift check failed to detect hand edit.");
+		throw new Error("Drift check failed to detect hand edit");
 	await applyDeploy(plan);
 	for (const provider of ["codex", "claude", "opencode"] satisfies Provider[])
 		await uninstall(targetRoot, provider);
@@ -129,7 +131,7 @@ export async function runAcceptance(
 		(candidate) => candidate.mode === "file",
 	))
 		if (await exists(join(targetRoot, artifact.path)))
-			throw new Error(`Uninstall left owned artifact: ${artifact.path}`);
+			throw new Error(`Uninstall left owned artifact: \`${artifact.path}\``);
 	await assertUserConfigPreservedAfterUninstall(targetRoot);
 	await assertUserBlocksPreservedAfterUninstall(targetRoot);
 	await rm(targetRoot, { recursive: true, force: true });
@@ -138,7 +140,7 @@ export async function runAcceptance(
 
 function assertManifestDepth(artifactCount: number, entryCount: number): void {
 	if (artifactCount !== entryCount)
-		throw new Error("Manifest does not track every artifact.");
+		throw new Error("Manifest does not track every artifact");
 }
 
 export { buildRoadmapEvidence, renderRoadmapEvidenceMarkdown } from "./roadmap";

@@ -897,7 +897,7 @@ test("CLI plugins skips missing provider binaries without failing", async () => 
 	expect(stderr).toBe("");
 	expect(stdout).toContain(".codex-plugin/plugin.json");
 	expect(stdout).toContain("skip claude");
-	expect(stdout).toContain("claude binary not found in PATH");
+	expect(stdout).toContain("`claude` binary not found in PATH");
 	expect(stdout).not.toContain(".claude/plugins/marketplaces/openagentlayer");
 	await rm(home, { recursive: true, force: true });
 });

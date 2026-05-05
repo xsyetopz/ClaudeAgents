@@ -43,7 +43,7 @@ export async function assertRenderedConfigs(targetRoot: string): Promise<void> {
 	await assertUserJsonConfig(targetRoot);
 	const codex = await readFile(join(targetRoot, ".codex/config.toml"), "utf8");
 	if (!codex.includes("user_owned = true"))
-		throw new Error("TOML config merge did not preserve user-owned keys.");
+		throw new Error("TOML config merge did not preserve user-owned keys");
 	for (const required of [
 		"gpt-5.5",
 		"gpt-5.4-mini",
@@ -53,7 +53,7 @@ export async function assertRenderedConfigs(targetRoot: string): Promise<void> {
 		"codex_git_commit = false",
 	])
 		if (!codex.includes(required))
-			throw new Error(`Codex config missing ${required}`);
+			throw new Error(`Codex config missing \`${required}\``);
 }
 
 export async function assertMarkedBlocksInstalled(
@@ -70,7 +70,7 @@ export async function assertMarkedBlocksInstalled(
 				`<!-- >>> oal ${path === "AGENTS.md" ? "codex" : "claude"} >>> -->`,
 			)
 		)
-			throw new Error(`${path} missing OAL marked block.`);
+			throw new Error(`\`${path}\` missing OAL marked block`);
 	}
 }
 
@@ -86,7 +86,7 @@ export async function assertBackupsCreated(targetRoot: string): Promise<void> {
 		try {
 			await readFile(backupPath, "utf8");
 		} catch {
-			throw new Error(`Missing backup ${backupPath}`);
+			throw new Error(`Missing backup \`${backupPath}\``);
 		}
 	}
 }
@@ -116,7 +116,7 @@ export async function assertUserConfigPreservedAfterUninstall(
 ): Promise<void> {
 	const codex = await readFile(join(targetRoot, ".codex/config.toml"), "utf8");
 	if (!codex.includes("user_owned = true"))
-		throw new Error("Codex user config was not preserved after uninstall.");
+		throw new Error("Codex user config was not preserved after uninstall");
 	await assertUserJsonConfig(targetRoot);
 }
 
@@ -130,7 +130,7 @@ async function assertUserJsonConfig(targetRoot: string): Promise<void> {
 		),
 	) as { userOwned?: boolean };
 	if (claude.userOwned !== true || opencode.userOwned !== true)
-		throw new Error("JSON user config was not preserved.");
+		throw new Error("JSON user config was not preserved");
 }
 
 function stripJsonComments(text: string): string {

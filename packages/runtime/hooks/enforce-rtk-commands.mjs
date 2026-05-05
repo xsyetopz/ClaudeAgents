@@ -11,7 +11,7 @@ import { asString, createHookRunner } from "./_runtime.mjs";
 function evaluate(payload) {
 	const command = firstCommandText(payload);
 	if (!command) {
-		return { decision: "pass", reason: "Command text absent." };
+		return { decision: "pass", reason: "Command text absent" };
 	}
 
 	const rtkState = inspectRtkState(payload);

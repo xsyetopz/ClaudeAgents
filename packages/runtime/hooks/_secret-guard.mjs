@@ -98,7 +98,7 @@ export function evaluateSecretGuard(payload) {
 	if (payload.allowSecretAccess === true) {
 		return {
 			decision: "warn",
-			reason: "Secret access allowed by explicit override.",
+			reason: "Secret access allowed by explicit override",
 		};
 	}
 
@@ -109,13 +109,13 @@ export function evaluateSecretGuard(payload) {
 	if (findings.length > 0) {
 		return {
 			decision: "block",
-			reason: "Potential secret detected by Gitleaks rules.",
+			reason: "Potential secret detected by Gitleaks rules",
 			details: findings.map(redact),
 		};
 	}
 
 	return {
 		decision: "pass",
-		reason: "Gitleaks secret rules found no match.",
+		reason: "Gitleaks secret rules found no match",
 	};
 }

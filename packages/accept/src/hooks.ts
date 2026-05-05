@@ -159,7 +159,8 @@ async function assertSourceHook(
 	hook: HookRecord,
 ): Promise<void> {
 	const fixture = HOOK_BEHAVIOR_FIXTURES[hook.id];
-	if (!fixture) throw new Error(`Missing hook behavior fixture for ${hook.id}`);
+	if (!fixture)
+		throw new Error(`Missing hook behavior fixture for \`${hook.id}\``);
 	await assertHook(
 		join(targetRoot, hookPath(hook.providers[0] ?? "codex", hook.script)),
 		fixture.input,
@@ -255,7 +256,7 @@ async function assertProviderNativeHookOutput(
 		JSON.parse(codexDeny.stdout).hookSpecificOutput?.permissionDecision !==
 		"deny"
 	)
-		throw new Error("Codex PreToolUse hook did not emit native deny output.");
+		throw new Error("Codex PreToolUse hook did not emit native deny output");
 	const claudeDeny = await runNativeHook(
 		join(targetRoot, ".claude/hooks/scripts/enforce-rtk-commands.mjs"),
 		{ hook_event_name: "PreToolUse", command: "git status" },
@@ -265,7 +266,7 @@ async function assertProviderNativeHookOutput(
 		JSON.parse(claudeDeny.stdout).hookSpecificOutput?.permissionDecision !==
 		"deny"
 	)
-		throw new Error("Claude PreToolUse hook did not emit native deny output.");
+		throw new Error("Claude PreToolUse hook did not emit native deny output");
 	const codexPostToolBlock = await runNativeHook(
 		join(targetRoot, ".codex/openagentlayer/hooks/block-repeated-failures.mjs"),
 		{
@@ -276,9 +277,9 @@ async function assertProviderNativeHookOutput(
 		{ OAL_HOOK_PROVIDER: "codex", OAL_HOOK_EVENT: "PostToolUse" },
 	);
 	if (codexPostToolBlock.exitCode !== 2)
-		throw new Error("Codex PostToolUse block did not exit with code 2.");
-	if (!codexPostToolBlock.stderr.includes("Repeated failure circuit opened."))
-		throw new Error("Codex PostToolUse block did not emit stderr feedback.");
+		throw new Error("Codex PostToolUse block did not exit with code 2");
+	if (!codexPostToolBlock.stderr.includes("Repeated failure circuit opened"))
+		throw new Error("Codex PostToolUse block did not emit stderr feedback");
 	const claudePostToolFailureBlock = await runNativeHook(
 		join(targetRoot, ".claude/hooks/scripts/block-repeated-failures.mjs"),
 		{
@@ -297,7 +298,7 @@ async function assertProviderNativeHookOutput(
 		);
 	if (
 		!claudePostToolFailureBlock.stderr.includes(
-			"Repeated failure circuit opened.",
+			"Repeated failure circuit opened",
 		)
 	)
 		throw new Error(
@@ -308,7 +309,7 @@ async function assertProviderNativeHookOutput(
 	};
 	if (
 		!claudePostOutput.hookSpecificOutput?.additionalContext?.includes(
-			"Repeated failure circuit opened.",
+			"Repeated failure circuit opened",
 		)
 	)
 		throw new Error(
@@ -329,9 +330,11 @@ async function assertProviderNativeHookOutput(
 		"blockIfNeeded(evaluateFailureLoop(output ?? {}))",
 	])
 		if (!plugin.includes(term))
-			throw new Error(`OpenCode plugin missing active hook behavior: ${term}`);
+			throw new Error(
+				`OpenCode plugin missing active hook behavior: \`${term}\``,
+			);
 	if (plugin.includes("output.metadata"))
-		throw new Error("OpenCode plugin uses metadata-only hook behavior.");
+		throw new Error("OpenCode plugin uses metadata-only hook behavior");
 }
 
 async function runNativeHook(
@@ -383,7 +386,7 @@ async function assertRtkHookBehavior(targetRoot: string): Promise<void> {
 		"glab",
 	])
 		if (!script.includes(`"${command}"`))
-			throw new Error(`RTK enforcement hook missing command ${command}.`);
+			throw new Error(`RTK enforcement hook missing command \`${command}\``);
 	const rewriteSupport = await readFile(
 		join(targetRoot, ".codex/openagentlayer/hooks/_bun-rewrite.mjs"),
 		"utf8",

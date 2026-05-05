@@ -269,7 +269,9 @@ export function assertRoadmapEvidence(evidence: RoadmapEvidence[]): void {
 					entry.status === "covered",
 			)
 		)
-			throw new Error(`Roadmap evidence missing required topic: ${required}`);
+			throw new Error(
+				`Roadmap evidence missing required topic: \`${required}\``,
+			);
 	}
 }
 

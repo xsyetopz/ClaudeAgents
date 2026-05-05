@@ -22,7 +22,7 @@ const MCP_SERVERS = {
 		title: "Anthropic Docs",
 		skill: "anthropic-docs",
 		description:
-			"Use OAL Anthropic Docs skill guidance for Anthropic API and Claude Code docs.",
+			"Use OAL Anthropic Docs skill guidance for Anthropic API and Claude Code docs",
 		references: [
 			["Anthropic platform docs", "https://platform.claude.com/docs/en/home"],
 			["Claude Code docs", "https://code.claude.com/docs/"],
@@ -40,7 +40,7 @@ const MCP_SERVERS = {
 		title: "OpenCode Docs",
 		skill: "opencode-docs",
 		description:
-			"Use OAL OpenCode Docs skill guidance for OpenCode config, tools, plugins, agents, permissions, and MCP.",
+			"Use OAL OpenCode Docs skill guidance for OpenCode config, tools, plugins, agents, permissions, and MCP",
 		references: [
 			["OpenCode docs", "https://opencode.ai/docs/"],
 			["OpenCode config schema", "https://opencode.ai/config.json"],
@@ -56,7 +56,7 @@ const MCP_SERVERS = {
 		title: "OAL Inspect",
 		skill: "oal",
 		description:
-			"Inspect rendered OAL capabilities, manifest ownership, generated source inputs, command policy, RTK reporting guidance, and release witness data.",
+			"Inspect rendered OAL capabilities, manifest ownership, generated source inputs, command policy, RTK reporting guidance, and release witness data",
 		references: [
 			["OAL capability report", "oal inspect capabilities"],
 			["OAL manifest report", "oal inspect manifest"],
@@ -71,7 +71,7 @@ export async function runMcpCommand(
 ): Promise<void> {
 	const action = mcpAction(args[0]);
 	if (!action)
-		throw new Error("Expected MCP action: serve, install, or remove.");
+		throw new Error("Expected MCP action: serve, install, or remove");
 	const server = mcpServer(args[1]);
 	if (!server)
 		throw new Error(
@@ -187,14 +187,14 @@ function docsTools(docs: (typeof MCP_SERVERS)[McpServer]): unknown[] {
 					query: {
 						type: "string",
 						description:
-							"Question or topic to match against OAL docs references.",
+							"Question or topic to match against OAL docs references",
 					},
 				},
 			},
 		},
 		{
 			name: "list_docs",
-			description: `List ${docs.title} URLs and OAL skill instructions.`,
+			description: `List \`${docs.title}\` URLs and OAL skill instructions`,
 			inputSchema: { type: "object", properties: {} },
 		},
 	];
@@ -279,7 +279,7 @@ async function configureMcpServer(
 		);
 	const provider = option(args, "--provider") ?? "opencode";
 	if (provider !== "opencode")
-		throw new Error("Only `--provider opencode` is supported for MCP config.");
+		throw new Error("Only `--provider opencode` is supported for MCP config");
 	const scope = option(args, "--scope") === "project" ? "project" : "global";
 	const configPath =
 		scope === "global"

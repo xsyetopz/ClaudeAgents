@@ -41,7 +41,7 @@ export function evaluateDestructiveCommand(payload) {
 	if (payload.allowDestructive === true) {
 		return {
 			decision: "warn",
-			reason: "Destructive operation allowed by explicit override.",
+			reason: "Destructive operation allowed by explicit override",
 		};
 	}
 	return evaluateCommandPatterns(
@@ -57,7 +57,7 @@ export function evaluateUnsafeGit(payload) {
 	if (payload.allowUnsafeGit === true) {
 		return {
 			decision: "warn",
-			reason: "Unsafe git operation allowed by explicit override.",
+			reason: "Unsafe git operation allowed by explicit override",
 		};
 	}
 	return evaluateCommandPatterns(

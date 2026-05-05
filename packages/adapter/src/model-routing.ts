@@ -304,5 +304,5 @@ export function assertKnownModelPlan(plan: string): asserts plan is ModelPlan {
 			"opencode-free",
 		].includes(plan)
 	)
-		throw new Error(`Unsupported model plan \`${plan}\`.`);
+		throw new Error(`Unsupported model plan \`${plan}\``);
 }

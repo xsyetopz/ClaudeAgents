@@ -62,11 +62,11 @@ const ALLOWED_OPENCODE_PERMISSION_VALUES = new Set(["allow", "ask", "deny"]);
 export function assertCodexTomlSchema(toml: string): void {
 	const parsed = parseCodexToml(toml);
 	if (parsed.profile !== "openagentlayer")
-		throw new Error("Codex config does not activate OAL profile.");
+		throw new Error("Codex config does not activate OAL profile");
 	if (parsed.approvals_reviewer !== "auto_review")
-		throw new Error("Codex config does not enable auto approval review.");
+		throw new Error("Codex config does not enable auto approval review");
 	if (parsed.plugins["oal@openagentlayer-local"]?.enabled !== true)
-		throw new Error("Codex config does not activate $oal plugin.");
+		throw new Error("Codex config does not activate $oal plugin");
 	for (const [profileName, profile] of Object.entries(parsed.profiles)) {
 		if (!(profile.model && ALLOWED_CODEX_MODELS.has(profile.model)))
 			throw new Error(
@@ -87,7 +87,9 @@ export function assertCodexTomlSchema(toml: string): void {
 				`Codex profile ${profileName} has unsupported sandbox mode ${profile.sandbox_mode}`,
 			);
 		if (profile.zsh_path)
-			throw new Error(`Codex profile ${profileName} should use normal shell.`);
+			throw new Error(
+				`Codex profile \`${profileName}\` should use normal shell`,
+			);
 		if (profile.model_verbosity && profile.model_verbosity !== "low")
 			throw new Error(
 				`Codex profile ${profileName} has unsupported verbosity ${profile.model_verbosity}`,
@@ -100,41 +102,41 @@ export function assertCodexTomlSchema(toml: string): void {
 					`Codex profile ${profileName} emits unsupported feature ${feature}`,
 				);
 			if (typeof value !== "boolean")
-				throw new Error(`Codex feature ${feature} is not boolean.`);
+				throw new Error(`Codex feature \`${feature}\` is not boolean`);
 		}
 	}
 	if (!parsed.agents["max_depth"])
-		throw new Error("Codex agents table missing max_depth setting.");
+		throw new Error("Codex agents table missing max_depth setting");
 	if (
 		"interrupt_message" in parsed.agents &&
 		typeof parsed.agents["interrupt_message"] !== "boolean"
 	)
-		throw new Error("Codex agents.interrupt_message must be boolean.");
+		throw new Error("Codex agents.interrupt_message must be boolean");
 }
 
 export function assertClaudeSettingsSchema(settings: unknown): void {
 	const object = asRecord(settings, "Claude settings");
 	if (!ALLOWED_CLAUDE_MODELS.has(asString(object["model"], "Claude model")))
-		throw new Error("Claude settings model is not allowlisted.");
+		throw new Error("Claude settings model is not allowlisted");
 	const permissions = asRecord(object["permissions"], "Claude permissions");
 	for (const key of ["allow", "ask", "deny"])
 		if (!Array.isArray(permissions[key]))
-			throw new Error(`Claude permissions.${key} must be an array.`);
+			throw new Error(`Claude permissions.\`${key}\` must be an array`);
 	const hooks = asRecord(object["hooks"], "Claude hooks");
 	for (const groups of Object.values(hooks)) {
 		if (!Array.isArray(groups))
-			throw new Error("Claude hook groups must be arrays.");
+			throw new Error("Claude hook groups must be arrays");
 		for (const group of groups) {
 			const record = asRecord(group, "Claude hook group");
 			const handlers = record["hooks"];
 			if (!Array.isArray(handlers))
-				throw new Error("Claude hook group hooks must be arrays.");
+				throw new Error("Claude hook group hooks must be arrays");
 			for (const handler of handlers) {
 				const hook = asRecord(handler, "Claude hook handler");
 				if (hook["type"] !== "command")
-					throw new Error("Claude hooks must use command handlers.");
+					throw new Error("Claude hooks must use command handlers");
 				if (!asString(hook["command"], "Claude hook command").endsWith(".mjs"))
-					throw new Error("Claude hook command must reference .mjs script.");
+					throw new Error("Claude hook command must reference .mjs script");
 			}
 		}
 	}
@@ -152,17 +154,17 @@ export function assertOpenCodeConfigSchema(config: unknown): void {
 			);
 	const agents = asRecord(object["agent"], "OpenCode agent");
 	if (!agents[asString(object["default_agent"], "OpenCode default_agent")])
-		throw new Error("OpenCode default_agent does not exist in agent map.");
+		throw new Error("OpenCode default_agent does not exist in agent map");
 	const commands = asRecord(object["command"], "OpenCode command");
 	for (const [name, command] of Object.entries(commands)) {
 		const record = asRecord(command, `OpenCode command ${name}`);
 		if (!agents[asString(record["agent"], `OpenCode command ${name} agent`)])
-			throw new Error(`OpenCode command ${name} references missing agent.`);
+			throw new Error(`OpenCode command \`${name}\` references missing agent`);
 	}
 	if (!Array.isArray(object["plugin"]))
-		throw new Error("OpenCode plugin must be an array.");
+		throw new Error("OpenCode plugin must be an array");
 	if (!Array.isArray(object["instructions"]))
-		throw new Error("OpenCode instructions must be an array.");
+		throw new Error("OpenCode instructions must be an array");
 }
 
 function parseCodexToml(toml: string): CodexToml {
@@ -208,7 +210,7 @@ function parseCodexToml(toml: string): CodexToml {
 
 function splitAssignment(line: string): [string, string] {
 	const index = line.indexOf("=");
-	if (index < 1) throw new Error(`Invalid TOML assignment: ${line}`);
+	if (index < 1) throw new Error(`Invalid TOML assignment: \`${line}\``);
 	return [line.slice(0, index).trim(), line.slice(index + 1).trim()];
 }
 
@@ -247,10 +249,10 @@ function stripTomlComment(rawValue: string): string {
 function asRecord(value: unknown, label: string): Record<string, unknown> {
 	if (value && typeof value === "object" && !Array.isArray(value))
 		return value as Record<string, unknown>;
-	throw new Error(`${label} must be an object.`);
+	throw new Error(`\`${label}\` must be an object`);
 }
 
 function asString(value: unknown, label: string): string {
 	if (typeof value === "string" && value.length > 0) return value;
-	throw new Error(`${label} must be a non-empty string.`);
+	throw new Error(`\`${label}\` must be a non-empty string`);
 }

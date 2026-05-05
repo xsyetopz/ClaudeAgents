@@ -57,7 +57,7 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 	{
 		id: "codex-capability-profile",
 		description:
-			"Codex capability flags, controlled exclusions, replacement values, and model routes are rendered.",
+			"Codex capability flags, controlled exclusions, replacement values, and model routes are rendered",
 		evidence: [
 			"packages/adapter/src/codex.ts",
 			"packages/accept/src/provider.ts",
@@ -86,7 +86,7 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 	{
 		id: "provider-native-configs",
 		description:
-			"Provider-native config surfaces exist and contain provider-specific native keys.",
+			"Provider-native config surfaces exist and contain provider-specific native keys",
 		evidence: [
 			"packages/adapter/src/codex.ts",
 			"packages/adapter/src/claude.ts",
@@ -117,7 +117,7 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 	{
 		id: "runtime-hook-family",
 		description:
-			"Runtime hook family is represented by source records and generated executable scripts.",
+			"Runtime hook family is represented by source records and generated executable scripts",
 		evidence: [
 			"source/hooks",
 			"packages/runtime/hooks",
@@ -135,12 +135,12 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 	{
 		id: "expanded-agent-rendering",
 		description:
-			"Expanded agents are not decorative; they are source records rendered for each provider.",
+			"Expanded agents are not decorative; they are source records rendered for each provider",
 		evidence: ["source/agents", "packages/accept/src/artifacts.ts"],
 		verify: ({ source, artifacts }) => {
 			for (const agent of EXPANDED_AGENTS) {
 				if (!source.agents.some((record) => record.id === agent))
-					throw new Error(`Missing expanded source agent ${agent}`);
+					throw new Error(`Missing expanded source agent \`${agent}\``);
 				for (const path of [
 					`.codex/agents/${agent}.toml`,
 					`.claude/agents/${agent}.md`,
@@ -153,7 +153,7 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 	{
 		id: "deploy-ownership-surfaces",
 		description:
-			"Rendered artifacts include full-file, config, block, executable hook, and skill support ownership modes.",
+			"Rendered artifacts include full-file, config, block, executable hook, and skill support ownership modes",
 		evidence: [
 			"packages/manifest/src/index.ts",
 			"packages/deploy/src",
@@ -165,20 +165,20 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 					(entry) => entry.mode === "block" && entry.path === "AGENTS.md",
 				)
 			)
-				throw new Error("Missing marked-block AGENTS.md artifact.");
+				throw new Error("Missing marked-block AGENTS.md artifact");
 			if (
 				!artifacts.some(
 					(entry) =>
 						entry.mode === "config" && entry.path === ".codex/config.toml",
 				)
 			)
-				throw new Error("Missing structured Codex config artifact.");
+				throw new Error("Missing structured Codex config artifact");
 			if (
 				!artifacts.some(
 					(entry) => entry.executable && entry.path.endsWith(".mjs"),
 				)
 			)
-				throw new Error("Missing executable hook artifact.");
+				throw new Error("Missing executable hook artifact");
 			if (
 				!artifacts.some(
 					(entry) =>
@@ -186,7 +186,7 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 						entry.path.includes("/scripts/"),
 				)
 			)
-				throw new Error("Missing skill support artifact.");
+				throw new Error("Missing skill support artifact");
 		},
 	},
 ];
@@ -203,7 +203,7 @@ export function strictRoadmapEvidenceLines(): string[] {
 
 function artifact(path: string, artifacts: Artifact[]): Artifact {
 	const found = artifacts.find((entry) => entry.path === path);
-	if (!found) throw new Error(`Missing artifact ${path}`);
+	if (!found) throw new Error(`Missing artifact \`${path}\``);
 	return found;
 }
 
@@ -218,10 +218,11 @@ function hookPath(provider: string, script: string): string {
 }
 
 function requireIncludes(content: string, term: string, label: string): void {
-	if (!content.includes(term)) throw new Error(`${label} missing ${term}`);
+	if (!content.includes(term))
+		throw new Error(`\`${label}\` missing \`${term}\``);
 }
 
 function rejectIncludes(content: string, term: string, label: string): void {
 	if (content.includes(term))
-		throw new Error(`${label} contains forbidden ${term}`);
+		throw new Error(`\`${label}\` contains forbidden \`${term}\``);
 }

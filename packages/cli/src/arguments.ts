@@ -40,5 +40,7 @@ export function providerOptions(rawProvider: string): (Provider | "all")[] {
 
 export function scopeOption(rawScope: string): "project" | "global" {
 	if (rawScope === "project" || rawScope === "global") return rawScope;
-	throw new Error(`Unsupported scope ${rawScope}. Expected project or global.`);
+	throw new Error(
+		`Unsupported scope \`${rawScope}\`. Expected project or global`,
+	);
 }

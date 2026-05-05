@@ -18,7 +18,7 @@ export async function assertOpenCodeTools(targetRoot: string): Promise<void> {
 			const toolPath = join(targetRoot, `.opencode/tools/${tool}.ts`);
 			const text = await readFile(toolPath, "utf8");
 			if (!text.includes('import { tool } from "@opencode-ai/plugin"'))
-				throw new Error(`OpenCode tool is not runnable: ${tool}`);
+				throw new Error(`OpenCode tool is not runnable: \`${tool}\``);
 			const moduleUrl = new URL(toolPath, "file://").href;
 			const module = (await import(
 				`${moduleUrl}?accept=${Date.now()}`
@@ -99,7 +99,7 @@ export async function assertSkillSupportFiles(
 		if (skill.upstream) continue;
 		const supportFiles = skill.supportFiles ?? [];
 		if (supportFiles.length === 0)
-			throw new Error(`OAL skill ${skill.id} has no support files.`);
+			throw new Error(`OAL skill \`${skill.id}\` has no support files`);
 		for (const supportFile of supportFiles) {
 			if (!supportFile.source)
 				throw new Error(
@@ -118,10 +118,12 @@ export async function assertSkillSupportFiles(
 					"utf8",
 				);
 				if (!skillContent.includes(supportFile.path))
-					throw new Error(`${skillPath} does not list ${supportFile.path}.`);
+					throw new Error(
+						`\`${skillPath}\` does not list \`${supportFile.path}\``,
+					);
 				const content = await readFile(join(targetRoot, supportPath), "utf8");
 				if (content.trim().length === 0)
-					throw new Error(`Empty skill support file ${supportPath}`);
+					throw new Error(`Empty skill support file \`${supportPath}\``);
 				if (content !== supportFile.content)
 					throw new Error(
 						`Skill support file drifted during render: ${supportPath}`,
@@ -144,7 +146,7 @@ function providerSkillRoot(provider: Provider): string {
 
 function assertDesignSkillStandards(source: OalSource): void {
 	const design = source.skills.find((skill) => skill.id === "design");
-	if (!design) throw new Error("Missing design skill.");
+	if (!design) throw new Error("Missing design skill");
 	const content = supportFileContent(design, "references/api-standards.md");
 	for (const term of [
 		"OpenAPI",
@@ -158,12 +160,12 @@ function assertDesignSkillStandards(source: OalSource): void {
 		"RFC 9110",
 	])
 		if (!content.includes(term))
-			throw new Error(`design skill standards missing ${term}.`);
+			throw new Error(`design skill standards missing \`${term}\``);
 }
 
 function assertTestSkillStandards(source: OalSource): void {
 	const test = source.skills.find((skill) => skill.id === "test");
-	if (!test) throw new Error("Missing test skill.");
+	if (!test) throw new Error("Missing test skill");
 	const suites = supportFileContent(test, "references/language-suites.md");
 	for (const term of [
 		"Bun test",
@@ -210,12 +212,12 @@ function assertTestSkillStandards(source: OalSource): void {
 		"foo/tests.rs",
 	])
 		if (!suites.includes(term))
-			throw new Error(`test skill standards missing ${term}.`);
+			throw new Error(`test skill standards missing \`${term}\``);
 	const script = test.supportFiles?.find(
 		(file) => file.path === "scripts/detect-rust-inline-tests.mjs",
 	);
 	if (!script?.executable)
-		throw new Error("test skill missing executable Rust inline-test detector.");
+		throw new Error("test skill missing executable Rust inline-test detector");
 	if (!script.content?.includes("mod\\s+tests\\s*\\{"))
 		throw new Error(
 			"Rust inline-test detector does not detect mod tests blocks.",
@@ -224,7 +226,7 @@ function assertTestSkillStandards(source: OalSource): void {
 
 function assertMarkdownPromptStandards(source: OalSource): void {
 	const document = source.skills.find((skill) => skill.id === "document");
-	if (!document) throw new Error("Missing document skill.");
+	if (!document) throw new Error("Missing document skill");
 	const markdown = supportFileContent(document, "references/markdown.md");
 	for (const term of [
 		"CommonMark",
@@ -240,9 +242,9 @@ function assertMarkdownPromptStandards(source: OalSource): void {
 		"## References",
 	])
 		if (!markdown.includes(term))
-			throw new Error(`document markdown standards missing ${term}.`);
+			throw new Error(`document markdown standards missing \`${term}\``);
 	const prompt = source.skills.find((skill) => skill.id === "prompt");
-	if (!prompt) throw new Error("Missing prompt skill.");
+	if (!prompt) throw new Error("Missing prompt skill");
 	const promptMarkdown = supportFileContent(
 		prompt,
 		"references/markdown-prompts.md",
@@ -258,13 +260,13 @@ function assertMarkdownPromptStandards(source: OalSource): void {
 		"## References",
 	])
 		if (!promptMarkdown.includes(term))
-			throw new Error(`prompt markdown standards missing ${term}.`);
+			throw new Error(`prompt markdown standards missing \`${term}\``);
 }
 
 function assertSimplicityDiscipline(source: OalSource): void {
 	for (const skillId of ["architect", "implement", "review"]) {
 		const skill = source.skills.find((candidate) => candidate.id === skillId);
-		if (!skill) throw new Error(`Missing ${skillId} skill.`);
+		if (!skill) throw new Error(`Missing \`${skillId}\` skill`);
 		const content = supportFileContent(skill, "references/simplicity.md");
 		for (const term of [
 			"Direct source-backed code beats clever machinery",
@@ -287,7 +289,7 @@ function assertRuntimeSafetySkills(source: OalSource): void {
 	} as const;
 	for (const [skillId, terms] of Object.entries(required)) {
 		const skill = source.skills.find((candidate) => candidate.id === skillId);
-		if (!skill) throw new Error(`Missing \`${skillId}\` skill.`);
+		if (!skill) throw new Error(`Missing \`${skillId}\` skill`);
 		const supportPath =
 			skillId === "elevate"
 				? "references/runtime.md"
@@ -297,7 +299,7 @@ function assertRuntimeSafetySkills(source: OalSource): void {
 		const content = supportFileContent(skill, supportPath);
 		for (const term of terms)
 			if (!content.includes(term))
-				throw new Error(`${skillId} safety skill missing ${term}.`);
+				throw new Error(`\`${skillId}\` safety skill missing \`${term}\``);
 	}
 }
 
@@ -307,6 +309,6 @@ function supportFileContent(
 ): string {
 	const supportFile = skill.supportFiles?.find((file) => file.path === path);
 	if (!supportFile?.content)
-		throw new Error(`Missing support file ${skill.id}/${path}.`);
+		throw new Error(`Missing support file \`${skill.id}\`/\`${path}\``);
 	return supportFile.content;
 }

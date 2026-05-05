@@ -15,7 +15,7 @@ export function validateGeneratedText(
 			issues.push({
 				severity: "error",
 				code: "forbidden-model",
-				message: `${artifactPath} contains forbidden model: ${model}`,
+				message: `\`${artifactPath}\` contains forbidden model: \`${model}\``,
 			});
 	}
 	return issues;

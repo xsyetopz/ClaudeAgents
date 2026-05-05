@@ -363,7 +363,7 @@ async function activateCodexMarketplace(
 		options.changes.push({
 			action: "skip",
 			path: marketplaceRoot,
-			reason: `Codex CLI did not activate marketplace automatically: ${stderr.trim() || "manual plugin selection may be required"}`,
+			reason: `Codex CLI did not activate marketplace automatically: \`${stderr.trim() || "manual plugin selection may be required"}\``,
 		});
 	}
 }

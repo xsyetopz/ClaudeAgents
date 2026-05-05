@@ -22,9 +22,9 @@ const RTK_DATABASE_PATH_PATTERN = /database_path\s*=\s*"([^"]+)"/;
 export async function runRtkReportCommand(args: string[] = []): Promise<void> {
 	const project = resolve(option(args, "--project") ?? process.cwd());
 	const dbPath = option(args, "--db") ?? (await detectRtkHistoryDb());
-	if (!dbPath) throw new Error("RTK history database not found.");
+	if (!dbPath) throw new Error("RTK history database not found");
 	if (!existsSync(dbPath))
-		throw new Error(`RTK history database missing: ${dbPath}`);
+		throw new Error(`RTK history database missing: \`${dbPath}\``);
 	const db = openDatabase(dbPath);
 	try {
 		const byKind = await queryRows<RtkReportRow>(
@@ -115,7 +115,8 @@ async function queryRowsWithSqliteCli<T>(
 		new Response(proc.stderr).text(),
 		proc.exited,
 	]);
-	if (code !== 0) throw new Error(`\`sqlite3\` RTK query failed: ${stderr}`);
+	if (code !== 0)
+		throw new Error(`\`sqlite3\` RTK query failed: \`${stderr}\``);
 	return JSON.parse(stdout || "[]") as T[];
 }
 

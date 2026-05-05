@@ -27,7 +27,7 @@ export function validateContracts(
 				issues.push({
 					severity: "error",
 					code: "readonly-write-tools",
-					message: `Readonly route ${route.id} is owned by write-capable agent ${route.agent}.`,
+					message: `Readonly route \`${route.id}\` is owned by write-capable agent \`${route.agent}\``,
 					sourceId: route.id,
 				});
 		}
@@ -35,7 +35,7 @@ export function validateContracts(
 			issues.push({
 				severity: "error",
 				code: "route-evidence-contract",
-				message: `Route ${route.id} lacks validation/evidence contract.`,
+				message: `Route \`${route.id}\` lacks validation/evidence contract`,
 				sourceId: route.id,
 			});
 	}
@@ -44,7 +44,7 @@ export function validateContracts(
 			issues.push({
 				severity: "error",
 				code: "hook-script-extension",
-				message: `Hook ${hook.id} must reference executable .mjs runtime script.`,
+				message: `Hook \`${hook.id}\` must reference executable .mjs runtime script`,
 				sourceId: hook.id,
 			});
 }
@@ -58,7 +58,7 @@ function validateProductPromptContracts(
 		issues.push({
 			severity: "error",
 			code: "source-backed-contract",
-			message: "Product prompt contracts are missing.",
+			message: "Product prompt contracts are missing",
 			sourceId: "product",
 		});
 		return;
@@ -76,7 +76,7 @@ function validateProductPromptContracts(
 			issues.push({
 				severity: "error",
 				code: "source-backed-contract",
-				message: `Product prompt contracts lack required term: ${term}.`,
+				message: `Product prompt contracts lack required term: \`${term}\``,
 				sourceId: "product",
 			});
 }

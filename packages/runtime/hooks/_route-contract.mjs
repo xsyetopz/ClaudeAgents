@@ -10,20 +10,20 @@ export function evaluateRouteContract(payload) {
 	) {
 		return {
 			decision: "block",
-			reason: "Edit-required route needs changed-file evidence.",
+			reason: "Edit-required route needs changed-file evidence",
 		};
 	}
 	if (routeKind === "execution-required" && !commandEvidence) {
 		return {
 			decision: "block",
-			reason: "Execution-required route needs command evidence.",
+			reason: "Execution-required route needs command evidence",
 		};
 	}
 	if (payload.explanationOnly === true) {
 		return {
 			decision: "block",
-			reason: "Completion flagged as explanation-only by structured signal.",
+			reason: "Completion flagged as explanation-only by structured signal",
 		};
 	}
-	return { decision: "pass", reason: "Route contract satisfied." };
+	return { decision: "pass", reason: "Route contract satisfied" };
 }

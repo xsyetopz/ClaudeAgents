@@ -11,7 +11,7 @@ export function validateDepth(source: OalSource, issues: PolicyIssue[]): void {
 			issues.push({
 				severity: "error",
 				code: "stub-agent",
-				message: `Agent ${agent.id} is too shallow for production output.`,
+				message: `Agent \`${agent.id}\` is too shallow for production output`,
 				sourceId: agent.id,
 			});
 	for (const skill of source.skills) {
@@ -22,7 +22,7 @@ export function validateDepth(source: OalSource, issues: PolicyIssue[]): void {
 			issues.push({
 				severity: "error",
 				code: "stub-skill",
-				message: `Skill ${skill.id} body is too shallow.`,
+				message: `Skill \`${skill.id}\` body is too shallow`,
 				sourceId: skill.id,
 			});
 	}
@@ -31,7 +31,7 @@ export function validateDepth(source: OalSource, issues: PolicyIssue[]): void {
 			issues.push({
 				severity: "error",
 				code: "stub-route",
-				message: `Route ${route.id} contract is too shallow.`,
+				message: `Route \`${route.id}\` contract is too shallow`,
 				sourceId: route.id,
 			});
 	for (const tool of source.tools)
@@ -39,7 +39,7 @@ export function validateDepth(source: OalSource, issues: PolicyIssue[]): void {
 			issues.push({
 				severity: "error",
 				code: "metadata-tool",
-				message: `Tool ${tool.id} is metadata-only or too shallow.`,
+				message: `Tool \`${tool.id}\` is metadata-only or too shallow`,
 				sourceId: tool.id,
 			});
 }

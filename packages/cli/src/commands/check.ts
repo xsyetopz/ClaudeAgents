@@ -90,7 +90,7 @@ function assertClaudePluginActive(settings: string): void {
 		extraKnownMarketplaces?: Record<string, unknown>;
 	};
 	if (parsed.enabledPlugins?.["oal@openagentlayer"] !== true)
-		throw new Error("Installed Claude settings do not activate `$oal` plugin.");
+		throw new Error("Installed Claude settings do not activate `$oal` plugin");
 	if (!parsed.extraKnownMarketplaces?.["openagentlayer"])
 		throw new Error(
 			"Installed Claude settings do not register OAL marketplace.",
@@ -113,7 +113,7 @@ function assertOpenCodeInstalledConfig(config: string): void {
 				parsed.plugin.includes("./.opencode/plugins/openagentlayer.ts"))
 		)
 	)
-		throw new Error("Installed OpenCode config does not activate OAL plugin.");
+		throw new Error("Installed OpenCode config does not activate OAL plugin");
 }
 
 async function assertCodexInstalled(
@@ -137,9 +137,9 @@ async function assertCodexInstalled(
 			"Installed Codex agent TOML contains unsupported `color` field.",
 		);
 	if (!config.content.includes('profile = "openagentlayer"'))
-		throw new Error("Installed Codex config does not activate OAL profile.");
+		throw new Error("Installed Codex config does not activate OAL profile");
 	if (!config.content.includes('[plugins."oal@openagentlayer-local"]'))
-		throw new Error("Installed Codex config does not activate `$oal` plugin.");
+		throw new Error("Installed Codex config does not activate `$oal` plugin");
 	await assertReadable(
 		join(home, ".agents/plugins/marketplace.json"),
 		"Codex plugin marketplace",

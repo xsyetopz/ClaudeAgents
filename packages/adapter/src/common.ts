@@ -148,7 +148,7 @@ function renderTemplate(
 ): string {
 	const template = source.promptTemplates?.[name];
 	if (!template)
-		throw new Error(`OAL prompt template \`${name}\` was not loaded.`);
+		throw new Error(`OAL prompt template \`${name}\` was not loaded`);
 	return Object.entries(values)
 		.reduce(
 			(content, [key, value]) => content.replaceAll(`{{ ${key} }}`, value),

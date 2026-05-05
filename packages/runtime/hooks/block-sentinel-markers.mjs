@@ -78,7 +78,7 @@ function evaluate(payload) {
 	if (violations.length > 0) {
 		return {
 			decision: "block",
-			reason: "Unresolved sentinel marker detected in production artifact.",
+			reason: "Unresolved sentinel marker detected in production artifact",
 			details: violations,
 		};
 	}
@@ -86,14 +86,14 @@ function evaluate(payload) {
 	if (warnings.length > 0) {
 		return {
 			decision: "warn",
-			reason: "Unresolved sentinel marker detected in prose artifact.",
+			reason: "Unresolved sentinel marker detected in prose artifact",
 			details: warnings,
 		};
 	}
 
 	return {
 		decision: "pass",
-		reason: "Sentinel marker gate passed.",
+		reason: "Sentinel marker gate passed",
 	};
 }
 

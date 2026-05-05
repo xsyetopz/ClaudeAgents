@@ -60,20 +60,20 @@ export function evaluateCompletionEvidence(payload) {
 			return {
 				decision: "block",
 				reason:
-					"Blocked result missing required attempted/evidence/need fields.",
+					"Blocked result missing required attempted/evidence/need fields",
 			};
 		}
 
 		return {
 			decision: "pass",
-			reason: "Blocked result includes required blocker contract.",
+			reason: "Blocked result includes required blocker contract",
 		};
 	}
 
 	if (!isCompleted) {
 		return {
 			decision: "pass",
-			reason: "Completion check complete for current route status.",
+			reason: "Completion check complete for current route status",
 		};
 	}
 
@@ -84,7 +84,7 @@ export function evaluateCompletionEvidence(payload) {
 	if (finalResponse.trim().length === 0) {
 		return {
 			decision: "block",
-			reason: "Completion result missing final response text.",
+			reason: "Completion result missing final response text",
 		};
 	}
 
@@ -93,7 +93,7 @@ export function evaluateCompletionEvidence(payload) {
 	if (evidenceItems.length < minimumEvidence) {
 		return {
 			decision: "block",
-			reason: "Completion result missing required validation evidence.",
+			reason: "Completion result missing required validation evidence",
 			details: [
 				`required=${minimumEvidence}`,
 				`received=${evidenceItems.length}`,
@@ -103,6 +103,6 @@ export function evaluateCompletionEvidence(payload) {
 
 	return {
 		decision: "pass",
-		reason: "Completion includes final response and validation evidence.",
+		reason: "Completion includes final response and validation evidence",
 	};
 }

@@ -23,19 +23,19 @@ export async function renderOptions(args: string[]): Promise<RenderOptions> {
 	if (codexPlan) {
 		assertKnownModelPlan(codexPlan);
 		if (!isCodexPlan(codexPlan))
-			throw new Error(`Unsupported Codex plan \`${codexPlan}\`.`);
+			throw new Error(`Unsupported Codex plan \`${codexPlan}\``);
 		options.codexPlan = codexPlan;
 	}
 	if (claudePlan) {
 		assertKnownModelPlan(claudePlan);
 		if (!isClaudePlan(claudePlan))
-			throw new Error(`Unsupported Claude plan \`${claudePlan}\`.`);
+			throw new Error(`Unsupported Claude plan \`${claudePlan}\``);
 		options.claudePlan = claudePlan;
 	}
 	if (opencodePlan) {
 		assertKnownModelPlan(opencodePlan);
 		if (!isOpenCodePlan(opencodePlan))
-			throw new Error(`Unsupported OpenCode plan \`${opencodePlan}\`.`);
+			throw new Error(`Unsupported OpenCode plan \`${opencodePlan}\``);
 		options.opencodePlan = opencodePlan;
 	}
 	if (modelsFile)
@@ -64,6 +64,6 @@ async function detectOpenCodeModels(plan: string): Promise<string[]> {
 	]);
 	if (exitCode === 0) return parseOpenCodeModels(stdout);
 	if (plan === "opencode-auth")
-		throw new Error("OpenCode auth plan requires `opencode models`.");
+		throw new Error("OpenCode auth plan requires `opencode models`");
 	return [];
 }

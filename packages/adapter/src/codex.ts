@@ -109,7 +109,7 @@ export async function renderCodex(
 				provider: PROVIDER,
 				capability: "custom TypeScript tools",
 				reason:
-					"Codex has no OpenCode-style direct custom tool file surface; OAL emits skills and hooks instead.",
+					"Codex has no OpenCode-style direct custom tool file surface; OAL emits skills and hooks instead",
 			},
 		],
 	};

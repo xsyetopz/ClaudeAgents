@@ -47,7 +47,7 @@ export async function assertInstalledFlowSmoke(
 				check.stdout.includes("artifacts:")
 			)
 		)
-			throw new Error("Installed oal check did not report verbose success.");
+			throw new Error("Installed oal check did not report verbose success");
 		const globalCodexConfig = await readFile(
 			join(home, ".codex/config.toml"),
 			"utf8",
@@ -106,7 +106,7 @@ export async function assertInstalledFlowSmoke(
 		);
 		try {
 			await readFile(join(project, ".codex/config.toml"), "utf8");
-			throw new Error("Project Codex config remained after owned uninstall.");
+			throw new Error("Project Codex config remained after owned uninstall");
 		} catch (error) {
 			if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
 		}
@@ -124,7 +124,7 @@ async function assertProjectArtifacts(project: string): Promise<void> {
 	JSON.parse(await readFile(join(project, ".claude/settings.json"), "utf8"));
 	const opencode = await readFile(join(project, "opencode.jsonc"), "utf8");
 	if (!opencode.includes("openagentlayer"))
-		throw new Error("Project OpenCode config was not installed.");
+		throw new Error("Project OpenCode config was not installed");
 }
 
 async function fakeProviderPath(

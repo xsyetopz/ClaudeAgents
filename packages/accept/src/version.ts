@@ -17,7 +17,7 @@ export async function assertVersionBumpTool(repoRoot: string): Promise<void> {
 	const script = join(repoRoot, "bump-version.sh");
 	const metadata = await stat(script);
 	if ((metadata.mode & 0o111) === 0)
-		throw new Error("bump-version.sh is not executable.");
+		throw new Error("bump-version.sh is not executable");
 	const current = await productVersion(repoRoot);
 	await assertVersionFilesAgree(repoRoot, current);
 	await assertDryRun(repoRoot, "patch", current);
@@ -36,7 +36,7 @@ function nextPrerelease(current: string): string {
 		Number.isNaN(minor) ||
 		Number.isNaN(patch)
 	)
-		throw new Error(`Cannot derive pre-release target from ${current}.`);
+		throw new Error(`Cannot derive pre-release target from \`${current}\``);
 	return `${major}.${minor}.${patch + 1}-beta.1`;
 }
 
@@ -44,7 +44,7 @@ async function productVersion(repoRoot: string): Promise<string> {
 	const packageJson = JSON.parse(
 		await readFile(join(repoRoot, "package.json"), "utf8"),
 	) as { version?: string };
-	if (!packageJson.version) throw new Error("package.json missing version.");
+	if (!packageJson.version) throw new Error("package.json missing version");
 	return packageJson.version;
 }
 
@@ -57,22 +57,24 @@ async function assertVersionFilesAgree(
 			version?: string;
 		};
 		if (parsed.version !== current)
-			throw new Error(`${path} version ${parsed.version} does not match root.`);
+			throw new Error(
+				`\`${path}\` version \`${parsed.version}\` does not match root`,
+			);
 	}
 	const cask = await readFile(
 		join(repoRoot, "homebrew/Casks/openagentlayer.rb"),
 		"utf8",
 	);
 	if (!cask.includes(`version "${current}"`))
-		throw new Error("Homebrew cask version does not match root.");
+		throw new Error("Homebrew cask version does not match root");
 	const marketplace = JSON.parse(
 		await readFile(join(repoRoot, ".claude-plugin/marketplace.json"), "utf8"),
 	) as { plugins?: { version?: string }[] };
 	if (marketplace.plugins?.[0]?.version !== current)
-		throw new Error("Claude marketplace version does not match root.");
+		throw new Error("Claude marketplace version does not match root");
 	const changelog = await readFile(join(repoRoot, "CHANGELOG.md"), "utf8");
 	if (!changelog.includes(`## [${current}]`))
-		throw new Error("`CHANGELOG.md` does not contain current version heading.");
+		throw new Error("`CHANGELOG.md` does not contain current version heading");
 }
 
 async function assertDryRun(
@@ -86,7 +88,7 @@ async function assertDryRun(
 		{ cwd: repoRoot },
 	);
 	if (!stdout.includes(`DRY RUN OAL version ${current} ->`))
-		throw new Error("`bump-version.sh` dry-run did not report version plan.");
+		throw new Error("`bump-version.sh` dry-run did not report version plan");
 }
 
 async function assertRejects(repoRoot: string, target: string): Promise<void> {
@@ -97,5 +99,5 @@ async function assertRejects(repoRoot: string, target: string): Promise<void> {
 	} catch {
 		return;
 	}
-	throw new Error("`bump-version.sh` accepted a downgrade.");
+	throw new Error("`bump-version.sh` accepted a downgrade");
 }

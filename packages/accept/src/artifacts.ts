@@ -153,11 +153,11 @@ function assertRouteArtifacts(artifacts: Artifact[]): void {
 	const codexInstructions = findArtifact("AGENTS.md", artifacts);
 	for (const route of REQUIRED_ROUTES)
 		if (!codexInstructions.content.includes(`- ${route}:`))
-			throw new Error(`Codex AGENTS.md missing route ${route}.`);
+			throw new Error(`Codex AGENTS.md missing route \`${route}\``);
 	for (const agent of CORE_AGENTS) {
 		const codexAgent = findArtifact(`.codex/agents/${agent}.toml`, artifacts);
 		if (!codexAgent.content.includes("Owned route contracts:"))
-			throw new Error(`Codex agent ${agent} missing owned route contracts.`);
+			throw new Error(`Codex agent \`${agent}\` missing owned route contracts`);
 	}
 }
 
@@ -209,10 +209,10 @@ function assertSkillArtifacts(source: OalSource, artifacts: Artifact[]): void {
 function assertInstructionBlocks(artifacts: Artifact[]): void {
 	const agents = findArtifact("AGENTS.md", artifacts);
 	if (agents.mode !== "block")
-		throw new Error("AGENTS.md must be managed as a marked block artifact.");
+		throw new Error("AGENTS.md must be managed as a marked block artifact");
 	const claude = findArtifact("CLAUDE.md", artifacts);
 	if (claude.mode !== "block")
-		throw new Error("CLAUDE.md must be managed as a marked block artifact.");
+		throw new Error("CLAUDE.md must be managed as a marked block artifact");
 }
 
 function assertProvenanceMarkers(artifacts: Artifact[]): void {
@@ -237,7 +237,7 @@ function assertProvenanceMarkers(artifacts: Artifact[]): void {
 		artifacts,
 	);
 	if (!hook.content.startsWith("#!/usr/bin/env node"))
-		throw new Error("Codex hook shebang was not preserved.");
+		throw new Error("Codex hook shebang was not preserved");
 	if (artifacts.some((artifact) => artifact.path.includes("/shim/")))
 		throw new Error(
 			"Codex default render should not emit PATH shim artifacts.",
@@ -249,7 +249,7 @@ function assertProvenanceMarkers(artifacts: Artifact[]): void {
 	if (
 		!(privileged.executable && privileged.content.includes("ALLOWED_COMMANDS"))
 	)
-		throw new Error("Privileged executable artifact is not executable.");
+		throw new Error("Privileged executable artifact is not executable");
 }
 
 function assertArtifact(
@@ -260,7 +260,7 @@ function assertArtifact(
 	const artifact = findArtifact(path, artifacts);
 	for (const term of terms)
 		if (!artifact.content.includes(term))
-			throw new Error(`\`${path}\` missing contract term ${term}`);
+			throw new Error(`\`${path}\` missing contract term \`${term}\``);
 }
 
 function findArtifact(path: string, artifacts: Artifact[]): Artifact {
@@ -274,7 +274,7 @@ function assertDistinctAgentColors(artifacts: Artifact[]): void {
 	for (const agent of CORE_AGENTS) {
 		const artifact = findArtifact(`.claude/agents/${agent}.md`, artifacts);
 		const color = artifact.content.match(HEX_COLOR_PATTERN)?.[0];
-		if (!color) throw new Error(`Agent \`${agent}\` missing hex color.`);
+		if (!color) throw new Error(`Agent \`${agent}\` missing hex color`);
 		const owner = colors.get(color);
 		if (owner)
 			throw new Error(
@@ -290,7 +290,7 @@ function assertNoUnsupportedCodexAgentFields(
 ): void {
 	const artifact = findArtifact(path, artifacts);
 	if (CODEX_COLOR_PATTERN.test(artifact.content))
-		throw new Error(`\`${path}\` emitted unsupported Codex color field.`);
+		throw new Error(`\`${path}\` emitted unsupported Codex color field`);
 }
 
 function assertNoForbiddenModels(artifacts: Artifact[]): void {

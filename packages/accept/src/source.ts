@@ -36,7 +36,7 @@ export async function assertSourceInventory(repoRoot: string): Promise<void> {
 		if (
 			!entries.some((entry) => entry.endsWith(".json") || entry.endsWith(".md"))
 		)
-			throw new Error(`No authored source records in ${directory}.`);
+			throw new Error(`No authored source records in \`${directory}\``);
 	}
 }
 
@@ -82,7 +82,7 @@ export function assertRoadmapSource(source: OalSource): void {
 		"odysseus",
 	])
 		if (!source.agents.some((agent) => agent.id === id))
-			throw new Error(`Missing core agent ${id}.`);
+			throw new Error(`Missing core agent \`${id}\``);
 	for (const id of [
 		"plan",
 		"implement",
@@ -98,17 +98,17 @@ export function assertRoadmapSource(source: OalSource): void {
 		"audit",
 	])
 		if (!source.routes.some((route) => route.id === id))
-			throw new Error(`Missing route ${id}.`);
+			throw new Error(`Missing route \`${id}\``);
 	for (const id of ["elevate", "delete", "parse"])
 		if (!source.skills.some((skill) => skill.id === id))
-			throw new Error(`Missing runtime safety skill ${id}.`);
+			throw new Error(`Missing runtime safety skill \`${id}\``);
 }
 
 export function assertNegativePolicyFixtures(source: OalSource): void {
 	const firstAgent = source.agents[0];
 	const firstRoute = source.routes[0];
 	if (!(firstAgent && firstRoute))
-		throw new Error("Negative fixtures require at least one agent and route.");
+		throw new Error("Negative fixtures require at least one agent and route");
 	const badCodex = structuredClone(source);
 	badCodex.agents[0] = {
 		...firstAgent,
@@ -125,7 +125,7 @@ export function assertNegativePolicyFixtures(source: OalSource): void {
 	const shallow = structuredClone(source);
 	shallow.routes[0] = { ...firstRoute, body: "Output: done." };
 	if (!source.promptContracts)
-		throw new Error("Negative fixtures require product prompt contracts.");
+		throw new Error("Negative fixtures require product prompt contracts");
 	const noSourceBehavior = structuredClone(source);
 	noSourceBehavior.promptContracts = {
 		...source.promptContracts,
@@ -139,7 +139,7 @@ export function assertNegativePolicyFixtures(source: OalSource): void {
 	] as const) {
 		const report = validateCandidate(candidate);
 		if (!report.issues.some((issue) => issue.severity === "error"))
-			throw new Error(`Negative policy fixture did not fail: ${name}`);
+			throw new Error(`Negative policy fixture did not fail: \`${name}\``);
 	}
 }
 
@@ -165,7 +165,7 @@ function assertMarkdownHasHeading(path: string, content: string): void {
 		.find((line) => line.trim().length > 0)
 		?.trim();
 	if (!first?.startsWith("#"))
-		throw new Error(`Authored Markdown must start with a heading: ${path}`);
+		throw new Error(`Authored Markdown must start with a heading: \`${path}\``);
 }
 
 function assertMarkdownBulletPunctuation(path: string, content: string): void {

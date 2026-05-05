@@ -14,7 +14,7 @@ function evaluate(payload) {
 	if (payload.allowProtectedBranchMutation === true) {
 		return {
 			decision: "warn",
-			reason: "Protected branch mutation allowed by explicit override.",
+			reason: "Protected branch mutation allowed by explicit override",
 		};
 	}
 
@@ -23,7 +23,7 @@ function evaluate(payload) {
 	if (!currentBranch) {
 		return {
 			decision: "pass",
-			reason: "Branch context absent.",
+			reason: "Branch context absent",
 		};
 	}
 
@@ -35,20 +35,20 @@ function evaluate(payload) {
 	if (!protectedBranches.includes(currentBranch)) {
 		return {
 			decision: "pass",
-			reason: "Current branch outside protected set.",
+			reason: "Current branch outside protected set",
 		};
 	}
 
 	if (!isProtectedBranchMutation(payload)) {
 		return {
 			decision: "pass",
-			reason: `Protected branch (${currentBranch}) operation is non-mutating.`,
+			reason: `Protected branch (\`${currentBranch}\`) operation is non-mutating`,
 		};
 	}
 
 	return {
 		decision: "block",
-		reason: `Protected branch mutation blocked on ${currentBranch}.`,
+		reason: `Protected branch mutation blocked on \`${currentBranch}\``,
 		details: [
 			asString(payload.command) ||
 				asString(payload.toolCommand) ||

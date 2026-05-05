@@ -16,14 +16,14 @@ export function evaluateGeneratedDrift(payload) {
 	if (payload.allowGeneratedDrift === true) {
 		return {
 			decision: "warn",
-			reason: "Generated drift allowed by explicit override.",
+			reason: "Generated drift allowed by explicit override",
 		};
 	}
 
 	if (payload.generatedEditWithoutSource === true) {
 		return {
 			decision: "block",
-			reason: "Generated artifact update needs matching source update.",
+			reason: "Generated artifact update needs matching source update",
 		};
 	}
 
@@ -58,7 +58,7 @@ export function evaluateGeneratedDrift(payload) {
 	if (violations.length > 0) {
 		return {
 			decision: "block",
-			reason: "Generated drift needs corresponding source changes.",
+			reason: "Generated drift needs corresponding source changes",
 			details: violations,
 		};
 	}
@@ -73,7 +73,7 @@ export function evaluateGeneratedDrift(payload) {
 	if (changedLines > largeDiffThreshold) {
 		return {
 			decision: "warn",
-			reason: "Large diff requires explicit validation and review evidence.",
+			reason: "Large diff requires explicit validation and review evidence",
 			details: [
 				`changedLines=${changedLines}`,
 				`threshold=${largeDiffThreshold}`,
@@ -83,6 +83,6 @@ export function evaluateGeneratedDrift(payload) {
 
 	return {
 		decision: "pass",
-		reason: "Generated drift gate passed.",
+		reason: "Generated drift gate passed",
 	};
 }

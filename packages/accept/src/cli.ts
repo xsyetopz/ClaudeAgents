@@ -8,7 +8,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 	await runCli(repoRoot, ["check"]);
 	const rtkGain = await runRtkGainFixture(repoRoot);
 	if (!rtkGain.stdout.includes("STATUS PASS"))
-		throw new Error("CLI rtk-gain did not report pass status.");
+		throw new Error("CLI rtk-gain did not report pass status");
 	const toolchain = await runCli(repoRoot, [
 		"toolchain",
 		"--os",
@@ -66,7 +66,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 			setup.stdout.includes("Validate source and installed state")
 		)
 	)
-		throw new Error("CLI setup dry-run did not report full setup phases.");
+		throw new Error("CLI setup dry-run did not report full setup phases");
 	await rm(setupRoot, { recursive: true, force: true });
 	const preview = await runCli(repoRoot, ["preview", "--provider", "opencode"]);
 	if (
@@ -95,7 +95,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 			contentPreview.stdout.includes('model = "gpt-5.5"')
 		)
 	)
-		throw new Error("CLI preview did not show selected artifact content.");
+		throw new Error("CLI preview did not show selected artifact content");
 	for (const provider of ["codex", "claude", "opencode"]) {
 		const out = await mkdtemp(join(tmpdir(), `oal-cli-${provider}-`));
 		await runCli(repoRoot, ["render", "--provider", provider, "--out", out]);
@@ -114,7 +114,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 		"--verbose",
 	]);
 	if (!dryRun.stdout.includes(".codex/config.toml"))
-		throw new Error("CLI deploy dry-run did not report Codex config changes.");
+		throw new Error("CLI deploy dry-run did not report Codex config changes");
 	await rm(deployRoot, { recursive: true, force: true });
 	const globalRoot = await mkdtemp(join(tmpdir(), "oal-cli-global-"));
 	const globalEnv = await fakeProviderPath(globalRoot, [
@@ -144,7 +144,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 			globalDryRun.stdout.includes(".config/opencode/opencode.jsonc")
 		)
 	)
-		throw new Error("CLI global dry-run did not report provider home changes.");
+		throw new Error("CLI global dry-run did not report provider home changes");
 	await rm(globalRoot, { recursive: true, force: true });
 	const pluginRoot = await mkdtemp(join(tmpdir(), "oal-cli-plugins-"));
 	const pluginEnv = await fakeProviderPath(pluginRoot, [
@@ -174,7 +174,7 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 			pluginDryRun.stdout.includes(".config/opencode/plugins/openagentlayer")
 		)
 	)
-		throw new Error("CLI plugins dry-run did not report provider plugin sync.");
+		throw new Error("CLI plugins dry-run did not report provider plugin sync");
 	await rm(pluginRoot, { recursive: true, force: true });
 	await assertCliFails(repoRoot, ["render", "--provider", "bogus"], "provider");
 	await assertCliFails(repoRoot, ["deploy", "--scope", "workspace"], "scope");
@@ -208,7 +208,7 @@ async function assertCliFails(
 ): Promise<void> {
 	const result = await runCli(repoRoot, args, { allowFailure: true });
 	if (result.code === 0)
-		throw new Error(`CLI command unexpectedly passed: ${args.join(" ")}`);
+		throw new Error(`CLI command unexpectedly passed: \`${args.join(" ")}\``);
 	if (!`${result.stdout}\n${result.stderr}`.includes(expected))
 		throw new Error(
 			`CLI failure for ${args.join(" ")} did not mention ${expected}.`,

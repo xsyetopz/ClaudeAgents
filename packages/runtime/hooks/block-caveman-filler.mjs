@@ -12,24 +12,24 @@ function evaluate(payload) {
 	if (!active) {
 		return {
 			decision: "pass",
-			reason: "Caveman mode inactive; standard output allowed.",
+			reason: "Caveman mode inactive; standard output allowed",
 		};
 	}
 
 	if (payload.cavemanCompliant === false) {
 		return {
 			decision: "block",
-			reason: "Caveman contract violation reported by structured signal.",
+			reason: "Caveman contract violation reported by structured signal",
 			details: asArray(payload.contractViolations).map(String),
 		};
 	}
 	if (payload.cavemanCompliant === true) {
-		return { decision: "pass", reason: "Caveman contract satisfied." };
+		return { decision: "pass", reason: "Caveman contract satisfied" };
 	}
 
 	return {
 		decision: "warn",
-		reason: "Caveman mode active; include structured compliance signal.",
+		reason: "Caveman mode active; include structured compliance signal",
 	};
 }
 

@@ -34,7 +34,7 @@ export async function installableProviders(
 			skipped.push({
 				provider,
 				binary,
-				reason: `${binary} binary not found in PATH`,
+				reason: `\`${binary}\` binary not found in PATH`,
 			});
 	}
 	return { providers: available, skipped };

@@ -12,6 +12,6 @@ export function validateProductName(
 		issues.push({
 			severity: "error",
 			code: "product-name",
-			message: "Source product identity must be OpenAgentLayer/OAL.",
+			message: "Source product identity must be OpenAgentLayer/OAL",
 		});
 }

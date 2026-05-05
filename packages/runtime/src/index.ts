@@ -50,9 +50,9 @@ export async function assertRuntimeHooksExecutable(
 	const privilegedDiscovered = await readdir(privilegedRoot);
 	for (const script of privilegedRuntimeScripts) {
 		if (!privilegedDiscovered.includes(script))
-			throw new Error(`Missing privileged runtime script: ${script}`);
+			throw new Error(`Missing privileged runtime script: \`${script}\``);
 		const hookStat = await stat(join(privilegedRoot, script));
 		if ((hookStat.mode & 0o111) === 0)
-			throw new Error(`Privileged runtime is not executable: ${script}`);
+			throw new Error(`Privileged runtime is not executable: \`${script}\``);
 	}
 }

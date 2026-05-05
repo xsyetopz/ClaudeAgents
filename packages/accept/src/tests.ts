@@ -19,9 +19,9 @@ export async function assertTestInventory(repoRoot: string): Promise<void> {
 		const testRoot = join(repoRoot, "packages", packageName, "__tests__");
 		const tests = await readdir(testRoot);
 		if (!tests.some((name) => name.endsWith(".test.ts")))
-			throw new Error(`Missing unit test for package ${packageName}.`);
+			throw new Error(`Missing unit test for package \`${packageName}\``);
 	}
 	const integrationTests = await readdir(join(repoRoot, "tests"));
 	if (!integrationTests.some((name) => name.endsWith(".test.ts")))
-		throw new Error("Missing root integration/e2e test.");
+		throw new Error("Missing root integration/e2e test");
 }

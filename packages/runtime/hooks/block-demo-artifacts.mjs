@@ -26,12 +26,12 @@ function evaluate(payload) {
 	if (violations.length > 0) {
 		return {
 			decision: "block",
-			reason: "Demo artifact flagged by structured metadata.",
+			reason: "Demo artifact flagged by structured metadata",
 			details: violations,
 		};
 	}
 
-	return { decision: "pass", reason: "Demo artifact metadata absent." };
+	return { decision: "pass", reason: "Demo artifact metadata absent" };
 }
 
 createHookRunner("block-demo-artifacts", evaluate);

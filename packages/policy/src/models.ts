@@ -56,7 +56,7 @@ function validateProviderModel(
 		issues.push({
 			severity: "error",
 			code: "model-allowlist",
-			message: `${provider} model ${model} is not allowed.`,
+			message: `\`${provider}\` model \`${model}\` is not allowed`,
 			sourceId,
 		});
 }

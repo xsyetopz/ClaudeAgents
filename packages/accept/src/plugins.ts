@@ -40,13 +40,13 @@ export async function assertPluginMarketplace(
 			path.endsWith(".claude-plugin/plugin.json")
 		) {
 			if (parsed.name !== "oal")
-				throw new Error(`Plugin payload ${path} is not named $oal.`);
+				throw new Error(`Plugin payload \`${path}\` is not named $oal`);
 		} else if (!parsed.name?.includes("openagentlayer"))
 			throw new Error(
 				`Marketplace payload ${path} is not named OpenAgentLayer.`,
 			);
 		if (path.endsWith("plugin.json") && parsed.version !== source.version)
-			throw new Error(`Marketplace payload ${path} version drifted.`);
+			throw new Error(`Marketplace payload \`${path}\` version drifted`);
 		if (path.endsWith("marketplace.json"))
 			assertMarketplaceEntry(path, parsed.plugins);
 	}
@@ -56,7 +56,7 @@ export async function assertPluginMarketplace(
 
 function assertMarketplaceEntry(path: string, plugins: unknown): void {
 	if (!Array.isArray(plugins) || plugins.length === 0)
-		throw new Error(`Marketplace ${path} has no plugins.`);
+		throw new Error(`Marketplace \`${path}\` has no plugins`);
 	const entry = plugins[0] as {
 		name?: string;
 		source?: { source?: string; path?: string; url?: string; ref?: string };
@@ -64,24 +64,24 @@ function assertMarketplaceEntry(path: string, plugins: unknown): void {
 		category?: string;
 	};
 	if (entry.name !== "oal")
-		throw new Error(`Marketplace ${path} does not expose $oal.`);
+		throw new Error(`Marketplace \`${path}\` does not expose $oal`);
 	if (path.startsWith(".agents/")) {
 		if (entry.source?.source !== "git-subdir")
-			throw new Error("Codex marketplace must use a git-subdir source.");
+			throw new Error("Codex marketplace must use a git-subdir source");
 		if (entry.source.path !== "./plugins/codex/openagentlayer")
-			throw new Error("Codex marketplace source path is not repo-hosted.");
+			throw new Error("Codex marketplace source path is not repo-hosted");
 		if (
 			entry.policy?.installation !== "AVAILABLE" ||
 			entry.policy.authentication !== "ON_INSTALL" ||
 			!entry.category
 		)
-			throw new Error("Codex marketplace missing install policy metadata.");
+			throw new Error("Codex marketplace missing install policy metadata");
 	}
 	if (path.startsWith(".claude-plugin/")) {
 		if (entry.source?.source !== "git-subdir")
-			throw new Error("Claude marketplace must use a git-subdir source.");
+			throw new Error("Claude marketplace must use a git-subdir source");
 		if (entry.source.path !== "plugins/claude/openagentlayer")
-			throw new Error("Claude marketplace source path is not repo-hosted.");
+			throw new Error("Claude marketplace source path is not repo-hosted");
 	}
 }
 
@@ -103,7 +103,7 @@ async function assertRepositoryPluginPayloads(
 		),
 	) as { version?: string };
 	if (codexPlugin.version !== source.version)
-		throw new Error("Repo-hosted Codex plugin version drifted.");
+		throw new Error("Repo-hosted Codex plugin version drifted");
 }
 
 async function assertNoRepositoryGeneratedPluginPayloads(
@@ -133,7 +133,7 @@ async function assertPluginSync(
 			dryRun: true,
 		});
 		if (!preview.changes.some((change) => change.action === "write"))
-			throw new Error("Plugin dry-run did not plan payload writes.");
+			throw new Error("Plugin dry-run did not plan payload writes");
 		const applied = await syncPlugins({
 			repoRoot,
 			home,
@@ -141,7 +141,7 @@ async function assertPluginSync(
 			providers: allPluginProviders(),
 		});
 		if (!applied.changes.some((change) => change.action === "remove"))
-			throw new Error("Plugin sync did not prune stale OAL caches.");
+			throw new Error("Plugin sync did not prune stale OAL caches");
 		for (const path of [
 			".codex/plugins/openagentlayer/.codex-plugin/plugin.json",
 			".codex/plugins/openagentlayer/AGENTS.md",
@@ -159,7 +159,7 @@ async function assertPluginSync(
 			"utf8",
 		);
 		if (!codexConfig.includes('[plugins."oal@openagentlayer-local"]'))
-			throw new Error("Plugin sync did not activate $oal for Codex.");
+			throw new Error("Plugin sync did not activate $oal for Codex");
 		const staleFile = join(
 			home,
 			".codex/plugins/cache/openagentlayer-local/oal/0.0.1/stale.txt",
@@ -171,7 +171,7 @@ async function assertPluginSync(
 			staleExists = false;
 		}
 		if (staleExists)
-			throw new Error("Plugin sync left stale Codex cache behind.");
+			throw new Error("Plugin sync left stale Codex cache behind");
 	} finally {
 		await rm(home, { recursive: true, force: true });
 	}

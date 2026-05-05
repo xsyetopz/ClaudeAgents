@@ -136,19 +136,19 @@ function evaluate(payload) {
 		if (!hasBlockedContract(payload)) {
 			return {
 				decision: "block",
-				reason: "Blocked result lacks attempted, evidence, and need fields.",
+				reason: "Blocked result lacks attempted, evidence, and need fields",
 			};
 		}
 		return {
 			decision: "pass",
-			reason: "Blocked result names attempted work, evidence, and need.",
+			reason: "Blocked result names attempted work, evidence, and need",
 		};
 	}
 
 	if (!(isFinalStatus(payload) && behaviorChanged(payload))) {
 		return {
 			decision: "pass",
-			reason: "Source evidence check complete for this payload.",
+			reason: "Source evidence check complete for this payload",
 		};
 	}
 
@@ -156,20 +156,20 @@ function evaluate(payload) {
 	if (classifications.includes("valid")) {
 		return {
 			decision: "pass",
-			reason: "Behavior change includes source evidence.",
+			reason: "Behavior change includes source evidence",
 		};
 	}
 
 	if (classifications.includes("invalid")) {
 		return {
 			decision: "block",
-			reason: "Behavior change used non-source evidence.",
+			reason: "Behavior change used non-source evidence",
 		};
 	}
 
 	return {
 		decision: "block",
-		reason: "Behavior change lacks source evidence.",
+		reason: "Behavior change lacks source evidence",
 	};
 }
 

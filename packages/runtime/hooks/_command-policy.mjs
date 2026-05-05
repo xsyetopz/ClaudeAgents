@@ -70,7 +70,7 @@ export function evaluateCommandPolicy(command, options = {}) {
 	if (normalizedCommands.length === 0)
 		return {
 			decision: "pass",
-			reason: "Command inspection complete: executable command absent.",
+			reason: "Command inspection complete: executable command absent",
 		};
 	let firstWarning;
 	for (const normalized of normalizedCommands) {
@@ -79,7 +79,7 @@ export function evaluateCommandPolicy(command, options = {}) {
 		if (result.decision === "warn") firstWarning ??= result;
 	}
 	if (firstWarning) return firstWarning;
-	return { decision: "pass", reason: "Command already uses RTK." };
+	return { decision: "pass", reason: "Command already uses RTK" };
 }
 
 function evaluateSingleCommand(normalized, options) {
@@ -90,7 +90,7 @@ function evaluateSingleCommand(normalized, options) {
 			return {
 				decision: "block",
 				reason:
-					"RTK proxy is leaking raw file output; use the bounded RTK read filter.",
+					"RTK proxy is leaking raw file output; use the bounded RTK read filter",
 				details: ["Use: rtk read --line-numbers --max-lines <n> <file>"],
 			};
 		const proxiedRtkExecutable = SUPPORTED_COMMANDS.get(proxiedExecutable);
@@ -98,14 +98,14 @@ function evaluateSingleCommand(normalized, options) {
 			return {
 				decision: "block",
 				reason:
-					"RTK has a native filter for this command; do not route it through proxy.",
+					"RTK has a native filter for this command; do not route it through proxy",
 				details: [
 					`Use: rtk ${rewriteExecutable(proxied, proxiedRtkExecutable)}`,
 				],
 			};
 	}
 	if (normalized.startsWith("rtk ") || normalized === "rtk")
-		return { decision: "pass", reason: "Command already uses RTK." };
+		return { decision: "pass", reason: "Command already uses RTK" };
 
 	const rewriteCandidate = shellInnerCommand(normalized) ?? normalized;
 	const bunReplacement = options.bunRewrite?.(rewriteCandidate);
@@ -113,7 +113,7 @@ function evaluateSingleCommand(normalized, options) {
 		return {
 			decision: "block",
 			reason:
-				"Bun supports this Node.js package-manager command; use the Bun form instead.",
+				"Bun supports this Node.js package-manager command; use the Bun form instead",
 			details: [`Use: rtk proxy -- ${bunReplacement}`],
 		};
 
@@ -121,14 +121,14 @@ function evaluateSingleCommand(normalized, options) {
 	if (!executable)
 		return {
 			decision: "pass",
-			reason: "Command inspection complete: executable command absent.",
+			reason: "Command inspection complete: executable command absent",
 		};
 
 	const preferredReplacement = PREFERRED_REPLACEMENTS.get(executable);
 	if (preferredReplacement)
 		return {
 			decision: "block",
-			reason: "OpenAgentLayer has a preferred QoL tool for this command.",
+			reason: "OpenAgentLayer has a preferred QoL tool for this command",
 			details: [`Use: ${rewriteExecutable(normalized, preferredReplacement)}`],
 		};
 
@@ -138,7 +138,7 @@ function evaluateSingleCommand(normalized, options) {
 			return {
 				decision: "block",
 				reason:
-					"RTK route needs the rtk-ai/rtk binary and successful `rtk gain`.",
+					"RTK route needs the rtk-ai/rtk binary and successful `rtk gain`",
 				details: [
 					"Install: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh",
 					"Verify: rtk --version && rtk gain",
@@ -147,7 +147,7 @@ function evaluateSingleCommand(normalized, options) {
 		if (options.rtkPolicyPresent === false)
 			return {
 				decision: "block",
-				reason: "RTK route needs RTK.md in global or project policy paths.",
+				reason: "RTK route needs RTK.md in global or project policy paths",
 				details: [
 					"Initialize Claude Code: rtk init -g --auto-patch",
 					"Initialize Codex: rtk init -g --codex",
@@ -157,14 +157,14 @@ function evaluateSingleCommand(normalized, options) {
 			};
 		return {
 			decision: "block",
-			reason: "RTK supports this command; run the RTK form instead.",
+			reason: "RTK supports this command; run the RTK form instead",
 			details: [`Use: rtk ${rewriteExecutable(normalized, rtkExecutable)}`],
 		};
 	}
 
 	return {
 		decision: "warn",
-		reason: "RTK proxy handles this command when output may be noisy.",
+		reason: "RTK proxy handles this command when output may be noisy",
 		details: [`Use when useful: rtk proxy -- ${normalized}`],
 	};
 }
