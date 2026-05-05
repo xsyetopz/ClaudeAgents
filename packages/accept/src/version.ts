@@ -72,7 +72,7 @@ async function assertVersionFilesAgree(
 		throw new Error("Claude marketplace version does not match root.");
 	const changelog = await readFile(join(repoRoot, "CHANGELOG.md"), "utf8");
 	if (!changelog.includes(`## [${current}]`))
-		throw new Error("CHANGELOG.md does not contain current version heading.");
+		throw new Error("`CHANGELOG.md` does not contain current version heading.");
 }
 
 async function assertDryRun(
@@ -86,7 +86,7 @@ async function assertDryRun(
 		{ cwd: repoRoot },
 	);
 	if (!stdout.includes(`DRY RUN OAL version ${current} ->`))
-		throw new Error("bump-version.sh dry-run did not report version plan.");
+		throw new Error("`bump-version.sh` dry-run did not report version plan.");
 }
 
 async function assertRejects(repoRoot: string, target: string): Promise<void> {
@@ -97,5 +97,5 @@ async function assertRejects(repoRoot: string, target: string): Promise<void> {
 	} catch {
 		return;
 	}
-	throw new Error("bump-version.sh accepted a downgrade.");
+	throw new Error("`bump-version.sh` accepted a downgrade.");
 }
