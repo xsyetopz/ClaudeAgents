@@ -5,7 +5,7 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.2.0-beta.9] - 2026-05-05
+## [0.2.0-beta.10] - 2026-05-05
 
 ### Added
 
@@ -22,6 +22,7 @@ material only and is not part of the OAL release line.
 
 ### Changed
 
+- Fixed RTK command enforcement so edit/patch payload text is treated as patch content unless it arrives through an explicit shell command field or shell tool payload.
 - Strengthened agent and provider prompt contracts so examples, corrections, suggested names, and partial ideas authorize only the requested behavior; compatibility aliases, fallbacks, extra behavior, guardrails, docs, cleanup, and adjacent changes now require explicit user request or controlling source evidence.
 - Changed setup so `--profile` can load saved setup choices while explicit CLI flags override matching profile flags.
 - Changed hook feedback wrapping to keep one separator when provider UIs flatten wrapped lines and to reapply ANSI color to every wrapped line.
@@ -49,6 +50,7 @@ material only and is not part of the OAL release line.
 
 ### Verified
 
+- `rtk proxy -- bun test packages/runtime/__tests__/runtime.test.ts`
 - `rtk proxy -- bun test packages/adapter/__tests__/adapter.test.ts`
 - `rtk proxy -- bun test packages/runtime/__tests__/runtime.test.ts tests/e2e.test.ts packages/cli/__tests__/cli.test.ts`
 - `rtk proxy -- bunx biome check packages/runtime/hooks packages/runtime/__tests__/runtime.test.ts packages/cli/src tests/e2e.test.ts README.md INSTALLATION.md package.json --max-diagnostics 300`

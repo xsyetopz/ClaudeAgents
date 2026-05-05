@@ -262,6 +262,34 @@ test("RTK hook rewrites replaceable Node.js package-manager commands to Bun", as
 	});
 });
 
+test("RTK hook ignores patch and edit payload text that is not a shell command", async () => {
+	await expect(
+		runHook({
+			hook_event_name: "PreToolUse",
+			tool_name: "apply_patch",
+			tool_input: {
+				input: `*** Begin Patch
+*** Update File: Sources/OpenJoystickDriverKit/XPC/XPCProtocol.swift
++  format = OJDGenericGamepadFormat()
+*** End Patch`,
+			},
+		}),
+	).resolves.toMatchObject({
+		decision: "pass",
+		reason: "Command text absent",
+	});
+	await expect(
+		runHook({
+			hook_event_name: "PreToolUse",
+			tool_name: "functions.shell_command",
+			tool_input: { input: "format = OJDGenericGamepadFormat()" },
+		}),
+	).resolves.toMatchObject({
+		decision: "block",
+		details: ["Use: rtk format = OJDGenericGamepadFormat()"],
+	});
+});
+
 test("context injection hooks are quiet on lifecycle events without route metadata", async () => {
 	for (const hook of [
 		"inject-git-context.mjs",

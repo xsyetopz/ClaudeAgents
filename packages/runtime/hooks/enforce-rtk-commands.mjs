@@ -65,16 +65,38 @@ function rtkPolicyPaths(cwd) {
 }
 
 function firstCommandText(payload) {
-	return (
+	const toolInput = payload.tool_input;
+	const explicitCommand =
 		asString(payload.command) ||
-		asString(payload.tool_input?.command) ||
-		asString(payload.tool_input?.cmd) ||
-		asString(payload.tool_input?.input) ||
+		asString(toolInput?.command) ||
+		asString(toolInput?.cmd);
+	if (explicitCommand) return explicitCommand;
+	if (!shellToolPayload(payload)) return "";
+	return (
+		asString(toolInput?.input) ||
 		asString(payload.input) ||
 		asString(payload.text) ||
 		asString(payload.response) ||
 		asString(payload.finalResponse)
 	);
+}
+
+function shellToolPayload(payload) {
+	const toolName = (
+		asString(payload.tool_name) ||
+		asString(payload.toolName) ||
+		asString(payload.name) ||
+		asString(payload.tool)
+	).toLowerCase();
+	return [
+		"bash",
+		"shell",
+		"sh",
+		"zsh",
+		"terminal",
+		"shell_command",
+		"functions.shell_command",
+	].includes(toolName);
 }
 
 createHookRunner("enforce-rtk-commands", evaluate);
