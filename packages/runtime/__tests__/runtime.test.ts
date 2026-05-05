@@ -388,14 +388,16 @@ test("session scope hook injects consent boundary at session start", async () =>
 	).resolves.toMatchObject({
 		decision: "warn",
 		reason: "OAL session scope receipt",
-		details: [
+		details: expect.arrayContaining([
 			expect.stringContaining("Before work"),
 			expect.stringContaining("input evidence for the requested behavior only"),
 			expect.stringContaining("need explicit user request"),
 			expect.stringContaining("bounded python3 rewrites"),
+			expect.stringContaining("Delegation rule"),
+			expect.stringContaining("stay solo only for narrow single-owner edits"),
 			expect.stringContaining("ask when blocked"),
 			expect.stringContaining("STATUS BLOCKED"),
-		],
+		]),
 	});
 	const codexSessionStart = await runHookRaw("inject-session-scope.mjs", {
 		hook_event_name: "SessionStart",

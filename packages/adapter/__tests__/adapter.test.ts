@@ -126,6 +126,10 @@ test("provider instructions render inspection and correction discipline contract
 		expect(instructions).toContain(
 			"Treat inferred compatibility, aliases, fallbacks, extra behavior, guardrails, docs, and cleanup as out of scope",
 		);
+		expect(instructions).toContain("Delegation discipline:");
+		expect(instructions).toContain(
+			"broad implementation work starts with a delegation check",
+		);
 	}
 });
 
@@ -153,6 +157,31 @@ test("provider agents render inspection and correction discipline contracts", as
 		expect(agent).toContain(
 			"inferred compatibility enters only through explicit user request or controlling source requirement",
 		);
+		expect(agent).toContain("Delegation check:");
+		expect(agent).toContain(
+			"broad implementation work uses subagents or the orchestrate route",
+		);
+		expect(agent).toContain(
+			"stay solo only for narrow single-owner edits or blocked subagent launch",
+		);
+	}
+});
+
+test("orchestration agents render concrete delegation task contracts", async () => {
+	const graph = await loadSource(resolve(repoRoot, "source"));
+	for (const [provider, path] of [
+		["codex", ".codex/agents/odysseus.toml"],
+		["claude", ".claude/agents/odysseus.md"],
+		["opencode", ".opencode/agents/odysseus.md"],
+	] as const) {
+		const rendered = await renderProvider(provider, graph.source, repoRoot);
+		const agent = rendered.artifacts.find(
+			(artifact) => artifact.path === path,
+		)?.content;
+		expect(agent).toContain("Broad implementation work");
+		expect(agent).toContain("Record subagent task");
+		expect(agent).toContain("owned paths");
+		expect(agent).toContain("merge order");
 	}
 });
 

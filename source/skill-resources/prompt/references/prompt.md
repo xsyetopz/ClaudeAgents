@@ -15,3 +15,5 @@ Use affirmative target states and mechanical gates. For current-state cleanup, s
 Corrections and examples are evidence for the requested result. They approve only the requested result; compatibility aliases, parser fallbacks, extra behavior, guardrails, adjacent cleanup, and docs enter scope when the user says them out loud or controlling source requires them.
 
 For edits, prefer `apply_patch` for focused manual changes. Use bounded `python3` rewrites for broad mechanical changes when many patch hunks would be fragile; constrain paths first and inspect the final diff.
+
+For broad implementation prompts, include a delegation check. Use subagents or an orchestration route when work can split by owner, provider, package, test tier, or investigation path. Solo work is for narrow single-owner edits or blocked subagent launch, with the reason recorded before editing.

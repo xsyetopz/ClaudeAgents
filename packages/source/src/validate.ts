@@ -168,6 +168,10 @@ export function validateProductSource(record: ProductSource): void {
 			"product promptContracts.correctionDiscipline",
 		);
 		requireText(
+			record.promptContracts.delegationDiscipline,
+			"product promptContracts.delegationDiscipline",
+		);
+		requireText(
 			record.promptContracts.accountabilityPressure,
 			"product promptContracts.accountabilityPressure",
 		);
