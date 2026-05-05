@@ -253,8 +253,8 @@ rtk ruby -c homebrew/Casks/openagentlayer.rb
 | Path                 | Responsibility                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------- |
 | `source/`            | Authored OAL source records, prompt templates, skills, routes, hooks, tools, and provider inputs. |
-| `docs/`              | User-facing repository docs that support installation, operation, and contribution workflows.      |
-| `specs/`             | Product requirements, design specs, provider research, and acceptance requirements.                |
+| `docs/`              | Indexed user-facing operation docs for install, CLI, provider setup, validation, and release.      |
+| `specs/`             | Indexed product, provider, runtime, acceptance, and reference-evidence contracts for implementers. |
 | `packages/source`    | Source loading and record validation.                                                             |
 | `packages/policy`    | Product policy validation, model allowlists, and generated text checks.                           |
 | `packages/adapter`   | Provider-native rendering for Claude Code, Codex, and OpenCode.                                   |

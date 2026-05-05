@@ -10,7 +10,7 @@ const repoRoot = resolve(import.meta.dir, "../../..");
 test("CLI provider parser accepts OAL providers and rejects unknown providers", () => {
 	expect(providerOption("codex")).toBe("codex");
 	expect(providerOption("opencode")).toBe("opencode");
-	expect(() => providerOption("other")).toThrow("Unsupported provider other");
+	expect(() => providerOption("other")).toThrow("Unsupported provider `other`");
 });
 
 test("MCP command serves OAL-owned Anthropic and OpenCode tools", async () => {

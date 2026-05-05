@@ -29,7 +29,7 @@ material only and is not part of the OAL release line.
 - Consolidated advisory command-tool hooks into `advise-command-tools`, while keeping RTK command enforcement separate.
 - Updated OpenCode runtime/plugin rendering for command policy, Bun rewrites, command safety, secret checks, and repeated-failure handling.
 - Recorded Ruflo/Symphony harness ideas as future product inputs instead of runtime dependencies.
-- Moved product requirements, design specs, provider research, and acceptance requirements from `docs/` into `specs/`, leaving `docs/` for user-facing documentation.
+- Rewrote `docs/` and `specs/` as separate AI-skimmable indexed packs: user operation docs in `docs/`, product and provider contracts in `specs/`.
 
 ### Removed
 

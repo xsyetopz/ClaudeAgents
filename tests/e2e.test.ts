@@ -469,7 +469,7 @@ test("CLI rejects unsupported Caveman mode cleanly", async () => {
 	);
 	const stderr = await new Response(command.stderr).text();
 	expect(await command.exited).toBe(1);
-	expect(stderr).toContain("Unsupported caveman mode yell");
+	expect(stderr).toContain("Unsupported caveman mode `yell`");
 });
 
 test("CLI preview applies Codex subscription plan to profile reasoning", async () => {

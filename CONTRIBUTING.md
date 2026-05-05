@@ -10,11 +10,12 @@ Before large changes, read:
 - `AGENTS.md`
 - `README.md`
 - `CHANGELOG.md`
-- `specs/02_OAL_REBOOT_PRODUCT_REQUIREMENTS.md`
-- `specs/03_OAL_REBOOT_PRODUCT_SPEC.md`
-- `specs/05_GENERATOR_DEPLOYER_ACCEPTANCE.md`
-- `specs/provider_config_research/08_OAL_RENDER_DEPLOY_MAPPING.md`
-- `specs/provider_config_research/09_ACCEPTANCE_TEST_REQUIREMENTS.md`
+- `docs/README.md`
+- `specs/README.md`
+- `specs/01_PRODUCT.md`
+- `specs/02_SOURCE_RENDER_DEPLOY.md`
+- `specs/03_PROVIDER_SURFACES.md`
+- `specs/05_ACCEPTANCE.md`
 
 `reference notes/` is read-only reference material. Do not modify it and do not import
 it from runtime code.
