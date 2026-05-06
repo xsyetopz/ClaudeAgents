@@ -534,6 +534,11 @@ test("session scope hook injects consent boundary at session start", async () =>
 			expect.stringContaining(
 				"narrow single-owner edits begin with a recorded solo ownership reason",
 			),
+			expect.stringContaining("Continuity rule"),
+			expect.stringContaining("Continuation Record"),
+			expect.stringContaining(
+				"current user messages and verified repo evidence define the active path",
+			),
 			expect.stringContaining("Agent use"),
 			expect.stringContaining("spawn rendered OAL custom agents by name"),
 			expect.stringContaining("Native subagent launch is the Codex path"),

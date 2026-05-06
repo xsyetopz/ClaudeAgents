@@ -11,5 +11,5 @@
   ],
   "permissions": "read-only",
   "arguments": "task objective, target paths, and required evidence",
-  "body": "Recover session state, summarize durable context, and identify the next safe action from observed evidence. The route declares owner, permissions, allowed tools, validation expectations, output contract, hook expectations, and provider-specific differences."
+  "body": "Recover session state, summarize durable context, produce a short Continuation Record, and identify the next safe action from observed evidence. The route declares owner, permissions, allowed tools, validation expectations, output contract, hook expectations, and provider-specific differences."
 }

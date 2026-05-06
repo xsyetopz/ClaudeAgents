@@ -97,6 +97,7 @@ export interface ProductPromptContracts {
 	sourceBackedBehavior: string;
 	correctionDiscipline: string;
 	delegationDiscipline: string;
+	continuityDiscipline: string;
 	accountabilityPressure: string;
 	simplicityDiscipline: string;
 }

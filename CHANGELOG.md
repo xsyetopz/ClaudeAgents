@@ -5,10 +5,13 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.4.0-beta.1] - 2026-05-06
+## [0.4.0-beta.2] - 2026-05-06
 
 ### Added
 
+- Added `continuityDiscipline` to product prompt contracts so provider instructions carry a compact continuation rule for multi-step work.
+- Added SessionStart continuity guidance for short user-visible `Continuation Record` handoffs with objective, done, next, and blockers.
+- Added Mnemosyne, resume-route, handoff, and plan guidance for user-pasteable continuation records backed by current repo evidence.
 - Added Codex `multi_agent_v2` rendering with native `.codex/agents/` custom-agent loading and explicit `multi_agent` disablement so both subagent systems are not enabled together.
 - Added Codex native subagent launch support through `oal codex peer` helpers that start visible Codex profiles with `multi_agent_v2`, wait for evidence, and summarize peer runs.
 - Added interactive setup profile selection at the start of the setup flow so active and saved profiles can be applied directly.
@@ -32,6 +35,7 @@ material only and is not part of the OAL release line.
 
 ### Changed
 
+- Changed prompt and handoff guidance so markdown memory is supporting evidence after it is read, while current user messages and verified repo evidence define the active path.
 - Reworked interactive setup workflow labels and ordering around review/apply versus repair so the user sees current state before deciding whether to write changes.
 - Ordered subscription prompts from lowest to highest tier for Codex, Claude, and OpenCode, and clarified the Claude long-context plan as `Max 20x + 1M Opus`.
 - Changed `oal state inspect` so explicit setup flags override the active saved profile and `--optional` is included in state previews.

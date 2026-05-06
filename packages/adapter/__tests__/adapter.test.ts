@@ -133,11 +133,16 @@ test("provider instructions render inspection and correction discipline contract
 		expect(instructions).toContain(
 			"Treat inferred compatibility, aliases, fallbacks, extra behavior, guardrails, docs, and cleanup as out of scope",
 		);
-		expect(instructions).toContain("Delegation discipline:");
-		expect(instructions).toContain(
-			"broad implementation work starts with a delegation check",
-		);
-		if (provider === "codex") {
+			expect(instructions).toContain("Delegation discipline:");
+			expect(instructions).toContain(
+				"broad implementation work starts with a delegation check",
+			);
+			expect(instructions).toContain("Continuity discipline:");
+			expect(instructions).toContain("Continuation Record");
+			expect(instructions).toContain(
+				"current user messages and verified repo evidence",
+			);
+			if (provider === "codex") {
 			expect(instructions).toContain("spawn subagents: have hermes");
 			expect(instructions).toContain(
 				"The parent thread owns task split, child launch, evidence merge, and final decision",
@@ -174,14 +179,33 @@ test("provider agents render inspection and correction discipline contracts", as
 		expect(agent).toContain(
 			"broad implementation work uses subagents or the orchestrate route",
 		);
-		expect(agent).toContain(
-			"narrow single-owner edits begin with a recorded solo ownership reason",
-		);
-		if (provider === "codex") {
+			expect(agent).toContain(
+				"narrow single-owner edits begin with a recorded solo ownership reason",
+			);
+			expect(agent).toContain("Continuity check:");
+			expect(agent).toContain("short user-visible Continuation Record");
+			if (provider === "codex") {
 			expect(agent).toContain('name = "hephaestus"');
 			expect(agent).toContain("description = ");
 			expect(agent).toContain('nickname_candidates = ["hephaestus"]');
 		}
+	}
+	});
+
+test("continuity agent and resume route render user-pasteable handoff contracts", async () => {
+	const graph = await loadSource(resolve(repoRoot, "source"));
+	for (const [provider, path] of [
+		["codex", ".codex/agents/mnemosyne.toml"],
+		["claude", ".claude/agents/mnemosyne.md"],
+		["opencode", ".opencode/agents/mnemosyne.md"],
+	] as const) {
+		const rendered = await renderProvider(provider, graph.source, repoRoot);
+		const agent = rendered.artifacts.find(
+			(artifact) => artifact.path === path,
+		)?.content;
+		expect(agent).toContain("user-pasteable Continuation Records");
+		expect(agent).toContain("produce a short Continuation Record");
+		expect(agent).toContain("current user messages and verified repo evidence");
 	}
 });
 
