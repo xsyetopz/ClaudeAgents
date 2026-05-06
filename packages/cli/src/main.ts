@@ -189,6 +189,7 @@ addRenderOptions(
 	.option("--bin-dir <dir>", "global executable directory")
 	.option("--skip-bin", "skip global oal executable shim")
 	.option("--dry-run", "print planned changes without writing")
+	.option("--diff", "print generated artifact diffs during dry-run")
 	.option("--verbose", "print per-artifact deploy details")
 	.option("--quiet", "suppress normal progress output")
 	.addHelpText(
@@ -196,6 +197,7 @@ addRenderOptions(
 		`
 Examples:
   $ oal deploy --target /repo --scope project --provider all --dry-run
+  $ oal deploy --target /repo --scope project --provider codex --dry-run --diff
   $ oal deploy --scope global --provider codex,opencode --dry-run --verbose
   $ oal deploy --scope global --provider all --bin-dir "$HOME/.local/bin"
 `,
@@ -401,6 +403,7 @@ function argsFromOptions(options: Record<string, unknown>): string[] {
 	pushFlag(args, "--anthropic-docs-mcp", options["anthropicDocsMcp"]);
 	pushFlag(args, "--opencode-docs-mcp", options["opencodeDocsMcp"]);
 	pushFlag(args, "--dry-run", options["dryRun"]);
+	pushFlag(args, "--diff", options["diff"]);
 	pushFlag(args, "--skip-bin", options["skipBin"]);
 	pushFlag(args, "--verbose", options["verbose"]);
 	pushFlag(args, "--quiet", options["quiet"]);

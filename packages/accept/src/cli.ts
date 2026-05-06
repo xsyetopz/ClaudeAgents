@@ -111,9 +111,17 @@ export async function assertCliContracts(repoRoot: string): Promise<void> {
 		"--scope",
 		"project",
 		"--dry-run",
+		"--diff",
 		"--verbose",
 	]);
-	if (!dryRun.stdout.includes(".codex/config.toml"))
+	if (
+		!(
+			dryRun.stdout.includes(".codex/config.toml") &&
+			dryRun.stdout.includes("source: config:codex") &&
+			dryRun.stdout.includes("--- a/.codex/config.toml") &&
+			dryRun.stdout.includes("+++ b/.codex/config.toml")
+		)
+	)
 		throw new Error("CLI deploy dry-run did not report Codex config changes");
 	await rm(deployRoot, { recursive: true, force: true });
 	const globalRoot = await mkdtemp(join(tmpdir(), "oal-cli-global-"));

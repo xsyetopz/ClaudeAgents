@@ -23,6 +23,7 @@ const REQUIRED_WORKFLOW_TERMS = [
 	'--from-file "$RUNNER_TEMP/oal-rtk-gain.txt" --allow-empty-history',
 	"test -f third_party/caveman/skills/caveman/SKILL.md",
 	"test -f third_party/taste-skill/skills/taste-skill/SKILL.md",
+	"test -f third_party/css-modern-features/css-modern-features/SKILL.md",
 	"test -f third_party/gitleaks/config/gitleaks.toml",
 	"needs: [ quality, dry-run ]",
 	"github.event_name == 'push'",

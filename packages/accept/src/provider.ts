@@ -104,6 +104,7 @@ async function assertCodexInstructionBaseline(
 		"Codex baseline",
 		"bundled base instructions",
 		"generated files are disposable outputs",
+		"Instruction reload surface:",
 	])
 		if (!agents.includes(required))
 			throw new Error(`AGENTS.md missing Codex baseline text: \`${required}\``);

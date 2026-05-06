@@ -10,3 +10,7 @@
 	path = third_party/gitleaks
 	url = https://github.com/gitleaks/gitleaks.git
 	branch = master
+[submodule "third_party/css-modern-features"]
+	path = third_party/css-modern-features
+	url = https://github.com/rushenn/css-modern-features.git
+	branch = main

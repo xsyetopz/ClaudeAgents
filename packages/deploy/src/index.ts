@@ -7,6 +7,7 @@ export {
 	refineBinPlan,
 	removeBinInstall,
 } from "./bin";
+export { planDeployDiffs, renderDeployDiffs } from "./diff";
 export { exists } from "./exists";
 export { globalArtifacts } from "./global";
 export { planDeploy } from "./plan";

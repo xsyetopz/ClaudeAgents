@@ -1,8 +1,15 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { applyDeploy, globalArtifacts, planDeploy, uninstall } from "../src";
+import {
+	applyDeploy,
+	globalArtifacts,
+	planDeploy,
+	planDeployDiffs,
+	renderDeployDiffs,
+	uninstall,
+} from "../src";
 
 test("deploy plan dry-run data precedes apply and uninstall removes ownership only", async () => {
 	const root = await mkdtemp(join(tmpdir(), "oal-deploy-test-"));
@@ -70,4 +77,63 @@ test("global deploy maps provider artifacts into provider homes", async () => {
 		readFile(join(home, ".codex/AGENTS.md"), "utf8"),
 	).rejects.toThrow();
 	await rm(home, { recursive: true, force: true });
+});
+
+test("dry-run diffs render merged generated artifact changes without writing", async () => {
+	const root = await mkdtemp(join(tmpdir(), "oal-deploy-diff-"));
+	await mkdir(join(root, ".codex"), { recursive: true });
+	await Bun.write(
+		join(root, "AGENTS.md"),
+		[
+			"user instructions",
+			"",
+			"<!-- >>> oal codex >>> -->",
+			"old managed",
+			"<!-- <<< oal codex <<< -->",
+			"",
+		].join("\n"),
+	);
+	await Bun.write(
+		join(root, ".codex/config.toml"),
+		'user_owned = "keep"\nold = "value"\n',
+	);
+	const artifacts = [
+		{
+			provider: "codex" as const,
+			path: ".codex/openagentlayer/new.txt",
+			content: "owned\n",
+			sourceId: "test:new",
+			mode: "file" as const,
+		},
+		{
+			provider: "codex" as const,
+			path: "AGENTS.md",
+			content: "new managed\n",
+			sourceId: "instructions:codex",
+			mode: "block" as const,
+		},
+		{
+			provider: "codex" as const,
+			path: ".codex/config.toml",
+			content: 'managed = "new"\n',
+			sourceId: "config:codex",
+			mode: "config" as const,
+		},
+	];
+	const plan = await planDeploy(root, artifacts);
+	const rendered = renderDeployDiffs(await planDeployDiffs(plan));
+	expect(rendered).toContain("## codex .codex/openagentlayer/new.txt [file]");
+	expect(rendered).toContain("source: test:new");
+	expect(rendered).toContain("--- a/.codex/openagentlayer/new.txt");
+	expect(rendered).toContain("+owned");
+	expect(rendered).toContain("## codex AGENTS.md [block]");
+	expect(rendered).toContain("user instructions");
+	expect(rendered).toContain("+new managed");
+	expect(rendered).toContain("## codex .codex/config.toml [config]");
+	expect(rendered).toContain('user_owned = "keep"');
+	expect(rendered).toContain('+managed = "new"');
+	await expect(
+		readFile(join(root, ".codex/openagentlayer/new.txt"), "utf8"),
+	).rejects.toThrow();
+	await rm(root, { recursive: true, force: true });
 });

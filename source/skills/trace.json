@@ -7,7 +7,7 @@
     "opencode"
   ],
   "description": "Follow data flow, ownership, callers, providers, generated artifacts, hooks, and deploy paths with exact evidence. Use for impact analysis and source-to-output questions.",
-  "body": "Trace from source to behavior. A trace is complete when it names the source record, code path, generated artifact, deploy ownership, and validation gate.",
+  "body": "Trace from source to behavior. A trace is complete when it names the source record, code path, generated artifact, deploy ownership, validation gate, and any provider instruction or skill reload boundary.",
   "supportFiles": [
     {
       "path": "references/trace.md",

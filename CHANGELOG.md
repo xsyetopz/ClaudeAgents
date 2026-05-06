@@ -5,85 +5,28 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.4.0-beta.2] - 2026-05-06
+## [0.5.0-beta.1] - 2026-05-06
 
 ### Added
 
-- Added `continuityDiscipline` to product prompt contracts so provider instructions carry a compact continuation rule for multi-step work.
-- Added SessionStart continuity guidance for short user-visible `Continuation Record` handoffs with objective, done, next, and blockers.
-- Added Mnemosyne, resume-route, handoff, and plan guidance for user-pasteable continuation records backed by current repo evidence.
-- Added Codex `multi_agent_v2` rendering with native `.codex/agents/` custom-agent loading and explicit `multi_agent` disablement so both subagent systems are not enabled together.
-- Added Codex native subagent launch support through `oal codex peer` helpers that start visible Codex profiles with `multi_agent_v2`, wait for evidence, and summarize peer runs.
-- Added interactive setup profile selection at the start of the setup flow so active and saved profiles can be applied directly.
-- Added pre-apply install-state previews to interactive setup through `oal state inspect`, including provider availability, deploy write/update/skip counts, optional feature command counts, and global CLI binary action/path readiness.
-- Added Claude provider-native tool rendering for OAL agents so delegation-capable agents receive Claude `Task` access and generic OAL tool names render as Claude tools.
-- Added Codex provider guidance for native subagent workflows through generated `.codex/agents/` and explicit focused-agent spawning, without implying an OAL shell launcher.
-- Added command-policy guidance that routes `codex exec` delegation attempts back to native Codex subagent workflow unless explicit automation is requested.
-- Added `oal codex agent`, `oal codex route`, and `oal codex peer batch` for OAL-managed Codex delegation when the current session lacks a native subagent launcher.
-- Added SessionStart and primary OAL skill guidance for using provider agents and OAL-managed Codex delegation commands.
-- Added plugin sync cleanup for stale OAL plugin roots, caches, marketplace entries, and Codex activation tables from earlier package names.
-- Added `inject-session-scope` SessionStart hook for Codex, Claude Code, and OpenCode so new sessions receive a concise scope, consent-boundary, workflow, and blocker-path receipt before work starts.
-- Added persisted setup profiles with `oal profiles list`, `show`, `save`, `use`, `remove`, and `args`.
-- Added `oal state inspect` for profile selection, provider availability, deploy write/update/skip counts, owned-manifest removal eligibility, and optional feature command state.
-- Added interactive setup profile saving plus interactive state/profile workflows.
-- Added `oal mcp serve` for OAL-owned MCP servers, starting with Anthropic Docs and OpenCode Docs.
-- Added `oal inspect` and `oal mcp serve oal-inspect` for shared capability, manifest, generated-input, command-policy, RTK, and release-witness reports.
-- Added optional setup and feature commands for Anthropic Docs and OpenCode Docs MCP add/remove flows.
-- Added `install.sh` and `install-online.sh` convenience installers for source checkout and temporary-clone installs.
-- Added toolchain setup coverage for Homebrew, core OAL command-line tools, RTK checks, and fallback-oriented setup output.
-- Added styled hook feedback and provider-native post-tool blocking output for Codex, Claude Code, and OpenCode.
+- Added `oal deploy --dry-run --diff` so dry-run deploys can print generated artifact diffs with provider, mode, path, and source ownership.
+- Added Codex instruction reload guidance backed by current `openai/codex` source inspection, separating session-loaded `AGENTS.md` guidance from reloadable skill workflows.
+- Added `css-modern-features` as an upstream skill source through `third_party/css-modern-features`, source skill metadata, lockfile tracking, and CI submodule guard coverage.
 
 ### Changed
 
-- Changed prompt and handoff guidance so markdown memory is supporting evidence after it is read, while current user messages and verified repo evidence define the active path.
-- Reworked interactive setup workflow labels and ordering around review/apply versus repair so the user sees current state before deciding whether to write changes.
-- Ordered subscription prompts from lowest to highest tier for Codex, Claude, and OpenCode, and clarified the Claude long-context plan as `Max 20x + 1M Opus`.
-- Changed `oal state inspect` so explicit setup flags override the active saved profile and `--optional` is included in state previews.
-- Reframed agentic delegation prompts around affirmative task split, child launch, evidence merge, and final decision gates while keeping prompt guidance balanced instead of oversized.
-- Hardened Codex hooks so secret-guard matches and large/malformed hook payloads report cleanly without broken-pipe post-tool failures.
-- Updated model policy for current Codex and OpenCode routing, including `gpt-5.5` and `gpt-5.4-mini` plan support with forbidden OpenCode model filtering.
-- Added delegation discipline to product prompt contracts, implementation routes, orchestration prompts, and SessionStart receipts so broad implementation work starts by splitting owned subagent tasks when the work spans providers, packages, test tiers, or independent investigation paths.
-- Fixed shared command extraction so destructive-command and unsafe-git hooks ignore patch/edit payload text unless it arrives through an explicit command field or shell-like tool payload.
-- Changed Codex SessionStart scope receipts to emit one plain-text hook context without a duplicate warning or ANSI styling inside model context.
-- Documented bounded `python3` rewrites as the preferred path for broad mechanical edits when many manual patch hunks would be fragile, with final diff inspection required.
-- Fixed RTK command enforcement so edit/patch payload text is treated as patch content unless it arrives through an explicit shell command field or shell tool payload.
-- Strengthened agent and provider prompt contracts so examples, corrections, suggested names, and partial ideas authorize only the requested behavior; compatibility aliases, fallbacks, extra behavior, guardrails, docs, cleanup, and adjacent changes now require explicit user request or controlling source evidence.
-- Changed setup so `--profile` can load saved setup choices while explicit CLI flags override matching profile flags.
-- Changed hook feedback wrapping to keep one separator when provider UIs flatten wrapped lines and to reapply ANSI color to every wrapped line.
-- Reworked interactive setup as a high-level wrapper over the low-level setup command path.
-- Expanded low-level setup/toolchain CLI flags for optional docs MCPs and command-line tool installation.
-- Fixed setup toolchain planning so Bun uses the Bun installer, Homebrew does not try to install a nonexistent `bun` formula, and provider-specific optional MCP commands are skipped when that provider is unavailable.
-- Fixed OpenCode Docs MCP setup to write OpenCode `mcp` config instead of calling an interactive `opencode mcp add` path.
-- Hardened RTK command policy so `rtk proxy` is rejected when a native RTK filter exists or when raw file dumps should use bounded `rtk read`.
-- Switched default Codex shell handling back to the normal shell and kept RTK efficiency enforcement in visible hooks instead of the transparent PATH shim.
-- Rebalanced Codex plan-mode and edit-mode effort defaults so `gpt-5.5` defaults top out at medium edit effort, `gpt-5.3-codex` carries high implementation effort on Pro plans, and no default plan emits `xhigh`.
-- Changed CI checkout to fetch submodules in explicit diagnostic steps after checkout.
-- Consolidated advisory command-tool hooks into `advise-command-tools`, while keeping RTK command enforcement separate.
-- Updated OpenCode runtime/plugin rendering for command policy, Bun rewrites, command safety, secret checks, and repeated-failure handling.
-- Recorded Ruflo/Symphony harness ideas as future product inputs instead of runtime dependencies.
-- Rewrote `docs/` and `specs/` as separate AI-skimmable indexed packs: user operation docs in `docs/`, product and provider contracts in `specs/`.
-- Reworked `specs/` as formal technical specifications with normative package ownership, source/render/deploy contracts, provider surfaces, hook semantics, architecture graphs, and acceptance obligations.
-- Renamed indexed files under `docs/` and `specs/` from all-caps names to lower-case descriptive names.
-- Reframed model-facing prompts, specs, docs, hooks, and CLI output around affirmative contracts, capability gaps, supported paths, and next valid actions.
-- Wrapped colored hook feedback before terminal word-wrap so every visible line keeps its ANSI styling.
-
-### Removed
-
-- Removed duplicate failure-loop hook wiring.
-- Removed one-off `prefer-ripgrep` and `require-jq-yq-edits` hook records in favor of consolidated command-tool advice.
+- Changed source-backed behavior contracts and OAL skill guidance to require provider docs, provider source code, or validated runtime evidence before model window, instruction reload, or skill reload claims.
+- Changed release metadata from `0.4.0-beta.2` to `0.5.0-beta.1` across package, plugin, marketplace, Homebrew, and source product records.
 
 ### Verified
 
-- `rtk proxy -- bun test packages/runtime/__tests__/runtime.test.ts`
-- `rtk proxy -- bun test packages/adapter/__tests__/adapter.test.ts`
-- `rtk proxy -- bun test packages/runtime/__tests__/runtime.test.ts tests/e2e.test.ts packages/cli/__tests__/cli.test.ts`
-- `rtk proxy -- bunx biome check packages/runtime/hooks packages/runtime/__tests__/runtime.test.ts packages/cli/src tests/e2e.test.ts README.md INSTALLATION.md package.json --max-diagnostics 300`
-- `rtk bunx tsc --noEmit`
-- `rtk proxy -- bun test packages/runtime/__tests__/runtime.test.ts packages/accept/__tests__/accept.test.ts`
-- `rtk proxy -- bun packages/cli/src/main.ts accept`
-- `rtk proxy -- bunx biome check . --error-on-warnings --max-diagnostics 16384`
-- `rtk proxy -- bun test packages/*/__tests__/*.test.ts tests/*.test.ts`
-- `rtk bunx tsc --noEmit`
+- `rtk proxy -- bun test packages/deploy/__tests__/deploy.test.ts packages/adapter/__tests__/adapter.test.ts`
+- `rtk proxy -- bunx tsc --noEmit`
+- `rtk proxy -- bun run biome:check`
+- `rtk proxy -- bun run test`
+- `rtk proxy -- bun run accept`
+- `rtk git -C . diff --check`
+- `rtk git -C . submodule status --recursive`
 
 ## [0.1.3-beta.4] - 2026-05-03
 

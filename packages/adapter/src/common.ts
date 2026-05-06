@@ -100,6 +100,8 @@ function renderAgentPromptContracts(source: OalSource): string {
 		"- Removal transform: removed concepts become absence; current runtime behavior and explicitly requested history artifacts may carry needed text.",
 		"- Diff gate: inspect final diff and repair added residue before final response.",
 		"- Source evidence: inspect controlling source before claims; behavior changes need Source Evidence Map, Changed Behavior, and Validation Evidence.",
+		"- Provider reload evidence: instruction reload semantics, skills reload semantics, and model/window semantics need current provider docs, provider source code, or validated runtime evidence before claims.",
+		"- Stable vs evolving guidance: Keep stable invariants in provider instruction files; keep fast-changing workflows in skills, hooks, commands, or provider-native agents when the provider reload path supports them.",
 		"- Correction discipline: verify before accepting a correction; separate checked facts from inference, and return STATUS BLOCKED with Attempted, Evidence, and Need when source truth is missing or contradictory.",
 		"- Delegation check: broad implementation work uses subagents or the orchestrate route when ownership, providers, packages, test tiers, or investigation paths can split; narrow single-owner edits begin with a recorded solo ownership reason.",
 		"- Continuity check: for multi-step work, keep a short user-visible Continuation Record with objective, done, next, and blockers; prefer current user messages and verified repo evidence over hidden memory files.",

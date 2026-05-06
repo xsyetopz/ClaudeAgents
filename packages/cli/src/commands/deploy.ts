@@ -7,7 +7,9 @@ import {
 	pathContains,
 	planBinInstall,
 	planDeploy,
+	planDeployDiffs,
 	refineBinPlan,
+	renderDeployDiffs,
 } from "@openagentlayer/deploy";
 import { flag, option, providerOptions } from "../arguments";
 import { renderOptions } from "../model-options";
@@ -45,6 +47,7 @@ export async function runDeployCommand(
 		},
 	);
 	const dryRun = flag(args, "--dry-run");
+	const diff = flag(args, "--diff");
 	const quiet = flag(args, "--quiet");
 	const verbose = flag(args, "--verbose");
 	const binDir = resolve(
@@ -79,6 +82,10 @@ export async function runDeployCommand(
 		},
 		{ dryRun, quiet, verbose },
 	);
+	if (dryRun && diff && !quiet) {
+		const renderedDiff = renderDeployDiffs(await planDeployDiffs(plan));
+		if (renderedDiff.length > 0) console.log(renderedDiff.trimEnd());
+	}
 	if (!dryRun) {
 		await applyDeploy(plan);
 		if (binPlan)

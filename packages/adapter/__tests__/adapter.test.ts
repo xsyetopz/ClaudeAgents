@@ -110,6 +110,14 @@ test("provider skill artifacts render authored OAL skill prompts", async () => {
 			}
 		}
 	}
+	for (const provider of ["codex", "claude", "opencode"] as const) {
+		const rendered = await renderProvider(provider, graph.source, repoRoot);
+		const artifact = rendered.artifacts.find((candidate) =>
+			candidate.path.endsWith("/css-modern-features/SKILL.md"),
+		);
+		expect(artifact?.content).toContain("Modern CSS Skill");
+		expect(artifact?.content).toContain("container queries");
+	}
 });
 
 test("provider instructions render inspection and correction discipline contracts", async () => {
@@ -142,7 +150,13 @@ test("provider instructions render inspection and correction discipline contract
 		expect(instructions).toContain(
 			"current user messages and verified repo evidence",
 		);
+		expect(instructions).toContain("instruction reload semantics");
+		expect(instructions).toContain("skills reload semantics");
+		expect(instructions).toContain("Keep stable invariants");
 		if (provider === "codex") {
+			expect(instructions).toContain("Instruction reload surface:");
+			expect(instructions).toContain("session-loaded project guidance");
+			expect(instructions).toContain("reads invoked skill bodies from disk");
 			expect(instructions).toContain("spawn subagents: have hermes");
 			expect(instructions).toContain(
 				"The parent thread owns task split, child launch, evidence merge, and final decision",
@@ -184,6 +198,9 @@ test("provider agents render inspection and correction discipline contracts", as
 		);
 		expect(agent).toContain("Continuity check:");
 		expect(agent).toContain("short user-visible Continuation Record");
+		expect(agent).toContain("instruction reload semantics");
+		expect(agent).toContain("skills reload semantics");
+		expect(agent).toContain("Keep stable invariants");
 		if (provider === "codex") {
 			expect(agent).toContain('name = "hephaestus"');
 			expect(agent).toContain("description = ");

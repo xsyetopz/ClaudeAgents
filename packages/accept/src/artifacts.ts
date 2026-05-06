@@ -150,6 +150,13 @@ function assertRouteArtifacts(artifacts: Artifact[]): void {
 		);
 	}
 	const codexInstructions = findArtifact("AGENTS.md", artifacts);
+	for (const term of [
+		"Instruction reload surface:",
+		"session-loaded project guidance",
+		"reads invoked skill bodies from disk",
+	])
+		if (!codexInstructions.content.includes(term))
+			throw new Error(`Codex AGENTS.md missing reload contract \`${term}\``);
 	for (const route of REQUIRED_ROUTES)
 		if (!codexInstructions.content.includes(`- ${route}:`))
 			throw new Error(`Codex AGENTS.md missing route \`${route}\``);
