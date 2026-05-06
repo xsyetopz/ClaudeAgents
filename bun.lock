@@ -137,6 +137,10 @@
       "name": "@openagentlayer/source",
       "version": "0.0.0",
     },
+    "packages/symphony": {
+      "name": "@openagentlayer/symphony",
+      "version": "0.0.0",
+    },
     "packages/toolchain": {
       "name": "@openagentlayer/toolchain",
       "version": "0.0.0",
@@ -200,6 +204,8 @@
     "@openagentlayer/setup": ["@openagentlayer/setup@workspace:packages/setup"],
 
     "@openagentlayer/source": ["@openagentlayer/source@workspace:packages/source"],
+
+    "@openagentlayer/symphony": ["@openagentlayer/symphony@workspace:packages/symphony"],
 
     "@openagentlayer/toolchain": ["@openagentlayer/toolchain@workspace:packages/toolchain"],
 
