@@ -386,10 +386,18 @@ test("RTK hook allows Codex exec help probes", async () => {
 });
 
 test("Codex PreToolUse block feedback avoids note prefixes", async () => {
-	const result = await runHookRaw("enforce-rtk-commands.mjs", {
-		hook_event_name: "PreToolUse",
-		command: "cat package.json",
-	});
+	const result = await runHookRaw(
+		"enforce-rtk-commands.mjs",
+		{
+			hook_event_name: "PreToolUse",
+			provider: "codex",
+			command: "cat package.json",
+		},
+		{
+			OAL_HOOK_RAW_OUTCOME: "0",
+		},
+	);
+	expect(result.code).toBe(0);
 	const parsed = JSON.parse(result.stdout);
 	const reason = parsed.hookSpecificOutput.permissionDecisionReason as string;
 	expect(reason).toContain("RTK command form is available");
