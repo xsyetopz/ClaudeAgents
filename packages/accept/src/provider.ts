@@ -19,8 +19,9 @@ const CODEX_REQUIRED_FLAGS = [
 	"responses_websockets = true",
 	"responses_websockets_v2 = true",
 	"unified_exec = false",
+	"enable_fanout = false",
 	"multi_agent = false",
-	"multi_agent_v2 = true",
+	"multi_agent_v2 = false",
 	"shell_snapshot = false",
 	"collaboration_modes = false",
 	"codex_git_commit = false",
@@ -70,6 +71,10 @@ async function assertCodexConfig(targetRoot: string): Promise<void> {
 		throw new Error("Codex config missing auto approval reviewer");
 	if (!config.includes("interrupt_message = true"))
 		throw new Error("Codex config has invalid agents.interrupt_message");
+	if (!config.includes("max_threads = 6"))
+		throw new Error("Codex config missing agents.max_threads");
+	if (!config.includes("job_max_runtime_seconds = 1800"))
+		throw new Error("Codex config missing bounded agents job runtime");
 	if (config.includes('interrupt_message = "'))
 		throw new Error("Codex config emitted string agents.interrupt_message");
 	for (const forbidden of [

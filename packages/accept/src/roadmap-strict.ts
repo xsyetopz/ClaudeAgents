@@ -25,8 +25,9 @@ const REQUIRED_CODEX_FLAGS = [
 	"responses_websockets = true",
 	"responses_websockets_v2 = true",
 	"unified_exec = false",
+	"enable_fanout = false",
 	"multi_agent = false",
-	"multi_agent_v2 = true",
+	"multi_agent_v2 = false",
 	"shell_snapshot = false",
 	"collaboration_modes = false",
 	"codex_git_commit = false",
@@ -74,6 +75,9 @@ export const STRICT_ROADMAP_CHECKS: StrictRoadmapCheck[] = [
 				'approvals_reviewer = "auto_review"',
 				"Codex config",
 			);
+			requireIncludes(config, "max_depth = 1", "Codex config");
+			requireIncludes(config, "max_threads = 6", "Codex config");
+			requireIncludes(config, "job_max_runtime_seconds = 1800", "Codex config");
 			for (const forbidden of [
 				`${["gpt", "5", "3", "codex"].join("-")}-spark`,
 				'approval_policy = "on-failure"',

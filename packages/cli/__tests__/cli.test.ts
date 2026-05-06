@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { providerOption, providerOptions, scopeOption } from "../src/arguments";
 import {
 	buildPeerSteps,
+	codexExecRun,
 	codexLaunchRun,
 	makeRunId,
 	peerRunPaths,
@@ -137,6 +138,32 @@ test("Codex peer runner builds v3-style role steps", () => {
 	expect(steps[2]?.args.join("\n")).toContain(
 		"Implement the smallest cohesive fix",
 	);
+	for (const step of steps) {
+		expect(step.args.join("\n")).toContain(
+			"Do not launch `oal codex peer`, `oal codex route orchestrate`, native Codex subagents, or another orchestrator",
+		);
+	}
+});
+
+test("Codex exec runner disables native multi-agent surfaces", () => {
+	const run = codexExecRun(
+		{
+			id: "hermes",
+			tools: ["read"],
+			models: { codex: "gpt-5.4-mini" },
+		} as Parameters<typeof codexExecRun>[0],
+		"/repo",
+		"map files",
+	);
+	expect(run.args.slice(0, 7)).toEqual([
+		"exec",
+		"--disable",
+		"multi_agent_v2",
+		"--disable",
+		"enable_fanout",
+		"--disable",
+		"multi_agent",
+	]);
 });
 
 test("Codex launch runner starts interactive native subagent profile", () => {
@@ -145,9 +172,9 @@ test("Codex launch runner starts interactive native subagent profile", () => {
 	expect(run.args).toEqual([
 		"--profile",
 		"openagentlayer",
-		"--enable",
+		"--disable",
 		"multi_agent_v2",
-		"--enable",
+		"--disable",
 		"enable_fanout",
 		"--disable",
 		"multi_agent",

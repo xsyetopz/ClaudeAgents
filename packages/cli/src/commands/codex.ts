@@ -11,6 +11,14 @@ const PEER_ROLES = [
 	["worker", "implement"],
 	["review", "review"],
 ] as const;
+const CODEX_NATIVE_AGENT_DISABLE_ARGS = [
+	"--disable",
+	"multi_agent_v2",
+	"--disable",
+	"enable_fanout",
+	"--disable",
+	"multi_agent",
+] as const;
 const ISO_MILLISECONDS_PATTERN = /\..+$/;
 
 type PeerRole = (typeof PEER_ROLES)[number][0];
@@ -130,6 +138,10 @@ export function renderPeerBrief(
 		"- validate -- reproduce broadly, gather evidence, and enumerate variants",
 		"- worker -- implement against the orchestrator and validation handoff",
 		"- review -- audit the resulting diff, validation, and residual risk",
+		"",
+		"## Spawn Boundary",
+		"",
+		"Only the top-level peer runner creates peers. Peer roles must not launch `oal codex peer`, `oal codex route orchestrate`, native Codex subagents, or another orchestrator.",
 		"",
 	].join("\n");
 }
@@ -291,7 +303,7 @@ async function runCodexPeer(repoRoot: string, args: string[]): Promise<void> {
 	console.log(paths.summary);
 }
 
-function codexExecRun(
+export function codexExecRun(
 	agent: AgentRecord,
 	cwd: string,
 	prompt: string,
@@ -303,12 +315,7 @@ function codexExecRun(
 		command: "codex",
 		args: [
 			"exec",
-			"--enable",
-			"multi_agent_v2",
-			"--enable",
-			"enable_fanout",
-			"--disable",
-			"multi_agent",
+			...CODEX_NATIVE_AGENT_DISABLE_ARGS,
 			"-c",
 			`projects.${JSON.stringify(cwd)}.trust_level="trusted"`,
 			"-m",
@@ -331,12 +338,7 @@ export function codexLaunchRun(cwd: string, prompt = ""): CodexRun {
 		args: [
 			"--profile",
 			"openagentlayer",
-			"--enable",
-			"multi_agent_v2",
-			"--enable",
-			"enable_fanout",
-			"--disable",
-			"multi_agent",
+			...CODEX_NATIVE_AGENT_DISABLE_ARGS,
 			"-C",
 			cwd,
 			...(prompt ? [prompt] : []),
@@ -407,6 +409,7 @@ function rolePrompt(role: PeerRole, paths: PeerPaths): string {
 		`Read ${paths.brief} first`,
 		`Use ${paths.handoffsDir} and ${paths.resultsDir} as the durable handoff trail`,
 		"Do not assume hidden context from other runs",
+		"Do not launch `oal codex peer`, `oal codex route orchestrate`, native Codex subagents, or another orchestrator",
 	].join("\n");
 	switch (role) {
 		case "orchestrator":

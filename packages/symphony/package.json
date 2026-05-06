@@ -1,0 +1,8 @@
+{
+	"name": "@openagentlayer/symphony",
+	"version": "0.0.0",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	}
+}

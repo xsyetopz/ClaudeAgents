@@ -157,7 +157,9 @@ test("provider instructions render inspection and correction discipline contract
 			expect(instructions).toContain("Instruction reload surface:");
 			expect(instructions).toContain("session-loaded project guidance");
 			expect(instructions).toContain("reads invoked skill bodies from disk");
-			expect(instructions).toContain("spawn subagents: have hermes");
+			expect(instructions).toContain(
+				"OAL no longer enables Codex `multi_agent_v2`",
+			);
 			expect(instructions).toContain(
 				"The parent thread owns task split, child launch, evidence merge, and final decision",
 			);
@@ -276,10 +278,11 @@ test("Codex default render uses normal shell and hook-based RTK enforcement", as
 	expect(config).not.toContain("model_instructions_file");
 	expect(config).toContain("[features]\nsteer = true");
 	expect(config).toContain("shell_zsh_fork = false");
-	expect(config).toContain("enable_fanout = true");
+	expect(config).toContain("enable_fanout = false");
 	expect(config).toContain("multi_agent = false");
-	expect(config).toContain("multi_agent_v2 = true");
-	expect(config).not.toContain("max_threads");
+	expect(config).toContain("multi_agent_v2 = false");
+	expect(config).toContain("max_threads = 6");
+	expect(config).toContain("job_max_runtime_seconds = 1800");
 	expect(
 		rendered.artifacts.some((artifact) => artifact.path.includes("/shim/")),
 	).toBe(false);
@@ -294,8 +297,37 @@ test("Codex default render uses normal shell and hook-based RTK enforcement", as
 		(artifact) => artifact.path === "AGENTS.md",
 	)?.content;
 	expect(instructions).toContain("Subagent surface:");
-	expect(instructions).toContain("spawn subagents: have hermes");
-	expect(instructions).toContain("This is provider-native Codex delegation");
+	expect(instructions).toContain(
+		"OAL no longer enables Codex `multi_agent_v2`, `multi_agent`, or fanout",
+	);
+	expect(instructions).toContain(
+		"`multi_agent_v2` rejects OAL's `agents.max_threads` throttle",
+	);
+	expect(instructions).toContain(
+		"stable `multi_agent` is reserved for explicit operator opt-in",
+	);
+	expect(instructions).toContain("Use Symphony or peer-thread orchestration");
+});
+
+test("Codex agent concurrency scales by subscription plan", async () => {
+	const graph = await loadSource(resolve(repoRoot, "source"));
+	for (const [plan, maxThreads, jobRuntime] of [
+		["plus", 2, 600],
+		["pro-5", 4, 900],
+		["pro-20", 6, 1800],
+	] as const) {
+		const rendered = await renderProvider("codex", graph.source, repoRoot, {
+			plan,
+		});
+		const config = rendered.artifacts.find(
+			(artifact) => artifact.path === ".codex/config.toml",
+		)?.content;
+		expect(config).toContain(`max_threads = ${maxThreads}`);
+		expect(config).toContain(`job_max_runtime_seconds = ${jobRuntime}`);
+		expect(config).toContain("multi_agent = false");
+		expect(config).toContain("multi_agent_v2 = false");
+		expect(config).toContain("enable_fanout = false");
+	}
 });
 
 test("Codex renders hooks only in hooks.json with provider event env", async () => {

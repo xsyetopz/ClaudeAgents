@@ -5,18 +5,20 @@ All notable changes to OpenAgentLayer (OAL) are documented here.
 This changelog starts at OAL v1. Earlier repository history is reference
 material only and is not part of the OAL release line.
 
-## [0.5.0-beta.1] - 2026-05-06
+## [0.5.1-beta.1] - 2026-05-06
 
 ### Added
 
+- Added the `@openagentlayer/symphony` core package with `WORKFLOW.md` loading, typed config defaults and validation, issue eligibility and concurrency helpers, workspace hook handling, retry/backoff state, and Codex app-server launch contracts based on the draft Symphony service specification.
 - Added `oal deploy --dry-run --diff` so dry-run deploys can print generated artifact diffs with provider, mode, path, and source ownership.
 - Added Codex instruction reload guidance backed by current `openai/codex` source inspection, separating session-loaded `AGENTS.md` guidance from reloadable skill workflows.
 - Added `css-modern-features` as an upstream skill source through `third_party/css-modern-features`, source skill metadata, lockfile tracking, and CI submodule guard coverage.
 
 ### Changed
 
+- Changed managed Codex config and OAL Codex launch/peer commands to disable `multi_agent_v2`, `multi_agent`, and `enable_fanout`, render plan-aware `agents.max_threads` and `agents.job_max_runtime_seconds` values, and route OAL guidance toward Symphony or peer-thread orchestration because native `multi_agent_v2` rejects OAL's thread throttle.
 - Changed source-backed behavior contracts and OAL skill guidance to require provider docs, provider source code, or validated runtime evidence before model window, instruction reload, or skill reload claims.
-- Changed release metadata from `0.4.0-beta.2` to `0.5.0-beta.1` across package, plugin, marketplace, Homebrew, and source product records.
+- Changed release metadata from `0.5.0-beta.1` to `0.5.1-beta.1` across package, plugin, marketplace, Homebrew, and source product records.
 
 ### Verified
 

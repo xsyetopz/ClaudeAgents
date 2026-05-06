@@ -12,6 +12,8 @@ import { renderPrivilegedExecArtifacts } from "./runtime";
 import { renderSkillArtifacts } from "./skills";
 
 const PROVIDER: Provider = "codex";
+// Managed OAL runs use peer orchestration. If an operator explicitly re-enables
+// stable Codex multi_agent, keep its native spawn surface shallow and bounded.
 const CODEX_FEATURES = [
 	{ key: "steer", enabled: true },
 	{ key: "apps", enabled: false },
@@ -26,9 +28,9 @@ const CODEX_FEATURES = [
 	{ key: "responses_websockets", enabled: true },
 	{ key: "responses_websockets_v2", enabled: true },
 	{ key: "unified_exec", enabled: false },
-	{ key: "enable_fanout", enabled: true },
+	{ key: "enable_fanout", enabled: false },
 	{ key: "multi_agent", enabled: false },
-	{ key: "multi_agent_v2", enabled: true },
+	{ key: "multi_agent_v2", enabled: false },
 	{ key: "shell_snapshot", enabled: false },
 	{ key: "collaboration_modes", enabled: false },
 	{ key: "codex_git_commit", enabled: false },
@@ -118,6 +120,7 @@ export async function renderCodex(
 
 function renderCodexConfig(source: OalSource, options: RenderOptions): string {
 	const profile = resolveCodexProfilePlan(options);
+	const agents = resolveCodexAgentPlan(options);
 	return `profile = "openagentlayer"
 approvals_reviewer = "auto_review"
 
@@ -154,7 +157,8 @@ ${renderCodexProfile({
 })}
 [agents]
 max_depth = 1
-job_max_runtime_seconds = 1800
+max_threads = ${agents.maxThreads}
+job_max_runtime_seconds = ${agents.jobMaxRuntimeSeconds}
 interrupt_message = true
 ${source.agents
 	.map(
@@ -240,6 +244,23 @@ function resolveCodexProfilePlan(options: RenderOptions): {
 			};
 		default:
 			return {};
+	}
+}
+
+function resolveCodexAgentPlan(options: RenderOptions): {
+	maxThreads: number;
+	jobMaxRuntimeSeconds: number;
+} {
+	const plan = options.codexPlan ?? options.plan;
+	switch (plan) {
+		case "plus":
+			return { maxThreads: 2, jobMaxRuntimeSeconds: 600 };
+		case "pro-5":
+			return { maxThreads: 4, jobMaxRuntimeSeconds: 900 };
+		case "pro-20":
+			return { maxThreads: 6, jobMaxRuntimeSeconds: 1800 };
+		default:
+			return { maxThreads: 6, jobMaxRuntimeSeconds: 1800 };
 	}
 }
 
