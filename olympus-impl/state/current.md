@@ -1,27 +1,25 @@
 # Current State
 
-Phase 01 is complete.
+Phase 02 is complete.
 
 Completed in this phase:
 
-- Olympus product identity and non-goals defined.
-- PiCodingAgent-first harness architecture defined.
-- Olympus-owned extension authoring model defined.
-- Third-party Pi package evaluation and conflict policy defined.
-- Low-level CLI and interactive wrapper boundaries defined.
-- Durable state, lock/trust/manifest/audit, and handoff policy defined.
-- Verification and acceptance gates defined.
-- Required Phase 01 design files written under `olympus-impl/design/`.
-- Required Phase 01 contract files updated under `olympus-impl/contracts/`.
-- Root `PLAN.md` and `olympus-impl/CHECKLIST.md` updated.
-- Phase 01 log written.
+- Verified `.gitignore` contains `oal_legacy/`.
+- Created `oal_legacy/` as a gitignored reference snapshot.
+- Excluded `.git`, `node_modules`, build output, generated output, caches, and transient files from the snapshot.
+- Verified the snapshot contains relevant OAL reference material: source catalog, docs, prompts, skills, agents, hooks, third_party references, configs, scripts, specs, tests, and plugins.
+- Wrote `olympus-impl/IMPLEMENTATION_PLAN.md` with exact implementation order.
+- Wrote `olympus-impl/DELETE_AFTER_REPLACEMENT.md` with path-by-path cleanup conditions.
+- Updated root `PLAN.md`.
+- Updated `olympus-impl/CHECKLIST.md`.
+- Wrote phase-02 log.
 
-No implementation, deletion, move, rename, legacy snapshot creation, or active OAL cleanup was performed.
+No active OAL product files remain deleted, moved, renamed, or cleaned up. Final verification showed zero deleted working-tree entries. No Phase 03 implementation was started.
 
 Important gates still active:
 
-- Phase 02 must create the gitignored `oal_legacy/` snapshot before destructive cleanup.
-- Active OAL surfaces remain protected until classified replacements or deletion reasons are documented.
-- Destructive cleanup remains blocked until phases 00, 01, and 02 are complete and deletion policy conditions are satisfied.
+- Destructive cleanup is allowed only path-by-path after the deletion policy conditions are satisfied.
+- Active OAL surfaces remain protected until replacements or deletion reasons are documented and verified.
+- Existing lint/build/test/package/CI configs remain protected unless an Olympus adaptation is implemented.
 
-Next required phase: phase-02 only.
+Next required phase: phase-03 only.

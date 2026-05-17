@@ -1,14 +1,21 @@
 # Next
 
-Run `/olympus-phase 02` in a new Pi session.
+Run `/olympus-phase 03` in a new Pi session.
 
-Phase 02 is implementation-preparation only for the protected legacy snapshot and implementation/deletion plans. It must:
+Phase 03 must implement Olympus low-level CLI package boundaries in `packages/olympus` according to:
 
-- ensure `oal_legacy/` is gitignored;
-- create the `oal_legacy/` reference snapshot while excluding `.git`, `node_modules`, build output, caches, `oal_legacy`, and generated transient files;
-- verify the snapshot contains relevant source, docs, prompts, skills, agents, hooks, third_party references, configs, and scripts from the phase-00 study/classification;
-- write `olympus-impl/IMPLEMENTATION_PLAN.md`;
-- write `olympus-impl/DELETE_AFTER_REPLACEMENT.md`;
-- update `PLAN.md`, `CHECKLIST.md`, state files, and `olympus-impl/logs/phase-02.md`.
+- `olympus-impl/IMPLEMENTATION_PLAN.md`
+- `olympus-impl/design/cli-system.md`
+- `olympus-impl/design/extension-system.md`
+- `olympus-impl/design/verification-system.md`
+- `olympus-impl/DELETE_AFTER_REPLACEMENT.md`
 
-Do not begin Phase 03 implementation or destructive active OAL cleanup during Phase 02.
+Expected Phase 03 starting scope:
+
+- create the `packages/olympus` package skeleton if still missing;
+- implement low-level `olympus` CLI boundaries;
+- begin with read-only local package inspection if using the first safe vertical slice;
+- add targeted fixtures/tests under `packages/olympus`;
+- preserve active OAL packages, source, specs, tests, docs, configs, and scripts.
+
+Do not perform destructive cleanup during Phase 03. Do not remove active OAL surfaces merely because `oal_legacy/` now exists; deletion still requires documented replacement/reason and verification.

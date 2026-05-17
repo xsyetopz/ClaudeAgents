@@ -6,7 +6,7 @@
 - [x] `olympus-impl/` is the authoritative temporary controller.
 - [x] Phase 00 study is complete before design.
 - [x] Phase 01 design is complete before implementation.
-- [ ] `oal_legacy/` exists before destructive cleanup.
+- [x] `oal_legacy/` exists before destructive cleanup.
 - [x] `oal_legacy/` is listed in `.gitignore`.
 - [x] Existing lint/build/test/package configs are classified before any deletion.
 - [x] third_party material is classified before any deletion.
@@ -51,12 +51,12 @@
 
 ## Phase 02 — Legacy Snapshot and Implementation Plan
 
-- [ ] Create gitignored `oal_legacy/` snapshot.
-- [ ] Verify `oal_legacy/` excludes `.git`, `node_modules`, build output, and generated caches.
-- [ ] Verify original architecture study remains available.
-- [ ] Create implementation package plan.
-- [ ] Create deletion-after-replacement plan.
-- [ ] Create `olympus-impl/IMPLEMENTATION_PLAN.md`.
+- [x] Create gitignored `oal_legacy/` snapshot.
+- [x] Verify `oal_legacy/` excludes `.git`, `node_modules`, build output, and generated caches.
+- [x] Verify original architecture study remains available.
+- [x] Create implementation package plan.
+- [x] Create deletion-after-replacement plan.
+- [x] Create `olympus-impl/IMPLEMENTATION_PLAN.md`.
 
 ## Phase 03+ — Implementation Gates
 
