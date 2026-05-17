@@ -13,7 +13,9 @@ No destructive implementation or active OAL cleanup is allowed before phases 00,
 
 ## Current status
 
-Phase 00 is complete. The study outputs are:
+Phase 00 and Phase 01 are complete.
+
+Phase 00 study outputs:
 
 - `olympus-impl/studies/oal-architecture.md`
 - `olympus-impl/studies/oal-pipeline.md`
@@ -23,36 +25,44 @@ Phase 00 is complete. The study outputs are:
 - `olympus-impl/classification/configs.md`
 - `olympus-impl/classification/third-party.md`
 
-## Phase-00 conclusions
+Phase 01 design outputs:
 
-OAL is a compiler-style agent-environment product:
+- `olympus-impl/design/olympus-harness.md`
+- `olympus-impl/design/extension-system.md`
+- `olympus-impl/design/cli-system.md`
+- `olympus-impl/design/verification-system.md`
+- `olympus-impl/contracts/product.md`
+- `olympus-impl/contracts/cli.md`
+- `olympus-impl/contracts/extension.md`
+- `olympus-impl/contracts/package-evaluation.md`
 
-```text
-source records -> source graph -> policy validation -> provider renderers -> artifacts -> deploy plan -> manifest ownership -> inspect/acceptance -> uninstall
-```
+## Olympus product decision
 
-The strongest ideas to re-author for Olympus are:
+Olympus is PiCodingAgent-first. It is not OAL vNext, an OAL compatibility bridge, or a three-provider renderer.
 
-- source intent separated from generated output
-- deterministic rendering/evaluation
-- provider/native-surface awareness, narrowed to Pi first
-- plan/apply setup behavior
-- manifest-backed ownership and uninstall
-- executable verification fixtures
-- acceptance as an end-to-end product simulation
-- durable state/handoff files
-- explicit third-party/package evaluation before installation
+The strongest OAL ideas are retained only as re-authored Olympus patterns:
 
-The main risks to avoid are:
+- source intent separated from generated output;
+- deterministic inspection/evaluation;
+- Pi-native package/resource awareness;
+- plan/apply setup behavior;
+- manifest-backed ownership and uninstall;
+- executable verification fixtures;
+- acceptance as an end-to-end product simulation;
+- durable state/handoff files;
+- explicit third-party package evaluation before installation or execution.
 
-- copying OAL's three-provider architecture before defining a Pi-first product contract
-- keeping OAL compatibility/migration framing in active product docs
-- deleting OAL material before `oal_legacy/` exists and replacements are documented
-- treating generated artifacts as source truth
-- installing third-party Pi packages without conflict evaluation
+The main risks to avoid remain:
+
+- copying OAL provider architecture into Olympus;
+- keeping OAL compatibility/migration framing in active Olympus docs;
+- deleting OAL material before `oal_legacy/` exists and replacements are documented;
+- treating generated artifacts as source truth;
+- installing third-party Pi packages without conflict evaluation;
+- executing third-party Pi code without trust, lock, capability, and OS sandbox gates.
 
 ## Next phase only
 
-Run phase 01 next. Phase 01 is design only and must define the PiCodingAgent-first Olympus harness extension before implementation begins.
+Run phase 02 next in a new Pi session.
 
-Phase 01 should use the phase-00 study as input and produce the required design files under `olympus-impl/design/` without implementing product code.
+Phase 02 is the first implementation-preparation phase. It must create the gitignored `oal_legacy/` reference snapshot and write the implementation/deletion-after-replacement plans. Do not begin Phase 03 work in the same session.

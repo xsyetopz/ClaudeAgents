@@ -1,7 +1,14 @@
 # Next
 
-Run `/olympus-phase 01` in a new Pi session.
+Run `/olympus-phase 02` in a new Pi session.
 
-Phase 01 is design only. It must use the phase-00 study outputs to design the PiCodingAgent-first Olympus harness extension and write the required design files under `olympus-impl/design/`.
+Phase 02 is implementation-preparation only for the protected legacy snapshot and implementation/deletion plans. It must:
 
-Do not implement Olympus code, create `oal_legacy/`, or perform destructive cleanup during phase 01.
+- ensure `oal_legacy/` is gitignored;
+- create the `oal_legacy/` reference snapshot while excluding `.git`, `node_modules`, build output, caches, `oal_legacy`, and generated transient files;
+- verify the snapshot contains relevant source, docs, prompts, skills, agents, hooks, third_party references, configs, and scripts from the phase-00 study/classification;
+- write `olympus-impl/IMPLEMENTATION_PLAN.md`;
+- write `olympus-impl/DELETE_AFTER_REPLACEMENT.md`;
+- update `PLAN.md`, `CHECKLIST.md`, state files, and `olympus-impl/logs/phase-02.md`.
+
+Do not begin Phase 03 implementation or destructive active OAL cleanup during Phase 02.

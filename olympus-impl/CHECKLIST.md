@@ -5,13 +5,13 @@
 - [x] PLAN.md exists and is continuously updated.
 - [x] `olympus-impl/` is the authoritative temporary controller.
 - [x] Phase 00 study is complete before design.
-- [ ] Phase 01 design is complete before implementation.
+- [x] Phase 01 design is complete before implementation.
 - [ ] `oal_legacy/` exists before destructive cleanup.
 - [x] `oal_legacy/` is listed in `.gitignore`.
 - [x] Existing lint/build/test/package configs are classified before any deletion.
 - [x] third_party material is classified before any deletion.
 - [ ] No OAL compatibility/migration framing survives in active product docs.
-- [ ] Olympus is PiCodingAgent-first.
+- [x] Olympus is PiCodingAgent-first.
 
 ## Phase 00 — Formal OAL Study
 
@@ -36,18 +36,18 @@
 
 ## Phase 01 — Olympus Harness Design
 
-- [ ] Define Olympus product contract.
-- [ ] Define PiCodingAgent-first harness extension architecture.
-- [ ] Define Olympus-owned extension authoring model.
-- [ ] Define package evaluation and package conflict policy.
-- [ ] Define CLI boundaries.
-- [ ] Define interactive wrapper boundaries.
-- [ ] Define durable state/handoff policy.
-- [ ] Define verification gates.
-- [ ] Write `olympus-impl/design/olympus-harness.md`.
-- [ ] Write `olympus-impl/design/extension-system.md`.
-- [ ] Write `olympus-impl/design/cli-system.md`.
-- [ ] Write `olympus-impl/design/verification-system.md`.
+- [x] Define Olympus product contract.
+- [x] Define PiCodingAgent-first harness extension architecture.
+- [x] Define Olympus-owned extension authoring model.
+- [x] Define package evaluation and package conflict policy.
+- [x] Define CLI boundaries.
+- [x] Define interactive wrapper boundaries.
+- [x] Define durable state/handoff policy.
+- [x] Define verification gates.
+- [x] Write `olympus-impl/design/olympus-harness.md`.
+- [x] Write `olympus-impl/design/extension-system.md`.
+- [x] Write `olympus-impl/design/cli-system.md`.
+- [x] Write `olympus-impl/design/verification-system.md`.
 
 ## Phase 02 — Legacy Snapshot and Implementation Plan
 
