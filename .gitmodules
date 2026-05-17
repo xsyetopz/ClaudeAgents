@@ -14,7 +14,3 @@
 	path = third_party/impeccable
 	url = https://github.com/pbakaus/impeccable.git
 	branch = main
-[submodule "third_party/openai-codex"]
-	path = third_party/openai-codex
-	url = https://github.com/openai/codex.git
-	branch = main
