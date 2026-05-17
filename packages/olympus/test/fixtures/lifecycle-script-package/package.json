@@ -1,0 +1,8 @@
+{
+	"name": "lifecycle-script-package",
+	"version": "1.0.0",
+	"scripts": {
+		"postinstall": "node should-not-run.js",
+		"test": "node also-not-run.js"
+	}
+}

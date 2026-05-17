@@ -1,0 +1,7 @@
+{
+	"name": "mixed-package",
+	"version": "1.0.0",
+	"pi": {
+		"extensions": ["extensions/policy.ts"]
+	}
+}

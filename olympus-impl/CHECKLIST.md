@@ -58,14 +58,29 @@
 - [x] Create deletion-after-replacement plan.
 - [x] Create `olympus-impl/IMPLEMENTATION_PLAN.md`.
 
+## Phase 03 — Low-level CLI Package Boundaries
+
+- [x] Establish `packages/olympus` package/module boundaries.
+- [x] Implement low-level `olympus` CLI entrypoint.
+- [x] Implement `olympus inspect <local-package-path>` as read-only local package inspection.
+- [x] Discover declared and conventional Pi resources.
+- [x] Classify passive and executable resources conservatively.
+- [x] Hash package files, resource files, and skill support files.
+- [x] Emit human-readable and JSON reports.
+- [x] Implement package evaluation boundary.
+- [x] Implement plan, verify, extension, install, and uninstall command boundaries.
+- [x] Block install/uninstall apply paths until manifest-backed implementation exists.
+- [x] Add targeted fixtures/tests under `packages/olympus`.
+- [x] Run narrow Olympus verification.
+
 ## Phase 03+ — Implementation Gates
 
-- [ ] Implement real code, not planning-only files.
-- [ ] Preserve or adapt useful lint/build/test configs.
-- [ ] Keep third_party reference material until classified and replaced.
-- [ ] Verify after every meaningful edit group.
-- [ ] Update state files after each phase.
-- [ ] Remove old active OAL surfaces only after replacements exist.
+- [x] Implement real code, not planning-only files.
+- [x] Preserve or adapt useful lint/build/test configs.
+- [x] Keep third_party reference material until classified and replaced.
+- [x] Verify after every meaningful edit group.
+- [x] Update state files after each phase.
+- [x] Remove old active OAL surfaces only after replacements exist.
 
 ## Final Acceptance
 

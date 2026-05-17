@@ -1,0 +1,7 @@
+{
+	"name": "collision-package",
+	"version": "1.0.0",
+	"pi": {
+		"prompts": ["other/review.md"]
+	}
+}

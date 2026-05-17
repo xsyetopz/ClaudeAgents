@@ -30,7 +30,9 @@
 		"test": "bun test packages/*/__tests__/*.test.ts tests/*.test.ts",
 		"test:unit": "bun test packages/*/__tests__/*.test.ts",
 		"test:e2e": "bun test tests/*.test.ts",
-		"oal:toolchain": "bun packages/cli/src/main.ts toolchain"
+		"oal:toolchain": "bun packages/cli/src/main.ts toolchain",
+		"olympus": "bun packages/olympus/src/cli.ts",
+		"olympus:test": "bun test packages/olympus/test/*.test.ts"
 	},
 	"dependencies": {
 		"@clack/prompts": "^1.4.0",

@@ -1,0 +1,99 @@
+export type ExitCode = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type ResourceKind = "skill" | "prompt" | "theme" | "extension";
+
+export type RiskLabel =
+	| "PASSIVE"
+	| "EXECUTABLE"
+	| "UNSIGNED"
+	| "LOCKED"
+	| "HASH MISMATCH"
+	| "GLOBAL WRITE"
+	| "TRUSTED PASSIVE"
+	| "TRUSTED EXECUTABLE"
+	| "REVOKED"
+	| "SANDBOXED"
+	| "HOME DENIED"
+	| "NETWORK DENIED";
+
+export interface PackageIdentity {
+	name: string;
+	version: string;
+	sourceType: "local";
+	source: string;
+	contentDigest: string;
+}
+
+export interface PiManifestSummary {
+	present: boolean;
+	paths: string[];
+}
+
+export interface SupportFile {
+	path: string;
+	hash: string;
+}
+
+export interface ResourceReport {
+	id: string;
+	kind: ResourceKind;
+	path: string;
+	passive: boolean;
+	executable: boolean;
+	hash: string;
+	labels: RiskLabel[];
+	supportFiles: SupportFile[];
+}
+
+export interface ExecutableReport {
+	id: string;
+	kind: "extension" | "script" | "lifecycle-script" | "support-script";
+	path?: string;
+	command?: string;
+	hash?: string;
+	labels: RiskLabel[];
+}
+
+export interface ScriptReport {
+	name: string;
+	command: string;
+	lifecycle: boolean;
+	labels: RiskLabel[];
+}
+
+export interface InspectionReport {
+	schemaVersion: 1;
+	package: PackageIdentity;
+	piManifest: PiManifestSummary;
+	resources: ResourceReport[];
+	executables: ExecutableReport[];
+	scripts: ScriptReport[];
+	warnings: string[];
+	decision: "inspect-only";
+}
+
+export interface EvaluationReport {
+	schemaVersion: 1;
+	inspection: InspectionReport;
+	conflicts: string[];
+	labels: RiskLabel[];
+	decision:
+		| "reject"
+		| "inspect-more"
+		| "trust-passive"
+		| "trust-executable-deferred"
+		| "install-passive"
+		| "vendor"
+		| "fork";
+	recommendation: string;
+}
+
+export class OlympusError extends Error {
+	readonly exitCode: ExitCode;
+
+	constructor(message: string, exitCode: ExitCode) {
+		super(message);
+		this.name = "OlympusError";
+		this.exitCode = exitCode;
+	}
+}

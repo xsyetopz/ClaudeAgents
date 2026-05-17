@@ -1,21 +1,24 @@
 # Next
 
-Run `/olympus-phase 03` in a new Pi session.
+Run `/olympus-phase 04` in a new Pi session.
 
-Phase 03 must implement Olympus low-level CLI package boundaries in `packages/olympus` according to:
+Phase 04 must implement the Olympus Pi extension authoring/evaluation system according to:
 
 - `olympus-impl/IMPLEMENTATION_PLAN.md`
-- `olympus-impl/design/cli-system.md`
+- `olympus-impl/design/olympus-harness.md`
 - `olympus-impl/design/extension-system.md`
+- `olympus-impl/design/cli-system.md`
 - `olympus-impl/design/verification-system.md`
 - `olympus-impl/DELETE_AFTER_REPLACEMENT.md`
 
-Expected Phase 03 starting scope:
+Expected Phase 04 starting scope:
 
-- create the `packages/olympus` package skeleton if still missing;
-- implement low-level `olympus` CLI boundaries;
-- begin with read-only local package inspection if using the first safe vertical slice;
-- add targeted fixtures/tests under `packages/olympus`;
-- preserve active OAL packages, source, specs, tests, docs, configs, and scripts.
+- build on `packages/olympus` shared inspection/evaluation modules;
+- implement real Olympus-owned extension authoring beyond the Phase 03 dry-run boundary;
+- implement extension metadata/contracts for purpose, Pi events, commands/tools, side effects, capabilities, verification, and uninstall/disable behavior;
+- improve `olympus extension inspect` for first-party and third-party extension entrypoint metadata without executing extension code;
+- extend package evaluation for extension-specific risks and conflicts where discoverable;
+- add targeted fixtures/tests for generated extension skeletons and extension inspection;
+- preserve active OAL packages, source, specs, tests, docs, configs, scripts, and third-party references.
 
-Do not perform destructive cleanup during Phase 03. Do not remove active OAL surfaces merely because `oal_legacy/` now exists; deletion still requires documented replacement/reason and verification.
+Do not perform destructive cleanup during Phase 04 unless every deletion-policy condition is explicitly satisfied and verified. Do not start high-level interactive wrapper work; that remains Phase 05 scope.

@@ -1,0 +1,9 @@
+{
+	"name": "passive-package",
+	"version": "1.0.0",
+	"pi": {
+		"skills": ["skills/reviewer/SKILL.md"],
+		"prompts": ["prompts/review.md"],
+		"themes": ["themes/dark.json"]
+	}
+}
