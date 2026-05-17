@@ -1,0 +1,17 @@
+# Phase 09 — Final Acceptance Sweep and Bootstrap Removal Readiness
+
+Tasks:
+
+- [ ] Run full verification.
+- [ ] Verify install.
+- [ ] Verify uninstall.
+- [ ] Verify low-level CLI.
+- [ ] Verify interactive wrapper.
+- [ ] Verify extension generator/evaluator.
+- [ ] Verify package evaluator.
+- [ ] Verify docs and README present Olympus, not OAL.
+- [ ] Verify temporary bootstrap can be removed.
+- [ ] Update PLAN.md and CHECKLIST.md truthfully.
+- [ ] Write final report in `olympus-impl/logs/phase-09.md`.
+
+Stop after this phase.

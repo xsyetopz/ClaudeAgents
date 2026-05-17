@@ -1,0 +1,35 @@
+Start from the OAL repository root, not from Downloads.
+
+Recommended install from extracted ZIP:
+
+```sh
+cd ~/Downloads/olympus_pi_phase_dropin
+./scripts/install-olympus-pi-phase-dropin.sh /Users/krystian/CodeProjects/xsyetopz/OpenAgentLayer
+```
+
+Then:
+
+```sh
+cd /Users/krystian/CodeProjects/xsyetopz/OpenAgentLayer
+pi
+```
+
+Run exactly one phase per Pi session:
+
+```text
+/olympus-phase 00
+```
+
+Then in a new Pi session:
+
+```text
+/olympus-phase 01
+```
+
+Implementation begins at:
+
+```text
+/olympus-phase 02
+```
+
+Do not skip phase 00 or phase 01.

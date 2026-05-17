@@ -34,3 +34,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Olympus temporary legacy reference snapshot
+oal_legacy/

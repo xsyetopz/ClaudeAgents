@@ -1,0 +1,25 @@
+# Phase 02 — Legacy Snapshot and Implementation Plan
+
+This is the first phase allowed to prepare destructive work, but not to delete the active product yet.
+
+Tasks:
+
+- [ ] Add `oal_legacy/` to `.gitignore` if absent.
+- [ ] Create `oal_legacy/` as a reference snapshot of the original OAL tree.
+- [ ] Exclude `.git`, `node_modules`, build output, cache directories, `oal_legacy`, and generated transient files.
+- [ ] Verify the snapshot contains source, docs, prompts, skills, agents, hooks, third_party, configs, and scripts that phase 00 classified as relevant.
+- [ ] Write exact implementation order.
+- [ ] Write exact delete-after-replacement plan.
+- [ ] Protect lint/build/test configs unless the phase-00 study says replacement is ready.
+
+Required outputs:
+
+- [ ] `oal_legacy/`
+- [ ] `.gitignore` contains `oal_legacy/`
+- [ ] `olympus-impl/IMPLEMENTATION_PLAN.md`
+- [ ] `olympus-impl/DELETE_AFTER_REPLACEMENT.md`
+- [ ] updated `PLAN.md`
+- [ ] updated `olympus-impl/CHECKLIST.md`
+- [ ] `olympus-impl/logs/phase-02.md`
+
+Stop after writing and verifying the phase outputs.

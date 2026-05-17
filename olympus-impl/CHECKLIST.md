@@ -1,0 +1,80 @@
+# Olympus Master Checklist
+
+## Global Gates
+
+- [x] PLAN.md exists and is continuously updated.
+- [x] `olympus-impl/` is the authoritative temporary controller.
+- [x] Phase 00 study is complete before design.
+- [ ] Phase 01 design is complete before implementation.
+- [ ] `oal_legacy/` exists before destructive cleanup.
+- [x] `oal_legacy/` is listed in `.gitignore`.
+- [x] Existing lint/build/test/package configs are classified before any deletion.
+- [x] third_party material is classified before any deletion.
+- [ ] No OAL compatibility/migration framing survives in active product docs.
+- [ ] Olympus is PiCodingAgent-first.
+
+## Phase 00 — Formal OAL Study
+
+- [x] Inspect repository top-level tree.
+- [x] Inspect workspace/package layout.
+- [x] Inspect source catalog model.
+- [x] Inspect provider rendering pipeline.
+- [x] Inspect CLI command surface.
+- [x] Inspect install/deploy/uninstall behavior.
+- [x] Inspect generated artifact policy.
+- [x] Inspect prompts/skills/agents/hooks/tools.
+- [x] Inspect third_party contents.
+- [x] Inspect lint/format/typecheck/test/build configs.
+- [x] Inspect acceptance/verification system.
+- [x] Write `olympus-impl/studies/oal-architecture.md`.
+- [x] Write `olympus-impl/studies/oal-pipeline.md`.
+- [x] Write `olympus-impl/studies/oal-strengths.md`.
+- [x] Write `olympus-impl/studies/oal-gaps.md`.
+- [x] Write `olympus-impl/classification/root-paths.md`.
+- [x] Write `olympus-impl/classification/configs.md`.
+- [x] Write `olympus-impl/classification/third-party.md`.
+
+## Phase 01 — Olympus Harness Design
+
+- [ ] Define Olympus product contract.
+- [ ] Define PiCodingAgent-first harness extension architecture.
+- [ ] Define Olympus-owned extension authoring model.
+- [ ] Define package evaluation and package conflict policy.
+- [ ] Define CLI boundaries.
+- [ ] Define interactive wrapper boundaries.
+- [ ] Define durable state/handoff policy.
+- [ ] Define verification gates.
+- [ ] Write `olympus-impl/design/olympus-harness.md`.
+- [ ] Write `olympus-impl/design/extension-system.md`.
+- [ ] Write `olympus-impl/design/cli-system.md`.
+- [ ] Write `olympus-impl/design/verification-system.md`.
+
+## Phase 02 — Legacy Snapshot and Implementation Plan
+
+- [ ] Create gitignored `oal_legacy/` snapshot.
+- [ ] Verify `oal_legacy/` excludes `.git`, `node_modules`, build output, and generated caches.
+- [ ] Verify original architecture study remains available.
+- [ ] Create implementation package plan.
+- [ ] Create deletion-after-replacement plan.
+- [ ] Create `olympus-impl/IMPLEMENTATION_PLAN.md`.
+
+## Phase 03+ — Implementation Gates
+
+- [ ] Implement real code, not planning-only files.
+- [ ] Preserve or adapt useful lint/build/test configs.
+- [ ] Keep third_party reference material until classified and replaced.
+- [ ] Verify after every meaningful edit group.
+- [ ] Update state files after each phase.
+- [ ] Remove old active OAL surfaces only after replacements exist.
+
+## Final Acceptance
+
+- [ ] Olympus installs cleanly.
+- [ ] Olympus uninstalls cleanly.
+- [ ] Low-level CLI works.
+- [ ] Interactive wrapper works or has verified executable entrypoint.
+- [ ] Olympus can inspect/evaluate third-party Pi packages.
+- [ ] Olympus can generate Olympus-owned Pi extension scaffolds.
+- [ ] Verification command works.
+- [ ] Active README/docs present Olympus, not OAL.
+- [ ] OAL material remains only as gitignored legacy reference or historical note.

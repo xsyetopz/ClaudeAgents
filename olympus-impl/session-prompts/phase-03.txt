@@ -1,0 +1,14 @@
+# Phase 03 — Implement Olympus Low-level CLI Package Boundaries
+
+Implement the scriptable low-level Olympus CLI from the contracts. Reuse useful package/config patterns only after the phase-00/01 notes justify them.
+
+Tasks:
+
+- [ ] Establish Olympus package/module boundaries.
+- [ ] Implement low-level CLI entrypoint.
+- [ ] Implement commands for inspect, plan, verify, extension, package-evaluate, install, uninstall.
+- [ ] Keep or adapt lint/typecheck/build configs that still serve the product.
+- [ ] Run narrow verification.
+- [ ] Update state and checklist.
+
+Stop after this phase.
