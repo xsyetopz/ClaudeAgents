@@ -14,6 +14,7 @@ Olympus is the active product in this repository.
 - Phase post-audit-cleanup completed a narrow owner-authorized review and found no additional active legacy product surfaces eligible for deletion.
 - Phase final-plan created the final implementation roadmap for future owner review.
 - Phase docs-010 prepared Olympus 0.1.0 docs/specs readiness for a source-checkout commit boundary.
+- Phase parity-integration-acceptance completed cross-track integration and acceptance for implemented Track A safety/runtime policy, Track B authoring/workflow UX, and Track C reporting/RTK efficiency surfaces.
 
 ## Active product boundary
 
@@ -37,7 +38,7 @@ bun run olympus:catalog -- --json
 git diff --check
 ```
 
-Phase docs-010 additionally smoke-checked help, inspect, package evaluate, extension create/inspect, install dry-run, status, catalog, spec, and verify JSON output.
+Phase docs-010 additionally smoke-checked help, inspect, package evaluate, extension create/inspect, install dry-run, status, catalog, spec, and verify JSON output. Parity integration acceptance additionally smoke-checked Track A safety/hook/sandbox/broker/trust commands, Track B resource/prompt/review/handoff/module commands, Track C report/compact/RTK/quota commands, install/uninstall apply with fake HOME/temp project, and interactive quit.
 
 ## 0.1.0 docs/specs readiness
 
@@ -87,3 +88,14 @@ The cleanup phase created `olympus-impl/reports/cleanup-inventory.md` and `olymp
 The post-audit cleanup phase created `olympus-impl/reports/post-audit-cleanup-plan.md` and `olympus-impl/reports/post-audit-cleanup-report.md`. It reviewed the remaining active root after final audit, cleanup, and parity roadmap audit. No additional deletion was applied because remaining legacy-term references are retained phase-controller or historical cleanup provenance, not active product identity.
 
 `packages/olympus/`, `oal_legacy/`, `third_party/`, `.gitmodules`, `olympus-impl/`, final audit reports, roadmap reports, and active Olympus docs/configs remain preserved.
+
+## Parity integration acceptance
+
+The parity-integration-acceptance phase created:
+
+- `olympus-impl/reports/parity-integration-inventory.md`
+- `olympus-impl/reports/parity-acceptance-matrix.md`
+- `olympus-impl/reports/parity-safety-grep-report.md`
+- `olympus-impl/reports/parity-integration-acceptance-report.md`
+
+It verified that Track A safety decisions and Hestia policy audit counts surface through Track C status/handoff reports, Track B module/review artifacts remain bounded by Track A policy gates, Track B output-heavy guidance uses Track C RTK-first recommendations, and no track introduces default global `~/.pi` writes or third-party package execution. Live runtime hooks, executable package loading, live credentialed brokers, and write-capable Hephaestus apply behavior remain future gated work.

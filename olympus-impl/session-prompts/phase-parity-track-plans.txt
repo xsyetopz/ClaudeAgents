@@ -1,0 +1,396 @@
+Follow repository authority files exactly.
+
+Goal:
+Create three large implementation-plan tracks for Olympus OAL parity, instead of many tiny plans.
+
+This is planning only. Do not implement feature code.
+
+Product direction:
+Olympus is a PiCodingAgent-first framework. The goal is to take good OAL ideas and re-author them as Olympus-owned Pi-native features: extensions, hooks, skills, prompts, commands, safety checks, acceptance fixtures, package reports, project-local artifacts, RTK-backed output compaction, and bounded Olympus agent modules.
+
+Naming direction:
+Use Greek/Olympus module names where appropriate:
+- Athena: planning / architecture review
+- Themis: policy / approval gates
+- Apollo: verification / diagnostics
+- Hephaestus: approved implementation/apply
+- Hermes: handoff / routing / compact summaries
+- Hestia: project-local state / continuity
+- Aegis: runtime safety hooks
+- Moirai: task ordering / dependency graph
+
+Greek names are codenames for authority-bounded modules, not roleplay personas. Every module must have a sober public description and concrete safety contract.
+
+RTK direction:
+RTK is a first-class Olympus integration target for command-output compaction and token-efficiency. Olympus should use RTK when available and design RTK-backed command/output paths explicitly. In-house compactors are fallbacks for cases where RTK is unavailable, unsupported, or insufficient for a specific output shape. The model must not be allowed to silently avoid RTK when RTK is available.
+
+Do not reintroduce:
+- OAL compatibility mode
+- Codex/Claude/OpenCode provider renderers
+- provider plugin sync
+- direct copying of OAL or third-party code
+- uncontrolled swarms
+- global mutation by default
+- unsafe-host as a normal workflow
+- future non-Pi harness planning
+
+Primary local inputs:
+- packages/olympus/
+- oal_legacy/
+- docs/
+- specs/
+- olympus-impl/reports/final-audit.md
+- olympus-impl/reports/parity-and-roadmap-audit.md
+- olympus-impl/reports/post-audit-cleanup-report.md
+- olympus-impl/DELETE_AFTER_REPLACEMENT.md
+- PLAN.md
+- olympus-impl/CHECKLIST.md
+
+External/reference ideas:
+- Pi docs and Pi extension/package/skill APIs
+- RTK output filtering / command-output compaction as a first-class integration target
+- Codex subagent, approval, sandbox, and hook/security ideas as inspiration only
+- Plannotator-style plan/diff annotation
+- pi-promptsmith-style prompt rewrite and execution contract
+- pi-sub-style usage/quota awareness
+
+Required output:
+Create:
+- olympus-impl/plans/parity-track-a-safety-runtime-policy.md
+- olympus-impl/plans/parity-track-b-authoring-workflow-ux.md
+- olympus-impl/plans/parity-track-c-reporting-efficiency.md
+- olympus-impl/reports/parity-track-plans-index.md
+
+Create olympus-impl/plans/ if missing.
+
+For each track file use this structure:
+
+1. Bottom line
+2. OAL inspiration / retained lessons
+3. PiCodingAgent-native design
+4. Current Olympus baseline
+5. Required modules/files
+6. CLI commands and Pi extension surfaces
+7. Data/artifact model
+8. Safety policy
+9. Tests and acceptance fixtures
+10. Implementation slices
+11. Non-goals
+12. Open questions
+13. Source list
+
+────────────────────────────────────────
+Track A — Safety + Runtime Policy
+────────────────────────────────────────
+
+Create:
+- olympus-impl/plans/parity-track-a-safety-runtime-policy.md
+
+Combine these themes:
+- hooks with explicit safety policy and fixture coverage
+- sandbox, trust, and host-broker hardening for future executable support
+- quota/usage safety gates where they affect runtime choices
+
+Design around Pi events:
+- tool_call
+- tool_result
+- before_provider_request
+- input
+- session_start/session_shutdown
+- resources_discover
+- model_select/thinking_level_select
+
+Include:
+- Aegis runtime safety hook extension
+- Themis policy/approval gate module
+- Hestia state/audit/manifest continuity module
+- dangerous command/path policy
+- generated artifact protection
+- secret output redaction
+- provider-payload size/secrets audit
+- third-party executable package blocking
+- failure-loop detection
+- large diff/test output warning
+- plan approval enforcement
+- quota pressure warning
+- trust/lock/signage hardening
+- sandbox probe and executable gate
+- read-only gh/git/registry broker plan
+
+Rules:
+- safety hooks fail closed
+- token-efficiency hooks fail open only after recording the fallback/degraded reason
+- hooks must not execute third-party package code
+- hooks must not be the only OS containment boundary
+- executable resources remain blocked until trust + lock + sandbox pass
+- no raw credential exposure
+- no arbitrary shell strings
+- no dangerous skip-permissions outside sandbox
+- no ~/.pi writes by default
+
+Acceptance fixtures:
+- unsafe tool_call blocked
+- protected path operation blocked
+- generated artifact write blocked without manifest
+- secret output redacted
+- before_provider_request warning/audit works
+- unsigned package warning
+- lock mismatch blocks executable load
+- sandbox cannot read fake ~/.ssh
+- sandbox cannot read fake ~/.config/gh
+- sandbox cannot read fake ~/.pi/agent/auth.json
+- broker denies arbitrary shell
+- broker permits approved read-only request
+- quota pressure emits warning but does not invent limits
+
+Implementation slices:
+A1. Hook policy model and fixtures, no Pi runtime execution yet.
+A2. Aegis first-party extension skeleton and non-executing tests.
+A3. Themis policy decision module.
+A4. Hestia audit/state integration.
+A5. Sandbox probe and fake-secret fixtures.
+A6. Trust/signage hardening.
+A7. Read-only broker schemas and tests.
+A8. Runtime integration.
+
+────────────────────────────────────────
+Track B — Authoring + Workflow UX
+────────────────────────────────────────
+
+Create:
+- olympus-impl/plans/parity-track-b-authoring-workflow-ux.md
+
+Combine these themes:
+- skills, prompts, and command authoring flows with provenance and validation
+- plan review, diff review, and prompt contract checks
+- Olympus agent modules / bounded delegation
+
+Include first-party resources:
+- safety review skill
+- package risk review skill
+- extension authoring skill
+- sandbox troubleshooting skill
+- cleanup audit skill
+- verification handoff skill
+- plan review prompt
+- prompt contract prompt
+- quota-aware workflow prompt
+- risk report command
+- status handoff command
+- RTK-aware command guidance prompt/skill for output-heavy workflows
+
+Include workflow systems:
+- terminal-first plan review
+- diff review
+- prompt rewrite
+- execution contract generation
+- approve / deny / needs-edit decisions
+- plan digest
+- diff digest
+- feedback returned to Pi session
+- project-local artifacts
+- manifest/audit ownership
+
+Include Olympus modules:
+- Athena: planning / architecture review
+- Themis: policy / approval gates
+- Apollo: verification / diagnostics
+- Hephaestus: approved implementation/apply
+- Hermes: handoff / routing / compact summaries
+- Hestia: state / continuity
+- Aegis: runtime safety
+- Moirai: dependency ordering
+
+Rules:
+- no uncontrolled swarm behavior
+- no module gains write authority by prompt instruction
+- Hephaestus is the only implementation/write module
+- Hephaestus requires approved plan digest, path allowlist, manifest ownership, and Themis approval
+- Athena plans but cannot apply
+- Themis gates but does not implement
+- Apollo verifies but cannot mutate project source
+- Hermes summarizes but cannot alter decisions
+- Hestia writes only Olympus-owned state
+- Aegis blocks unsafe runtime actions but does not execute package code
+- Moirai orders tasks but does not execute them
+- parallel work is read-only only unless future file-level lock/manifest queues exist
+- no external server by default
+- no repo reads unless explicitly requested
+- preview before editor replacement
+- output-heavy workflows should prefer RTK-backed commands where available
+
+Artifact models:
+- skills and prompt templates with provenance metadata
+- plan.json
+- diff.json
+- annotations.json
+- decision.json
+- feedback.md
+- prompt-contract.json
+- role-invocation.json
+- handoff/current.md
+- audit.jsonl
+
+Acceptance fixtures:
+- skill/prompt metadata validates
+- command collision detected
+- support files copied/hashed
+- prompt contract preserves user paths/constraints
+- unapproved write plan blocked
+- approval digest mismatch blocks continuation
+- Athena cannot write
+- Themis blocks unsafe action
+- Apollo rejects commands outside allowlist
+- Hephaestus rejects missing/changed plan digest
+- Hermes produces compact handoff without reading secrets
+- Hestia refuses writes outside .pi/olympus
+- Moirai produces dependency graph only
+- no module writes to ~/.pi by default
+- RTK-aware guidance appears for output-heavy commands when RTK is available
+
+Implementation slices:
+B1. Resource authoring schemas and validators.
+B2. First-party skills/prompts package.
+B3. Prompt contract artifact model.
+B4. Plan/diff review artifact model.
+B5. Hermes handoff command.
+B6. Athena/Themis/Apollo module shells with read-only fixtures.
+B7. Hephaestus apply gate design, blocked until safety gates pass.
+B8. Pi extension commands for workflow UX.
+
+────────────────────────────────────────
+Track C — Reporting + Efficiency
+────────────────────────────────────────
+
+Create:
+- olympus-impl/plans/parity-track-c-reporting-efficiency.md
+
+Combine these themes:
+- RTK/token-efficiency and output compaction preserving decision-critical context
+- better package catalogs, status handoffs, and acceptance reports
+- quota and usage awareness where it affects reporting/display
+
+Design:
+- RTK is the primary compaction backend when available
+- detect RTK and expose RTK status in Olympus reports
+- route supported shell/read/grep/find/test/log workflows through RTK-backed command paths where possible
+- provide explicit Olympus commands/prompts/hooks that encourage or enforce RTK-backed usage instead of hoping the model chooses it
+- provide in-house fallback compactors only for unsupported/missing RTK cases
+- record a degraded/fallback reason whenever RTK is unavailable or bypassed
+- request raw/verbose fallback when RTK compression drops decision-critical context
+- git diff/status/log compaction
+- test output compaction
+- grep/rg output compaction
+- package-manager output compaction
+- stack trace/error summary compaction
+- raw-output reference/fallback
+- compact/verbose modes
+- saved-bytes/token-estimate audit
+- richer package catalog/spec output
+- package risk reports
+- project status handoffs
+- acceptance reports
+- drift reports
+- install/uninstall summaries
+- LLM-readable handoff files
+- quota profile/status display
+
+Rules:
+- do not silently skip RTK when it is available
+- RTK-backed compaction is preferred over in-house fallback for supported cases
+- compaction must not hide safety-critical failures
+- preserve exit status, failing test names, error messages, changed files, deleted files, redaction notices, blocked-policy reasons, policy warnings, and approval decisions
+- token compaction fails open only after recording fallback/degraded reason
+- safety policy fails closed
+- if RTK is unavailable, report degraded compaction status
+- if RTK output drops decision-critical context, request raw or verbose fallback
+- do not hardcode opaque provider limits as truth
+- official quota values may be cited but treated as unstable
+- unknown quota is labeled unknown, not fabricated
+- reports must be deterministic
+- reports must not include secrets
+- catalog/spec reflects implemented commands only
+
+Artifact models:
+- .pi/olympus/reports/package-risk/*.json
+- .pi/olympus/reports/status.json
+- .pi/olympus/reports/acceptance.json
+- .pi/olympus/reports/compaction/*.json
+- .pi/olympus/handoff/current.md
+- .pi/olympus/quota/profile.json
+- .pi/olympus/quota/usage-estimates.jsonl
+- .pi/olympus/audit.jsonl
+
+Acceptance fixtures:
+- RTK detected when present
+- RTK-backed command path is recommended or used for supported output-heavy workflows
+- fallback/degraded reason is recorded when RTK is unavailable
+- failing tests remain visible after compaction
+- secret-looking output redacted before summary
+- raw output fallback exists
+- compacted diff preserves filenames and deletion markers
+- status detects manifest drift
+- handoff is compact and actionable
+- package risk report deterministic
+- catalog/spec has no stale OAL active-product claims
+- quota profile loads
+- expensive workflow warning appears
+- unknown quota labeled unknown
+
+Implementation slices:
+C1. Report schema hardening.
+C2. Deterministic status/handoff reports.
+C3. Compaction core interfaces.
+C4. RTK detection and RTK-backed command policy.
+C5. Git/test/grep compactors with RTK-first behavior.
+C6. Fallback compactors for unsupported/missing RTK cases.
+C7. Quota profile + status display.
+C8. Acceptance report aggregation.
+C9. Pi status/risk/compaction extension integration.
+
+────────────────────────────────────────
+Parity track plans index
+────────────────────────────────────────
+
+Create:
+- olympus-impl/reports/parity-track-plans-index.md
+
+Include:
+- summary of all three tracks
+- dependency graph
+- recommended implementation order
+- cross-track safety gates
+- shared modules required
+- top 15 acceptance fixtures to implement first
+- which slices can proceed without sandbox support
+- which slices require sandbox/trust/broker prerequisites
+- which slices touch Pi extensions
+- which slices touch only CLI/reporting
+- RTK-first compaction policy summary
+
+Recommended implementation order:
+1. Track C C1-C2: report/status/handoff hardening
+2. Track A A1-A3: hook policy and Themis/Aegis models without runtime execution
+3. Track B B1-B2: resource authoring schemas and first-party skills/prompts package
+4. Track C C3-C6: compaction core, RTK detection, RTK-backed command policy, and fallback compactors
+5. Track B B3-B5: prompt contracts, plan review artifacts, Hermes handoff
+6. Track A A4-A6: Hestia audit/state, sandbox probe, trust/signage
+7. Track C C7-C9: quota display, acceptance aggregation, status/risk/compaction extension
+8. Track B B6-B8: Athena/Themis/Apollo shells and workflow extension commands
+9. Track A A7-A8: broker schemas and runtime hook integration
+10. Track B Hephaestus apply flow only after plan digest + safety gates are proven
+
+Rules:
+- Do not implement feature code.
+- Do not copy external or OAL code directly.
+- Do not execute third-party package code.
+- Do not write to ~/.pi.
+- Do not perform cleanup.
+- Keep all plans PiCodingAgent-first.
+- Treat RTK as a first-class integration target, not an optional idea.
+- Keep claims precise: implemented vs planned.
+- Separate facts, inferences, decisions, and unknowns.
+- Cite local files and external sources used.
+
+End with:
+“Olympus parity track plans complete; no feature implementation performed.”

@@ -1,0 +1,160 @@
+Follow repository authority files exactly.
+
+Goal:
+Implement Track A: Safety + Runtime Policy.
+
+This is implementation, not planning.
+
+Primary plan:
+- olympus-impl/plans/parity-track-a-safety-runtime-policy.md
+- olympus-impl/reports/parity-track-plans-index.md
+
+Product direction:
+Olympus is PiCodingAgent-first. Runtime safety is implemented as Olympus-owned policy modules and Pi-native extension surfaces. Codex sandbox/approval ideas are inspiration only, not compatibility targets.
+
+Scope:
+Implement hook policy models, safety decisions, audit state integration, trust/signage hardening, sandbox probe checks, and broker schemas/tests. Do not execute third-party package code.
+
+Implement modules under packages/olympus/src as needed:
+- hooks/
+- policy/
+- safety/
+- audit/
+- sandbox/
+- broker/
+- trust/
+or equivalent names consistent with existing package layout.
+
+Required features:
+
+1. Hook policy model
+Implement data structures and pure decision functions for:
+- tool_call
+- tool_result
+- before_provider_request
+- input
+- session_start/session_shutdown
+- resources_discover
+- model_select/thinking_level_select
+
+Do not require actual Pi runtime execution yet if not needed. Pure fixtures are acceptable.
+
+2. Aegis runtime safety hook extension skeleton
+- Create Olympus-owned first-party extension source/skeleton if appropriate.
+- It must not execute third-party code.
+- It should call shared policy modules.
+- It should expose hook-policy status/reporting.
+
+3. Themis policy decision module
+Implement allow/warn/block decisions for:
+- dangerous command/path patterns
+- protected paths
+- generated artifact writes without manifest
+- package executable install/load attempts
+- missing plan approval where required
+- unsafe global write attempts
+- unsafe ~/.pi writes
+
+4. Hestia audit/state integration
+Implement project-local audit/state helpers for Olympus-owned paths only.
+- .pi/olympus/audit.jsonl or existing project-local state path
+- no ~/.pi writes
+- deterministic audit event schema
+- no secrets in audit
+
+5. Secret redaction and provider/tool output safety
+Implement redaction/policy helpers for:
+- secret-looking tool output
+- provider payload size/secrets audit
+- blocked-policy reasons
+- redaction evidence without raw secret logging
+
+6. Sandbox probe
+Implement non-executing or harmless sandbox probe:
+- Linux/WSL2 detection
+- bwrap detection if available
+- fake-home secret denial fixtures
+- macOS degraded/block status
+- no untrusted package execution
+
+7. Trust/signage hardening
+Add trust/signage fields and reporting:
+- unsigned
+- locked
+- hash mismatch
+- trusted passive
+- executable blocked
+- sandbox unavailable/degraded/ready
+- home denied
+- network denied
+
+8. Broker schemas
+Implement typed broker request/response schemas and validation only:
+- gh read-only
+- git read-only
+- registry metadata/tarball
+No live credential use yet unless explicitly safe and tested with fake fixtures.
+No arbitrary shell strings.
+
+9. CLI commands
+Add or extend commands as appropriate:
+- olympus safety check --json
+- olympus hooks policy --json
+- olympus sandbox check --json
+- olympus broker validate <fixture> --json
+- olympus trust status --json
+
+Keep existing commands working.
+
+10. Tests
+Add targeted tests:
+- unsafe tool_call blocked
+- protected path operation blocked
+- generated artifact write blocked without manifest
+- secret output redacted
+- before_provider_request warning/audit works
+- unsigned package warning
+- lock mismatch blocks executable load
+- sandbox cannot read fake ~/.ssh
+- sandbox cannot read fake ~/.config/gh
+- sandbox cannot read fake ~/.pi/agent/auth.json
+- broker denies arbitrary shell
+- broker permits approved read-only request schema
+- quota pressure warning does not invent limits
+- no ~/.pi writes by default
+
+11. Verification
+Run:
+- bun run olympus:test
+- Olympus-only TypeScript check
+- bunx biome check packages/olympus --max-diagnostics 200
+- relevant CLI smoke checks:
+  - safety check
+  - hooks policy
+  - sandbox check
+  - broker validate
+  - trust status
+- git diff --check
+
+Safety constraints:
+- Safety hooks fail closed.
+- Token-efficiency hooks fail open only after recording fallback/degraded reason.
+- Hooks must not execute third-party package code.
+- Hooks must not be the only OS containment boundary.
+- Executable resources remain blocked until trust + lock + sandbox pass.
+- No raw credential exposure.
+- No arbitrary shell strings.
+- No dangerous skip-permissions outside sandbox.
+- No ~/.pi writes by default.
+- Do not perform cleanup.
+- Do not implement feature swarms/agents yet.
+
+Update:
+- docs/specs only where needed for implemented Track A behavior
+- olympus-impl/CHECKLIST.md
+- olympus-impl/state/current.md
+- olympus-impl/state/next.md
+- olympus-impl/logs/phase-track-a-safety-runtime-impl.md
+
+End with:
+“Track A safety/runtime implementation complete.”

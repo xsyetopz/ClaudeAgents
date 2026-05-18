@@ -1,0 +1,159 @@
+Follow repository authority files exactly.
+
+Goal:
+Implement Track C: Reporting + Efficiency.
+
+This is implementation, not planning.
+
+Primary plan:
+- olympus-impl/plans/parity-track-c-reporting-efficiency.md
+- olympus-impl/reports/parity-track-plans-index.md
+
+Product direction:
+Olympus is PiCodingAgent-first. RTK is a first-class integration target. Use RTK when available. Do not silently avoid RTK. In-house compactors are fallback only when RTK is missing, unsupported, or insufficient.
+
+Scope:
+Implement reporting, handoff, compaction, RTK detection/status, quota profile/status, and acceptance-report aggregation inside packages/olympus.
+
+Implement modules under packages/olympus/src as needed:
+- reporting/
+- compaction/
+- quota/
+- handoff/
+- acceptance/
+- status/report extensions if already appropriate
+or equivalent names consistent with existing package layout.
+
+Required features:
+
+1. Report schema hardening
+- deterministic report schemas
+- package risk report
+- status report
+- acceptance report
+- compaction report
+- handoff report
+- quota report
+- no secrets in reports
+
+2. Deterministic status/handoff reports
+- compact handoff current state
+- project-local status summary
+- drift summary where available
+- no stale OAL active-product claims
+
+3. RTK detection and RTK-backed command policy
+- detect RTK on PATH
+- report RTK status in Olympus reports
+- define RTK-backed command recommendations for output-heavy workflows
+- supported command categories:
+  - shell output
+  - read
+  - grep/find/rg
+  - git diff/status/log
+  - test output
+  - package-manager logs
+- if RTK is available, report RTK-backed path as preferred
+- if RTK is unavailable, record degraded/fallback reason
+
+4. Compaction core
+- implement interfaces for compact/verbose/raw modes
+- preserve decision-critical context:
+  - exit status
+  - failing test names
+  - error messages
+  - changed files
+  - deleted files
+  - redaction notices
+  - blocked-policy reasons
+  - policy warnings
+  - approval decisions
+- compaction must not hide safety-critical failures
+- token compaction fails open only after recording fallback/degraded reason
+- safety policy still fails closed
+
+5. Fallback compactors
+Implement in-house fallback compactors for:
+- git diff/status/log shaped text
+- test output shaped text
+- grep/rg shaped text
+- package-manager shaped text
+- stack trace / error shaped text
+
+These are fallback compactors, not a replacement for RTK.
+
+6. Quota profile/status
+- user-configured labels:
+  - plus
+  - pro-5x
+  - pro-20x
+  - unknown
+- local usage estimate schema with actual https://github.com/Soju06/codex-lb implementation detail for ChatGPT usage tracking.
+- provider-observed usage field if available
+- uncertainty labels
+- expensive workflow warning
+- unknown quota must be labeled unknown, not fabricated
+- do not hardcode opaque provider limits as truth
+
+7. CLI commands
+Add or extend low-level commands as appropriate:
+- olympus report status --json
+- olympus report handoff --json
+- olympus report acceptance --json
+- olympus compact <fixture-or-file> --json
+- olympus rtk status --json
+- olympus quota status --json
+
+Keep existing commands working.
+
+8. Tests
+Add targeted tests for:
+- RTK detected when fake RTK exists on PATH
+- fallback/degraded reason recorded when RTK unavailable
+- RTK-backed recommendation appears for supported output-heavy workflows
+- failing tests remain visible after compaction
+- error messages remain visible
+- deleted files remain visible
+- secret-looking output is redacted before summary
+- raw output fallback exists
+- compacted diff preserves filenames and deletion markers
+- status report deterministic
+- handoff compact and actionable
+- package risk report deterministic
+- catalog/spec has no stale active-OAL claims
+- quota profile loads
+- expensive workflow warning appears
+- unknown quota labeled unknown
+- no ~/.pi writes by default
+
+9. Verification
+Run:
+- bun run olympus:test
+- Olympus-only TypeScript check
+- bunx biome check packages/olympus --max-diagnostics 200
+- relevant CLI smoke checks:
+  - report/status/handoff/acceptance if implemented
+  - compact
+  - rtk status
+  - quota status
+- git diff --check
+
+Safety constraints:
+- Do not execute third-party package code.
+- Do not write to ~/.pi.
+- Do not perform cleanup.
+- Do not implement sandbox execution.
+- Do not implement host brokers.
+- Do not implement agent modules.
+- Do not silently skip RTK when it is available.
+- Do not hide decision-critical output.
+
+Update:
+- docs/specs only where needed for implemented Track C behavior
+- olympus-impl/CHECKLIST.md
+- olympus-impl/state/current.md
+- olympus-impl/state/next.md
+- olympus-impl/logs/phase-track-c-reporting-efficiency-impl.md
+
+End with:
+“Track C reporting/efficiency implementation complete.”

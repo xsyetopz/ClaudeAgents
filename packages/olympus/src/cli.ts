@@ -1,11 +1,25 @@
 #!/usr/bin/env bun
+import { runBroker } from "./commands/broker";
 import { runCatalog } from "./commands/catalog";
+import { runCompact } from "./commands/compact";
 import { runExtension } from "./commands/extension";
+import { runHandoff } from "./commands/handoff";
+import { runHooks } from "./commands/hooks";
 import { runInspect } from "./commands/inspect";
 import { runInstall } from "./commands/install";
+import { runModule } from "./commands/module";
 import { runPackageEvaluate } from "./commands/package-evaluate";
 import { runPlan } from "./commands/plan";
+import { runPrompt } from "./commands/prompt";
+import { runQuota } from "./commands/quota";
+import { runReport } from "./commands/report";
+import { runResources } from "./commands/resources";
+import { runReview } from "./commands/review";
+import { runRtk } from "./commands/rtk";
+import { runSafety } from "./commands/safety";
+import { runSandbox } from "./commands/sandbox";
 import { runStatus } from "./commands/status";
+import { runTrust } from "./commands/trust";
 import { runUninstall } from "./commands/uninstall";
 import { runVerify } from "./commands/verify";
 import { runInteractiveCli } from "./interactive";
@@ -52,6 +66,21 @@ function dispatch(parsed: ParsedArgs): ExitCode | Promise<ExitCode> {
 	if (parsed.command === "catalog") return runCatalog(parsed.json);
 	if (parsed.command === "spec") return runCatalog(parsed.json);
 	if (parsed.command === "status") return runStatus(parsed.json);
+	if (parsed.command === "report") return runReport(parsed.args, parsed.json);
+	if (parsed.command === "compact") return runCompact(parsed.args, parsed.json);
+	if (parsed.command === "rtk") return runRtk(parsed.args, parsed.json);
+	if (parsed.command === "quota") return runQuota(parsed.args, parsed.json);
+	if (parsed.command === "safety") return runSafety(parsed.args, parsed.json);
+	if (parsed.command === "hooks") return runHooks(parsed.args, parsed.json);
+	if (parsed.command === "sandbox") return runSandbox(parsed.args, parsed.json);
+	if (parsed.command === "broker") return runBroker(parsed.args, parsed.json);
+	if (parsed.command === "trust") return runTrust(parsed.args, parsed.json);
+	if (parsed.command === "resources")
+		return runResources(parsed.args, parsed.json);
+	if (parsed.command === "prompt") return runPrompt(parsed.args, parsed.json);
+	if (parsed.command === "review") return runReview(parsed.args, parsed.json);
+	if (parsed.command === "handoff") return runHandoff(parsed.args, parsed.json);
+	if (parsed.command === "module") return runModule(parsed.args, parsed.json);
 	if (parsed.command === "plan") return runPlan(parsed.args, parsed.json);
 	if (parsed.command === "verify") return runVerify(parsed.json);
 	if (parsed.command === "extension")
@@ -103,6 +132,24 @@ Usage:
   olympus package-evaluate <source> [--json]
   olympus catalog [--json]
   olympus status [--json]
+  olympus report status [--json]
+  olympus report handoff [--json]
+  olympus report acceptance [--json]
+  olympus compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]
+  olympus rtk status [--json]
+  olympus quota status [--json]
+  olympus safety check [--json]
+  olympus hooks policy [--json]
+  olympus sandbox check [--json]
+  olympus broker validate <fixture> [--json]
+  olympus trust status [--json]
+  olympus resources validate [path] [--json]
+  olympus prompt contract <input-or-file> [--json]
+  olympus review plan <plan-file> [--json]
+  olympus review diff <diff-file> [--json]
+  olympus handoff current [--json]
+  olympus module status [--json]
+  olympus module run <module> --dry-run [--json]
   olympus plan <operation> [source] [--json]
   olympus verify [--json]
   olympus interactive

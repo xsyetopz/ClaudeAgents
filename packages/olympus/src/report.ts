@@ -3,6 +3,7 @@ import type {
 	ExtensionCreatePlan,
 	ExtensionInspectReport,
 } from "./extension-authoring";
+import { stablePrettyJson } from "./reports/schema";
 import type { EvaluationReport, InspectionReport } from "./types";
 
 export function formatInspection(report: InspectionReport): string {
@@ -83,5 +84,5 @@ export function formatExtensionCreate(report: ExtensionCreatePlan): string {
 }
 
 export function asJson(value: unknown): string {
-	return `${JSON.stringify(value, null, 2)}\n`;
+	return stablePrettyJson(value);
 }

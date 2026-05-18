@@ -154,6 +154,180 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["state repair", "implicit trust", "manifest mutation"],
 	},
 	{
+		command: "report status",
+		purpose:
+			"Emit deterministic project-local status with RTK, quota, report paths, and drift summaries.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"implicit repair",
+			"global Pi state writes",
+			"secret persistence",
+		],
+	},
+	{
+		command: "report handoff",
+		purpose:
+			"Emit a compact, actionable handoff report for LLM and human continuation.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["handoff file write by default", "secret persistence"],
+	},
+	{
+		command: "report acceptance",
+		purpose:
+			"Aggregate deterministic acceptance evidence for catalog, RTK status, and quota labeling.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["network-dependent checks", "global Pi state writes"],
+	},
+	{
+		command: "compact",
+		purpose:
+			"Compact output-heavy fixture or file text with RTK-first status and explicit fallback reasons.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"secret-preserving summaries",
+			"hidden failing tests",
+			"hidden deleted files",
+		],
+	},
+	{
+		command: "rtk status",
+		purpose:
+			"Detect RTK on PATH and recommend RTK-backed paths for output-heavy workflows.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"silent RTK bypass",
+			"third-party command execution during detection",
+		],
+	},
+	{
+		command: "quota status",
+		purpose:
+			"Read project-local quota profile labels and report uncertain usage estimates without fabricated provider limits.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["opaque provider limit fabrication", "global Pi state writes"],
+	},
+	{
+		command: "safety check",
+		purpose:
+			"Run deterministic Olympus safety policy fixtures for unsafe tools, redaction, provider payload, and quota-pressure warnings.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"third-party execution",
+			"raw credential logging",
+			"global Pi state writes",
+		],
+	},
+	{
+		command: "hooks policy",
+		purpose:
+			"Report the non-executing Aegis hook policy skeleton and subscribed Pi event surfaces.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"runtime third-party hook execution",
+			"unsafe fail-open safety policy",
+		],
+	},
+	{
+		command: "sandbox check",
+		purpose:
+			"Probe sandbox readiness and fake-home secret denial without untrusted package execution.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"executable load approval",
+			"real home secret reads",
+			"untrusted package execution",
+		],
+	},
+	{
+		command: "broker validate",
+		purpose:
+			"Validate typed read-only git, gh, and registry broker requests and deny arbitrary shell strings.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["arbitrary shell", "credential use", "broker mutations"],
+	},
+	{
+		command: "trust status",
+		purpose:
+			"Report trust/signage state including unsigned, locked, hash mismatch, executable blocked, sandbox, home, and network labels.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["implicit trust", "executable load", "trust mutation"],
+	},
+	{
+		command: "resources validate",
+		purpose:
+			"Validate Olympus-owned skill, prompt, command, provenance, support-file, and collision metadata.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"global resource install",
+			"third-party execution",
+			"~/.pi writes",
+		],
+	},
+	{
+		command: "prompt contract",
+		purpose:
+			"Emit a deterministic prompt-contract artifact preserving goal, paths, constraints, risks, and stop conditions.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"prompt-only write authority",
+			"dropping user constraints",
+			"secret persistence",
+		],
+	},
+	{
+		command: "review plan",
+		purpose:
+			"Review plan artifacts with digests, approval state, allowlists, annotations, and feedback.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["unapproved write continuation", "digest mismatch continuation"],
+	},
+	{
+		command: "review diff",
+		purpose:
+			"Review diff artifacts with changed/deleted file annotations and deterministic diff digest.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["decision alteration", "secret persistence"],
+	},
+	{
+		command: "handoff current",
+		purpose:
+			"Emit compact Hermes handoff summaries without changing decisions or mutating source.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"decision alteration",
+			"project source mutation",
+			"secret persistence",
+		],
+	},
+	{
+		command: "module status",
+		purpose:
+			"Report bounded Olympus module shells and non-goals for Athena, Themis, Apollo, Hermes, Hestia, Aegis, Moirai, and Hephaestus.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: [
+			"roleplay personas",
+			"swarm execution",
+			"write authority by prompt",
+		],
+	},
+	{
 		command: "catalog",
 		purpose:
 			"Emit the Olympus source-of-truth contracts for humans and LLM sessions.",
@@ -193,6 +367,24 @@ const ACCEPTANCE_CONTRACTS: CatalogAcceptanceContract[] = [
 			"LLM-readable product contracts stay aligned with implemented command boundaries",
 		fixtureScope: "read-only",
 	},
+	{
+		name: "reporting-efficiency",
+		proves:
+			"RTK status, fallback compaction, handoff, acceptance, and quota reports are deterministic",
+		fixtureScope: "read-only",
+	},
+	{
+		name: "safety-runtime-policy",
+		proves:
+			"Themis decisions, Aegis skeleton, sandbox probes, trust signage, and broker schemas are fail-closed and read-only",
+		fixtureScope: "fake-home",
+	},
+	{
+		name: "authoring-workflow",
+		proves:
+			"Resource metadata, prompt contracts, review artifacts, handoff, and module shells are deterministic and bounded",
+		fixtureScope: "read-only",
+	},
 ];
 
 const SAFETY_INVARIANTS = [
@@ -203,6 +395,12 @@ const SAFETY_INVARIANTS = [
 	"Uninstall authority comes from the Olympus manifest, not path names.",
 	"Hash mismatches preserve user-modified files for manual review.",
 	"LLM-readable status and catalog output is generated from Olympus-owned contracts, not legacy names.",
+	"RTK availability is explicit for output-heavy workflows; fallback compaction records degraded reasons.",
+	"Quota reports label unknown quota as unknown and do not fabricate opaque provider limits.",
+	"Safety policy fails closed for dangerous commands, protected paths, executable package loads, unapproved generated writes, and unsafe global Pi paths.",
+	"Broker APIs validate typed read-only requests and deny arbitrary shell strings.",
+	"Olympus module names are bounded codenames, not personas, and do not grant write authority by prompt instruction.",
+	"Hephaestus remains blocked unless approved plan digest, path allowlist, manifest ownership, and Themis approval are proven.",
 ];
 
 export function getOlympusCatalog(): OlympusCatalog {
@@ -217,6 +415,17 @@ export function getOlympusCatalog(): OlympusCatalog {
 			"packages/olympus/src/evaluation.ts",
 			"packages/olympus/src/install-flow.ts",
 			"packages/olympus/src/commands/verify.ts",
+			"packages/olympus/src/reports/status.ts",
+			"packages/olympus/src/compaction/index.ts",
+			"packages/olympus/src/quota/profile.ts",
+			"packages/olympus/src/policy/themis.ts",
+			"packages/olympus/src/sandbox/probe.ts",
+			"packages/olympus/src/broker/read-only.ts",
+			"packages/olympus/src/trust/status.ts",
+			"packages/olympus/src/resources/validate.ts",
+			"packages/olympus/src/workflow/prompt-contract.ts",
+			"packages/olympus/src/workflow/review.ts",
+			"packages/olympus/src/modules/contracts.ts",
 		],
 		resources: RESOURCE_CONTRACTS,
 		commands: COMMAND_CONTRACTS,
@@ -239,6 +448,23 @@ export function validateOlympusCatalog(
 		"uninstall",
 		"verify",
 		"status",
+		"report status",
+		"report handoff",
+		"report acceptance",
+		"compact",
+		"rtk status",
+		"quota status",
+		"safety check",
+		"hooks policy",
+		"sandbox check",
+		"broker validate",
+		"trust status",
+		"resources validate",
+		"prompt contract",
+		"review plan",
+		"review diff",
+		"handoff current",
+		"module status",
 		"catalog",
 	]) {
 		if (!commandNames.has(required))
@@ -260,7 +486,7 @@ export function validateOlympusCatalog(
 		errors.push("uninstall contract must preserve hash mismatches");
 	}
 	const serialized = JSON.stringify(catalog).toLowerCase();
-	for (const legacyTerm of ["openagentlayer", "oal vnext"]) {
+	for (const legacyTerm of ["openagentlayer", "active oal", "oal vnext"]) {
 		if (serialized.includes(legacyTerm))
 			errors.push(`legacy framing leaked into catalog: ${legacyTerm}`);
 	}

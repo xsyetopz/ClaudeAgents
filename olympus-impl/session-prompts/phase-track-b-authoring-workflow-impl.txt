@@ -1,0 +1,185 @@
+Follow repository authority files exactly.
+
+Goal:
+Implement Track B: Authoring + Workflow UX.
+
+This is implementation, not planning.
+
+Primary plan:
+- olympus-impl/plans/parity-track-b-authoring-workflow-ux.md
+- olympus-impl/reports/parity-track-plans-index.md
+
+Product direction:
+Olympus is PiCodingAgent-first. Greek/Olympus names are codenames for authority-bounded modules, not roleplay personas.
+
+Scope:
+Implement first-party Olympus skills/prompts/commands, prompt contracts, plan/diff review artifacts, handoff generation, and initial bounded Olympus module shells. Do not implement uncontrolled swarm behavior or write-capable Hephaestus until safety gates are proven.
+
+Implement modules under packages/olympus/src as needed:
+- resources/
+- prompts/
+- skills/
+- review/
+- contracts/
+- handoff/
+- modules/
+- commands/
+or equivalent names consistent with existing package layout.
+
+Required features:
+
+1. First-party resource authoring schemas
+Implement validators and generation/inspection support for:
+- Olympus-owned skills
+- Olympus-owned prompt templates
+- extension command metadata
+- provenance markers
+- support-file metadata
+- command collision checks
+
+2. First-party skills/prompts package
+Implement Olympus-owned resource package generation or source structure for:
+- safety review skill
+- package risk review skill
+- extension authoring skill
+- sandbox troubleshooting skill
+- cleanup audit skill
+- verification handoff skill
+- plan review prompt
+- prompt contract prompt
+- quota-aware workflow prompt
+- RTK-aware command guidance prompt/skill
+
+Do not install globally.
+Do not write to ~/.pi.
+Project-local/resource generation must be explicit and manifest-ready.
+
+3. Prompt contract artifact model
+Implement:
+- prompt-contract.json schema
+- goal
+- context
+- constraints
+- inspected surfaces
+- allowed mutations
+- forbidden mutations
+- acceptance criteria
+- verification commands
+- risk flags
+- stop conditions
+- compact output by default
+
+4. Plan/diff review artifact model
+Implement:
+- plan.json
+- diff.json
+- annotations.json
+- decision.json
+- feedback.md
+- audit.jsonl
+- plan digest
+- diff digest
+- approve / deny / needs-edit states
+- no external server
+- no repo reads unless explicitly requested
+
+5. Hermes handoff command
+Implement compact handoff/status summaries using existing artifacts.
+- no secrets
+- no decision alteration
+- no project source mutation
+- deterministic output
+
+6. Olympus module shells
+Implement read-only or blocked shells for:
+- Athena: planning / architecture review
+- Themis: policy / approval gates
+- Apollo: verification / diagnostics
+- Hermes: handoff / routing / compact summaries
+- Hestia: state / continuity
+- Aegis: runtime safety
+- Moirai: dependency ordering
+
+Hephaestus:
+- create only an apply-gate placeholder if needed
+- it must reject writes until approved plan digest, path allowlist, manifest ownership, and Themis approval are implemented and tested
+- no actual broad apply behavior in this phase unless authority explicitly allows it
+
+7. CLI commands
+Add or extend commands as appropriate:
+- olympus resources validate --json
+- olympus prompt contract <input-or-file> --json
+- olympus review plan <plan-file> --json
+- olympus review diff <diff-file> --json
+- olympus handoff current --json
+- olympus module status --json
+- olympus module run <module> --dry-run --json
+
+8. Pi extension surfaces
+If implemented, they must be Olympus-owned and must call shared service modules:
+- risk report command
+- status handoff command
+- plan review command
+- prompt contract command
+
+9. Tests
+Add targeted tests:
+- skill/prompt metadata validates
+- command collision detected
+- support files copied/hashed
+- prompt contract preserves user paths/constraints
+- unapproved write plan blocked
+- approval digest mismatch blocks continuation
+- Athena cannot write
+- Themis blocks unsafe action
+- Apollo rejects commands outside allowlist
+- Hephaestus rejects missing/changed plan digest
+- Hermes produces compact handoff without reading secrets
+- Hestia refuses writes outside .pi/olympus
+- Moirai produces dependency graph only
+- no module writes to ~/.pi by default
+- RTK-aware guidance appears for output-heavy commands when RTK is available
+
+10. Verification
+Run:
+- bun run olympus:test
+- Olympus-only TypeScript check
+- bunx biome check packages/olympus --max-diagnostics 200
+- relevant CLI smoke checks:
+  - resources validate
+  - prompt contract
+  - review plan
+  - review diff
+  - handoff current
+  - module status
+- git diff --check
+
+Safety constraints:
+- No uncontrolled swarm behavior.
+- No module gains write authority by prompt instruction.
+- Hephaestus is the only implementation/write module, and it remains blocked unless safety gates are proven.
+- Athena plans but cannot apply.
+- Themis gates but does not implement.
+- Apollo verifies but cannot mutate project source.
+- Hermes summarizes but cannot alter decisions.
+- Hestia writes only Olympus-owned state.
+- Aegis blocks unsafe runtime actions but does not execute package code.
+- Moirai orders tasks but does not execute them.
+- Parallel work is read-only only unless future file-level lock/manifest queues exist.
+- No external server by default.
+- No repo reads unless explicitly requested.
+- Preview before editor replacement.
+- Output-heavy workflows should prefer RTK-backed commands where available.
+- Do not execute third-party package code.
+- Do not write to ~/.pi.
+- Do not perform cleanup.
+
+Update:
+- docs/specs only where needed for implemented Track B behavior
+- olympus-impl/CHECKLIST.md
+- olympus-impl/state/current.md
+- olympus-impl/state/next.md
+- olympus-impl/logs/phase-track-b-authoring-workflow-impl.md
+
+End with:
+“Track B authoring/workflow implementation complete.”
