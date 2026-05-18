@@ -1,6 +1,0 @@
-{
-  "id": "generated_diff",
-  "provider": "opencode",
-  "description": "Compare installed generated artifacts against current OAL render output.",
-  "body": "Run `oal inspect generated-diff` and report rendered artifact source inputs and generated/source drift candidates."
-}

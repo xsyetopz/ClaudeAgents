@@ -1,11 +1,14 @@
 #!/usr/bin/env bun
+import { runCatalog } from "./commands/catalog";
 import { runExtension } from "./commands/extension";
 import { runInspect } from "./commands/inspect";
 import { runInstall } from "./commands/install";
 import { runPackageEvaluate } from "./commands/package-evaluate";
 import { runPlan } from "./commands/plan";
+import { runStatus } from "./commands/status";
 import { runUninstall } from "./commands/uninstall";
 import { runVerify } from "./commands/verify";
+import { runInteractiveCli } from "./interactive";
 import { type ExitCode, OlympusError } from "./types";
 
 interface ParsedArgs {
@@ -46,6 +49,9 @@ function dispatch(parsed: ParsedArgs): ExitCode | Promise<ExitCode> {
 		return 0;
 	}
 	if (parsed.command === "inspect") return runInspect(parsed.args, parsed.json);
+	if (parsed.command === "catalog") return runCatalog(parsed.json);
+	if (parsed.command === "spec") return runCatalog(parsed.json);
+	if (parsed.command === "status") return runStatus(parsed.json);
 	if (parsed.command === "plan") return runPlan(parsed.args, parsed.json);
 	if (parsed.command === "verify") return runVerify(parsed.json);
 	if (parsed.command === "extension")
@@ -53,6 +59,7 @@ function dispatch(parsed: ParsedArgs): ExitCode | Promise<ExitCode> {
 	if (parsed.command === "package-evaluate")
 		return runPackageEvaluate(parsed.args, parsed.json);
 	if (parsed.command === "package") return runPackage(parsed.args, parsed.json);
+	if (parsed.command === "interactive") return runInteractiveCli(parsed.args);
 	if (parsed.command === "install") return runInstall(parsed.args, parsed.json);
 	if (parsed.command === "uninstall")
 		return runUninstall(parsed.args, parsed.json);
@@ -94,12 +101,15 @@ Usage:
   olympus inspect <local-package-path> [--json]
   olympus package evaluate <source> [--json]
   olympus package-evaluate <source> [--json]
+  olympus catalog [--json]
+  olympus status [--json]
   olympus plan <operation> [source] [--json]
   olympus verify [--json]
+  olympus interactive
   olympus extension inspect <path> [--json]
-  olympus extension create <name> --dry-run [--json]
-  olympus install <source> --project --dry-run [--json]
-  olympus uninstall <package-id> --project --dry-run [--json]
+  olympus extension create <name> [--dry-run|--apply --output <directory>] [--json]
+  olympus install <source> --project [--dry-run|--apply] [--json]
+  olympus uninstall <package-id> --project [--dry-run|--apply] [--json]
 
 Exit codes:
   0 success

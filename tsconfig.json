@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.base.json",
   "include": [
-    "packages/**/*.ts",
-    "tests/**/*.ts"
+    "packages/olympus/src/**/*.ts",
+    "packages/olympus/test/*.test.ts"
+  ],
+  "exclude": [
+    "packages/olympus/test/fixtures/**"
   ]
 }

@@ -1,28 +1,13 @@
-import type { Stats } from "node:fs";
-import { stat } from "node:fs/promises";
-import path from "node:path";
-import { fileExists, hashFile, toPosix } from "../hashing";
-import { asJson } from "../report";
+import {
+	createExtensionSkeleton,
+	inspectExtensionPath,
+} from "../extension-authoring";
+import {
+	asJson,
+	formatExtensionCreate,
+	formatExtensionInspect,
+} from "../report";
 import { type ExitCode, OlympusError } from "../types";
-
-interface ExtensionInspectReport {
-	schemaVersion: 1;
-	command: "extension inspect";
-	path: string;
-	entrypoints: Array<{ path: string; hash: string }>;
-	decision: "inspect-only";
-	warnings: string[];
-}
-
-interface ExtensionCreateReport {
-	schemaVersion: 1;
-	command: "extension create";
-	name: string;
-	apply: false;
-	blocked: true;
-	wouldWrite: string[];
-	reason: string;
-}
 
 export function runExtension(
 	args: string[],
@@ -39,105 +24,52 @@ async function runExtensionInspect(
 	json: boolean,
 ): Promise<ExitCode> {
 	const source = args[0];
-	if (source === undefined)
+	if (source === undefined) {
 		throw new OlympusError(
 			"usage: olympus extension inspect <path> [--json]",
 			2,
 		);
-	const sourcePath = path.resolve(source);
-	const entrypoints = await resolveEntrypoints(sourcePath);
-	const report: ExtensionInspectReport = {
-		schemaVersion: 1,
-		command: "extension inspect",
-		path: sourcePath,
-		entrypoints,
-		decision: "inspect-only",
-		warnings: entrypoints.length === 0 ? ["no extension entrypoint found"] : [],
-	};
+	}
+	const report = await inspectExtensionPath(source);
 	process.stdout.write(json ? asJson(report) : formatExtensionInspect(report));
+	return report.warnings.length > 0 ? 1 : 0;
+}
+
+async function runExtensionCreate(
+	args: string[],
+	json: boolean,
+): Promise<ExitCode> {
+	const name = args.find((arg) => !arg.startsWith("--"));
+	if (name === undefined) {
+		throw new OlympusError(
+			"usage: olympus extension create <name> [--dry-run|--apply --output <directory>] [--json]",
+			2,
+		);
+	}
+	const outputDirectory = readFlagValue(args, "--output");
+	const apply = args.includes("--apply");
+	const dryRun = args.includes("--dry-run") || !apply;
+	if (apply && dryRun && args.includes("--dry-run")) {
+		throw new OlympusError(
+			"extension create cannot combine --apply and --dry-run",
+			2,
+		);
+	}
+	const report = await createExtensionSkeleton({
+		name,
+		...(outputDirectory === undefined ? {} : { outputDirectory }),
+		apply,
+	});
+	process.stdout.write(json ? asJson(report) : formatExtensionCreate(report));
 	return 0;
 }
 
-function runExtensionCreate(args: string[], json: boolean): ExitCode {
-	const name = args.find((arg) => !arg.startsWith("--"));
-	if (name === undefined)
-		throw new OlympusError(
-			"usage: olympus extension create <name> --dry-run [--json]",
-			2,
-		);
-	if (!args.includes("--dry-run")) {
-		throw new OlympusError(
-			"extension create apply is deferred until the authoring phase; rerun with --dry-run",
-			3,
-		);
+function readFlagValue(args: string[], flagName: string): string | undefined {
+	const index = args.indexOf(flagName);
+	if (index < 0) return undefined;
+	const value = args[index + 1];
+	if (value === undefined || value.startsWith("--")) {
+		throw new OlympusError(`${flagName} requires a value`, 2);
 	}
-	const report: ExtensionCreateReport = {
-		schemaVersion: 1,
-		command: "extension create",
-		name,
-		apply: false,
-		blocked: true,
-		wouldWrite: [
-			`.pi/olympus/extensions/${name}/package.json`,
-			`.pi/olympus/extensions/${name}/src/index.ts`,
-			`.pi/olympus/extensions/${name}/README.md`,
-			`.pi/olympus/extensions/${name}/olympus-extension.json`,
-		],
-		reason:
-			"Phase 03 exposes the command boundary; first-party extension authoring is Phase 04 scope",
-	};
-	process.stdout.write(json ? asJson(report) : formatExtensionCreate(report));
-	return 3;
-}
-
-async function resolveEntrypoints(
-	sourcePath: string,
-): Promise<Array<{ path: string; hash: string }>> {
-	let sourceStat: Stats;
-	try {
-		sourceStat = await stat(sourcePath);
-	} catch {
-		throw new OlympusError(`extension path does not exist: ${sourcePath}`, 2);
-	}
-	if (sourceStat.isFile())
-		return [{ path: sourcePath, hash: await hashFile(sourcePath) }];
-	if (!sourceStat.isDirectory())
-		throw new OlympusError(
-			`extension path is not a file or directory: ${sourcePath}`,
-			2,
-		);
-	const candidates = ["index.ts", "index.js", "src/index.ts", "src/index.js"];
-	const entrypoints: Array<{ path: string; hash: string }> = [];
-	for (const candidate of candidates) {
-		const candidatePath = path.join(sourcePath, candidate);
-		if (await fileExists(candidatePath)) {
-			entrypoints.push({
-				path: toPosix(path.relative(sourcePath, candidatePath)),
-				hash: await hashFile(candidatePath),
-			});
-		}
-	}
-	return entrypoints;
-}
-
-function formatExtensionInspect(report: ExtensionInspectReport): string {
-	const lines = [
-		`Olympus extension inspection: ${report.path}`,
-		`Entrypoints: ${report.entrypoints.length}`,
-	];
-	for (const entrypoint of report.entrypoints)
-		lines.push(`- ${entrypoint.path} ${entrypoint.hash}`);
-	for (const warning of report.warnings) lines.push(`warning: ${warning}`);
-	return `${lines.join("\n")}\n`;
-}
-
-function formatExtensionCreate(report: ExtensionCreateReport): string {
-	const lines = [
-		"Olympus extension create dry-run",
-		`Name: ${report.name}`,
-		`Reason: ${report.reason}`,
-	];
-	for (const writePath of report.wouldWrite)
-		lines.push(`would write: ${writePath}`);
-	return `${lines.join("\n")}\n`;
+	return value;
 }

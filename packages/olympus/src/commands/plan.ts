@@ -1,4 +1,4 @@
-import { evaluateLocalPackage } from "../evaluation";
+import { planPassiveInstall } from "../install-flow";
 import { asJson } from "../report";
 import { type ExitCode, OlympusError } from "../types";
 
@@ -46,19 +46,14 @@ async function createPlan(
 		};
 	}
 	if (operation === "install" && source !== undefined) {
-		await evaluateLocalPackage(source);
+		const installPlan = await planPassiveInstall({ source, apply: false });
 		return {
 			schemaVersion: 1,
 			operation,
 			mutationPolicy: "dry-run-only",
-			wouldWrite: [
-				".pi/settings.json packages entry",
-				".pi/olympus/olympus-manifest.json",
-				".pi/olympus/packages/<package-id>/package/**",
-			],
-			blocked: true,
-			reason:
-				"Phase 03 exposes the boundary only; manifest-backed apply is a later phase",
+			wouldWrite: installPlan.wouldWrite,
+			blocked: installPlan.blocked,
+			reason: installPlan.reason,
 		};
 	}
 	return {

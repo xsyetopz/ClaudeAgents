@@ -1,75 +1,89 @@
-# Olympus Implementation Plan
+# Olympus Plan
 
-This repository is being re-authored from OpenAgentLayer (OAL) into Olympus under the temporary authority of `olympus-impl/`.
+Olympus is the active product in this repository.
 
-## Governing sequence
+## Completed implementation sequence
 
-1. Phase 00 — formal study of original OAL architecture and entire pipeline
-2. Phase 01 — design the PiCodingAgent-first Olympus harness extension
-3. Phase 02 — create gitignored `oal_legacy/` reference snapshot and implementation plan
-4. Phase 03+ — implement Olympus and clean up only after replacements exist
+- Phase 00 studied the historical architecture and pipeline.
+- Phase 01 designed the PiCodingAgent-first Olympus harness.
+- Phase 02 created the gitignored legacy reference snapshot and cleanup plan.
+- Phases 03 through 07 implemented the active Olympus CLI, package evaluator, extension authoring, project-local install/uninstall, verification, status, catalog, and spec surfaces.
+- Phase 08 completed destructive cleanup after replacement and rewrote active docs, specs, metadata, package scripts, and CI for Olympus.
+- Phase 09 completed final acceptance and confirmed bootstrap-removal readiness.
+- Phase cleanup completed a post-final root cleanup inventory, removed remaining classified legacy-branded root surfaces, and preserved `oal_legacy/`.
+- Phase post-audit-cleanup completed a narrow owner-authorized review and found no additional active legacy product surfaces eligible for deletion.
+- Phase final-plan created the final implementation roadmap for future owner review.
+- Phase docs-010 prepared Olympus 0.1.0 docs/specs readiness for a source-checkout commit boundary.
 
-No destructive active OAL cleanup is allowed until phases 00, 01, and 02 are complete, `oal_legacy/` exists, paths are classified, and replacements or deletion reasons are documented.
+## Active product boundary
 
-## Current status
+- `packages/olympus` owns active source, tests, and CLI behavior.
+- Root docs, `docs/`, and `specs/` describe Olympus 0.1.0 behavior and planned work precisely.
+- Root package metadata and `packages/olympus/package.json` identify Olympus version 0.1.0.
+- `third_party/` is protected reference material until a final third-party policy exists.
+- The gitignored legacy snapshot is reference-only and must not be imported by active code.
 
-Phase 00, Phase 01, and Phase 02 are complete.
+## Verified commands
 
-Phase 00 study outputs:
+Current Olympus gates:
 
-- `olympus-impl/studies/oal-architecture.md`
-- `olympus-impl/studies/oal-pipeline.md`
-- `olympus-impl/studies/oal-strengths.md`
-- `olympus-impl/studies/oal-gaps.md`
-- `olympus-impl/classification/root-paths.md`
-- `olympus-impl/classification/configs.md`
-- `olympus-impl/classification/third-party.md`
+```sh
+bun install --frozen-lockfile
+bun run olympus:test
+bun run typecheck
+bunx biome check packages/olympus --max-diagnostics 200
+bun run olympus:verify -- --json
+bun run olympus:catalog -- --json
+git diff --check
+```
 
-Phase 01 design outputs:
+Phase docs-010 additionally smoke-checked help, inspect, package evaluate, extension create/inspect, install dry-run, status, catalog, spec, and verify JSON output.
 
-- `olympus-impl/design/olympus-harness.md`
-- `olympus-impl/design/extension-system.md`
-- `olympus-impl/design/cli-system.md`
-- `olympus-impl/design/verification-system.md`
-- `olympus-impl/contracts/product.md`
-- `olympus-impl/contracts/cli.md`
-- `olympus-impl/contracts/extension.md`
-- `olympus-impl/contracts/package-evaluation.md`
+## 0.1.0 docs/specs readiness
 
-Phase 02 preparation outputs:
+Phase docs-010 created `olympus-impl/reports/docs-specs-010-inventory.md` and rewrote the active root docs, docs set, and specs set for Olympus 0.1.0:
 
-- `oal_legacy/` gitignored reference snapshot
-- `olympus-impl/IMPLEMENTATION_PLAN.md`
-- `olympus-impl/DELETE_AFTER_REPLACEMENT.md`
-- `olympus-impl/logs/phase-02.md`
+- `README.md`
+- `INSTALLATION.md`
+- `SECURITY.md`
+- `CONTRIBUTING.md`
+- `CHANGELOG.md`
+- `docs/README.md`
+- `docs/architecture.md`
+- `docs/package-model.md`
+- `docs/security.md`
+- `docs/extensions.md`
+- `docs/roadmap.md`
+- `docs/oal-lessons.md`
+- `specs/README.md`
+- `specs/product.md`
+- `specs/versioning.md`
+- `specs/cli.md`
+- `specs/package-inspection.md`
+- `specs/install-uninstall.md`
+- `specs/extension-authoring.md`
+- `specs/security.md`
+- `specs/verification.md`
+- `specs/roadmap-parity.md`
 
-## Olympus product decision
+0.1.0 is the first committed Olympus source-checkout product boundary in the 0-series line. It is not a v1-style compatibility guarantee and does not claim completed future roadmap work.
 
-Olympus is PiCodingAgent-first. It is not OAL vNext, an OAL compatibility bridge, or a three-provider renderer.
+## Bootstrap readiness
 
-The strongest OAL ideas are retained only as re-authored Olympus patterns:
+The active product no longer depends on the temporary phase controller. `olympus-impl/` remains in this working tree only to satisfy phase handoff/log requirements and may be archived or removed after owner review. Do not remove `third_party/` without a separate explicit policy and verification.
 
-- source intent separated from generated output;
-- deterministic inspection/evaluation;
-- Pi-native package/resource awareness;
-- plan/apply setup behavior;
-- manifest-backed ownership and uninstall;
-- executable verification fixtures;
-- acceptance as an end-to-end product simulation;
-- durable state/handoff files;
-- explicit third-party package evaluation before installation or execution.
+## Cleanup phase
 
-The main risks to avoid remain:
+The cleanup phase created `olympus-impl/reports/cleanup-inventory.md` and `olympus-impl/reports/cleanup-report.md`, then removed only classified active root surfaces that were replaced, obsolete, or retained in `oal_legacy/`:
 
-- copying OAL provider architecture into Olympus;
-- keeping OAL compatibility/migration framing in active Olympus docs;
-- treating generated artifacts as source truth;
-- installing third-party Pi packages without conflict evaluation;
-- executing third-party Pi code without trust, lock, capability, and OS sandbox gates;
-- deleting active OAL material before documented replacements and verification exist.
+- `.agents/`
+- `prompts/`
+- temporary phase/legacy snapshot scripts under `scripts/`
 
-## Next phase only
+`packages/olympus/`, `olympus-impl/`, `oal_legacy/`, `third_party/`, `.gitmodules`, active docs, CI, root package-manager config, TypeScript config, Biome config, and legal/security/community docs remain preserved.
 
-Run phase 03 next in a new Pi session unless a narrower authorized Phase 02 subphase is explicitly selected.
+## Post-audit cleanup phase
 
-Phase 03 must implement real Olympus low-level CLI package boundaries in `packages/olympus` while preserving active OAL files. Do not perform destructive cleanup in Phase 03.
+The post-audit cleanup phase created `olympus-impl/reports/post-audit-cleanup-plan.md` and `olympus-impl/reports/post-audit-cleanup-report.md`. It reviewed the remaining active root after final audit, cleanup, and parity roadmap audit. No additional deletion was applied because remaining legacy-term references are retained phase-controller or historical cleanup provenance, not active product identity.
+
+`packages/olympus/`, `oal_legacy/`, `third_party/`, `.gitmodules`, `olympus-impl/`, final audit reports, roadmap reports, and active Olympus docs/configs remain preserved.

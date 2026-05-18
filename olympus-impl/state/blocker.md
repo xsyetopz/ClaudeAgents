@@ -1,3 +1,0 @@
-# Blocker
-
-No blocker recorded.

@@ -1,168 +1,43 @@
-# Contributing to OpenAgentLayer
+# Contributing to Olympus
 
-This repo moves fast. Keep changes small, current, and verified against real
-OAL behavior.
+Olympus changes must preserve the PiCodingAgent-first safety model and the 0.1.0 source-checkout product boundary.
 
-## Read first
+## Local checks
 
-Before large changes, read:
+Run the narrow Olympus checks before submitting changes:
 
-- `AGENTS.md`
-- `README.md`
-- `CHANGELOG.md`
-- `docs/README.md`
-- `specs/README.md`
-- `specs/01-product.md`
-- `specs/02-source-render-deploy.md`
-- `specs/03-provider-surfaces.md`
-- `specs/05-architecture.md`
-- `specs/06-acceptance.md`
+```sh
+bun run olympus:test
+bun run typecheck
+bunx biome check packages/olympus --max-diagnostics 200
+bun run olympus:verify -- --json
+git diff --check
+```
 
-`reference notes/` is read-only reference material. Do not modify it and do not import
-it from runtime code.
+Use broader Biome checks when touching repository-wide JavaScript or TypeScript:
 
-## Workflow
-
-1. Fork the repo.
-2. Clone your fork.
-3. Fetch upstream skill submodules:
-   ```bash
-   git submodule update --init --recursive
-   ```
-4. Create a focused branch.
-5. Make one coherent change set.
-6. Preview generated output when source or renderers change.
-7. Run targeted validation.
-8. Commit with a message that explains why.
-9. Open a pull request with motivation, approach, generated-output evidence, and
-   test evidence.
-
-## Ground rules
-
-- Prefer surgical diffs over broad rewrites.
-- Keep public docs aligned with current behavior.
-- Keep package boundaries clear: one package, one responsibility.
-- Do not add placeholders, demo folders, fake schemas, disconnected catalogs, or
-  docs-as-implementation.
-- Do not hand-edit generated output as the source of truth.
-- Keep executable hooks as `.mjs` files with the shebang on the first line.
-- Keep provider-specific behavior honest; do not copy assumptions across Claude
-  Code, Codex, and OpenCode without checking the supported surface.
-- Use OpenAgentLayer or OAL naming in active code, docs, package metadata, CI,
-  Homebrew metadata, and generated user-facing artifacts.
-
-## Validation
-
-Pick commands that match touched areas.
-
-### Core repo
-
-```bash
-bunx tsc --noEmit
-bun run test
-bun run oal:accept
+```sh
 bun run biome:check
 ```
 
-### Generated output and deploy behavior
+## Product rules
 
-```bash
-bun run oal:check
-bun run oal:preview -- --provider all
-bun run oal:preview -- --provider codex --path .codex/config.toml --content
-bun run oal:deploy -- --target /tmp/oal-check --scope project --provider all --dry-run
-bun run oal:plugins -- --home /tmp/oal-home --provider all --dry-run
-```
+- Do not execute third-party Pi package code during inspect, evaluate, install planning, status, catalog, spec, or verify flows.
+- Do not write to `~/.pi` by default.
+- Keep mutating project-local operations dry-run first and manifest-owned.
+- Bind trust and uninstall decisions to content hashes and explicit resource inventories.
+- Keep implemented behavior separate from planned roadmap work.
+- Do not claim sandbox, broker, global install, executable package support, release archives, or registry publishing until tests prove it.
+- Keep active product docs aligned with implemented behavior and 0-series versioning.
 
-### Release surfaces
+## Protected material
 
-```bash
-ruby -c homebrew/Casks/openagentlayer.rb
-bun run oal:roadmap:evidence
-```
-
-### Product naming audit
-
-```bash
-grep -R -n -i 'blocked-name-pattern' README.md CONTRIBUTING.md CHANGELOG.md docs homebrew packages source tests package.json .github
-```
-
-Replace `blocked-name-pattern` with the blocked names being checked during the
-release audit.
-
-## Provider notes
-
-### Codex
-
-- Allowed models: `gpt-5.5`, `gpt-5.4-mini`, `gpt-5.3-codex`.
-- `AGENTS.md` is a managed block.
-- `.codex/config.toml` feature toggles need concise inline reasons.
-- Hooks must stay executable `.mjs`.
-
-### Claude Code
-
-- Allowed models: `claude-opus-4-6`, `claude-opus-4-6[1m]`,
-  `claude-sonnet-4-6`, `claude-haiku-4-5`.
-- `CLAUDE.md` is a managed block.
-- Hooks are command handlers that call executable `.mjs` scripts.
-
-### OpenCode
-
-- `opencode.jsonc` owns native config, agents, commands, tools, plugins,
-  instructions, permissions, and model fallbacks.
-- Generated tools live under `.opencode/tools`.
-- Hooks must stay executable `.mjs`.
-
-## CI/CD
-
-CI runs on pull requests to `master` and pushes to `master`.
-
-The workflow must:
-
-- run typecheck, tests, acceptance, lint, roadmap evidence, and cask syntax
-- run render/deploy dry-runs before any submission step
-- submit Homebrew updates only from `xsyetopz/OpenAgentLayer` on `master`
-- refuse fork deploys at workflow condition and shell guard levels
-- avoid `pull_request_target`
-- avoid broad write permissions
-
-Homebrew submission uses `HOMEBREW_TAP_REPOSITORY` and `HOMEBREW_TAP_TOKEN`.
-Without those values, CI skips submission after required checks pass.
+- `third_party/` remains protected reference material until an explicit policy replaces it.
+- `oal_legacy/` is a gitignored historical reference snapshot and must not be imported by active code.
 
 ## Pull request checklist
 
-- [ ] Scope is focused.
-- [ ] `bunx tsc --noEmit` passes when TypeScript changed.
-- [ ] `bun run test` passes when behavior changed.
-- [ ] `bun run oal:accept` passes for generator, deployer, provider, hook, or policy
-      changes.
-- [ ] Generated previews or dry-runs were inspected for source/render changes.
-- [ ] Homebrew cask syntax passes for release-surface changes.
-- [ ] Reference docs or tests changed with behavior changes.
-- [ ] Commit messages explain intent.
-- [ ] PR description states what changed and how it was validated.
-
-## Reporting bugs
-
-Include:
-
-- reproduction steps
-- expected vs actual behavior
-- generated artifact path or provider surface
-- relevant source snippet or diagnostic output
-- commit hash
-- platform details
-
-## Using AI tools
-
-AI assistance is allowed. You own the result.
-
-- read surrounding code first
-- verify generated changes
-- run real tests
-- do not merge code you do not understand
-
-## Code of Conduct
-
-Be direct, respectful, and evidence-based. Keep technical disagreement focused
-on code, behavior, tests, and user impact.
+- [ ] Added or updated targeted tests for changed behavior.
+- [ ] Updated docs/specs when command behavior changed.
+- [ ] Ran the local checks above.
+- [ ] Confirmed no new default writes to user-global Pi state.

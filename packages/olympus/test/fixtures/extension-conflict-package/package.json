@@ -1,0 +1,7 @@
+{
+	"name": "extension-conflict-package",
+	"version": "1.0.0",
+	"pi": {
+		"extensions": ["extensions/alpha.ts", "extensions/beta.ts"]
+	}
+}

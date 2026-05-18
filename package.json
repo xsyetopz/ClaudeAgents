@@ -1,6 +1,6 @@
 {
-	"name": "openagentlayer",
-	"version": "0.9.0-beta.1",
+	"name": "olympus",
+	"version": "0.1.0",
 	"private": true,
 	"type": "module",
 	"workspaces": [
@@ -12,49 +12,16 @@
 		"biome:lint": "bunx biome lint . --max-diagnostics 16384",
 		"biome:lint:fix": "bun run biome:lint --write",
 		"biome:format": "bunx biome format . --write --max-diagnostics 16384",
-		"oal:accept": "bun packages/cli/src/main.ts accept",
-		"oal:check": "bun packages/cli/src/main.ts check",
-		"oal:deploy": "bun packages/cli/src/main.ts deploy",
-		"oal:bin": "bun packages/cli/src/main.ts bin",
-		"oal:profiles": "bun packages/cli/src/main.ts profiles",
-		"oal:state": "bun packages/cli/src/main.ts state",
-		"oal:uninstall": "bun packages/cli/src/main.ts uninstall",
-		"oal:plugins": "bun packages/cli/src/main.ts plugins",
-		"oal:render": "bun packages/cli/src/main.ts render",
-		"oal:preview": "bun packages/cli/src/main.ts preview",
-		"oal:features": "bun packages/cli/src/main.ts features",
-		"oal:roadmap:evidence": "bun packages/cli/src/main.ts roadmap-evidence",
-		"oal:rtk-gain": "bun packages/cli/src/main.ts rtk-gain",
-		"gitleaks:sync": "bun scripts/sync-gitleaks-rules.mjs",
-		"gitleaks:check": "bun scripts/sync-gitleaks-rules.mjs --check",
-		"test": "bun test packages/*/__tests__/*.test.ts tests/*.test.ts",
-		"test:unit": "bun test packages/*/__tests__/*.test.ts",
-		"test:e2e": "bun test tests/*.test.ts",
-		"oal:toolchain": "bun packages/cli/src/main.ts toolchain",
+		"typecheck": "bunx tsc --noEmit",
+		"test": "bun run olympus:test",
 		"olympus": "bun packages/olympus/src/cli.ts",
-		"olympus:test": "bun test packages/olympus/test/*.test.ts"
-	},
-	"dependencies": {
-		"@clack/prompts": "^1.4.0",
-		"@openagentlayer/accept": "workspace:*",
-		"@openagentlayer/adapter": "workspace:*",
-		"@openagentlayer/artifact": "workspace:*",
-		"@openagentlayer/cli": "workspace:*",
-		"@openagentlayer/deploy": "workspace:*",
-		"@openagentlayer/inspect": "workspace:*",
-		"@openagentlayer/manifest": "workspace:*",
-		"@openagentlayer/plugins": "workspace:*",
-		"@openagentlayer/policy": "workspace:*",
-		"@openagentlayer/runtime": "workspace:*",
-		"@openagentlayer/source": "workspace:*",
-		"@openagentlayer/toolchain": "workspace:*",
-		"@opencode-ai/plugin": "1.14.48",
-		"commander": "^14.0.3",
-		"@openagentlayer/setup": "workspace:*"
+		"olympus:test": "bun test packages/olympus/test/*.test.ts",
+		"olympus:verify": "bun packages/olympus/src/cli.ts verify",
+		"olympus:catalog": "bun packages/olympus/src/cli.ts catalog"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",
-		"bun-types": "1.3.13"
+		"bun-types": "1.3.14"
 	},
 	"engines": {
 		"node": ">=24.14.1"

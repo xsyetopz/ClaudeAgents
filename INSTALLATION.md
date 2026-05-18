@@ -1,367 +1,86 @@
-# Installation
+# Installing Olympus 0.1.0
 
-This guide covers the supported OpenAgentLayer install and setup paths. Use `--dry-run` before any command that writes provider homes or project files.
+Olympus 0.1.0 is a source-checkout product. There are no release archives, package-registry artifacts, or platform package-manager formulae for this 0.1.0 boundary.
 
-## Contents
+## Requirements
 
-1. [Installation](#installation)
-   1. [Contents](#contents)
-   2. [Prerequisites](#prerequisites)
-   3. [Install from source](#install-from-source)
-   4. [Install online](#install-online)
-   5. [Install with Homebrew](#install-with-homebrew)
-   6. [Interactive CLI](#interactive-cli)
-   7. [Profiles and State](#profiles-and-state)
-   8. [Set up provider plugins](#set-up-provider-plugins)
-   9. [Deploy into a project](#deploy-into-a-project)
-   10. [Deploy globally](#deploy-globally)
-   11. [Select model plans](#select-model-plans)
-   12. [Verify the install](#verify-the-install)
-   13. [Uninstall](#uninstall)
-   14. [Troubleshooting](#troubleshooting)
+- Bun 1.3.14
+- Node.js 24.14.1 or newer for Node-compatible tooling
+- macOS or another Unix-like development shell for the verified workflow
 
-## Prerequisites
+## Source checkout setup
 
-OAL expects:
-
-- Bun `1.3.13` for repository scripts.
-- Git submodules for upstream skill sources.
-- RTK for command-efficient validation and CI parity.
-- Provider CLIs or config homes for the providers you plan to use.
-
-Recommended toolchain plan:
-
-```bash
-bun run oal:toolchain -- --os macos --optional ctx7,playwright,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis
-bun run oal:toolchain -- --os linux --pkg apt --optional ctx7,playwright,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis
-```
-
-The plan prints copy-safe `bash` blocks. Paste command lines without Markdown list bullets.
-
-The toolchain plan includes Bun itself. OAL-generated npm/pnpm/yarn/npx shims rely on Bun being present before provider usage starts. `setup --toolchain` can run the same toolchain plan as part of a full setup dry-run or apply.
-
-Install RTK when it is missing:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh
-rtk --version
-rtk gain
-rtk init -g --auto-patch
-rtk init -g --codex
-rtk init -g --opencode
-rtk init --show
-```
-
-RTK must be the `rtk-ai/rtk` binary. `rtk gain` verifies the correct package. `rtk init` must create an `RTK.md` policy in global tool config or the current project before OAL hooks enforce RTK-wrapped commands.
-
-## Install from source
-
-Use source checkout when you want current repository behavior or contributor validation.
-
-```bash
-git clone https://github.com/xsyetopz/OpenAgentLayer.git
-cd OpenAgentLayer
-git submodule update --init --recursive
+```sh
+git clone <repository-url> olympus
+cd olympus
 bun install --frozen-lockfile
-bun run oal:check
+bun run olympus -- --help
+bun run olympus:verify -- --json
 ```
 
-Preview generated provider artifacts:
+The root package is private and runs Olympus directly from `packages/olympus/src/cli.ts`.
 
-```bash
-bun run oal:preview -- --provider all
-bun run oal:preview -- --provider codex --path .codex/config.toml --content
+## Common checks
+
+```sh
+bun run olympus:test
+bun run typecheck
+bunx biome check packages/olympus --max-diagnostics 200
+bun run olympus:catalog -- --json
+bun run olympus:verify -- --json
 ```
 
-Plan the full setup flow without writing:
+## Project-local package install workflow
 
-```bash
-bun run setup -- --scope global --provider all --toolchain --optional ctx7,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis --dry-run
+Olympus installs only approved passive Pi resources into the current project when explicitly applied.
+
+Preview first:
+
+```sh
+bun run olympus -- install /path/to/pi-package --project --dry-run
 ```
 
-Use the source checkout convenience script to run dependency setup and the OAL CLI:
+Apply only after reviewing the plan:
 
-```bash
-./install.sh setup --scope global --provider all --toolchain --optional ctx7,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis --dry-run
+```sh
+bun run olympus -- install /path/to/pi-package --project --apply
 ```
 
-Without arguments, `install.sh` runs global setup with the default optional tools from `OAL_OPTIONAL_TOOLS` or `ctx7` plus the curated top 10 officialskills essentials. Setup installs those skills into the selected Codex home and skips skills that already have `SKILL.md`.
-
-## Install online
-
-Use `install-online.sh` when you want the script to handle the git checkout. It clones OAL into a temporary directory, initializes submodules, copies the checkout into `OAL_INSTALL_DIR` or `$HOME/.local/share/openagentlayer`, runs `install.sh`, and removes the temporary clone.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/xsyetopz/OpenAgentLayer/master/install-online.sh -o install-online.sh
-chmod +x install-online.sh
-./install-online.sh setup --scope global --provider all --toolchain --optional ctx7,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis --dry-run
-```
-
-Environment overrides:
-
-```bash
-OAL_REF=master OAL_INSTALL_DIR="$HOME/.local/share/openagentlayer" ./install-online.sh check
-```
-
-## Install with Homebrew
-
-The repository includes `homebrew/Casks/openagentlayer.rb`. The cask expects a release archive named:
+Applied install writes only these project-local paths:
 
 ```text
-openagentlayer-<version>-macos-universal.tar.gz
+.pi/settings.json
+.pi/olympus/olympus.lock
+.pi/olympus/olympus-manifest.json
+.pi/olympus/audit.jsonl
+.pi/olympus/packages/<package-id>/package/**
 ```
 
-The archive must contain `bin/oal`. After the cask is published in a tap, install from that tap and verify:
+The installed package is a sanitized project-local mirror owned by Olympus metadata. It is not a global Pi installation.
 
-```bash
-brew install --cask openagentlayer
-oal check
-oal preview --provider all
+## Uninstall workflow
+
+Preview manifest-owned removal:
+
+```sh
+bun run olympus -- uninstall <package-id> --project --dry-run
 ```
 
-Before submitting cask changes, run:
+Apply removal:
 
-```bash
-rtk ruby -c homebrew/Casks/openagentlayer.rb
+```sh
+bun run olympus -- uninstall <package-id> --project --apply
 ```
 
-## Interactive CLI
+Uninstall authority comes from `.pi/olympus/olympus-manifest.json`. Hash mismatches preserve changed files for manual review.
 
-Run without a command in a TTY for guided prompts:
+## No global writes by default
 
-```bash
-bun packages/cli/src/main.ts
-```
+Olympus 0.1.0 does not write to `~/.pi` by default. Verification uses fake homes to guard that boundary.
 
-The interactive path uses Commander-parsed commands plus Clack prompts. It is a tiny TUI with category prompts first, then workflow prompts inside Start, Inspect, Artifacts, Extend, and Manage. Use Search workflows to filter by label, action, or hint. Nested workflow prompts include Back to categories, and the hub includes Quit. Interactive setup is a high-level wrapper over the low-level `setup` command. Provider prompts use multiselect where the command can act on multiple providers. Global flows detect the home directory automatically and only ask when you override it. Non-TTY usage prints help instead of blocking for input.
+## Unsupported at 0.1.0
 
-Optional feature commands can be printed separately:
-
-```bash
-bun run oal:features -- --install ctx7,playwright,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis
-bun run oal:features -- --remove ctx7,playwright,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis
-```
-
-Feature labels use `[CLI]` for command-line setup, `[MCP]` for provider MCP configuration, and `[skill]` for curated external skills from officialskills.sh. Curated skill options install their source repo and named skill with `bunx skills add <repo> --skill <name>`.
-
-Print the current curated skill catalog:
-
-```bash
-bun run oal:features -- --catalog
-bun run oal:features -- --catalog --json
-bun run oal:features -- --catalog-url https://officialskills.sh/openai/skills/security-best-practices --json
-```
-
-Run an OAL-owned MCP server directly when a provider launches it:
-
-```bash
-bun packages/cli/src/main.ts mcp serve oal-inspect
-```
-
-## Profiles and State
-
-Profiles preserve reusable setup choices in `~/.openagentlayer/config.json` by default. Use `--config /path/to/config.json` for fixtures or team-specific profiles.
-
-Save and activate a profile:
-
-```bash
-bun run oal:profiles -- save global --scope global --provider opencode,codex --optional ctx7,skill-openai-gh-fix-ci --codex-plan pro-20 --opencode-plan opencode-free --activate
-```
-
-Inspect available profiles:
-
-```bash
-bun run oal:profiles -- list
-bun run oal:profiles -- show global
-bun run oal:profiles -- args global
-bun run oal:profiles -- edit global --scope global --provider codex,opencode --optional ctx7,skill-openai-gh-fix-ci
-bun run oal:profiles -- rename global daily
-bun run oal:profiles -- remove daily
-```
-
-Use a profile with setup:
-
-```bash
-bun run setup -- --profile global --dry-run
-```
-
-Inspect what OAL can apply or remove for the active profile:
-
-```bash
-bun run oal:state -- inspect
-bun run oal:state -- inspect --profile global --json
-```
-
-`state inspect` reports requested providers, provider binaries available in `PATH`, skipped provider reasons, deploy write/update/skip counts, owned-manifest removal eligibility, optional feature command counts, and the setup argument vector selected from the profile.
-
-## Set up provider plugins
-
-User-level plugin sync writes provider-native plugin payloads into provider homes. Always inspect the dry-run first:
-
-```bash
-bun run oal:plugins -- --home "$HOME" --provider all --dry-run
-bun run oal:plugins -- --home "$HOME" --provider all
-```
-
-Provider-specific dry-runs:
-
-```bash
-bun run oal:plugins -- --home "$HOME" --provider codex --dry-run
-bun run oal:plugins -- --home "$HOME" --provider claude --dry-run
-bun run oal:plugins -- --home "$HOME" --provider opencode --dry-run
-```
-
-Claude Code plugin metadata lives under `.claude-plugin/` and the Claude plugin root. Codex plugin metadata lives under `.codex-plugin/` and the Codex marketplace entry. OpenCode plugin metadata lives under `plugins/opencode/openagentlayer/` and generated project plugin files.
-
-## Deploy into a project
-
-Project deploy renders provider-native artifacts and writes OAL ownership metadata into the target project. Dry-run first:
-
-```bash
-bun run oal:deploy -- --target /path/to/project --scope project --provider all --dry-run
-```
-
-Apply all providers:
-
-```bash
-bun run oal:deploy -- --target /path/to/project --scope project --provider all
-```
-
-Apply one provider:
-
-```bash
-bun run oal:deploy -- --target /path/to/project --scope project --provider codex
-bun run oal:deploy -- --target /path/to/project --scope project --provider claude
-bun run oal:deploy -- --target /path/to/project --scope project --provider opencode
-```
-
-Generated files that support comments include OAL managed markers. Edit `source/` and rerender instead of editing generated files directly.
-
-## Deploy globally
-
-Global deploy writes provider-native artifacts under the selected home directory. It also installs an owned source-checkout `oal` shim into `$HOME/.local/bin/oal` unless `--skip-bin` is passed. Dry-run first:
-
-```bash
-bun run oal:deploy -- --scope global --provider all --dry-run
-bun run oal:deploy -- --scope global --provider all --dry-run --verbose
-```
-
-Apply all providers:
-
-```bash
-bun run oal:deploy -- --scope global --provider all
-```
-
-Apply one provider:
-
-```bash
-bun run oal:deploy -- --scope global --provider codex
-bun run oal:deploy -- --scope global --provider claude
-bun run oal:deploy -- --scope global --provider opencode
-```
-
-Use `--home /path/to/home` for fixture installs or non-default provider homes. OAL records global ownership under `.openagentlayer/manifest/global/` in that home.
-
-For Codex, global deploy writes `.codex/requirements.toml` as the managed-hook
-policy template. Codex itself only grants approval-free hooks from its managed
-requirements layer, so install the rendered requirements file into the
-environment's Codex managed requirements location when hooks must run without
-review prompts.
-
-If the binary directory is not in `PATH`, OAL prints the exact `export PATH=...` command. The current shell cannot see a newly available command until `PATH` is updated and the shell command cache is refreshed.
-
-Manage the source-checkout shim directly:
-
-```bash
-bun packages/cli/src/main.ts bin --dry-run
-bun packages/cli/src/main.ts bin
-bun packages/cli/src/main.ts bin --remove
-```
-
-## Select model plans
-
-Model plans are optional. Without a plan, OAL uses cost-balanced Codex profile defaults and source record defaults for generated agents. With a plan, OAL applies subscription-specific provider model and reasoning choices for each Greek agent. Codex renders `plan_mode_reasoning_effort` for plan mode and `model_reasoning_effort` for edit/implementation mode separately. Default, Plus, and Pro-5 profiles avoid `gpt-5.5`; Pro-20 uses `gpt-5.5` high without defaulting to xhigh.
-
-Codex plans:
-
-```bash
-bun run oal:deploy -- --target /path/to/project --scope project --provider codex --plan plus --dry-run
-bun run oal:deploy -- --target /path/to/project --scope project --provider codex --plan pro-5 --dry-run
-bun run oal:deploy -- --target /path/to/project --scope project --provider codex --plan pro-20 --dry-run
-```
-
-Claude Code plans:
-
-```bash
-bun run oal:deploy -- --target /path/to/project --scope project --provider claude --plan max-5 --dry-run
-bun run oal:deploy -- --target /path/to/project --scope project --provider claude --plan max-20 --dry-run
-bun run oal:deploy -- --target /path/to/project --scope project --provider claude --plan max-20-long --dry-run
-```
-
-OpenCode plans:
-
-```bash
-bun run oal:preview -- --provider opencode --plan opencode-auto --path opencode.jsonc --content
-bun run oal:preview -- --provider opencode --plan opencode-free --path opencode.jsonc --content
-```
-
-`opencode-auto` runs `opencode models` and uses authenticated allowed models when available. If `opencode models` is unavailable, it falls back to OAL's free OpenCode set. Use `opencode-auth` when fallback should be an error.
-
-For reproducible dry-runs:
-
-```bash
-opencode models > /tmp/opencode-models.txt
-bun run oal:preview -- --provider opencode --plan opencode-auto --opencode-models-file /tmp/opencode-models.txt --path opencode.jsonc --content
-```
-
-## Verify the install
-
-Source checkout validation:
-
-```bash
-rtk bun run test
-rtk bun run oal:accept
-rtk proxy -- bun run oal:accept
-rtk bun run biome:check
-rtk bunx tsc --noEmit
-```
-
-Installed binary smoke test:
-
-```bash
-oal check
-oal preview --provider all
-oal toolchain --os macos --optional ctx7,skill-openai-gh-fix-ci,skill-trailofbits-static-analysis
-```
-
-RTK policy check:
-
-```bash
-bun run oal:rtk-gain -- --allow-empty-history
-```
-
-## Uninstall
-
-Uninstall removes OAL-owned artifacts for one provider. It does not accept `all` because each provider should be removed deliberately.
-
-```bash
-bun run oal:uninstall -- --target /path/to/project --scope project --provider codex
-bun run oal:uninstall -- --target /path/to/project --scope project --provider claude
-bun run oal:uninstall -- --target /path/to/project --scope project --provider opencode
-bun run oal:uninstall -- --scope global --provider codex
-bun run oal:uninstall -- --scope global --provider claude
-bun run oal:uninstall -- --scope global --provider opencode
-```
-
-After project uninstall, inspect the target project's git status. User-owned files and user-authored blocks should remain.
-
-## Troubleshooting
-
-| Symptom                                               | Check                                                                                          |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `bun run oal:check` fails on missing upstream skills. | Run `git submodule update --init --recursive`.                                                 |
-| Preview shows stale provider output.                  | Edit `source/`, not generated artifacts, then rerun `bun run oal:preview -- --provider all`.   |
-| Deploy wants to touch unexpected paths.               | Stop and inspect `--dry-run` output before applying.                                           |
-| Codex sessions do not show OAL instructions.          | Confirm `.codex/AGENTS.md` exists and the generated profile is active in `.codex/config.toml`. |
-| OpenCode tools fail to load.                          | Confirm dependencies include `@opencode-ai/plugin` and rerun `bun install --frozen-lockfile`.  |
-| RTK gain fails in local release checks.               | Run RTK-wrapped commands, then rerun `bun run oal:rtk-gain -- --allow-empty-history`.          |
+- Global installation.
+- Executing third-party package code.
+- Sandboxed extension execution.
+- Release archives, registry publishing, or platform package-manager distribution.

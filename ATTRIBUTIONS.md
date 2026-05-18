@@ -1,9 +1,7 @@
 # Attributions
 
-This drop-in was shaped by the uploaded Pi research corpus:
+Olympus keeps upstream reference material in `third_party/` until a final third-party package and reference policy is decided.
 
-- Pi users warn that extension stacks can conflict and often recommend writing/adapting your own extensions.
-- Pi users recommend physical handoff/progress files and fresh sessions for context control.
-- Pi users describe package sprawl and duplicate extensions as a practical failure mode.
+No active Olympus command vendors or executes that reference material by default.
 
-The installer does not install third-party Pi packages.
+The gitignored legacy snapshot remains available locally as historical reference material and is not part of the active product package graph.

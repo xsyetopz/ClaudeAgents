@@ -1,4 +1,4 @@
-name: OAL CI/CD
+name: Olympus CI
 
 on:
   push:
@@ -9,16 +9,13 @@ on:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 concurrency:
-  group: oal-${{ github.workflow }}-${{ github.ref }}
+  group: olympus-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    name: Quality gates
+    name: Olympus quality gates
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -26,160 +23,21 @@ jobs:
         with:
           submodules: false
           persist-credentials: false
-      - name: Fetch upstream skill submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive --jobs 1
-          git submodule status --recursive
-      - name: Verify upstream skill submodules
-        run: |
-          test -f third_party/caveman/skills/caveman/SKILL.md
-          test -f third_party/taste-skill/skills/taste-skill/SKILL.md
-          test -f third_party/impeccable/skill/SKILL.md
-          test -f third_party/gitleaks/config/gitleaks.toml
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.13
-      - name: Setup RTK
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh
-          echo "$HOME/.rtk/bin" >> "$GITHUB_PATH"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
+          bun-version: 1.3.14
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Typecheck
-        run: rtk proxy -- bunx tsc --noEmit
-      - name: Gitleaks rule sync
-        run: rtk proxy -- bun run gitleaks:check
+        run: bun run typecheck
       - name: Test
-        run: rtk proxy -- bun run test
-      - name: Acceptance
-        run: rtk proxy -- bun run oal:accept
-      - name: RTK gain policy
-        run: |
-          printf "%s\n" "$OAL_RTK_GAIN_FIXTURE" > "$RUNNER_TEMP/oal-rtk-gain.txt"
-          rtk proxy -- bun run oal:rtk-gain -- --from-file "$RUNNER_TEMP/oal-rtk-gain.txt" --allow-empty-history
-        env:
-          OAL_RTK_GAIN_FIXTURE: |
-            Total commands:    1
-            Tokens saved:      10K (92.9%)
-      - name: Lint
-        run: rtk proxy -- bun run biome:check
-      - name: Roadmap evidence
-        run: rtk proxy -- bun run oal:roadmap:evidence
-      - name: Homebrew cask syntax
-        run: ruby -c homebrew/Casks/openagentlayer.rb
-  dry-run:
-    name: Render and deploy dry-run
-    runs-on: macos-15
-    needs: quality
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: false
-          persist-credentials: false
-      - name: Fetch upstream skill submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive --jobs 1
-          git submodule status --recursive
-      - name: Verify upstream skill submodules
-        run: |
-          test -f third_party/caveman/skills/caveman/SKILL.md
-          test -f third_party/taste-skill/skills/taste-skill/SKILL.md
-          test -f third_party/impeccable/skill/SKILL.md
-          test -f third_party/gitleaks/config/gitleaks.toml
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - name: Setup RTK
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh
-          echo "$HOME/.rtk/bin" >> "$GITHUB_PATH"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Source check
-        run: rtk proxy -- bun run oal:check
-      - name: Preview generated artifacts
-        run:
-          rtk proxy -- bun run oal:preview -- --provider all --path .codex/config.toml
-          --content
-      - name: Deploy dry-run
-        run: |
-          target="$(mktemp -d)"
-          rtk proxy -- bun run oal:deploy -- --target "$target" --scope project --provider all --dry-run
-      - name: Installed CLI smoke
-        run: |
-          smoke="$(mktemp -d)"
-          mkdir -p "$smoke/provider-bin" "$smoke/project"
-          for provider in codex claude opencode; do
-            printf '#!/usr/bin/env sh\nexit 0\n' > "$smoke/provider-bin/$provider"
-            chmod +x "$smoke/provider-bin/$provider"
-          done
-          export PATH="$smoke/provider-bin:$PATH"
-          rtk proxy -- bun packages/cli/src/main.ts deploy --scope global --home "$smoke/home" --bin-dir "$smoke/bin" --provider all --quiet
-          rtk proxy -- "$smoke/bin/oal" check --verbose
-          rtk proxy -- "$smoke/bin/oal" deploy --target "$smoke/project" --scope project --provider all --quiet
-          test -f "$smoke/project/.codex/config.toml"
-          test -f "$smoke/project/.claude/settings.json"
-          test -f "$smoke/project/opencode.jsonc"
-
-  homebrew-submission:
-    name: Homebrew submission
-    runs-on: macos-15
-    needs: [quality, dry-run]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-      github.repository == 'xsyetopz/OpenAgentLayer'
-    env:
-      HOMEBREW_TAP_REPOSITORY: ${{ vars.HOMEBREW_TAP_REPOSITORY }}
-      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: false
-          persist-credentials: false
-      - name: Fetch upstream skill submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive --jobs 1
-          git submodule status --recursive
-      - name: Verify upstream skill submodules
-        run: |
-          test -f third_party/caveman/skills/caveman/SKILL.md
-          test -f third_party/taste-skill/skills/taste-skill/SKILL.md
-      - name: Refuse fork deploy
-        run: test "$GITHUB_REPOSITORY" = "xsyetopz/OpenAgentLayer"
-      - name: Refuse non-master deploy
-        run: test "$GITHUB_REF" = "refs/heads/master"
-      - name: Verify cask before submission
-        run: |
-          ruby -c homebrew/Casks/openagentlayer.rb
-          grep -q 'https://github.com/xsyetopz/OpenAgentLayer' homebrew/Casks/openagentlayer.rb
-      - name: Submit cask to tap
-        if: env.HOMEBREW_TAP_REPOSITORY != '' && env.HOMEBREW_TAP_TOKEN != ''
-        run: |
-          version="$(node -p "require('./package.json').version")"
-          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/${HOMEBREW_TAP_REPOSITORY}.git" tap
-          mkdir -p tap/Casks
-          cp homebrew/Casks/openagentlayer.rb tap/Casks/openagentlayer.rb
-          cd tap
-          git diff --check
-          if git diff --exit-code -- Casks/openagentlayer.rb; then
-            echo "Homebrew cask already current."
-            exit 0
-          fi
-          git config user.name "openagentlayer-release"
-          git config user.email "actions@github.com"
-          git add Casks/openagentlayer.rb
-          git commit -m "Update OpenAgentLayer cask to ${version}" -m "Co-authored-by: Codex <noreply@openai.com>"
-          git push
-      - name: Skip cask submission without tap credentials
-        if: env.HOMEBREW_TAP_REPOSITORY == '' || env.HOMEBREW_TAP_TOKEN == ''
-        run: echo "Homebrew tap credentials not configured; guarded deploy skipped."
+        run: bun run olympus:test
+      - name: Verify
+        run: bun run olympus:verify -- --json
+      - name: Catalog smoke
+        run: bun run olympus:catalog -- --json
+      - name: Lint Olympus package
+        run: bunx biome check packages/olympus --max-diagnostics 200
+      - name: Diff whitespace check
+        run: git diff --check

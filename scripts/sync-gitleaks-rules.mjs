@@ -12,7 +12,7 @@ const upstreamConfigPath = join(
 	"third_party/gitleaks/config/gitleaks.toml",
 );
 const patchPath = join(root, "patches/gitleaks-toml.patch");
-const outputPath = join(root, "packages/runtime/hooks/_gitleaks-rules.mjs");
+const outputPath = join(root, "olympus-impl/reference/gitleaks-rules.mjs");
 const check = process.argv.includes("--check");
 const RULE_SPLIT_PATTERN = /^\[\[rules\]\]\s*$/m;
 
@@ -27,12 +27,13 @@ if (check) {
 	}
 	console.log("Gitleaks rule sync OK");
 } else {
+	await mkdir(dirname(outputPath), { recursive: true });
 	await writeFile(outputPath, generated);
 	console.log(`Synced ${outputPath}`);
 }
 
 async function patchedGitleaksConfig() {
-	const tempRoot = await mkdtemp(join(tmpdir(), "oal-gitleaks-rules-"));
+	const tempRoot = await mkdtemp(join(tmpdir(), "olympus-gitleaks-rules-"));
 	try {
 		await mkdir(join(tempRoot, "config"), { recursive: true });
 		await writeFile(
@@ -44,7 +45,9 @@ async function patchedGitleaksConfig() {
 			encoding: "utf8",
 		});
 		if (result.status !== 0)
-			throw new Error(result.stderr || "failed to apply Gitleaks OAL patch");
+			throw new Error(
+				result.stderr || "failed to apply Gitleaks supplemental patch",
+			);
 		return await readFile(join(tempRoot, "config/gitleaks.toml"), "utf8");
 	} finally {
 		await rm(tempRoot, { recursive: true, force: true });

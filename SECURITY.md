@@ -1,70 +1,38 @@
-# Security Policy
+# Olympus Security
 
-## Reporting Vulnerabilities
+Olympus 0.1.0 is designed to inspect, evaluate, and mirror local Pi resources conservatively. It is not a sandbox for arbitrary third-party code.
 
-Report security issues via GitHub Security Advisories (preferred) or email. Do not open public issues for security vulnerabilities.
+## Threat model
 
-## Security Model
+Olympus assumes a local Pi package may contain misleading metadata, executable files, lifecycle scripts, hooks, tools, provider adapters, or extension code. The 0.1.0 safety goal is to inspect and classify those files without executing them, then allow only passive resources into project-local, manifest-owned mirrors.
 
-OpenAgentLayer hooks are guardrails, not walls. They catch common mistakes and enforce best practices but are not a security boundary against determined adversaries.
+## Current protections
 
-### What Hooks Protect Against
+- Package inspection and evaluation read files only; they do not run lifecycle scripts, package scripts, extension code, hooks, tools, or providers.
+- Executable resources are classified conservatively and blocked from default passive install.
+- Extension inspection reads `olympus-extension.json` and source-shape metadata without importing or running extension code.
+- Applied install writes only Olympus-owned project-local `.pi/olympus/**` files plus managed `.pi/settings.json` package entries.
+- Applied uninstall removes only manifest-owned resources with matching hashes.
+- Hash mismatches are preserved for manual review.
+- Verification uses temporary projects and fake homes to check no-global-write behavior.
 
-| Hook                | Protects against                                               |
-| ------------------- | -------------------------------------------------------------- |
-| `pre-bash.mjs`      | Broad `rm -rf`, blanket `git add .`, DNS exfiltration patterns |
-| `post-bash.mjs`     | Accidental secret leaks in command output                      |
-| `post-write.mjs`    | Placeholder/stub code reaching production                      |
-| `subagent-scan.mjs` | Silent scope reduction by agents                               |
+## Current non-guarantees
 
-### What Hooks Do Not Protect Against
+Olympus 0.1.0 does not provide:
 
-- Sophisticated prompt injection attacks
-- Adversarial code in untrusted repositories
-- Supply chain attacks via dependencies
+- safe execution of untrusted third-party extensions, tools, hooks, providers, package scripts, or lifecycle scripts;
+- user-global Pi installation safety;
+- operating-system sandbox containment;
+- brokered access to host credentials, shells, files outside the project, network services, or external APIs;
+- supply-chain verification beyond local file hashing and conservative resource classification.
 
-### Defense in Depth
+## Reporting vulnerabilities
 
-For production use, combine hooks with:
+Please report security issues privately to the repository maintainers. Include:
 
-1. **OS-level sandboxing** -- macOS Seatbelt, Linux bubblewrap, or Docker containers
-2. **Permission deny rules** -- settings template blocks access to `~/.ssh`, `~/.aws`, credentials
-3. **Code review** -- `@nemesis` should review changes before committing; use `/cca:git-workflow` for Git hygiene
-4. **Minimal permissions** -- only grant tools each agent needs (enforced via agent frontmatter)
+- affected command and Olympus version or commit;
+- reproduction steps using temporary projects or fake homes where possible;
+- observed file writes, code execution, or boundary violation;
+- expected safety boundary.
 
-## Sandboxing
-
-### macOS (Seatbelt)
-
-Use Claude Code's built-in `/sandbox` command, or run with a custom Seatbelt profile restricting filesystem and network access to the project directory.
-
-### Linux (bubblewrap)
-
-```bash
-bwrap --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp \
-  --bind "$PROJECT_DIR" "$PROJECT_DIR" \
-  --unshare-net \
-  claude
-```
-
-### Docker / Devcontainers
-
-Mount only the project directory. Do not mount `~/.ssh`, `~/.aws`, or other credential stores.
-
-## Known CVE Mitigations
-
-| CVE            | Impact                           | Fix                                                                  |
-| -------------- | -------------------------------- | -------------------------------------------------------------------- |
-| CVE-2025-59536 | RCE via malicious project config | Fixed in Claude Code v1.0.111                                        |
-| CVE-2026-21852 | API key exfiltration             | Fixed in Claude Code v2.0.65; pre-secrets hook adds extra protection |
-
-Always update to the latest Claude Code version.
-
-## Skill/Plugin Vetting
-
-Before installing third-party skills or plugins:
-
-1. Read the SKILL.md or plugin source code
-2. Check for hidden instructions or obfuscated commands
-3. Verify the author's reputation and repository history
-4. Prefer plugins from verified marketplaces with audit trails
+Do not include real secrets in reports.

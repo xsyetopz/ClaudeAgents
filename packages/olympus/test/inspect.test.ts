@@ -125,7 +125,7 @@ describe("Olympus CLI", () => {
 		expect(JSON.parse(stdout).package.name).toBe("passive-package");
 	});
 
-	test("blocks install apply and avoids writes outside explicit dry-run output", async () => {
+	test("plans passive install without writing fake home or project state", async () => {
 		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-cli-test-"));
 		try {
 			const marker = path.join(tempRoot, "fake-home", ".pi", "marker.json");
@@ -140,6 +140,7 @@ describe("Olympus CLI", () => {
 					"--json",
 				],
 				{
+					cwd: tempRoot,
 					env: { ...process.env, HOME: path.join(tempRoot, "fake-home") },
 				},
 			);
@@ -147,9 +148,14 @@ describe("Olympus CLI", () => {
 				new Response(proc.stdout).text(),
 				proc.exited,
 			]);
-			expect(exitCode).toBe(3);
-			expect(JSON.parse(stdout).blocked).toBe(true);
+			const report = JSON.parse(stdout);
+			expect(exitCode).toBe(0);
+			expect(report.blocked).toBe(false);
+			expect(report.wouldWrite).toContain(".pi/settings.json packages entry");
 			await expect(readFile(marker, "utf8")).rejects.toThrow();
+			await expect(
+				readFile(path.join(tempRoot, ".pi", "settings.json"), "utf8"),
+			).rejects.toThrow();
 			await writeFile(path.join(tempRoot, "assert-temp-root-used"), "ok\n");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
