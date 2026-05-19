@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	buildOperationalFailureReport,
+	reviewAgentInstructions,
 	reviewDocumentationQuality,
 	validateOperationalFailureText,
 } from "reporting";
@@ -66,5 +67,27 @@ Remaining blocker: none. If you want, I can fix it later.`);
 			"Run `bun run olympi:verify -- --json` after changes. Acceptance requires exit code 0 and no manifest-owned file drift.",
 		);
 		expect(technical.valid).toBe(true);
+	});
+
+	test("stale or conflicting agent instructions are detected semantically", () => {
+		const conflicting =
+			reviewAgentInstructions(`Complete work without verification.
+If blocked, continue with unrelated cleanup.
+Use path names as ownership evidence.`);
+
+		expect(conflicting.valid).toBe(false);
+		expect(conflicting.findings.join("\n")).toContain(
+			"conflicts with verification-backed completion",
+		);
+		expect(conflicting.findings.join("\n")).toContain(
+			"conflicts with blocker stop rule",
+		);
+
+		const scoped = reviewAgentInstructions(`Unexplained changes are user-owned.
+Ownership requires manifest hash, provenance, or explicit user approval.
+Completion requires verification commands.
+When blocked, stop the affected path and do not continue unrelated work.`);
+
+		expect(scoped.valid).toBe(true);
 	});
 });

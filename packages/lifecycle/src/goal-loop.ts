@@ -69,6 +69,9 @@ export interface GoalCompletionEvidence {
 	completedRequirements: string[];
 	verification: GoalVerificationRecord[];
 	completionAuditComplete: boolean;
+	intendedChangedFiles?: string[];
+	observedChangedFiles?: string[];
+	unresolvedBlockers?: string[];
 }
 
 export interface GoalVerificationGate {
@@ -76,6 +79,9 @@ export interface GoalVerificationGate {
 	reasons: string[];
 	missingAcceptance: string[];
 	missingVerificationCommands: string[];
+	missingIntendedChangedFiles: string[];
+	unexpectedChangedFiles: string[];
+	unresolvedBlockers: string[];
 	completionAuditComplete: boolean;
 }
 
@@ -374,6 +380,21 @@ export function verifyGoalCompletion(
 	const missingVerificationCommands = objective.verificationCommands.filter(
 		(command) => !passingCommands.has(command),
 	);
+	const intendedChangedFiles = sortUnique(evidence.intendedChangedFiles ?? []);
+	const observedChangedFiles = sortUnique(evidence.observedChangedFiles ?? []);
+	const missingIntendedChangedFiles =
+		intendedChangedFiles.length === 0
+			? []
+			: intendedChangedFiles.filter(
+					(filePath) => !observedChangedFiles.includes(filePath),
+				);
+	const unexpectedChangedFiles =
+		observedChangedFiles.length === 0 || intendedChangedFiles.length === 0
+			? []
+			: observedChangedFiles.filter(
+					(filePath) => !intendedChangedFiles.includes(filePath),
+				);
+	const unresolvedBlockers = sortUnique(evidence.unresolvedBlockers ?? []);
 	const reasons = [
 		...missingAcceptance.map(
 			(requirement) => `missing acceptance evidence: ${requirement}`,
@@ -381,6 +402,13 @@ export function verifyGoalCompletion(
 		...missingVerificationCommands.map(
 			(command) => `verification command has not passed: ${command}`,
 		),
+		...missingIntendedChangedFiles.map(
+			(filePath) => `intended file is absent from observed diff: ${filePath}`,
+		),
+		...unexpectedChangedFiles.map(
+			(filePath) => `unintended file is present in observed diff: ${filePath}`,
+		),
+		...unresolvedBlockers.map((blocker) => `unresolved blocker: ${blocker}`),
 		...(evidence.completionAuditComplete
 			? []
 			: ["completion audit has not been explicitly completed"]),
@@ -390,6 +418,9 @@ export function verifyGoalCompletion(
 		reasons: reasons.sort(),
 		missingAcceptance,
 		missingVerificationCommands,
+		missingIntendedChangedFiles,
+		unexpectedChangedFiles,
+		unresolvedBlockers,
 		completionAuditComplete: evidence.completionAuditComplete,
 	};
 }

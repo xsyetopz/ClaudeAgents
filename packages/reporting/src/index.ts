@@ -42,6 +42,7 @@ export {
 	formatAcceptanceReport,
 } from "./reports/acceptance.js";
 export type {
+	AgentInstructionReviewReport,
 	DocumentationReviewCriterion,
 	DocumentationReviewReport,
 	OperationalFailureField,
@@ -52,6 +53,7 @@ export {
 	buildOperationalFailureReport,
 	formatOperationalFailureReport,
 	OPERATIONAL_FAILURE_FIELDS,
+	reviewAgentInstructions,
 	reviewDocumentationQuality,
 	validateOperationalFailureText,
 } from "./reports/operational.js";

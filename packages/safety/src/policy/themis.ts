@@ -6,12 +6,16 @@ import {
 } from "./protected-paths.js";
 import { redactPolicySecrets } from "./secrets.js";
 import type {
+	CommandClassificationAudit,
 	HookPolicyStatus,
 	PolicyDecision,
 	PolicyEvent,
 	PolicyEventType,
 } from "./types.js";
-import { workspaceOwnershipReasons } from "./workspace-ownership.js";
+import {
+	classifyPolicyEventCommand,
+	workspaceOwnershipReasons,
+} from "./workspace-ownership.js";
 
 const SUBSCRIBED_EVENTS: PolicyEventType[] = [
 	"tool_call",
@@ -33,8 +37,10 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 	const redactions: string[] = [];
 	let redactedText: string | null = null;
 	let requiredNextAction: string | null = null;
+	let commandClassification: CommandClassificationAudit | undefined;
 
 	if (event.eventType === "tool_call") {
+		commandClassification = classifyPolicyEventCommand(event).audit;
 		reasons.push(...dangerousCommandReasons(event.command, event.argv));
 		reasons.push(...workspaceOwnershipReasons(event));
 		for (const filePath of event.paths ?? [event.path].filter(isString)) {
@@ -121,6 +127,7 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 		}),
 		blocked: decision === "block",
 		redactedText,
+		...(commandClassification === undefined ? {} : { commandClassification }),
 	};
 }
 

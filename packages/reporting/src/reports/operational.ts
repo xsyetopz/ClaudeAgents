@@ -22,6 +22,20 @@ const SUBJECTIVE_CLAIM_PATTERN =
 	/\b(revolutionary|magical|world[- ]class|best[- ]in[- ]class|stunning|delightful|game[- ]changing|seamless)\b/gi;
 const OPERATIONAL_EVIDENCE_PATTERN =
 	/\b(because|measured|verified|tested|acceptance|evidence|exit code)\b/gi;
+const INSTRUCTION_OWNERSHIP_CONTEXT_PATTERN =
+	/ambiguous|unexplained changes|user-owned/i;
+const INSTRUCTION_OWNERSHIP_PROOF_PATTERN =
+	/manifest|hash|provenance|explicit user approval/i;
+const INSTRUCTION_COMPLETION_CONTEXT_PATTERN = /complete|completion|success/i;
+const INSTRUCTION_VERIFICATION_PATTERN = /verification|validation|commands/i;
+const INSTRUCTION_CONFLICTS_VERIFICATION_PATTERN =
+	/complete[^.\n]*(without|no)[^.\n]*(verification|validation|test)/i;
+const INSTRUCTION_BLOCKER_CONTEXT_PATTERN = /blocked|blocker/i;
+const INSTRUCTION_BLOCKER_STOP_PATTERN =
+	/stop|do not switch|do not continue|pause/i;
+const INSTRUCTION_CONFLICTS_BLOCKER_PATTERN =
+	/(continue|keep going)[^.\n]*(blocked|blocker)|blocked[^.\n]*(continue|keep going)/i;
+const INSTRUCTION_NEGATED_CONTINUE_PATTERN = /do not continue/i;
 
 export type OperationalFailureField =
 	(typeof OPERATIONAL_FAILURE_FIELDS)[number];
@@ -57,6 +71,20 @@ export interface DocumentationReviewReport {
 	criteria: string[];
 	examplesChecked: string[];
 	deterministicDigest: string;
+}
+
+export interface AgentInstructionReviewReport {
+	schemaVersion: 1;
+	valid: boolean;
+	findings: string[];
+	criteria: string[];
+	deterministicDigest: string;
+}
+
+interface AgentInstructionCriterion {
+	id: string;
+	description: string;
+	check(text: string): string[];
 }
 
 export function buildOperationalFailureReport(
@@ -131,6 +159,27 @@ export function reviewDocumentationQuality(
 			"operational doc with commands, scope, and acceptance",
 			"hype copy with unsupported claims and no verification",
 		],
+	};
+	return {
+		...withoutDigest,
+		deterministicDigest: deterministicDigest(withoutDigest),
+	};
+}
+
+export function reviewAgentInstructions(
+	text: string,
+): AgentInstructionReviewReport {
+	const criteria = defaultAgentInstructionCriteria();
+	const findings = sortStrings(
+		criteria.flatMap((criterion) =>
+			criterion.check(text).map((finding) => `${criterion.id}: ${finding}`),
+		),
+	);
+	const withoutDigest = {
+		schemaVersion: 1 as const,
+		valid: findings.length === 0,
+		findings,
+		criteria: criteria.map((criterion) => criterion.id),
 	};
 	return {
 		...withoutDigest,
@@ -228,6 +277,60 @@ function defaultDocumentationCriteria(): DocumentationReviewCriterion[] {
 				return claimCount > evidenceCount
 					? ["unsupported subjective claims exceed operational evidence"]
 					: [];
+			},
+		},
+	];
+}
+
+function defaultAgentInstructionCriteria(): AgentInstructionCriterion[] {
+	return [
+		{
+			id: "workspace-ownership",
+			description:
+				"Instructions must preserve user-owned ambiguous workspace changes.",
+			check(text) {
+				const hasOwnershipRule =
+					INSTRUCTION_OWNERSHIP_CONTEXT_PATTERN.test(text) &&
+					INSTRUCTION_OWNERSHIP_PROOF_PATTERN.test(text);
+				return hasOwnershipRule
+					? []
+					: ["missing ownership proof rule for ambiguous workspace changes"];
+			},
+		},
+		{
+			id: "completion-verification",
+			description:
+				"Instructions must require verification before completion claims.",
+			check(text) {
+				const hasVerificationRule =
+					INSTRUCTION_COMPLETION_CONTEXT_PATTERN.test(text) &&
+					INSTRUCTION_VERIFICATION_PATTERN.test(text);
+				const contradictsVerification =
+					INSTRUCTION_CONFLICTS_VERIFICATION_PATTERN.test(text);
+				return [
+					...(hasVerificationRule
+						? []
+						: ["missing verification-backed completion rule"]),
+					...(contradictsVerification
+						? ["conflicts with verification-backed completion"]
+						: []),
+				];
+			},
+		},
+		{
+			id: "blocker-stop",
+			description: "Instructions must stop the affected path when blocked.",
+			check(text) {
+				const hasStopRule =
+					INSTRUCTION_BLOCKER_CONTEXT_PATTERN.test(text) &&
+					INSTRUCTION_BLOCKER_STOP_PATTERN.test(text);
+				const contradictsStopRule =
+					INSTRUCTION_CONFLICTS_BLOCKER_PATTERN.test(text) &&
+					!INSTRUCTION_NEGATED_CONTINUE_PATTERN.test(text);
+				return [
+					...(hasStopRule ? [] : ["missing blocker stop rule"]),
+					...(contradictsStopRule ? ["conflicts with blocker stop rule"] : []),
+				];
 			},
 		},
 	];

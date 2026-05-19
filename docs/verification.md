@@ -26,7 +26,11 @@ git diff --check
 - fake-home checks protect user-global Pi state;
 - hook veto decisions stop unsafe actions;
 - ambiguous workspace paths cannot be restored, deleted, moved, broadly formatted, staged, or committed without ownership proof;
+- command classification reports class preconditions, provenance requirements,
+  blocker behavior, and audit fields through Themis decisions;
 - goal completion requires verification evidence;
+- goal completion rejects missing intended files, unintended diff files, and
+  unresolved blockers;
 - continuation recovery preserves objective and audit requirements;
 - skill selection is topical and lazy.
 

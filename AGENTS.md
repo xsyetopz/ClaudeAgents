@@ -25,3 +25,9 @@ Failure reports use these fields: Failure, Impact, Change, Verification, Remaini
 ## Tool use
 
 Prefer scoped inspection and `apply_patch` edits. Avoid broad formatter/write commands unless the touched paths are explicitly scoped and ownership is proven. Keep durable project behavior in package code, hooks, tests, and docs rather than long prompt text.
+
+Command classes are enforced by policy: read-only inspection, formatting/write,
+destructive workspace, revert-like, staging, commit, and generated-artifact.
+Anything outside read-only inspection needs the matching preconditions,
+provenance checks, blocker behavior, and audit output from Themis before it can
+run.

@@ -11,6 +11,7 @@ import {
 	appendHestiaAudit,
 	auditRecordFromDecision,
 	classifyWorkspaceCommand,
+	commandClassPolicy,
 	decidePolicy,
 	loadQuotaStatus,
 	runSandboxProbe,
@@ -60,7 +61,7 @@ describe("Track A Themis policy decisions", () => {
 			manifestOwned: false,
 		});
 		expect(decision.blocked).toBe(true);
-		expect(decision.requiredNextAction).toContain("manifest");
+		expect(decision.requiredNextAction).toContain("ownership");
 	});
 
 	test("secret output is redacted before policy summaries", () => {
@@ -130,6 +131,10 @@ describe("Track A Themis policy decisions", () => {
 			"git checkout HEAD -- .pi/settings.json",
 		);
 		expect(classified.operation).toBe("revert");
+		expect(classified.primaryClass).toBe("revert-like");
+		expect(classified.policy.allowedPreconditions.join("\n")).toContain(
+			"proves the pre-change state",
+		);
 		expect(classified.requiresOwnershipProof).toBe(true);
 
 		const decision = decidePolicy({
@@ -147,8 +152,22 @@ describe("Track A Themis policy decisions", () => {
 		});
 
 		expect(decision.blocked).toBe(true);
+		expect(decision.commandClassification?.primaryClass).toBe("revert-like");
+		expect(decision.commandClassification?.blockerBehavior).toContain("block");
 		expect(decision.reasons.join("\n")).toContain("ambiguous workspace");
 		expect(decision.requiredNextAction).toContain("ownership");
+	});
+
+	test("semantic command classes expose preconditions and audit output", () => {
+		const readOnly = classifyWorkspaceCommand("git status --short");
+		expect(readOnly.primaryClass).toBe("read-only-inspection");
+		expect(readOnly.writesWorkspace).toBe(false);
+
+		const stagingPolicy = commandClassPolicy("staging");
+		expect(stagingPolicy.allowedPreconditions.join("\n")).toContain(
+			"unintended diff is absent",
+		);
+		expect(stagingPolicy.auditOutput).toContain("ownership proof");
 	});
 
 	test("broad formatter cannot rewrite user-owned files", () => {
@@ -167,6 +186,9 @@ describe("Track A Themis policy decisions", () => {
 		});
 
 		expect(decision.blocked).toBe(true);
+		expect(decision.commandClassification?.primaryClass).toBe(
+			"formatting-write",
+		);
 		expect(decision.reasons.join("\n")).toContain("user-owned");
 		expect(decision.reasons.join("\n")).toContain("broad formatter");
 	});
@@ -189,8 +211,52 @@ describe("Track A Themis policy decisions", () => {
 		});
 
 		expect(decision.blocked).toBe(false);
+		expect(decision.commandClassification?.classes).toContain(
+			"generated-artifact",
+		);
 		expect(decision.decision).toBe("warn");
 		expect(decision.reasons.join("\n")).toContain("revert-like");
+	});
+
+	test("ambiguous write, staging, and commit actions are blocked", () => {
+		const writeDecision = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "write",
+			operation: "write",
+			path: ".pi/settings.json",
+			workspace: {
+				operation: "write",
+				paths: [".pi/settings.json"],
+				proof: "unknown",
+				ambiguous: true,
+			},
+		});
+		expect(writeDecision.blocked).toBe(true);
+		expect(writeDecision.commandClassification?.primaryClass).toBe(
+			"formatting-write",
+		);
+
+		for (const command of [
+			"git add .pi/settings.json",
+			"git commit -m guard",
+		]) {
+			const decision = decidePolicy({
+				schemaVersion: 1,
+				eventType: "tool_call",
+				toolName: "shell",
+				operation: "execute",
+				command,
+				workspace: {
+					paths: [".pi/settings.json"],
+					proof: "unknown",
+					ambiguous: true,
+				},
+			});
+
+			expect(decision.blocked).toBe(true);
+			expect(decision.commandClassification?.requiresOwnershipProof).toBe(true);
+		}
 	});
 
 	test("workspace ownership hook vetoes restore-like operations", () => {

@@ -29,12 +29,37 @@ export interface TrustContext {
 
 export type WorkspaceOperation =
 	| "edit"
+	| "write"
 	| "revert"
 	| "delete"
 	| "move"
 	| "format"
 	| "stage"
 	| "commit";
+
+export type AgentCommandClass =
+	| "read-only-inspection"
+	| "formatting-write"
+	| "destructive-workspace"
+	| "revert-like"
+	| "staging"
+	| "commit"
+	| "generated-artifact"
+	| "unknown";
+
+export interface CommandClassificationAudit {
+	primaryClass: AgentCommandClass;
+	classes: AgentCommandClass[];
+	operation: WorkspaceOperation | null;
+	paths: string[];
+	requiresOwnershipProof: boolean;
+	blocksWhenAmbiguous: boolean;
+	writesWorkspace: boolean;
+	allowedPreconditions: string[];
+	requiredProvenanceChecks: string[];
+	blockerBehavior: string;
+	auditOutput: string[];
+}
 
 export type OwnershipProof =
 	| "manifest-hash"
@@ -87,6 +112,7 @@ export interface PolicyDecision {
 	auditId: string;
 	blocked: boolean;
 	redactedText: string | null;
+	commandClassification?: CommandClassificationAudit;
 }
 
 export interface HookPolicyStatus {

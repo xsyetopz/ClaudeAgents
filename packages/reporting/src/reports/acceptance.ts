@@ -1,6 +1,12 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { getOlympiCatalog, validateOlympiCatalog } from "reporting";
 import { loadQuotaStatus } from "safety";
 import { detectRtk } from "../compaction/index.js";
+import {
+	reviewAgentInstructions,
+	reviewDocumentationQuality,
+} from "./operational.js";
 import { deterministicDigest } from "./schema.js";
 
 export interface AcceptanceCheck {
@@ -26,6 +32,20 @@ export async function buildAcceptanceReport(
 	const catalogErrors = validateOlympiCatalog(catalog);
 	const rtk = detectRtk();
 	const quota = await loadQuotaStatus(projectRoot);
+	const agentInstructions = await readOptional(
+		path.join(projectRoot, "AGENTS.md"),
+	);
+	const verificationDocs = await readOptional(
+		path.join(projectRoot, "docs", "verification.md"),
+	);
+	const instructionReview =
+		agentInstructions === null
+			? null
+			: reviewAgentInstructions(agentInstructions);
+	const docsReview =
+		verificationDocs === null
+			? null
+			: reviewDocumentationQuality(verificationDocs);
 	const serializedCatalog = JSON.stringify(catalog).toLowerCase();
 	const checks: AcceptanceCheck[] = [
 		{
@@ -52,6 +72,26 @@ export async function buildAcceptanceReport(
 			ok: quota.profile !== "unknown" || quota.limits === "unknown",
 			detail: `profile=${quota.profile}; limits=${quota.limits}`,
 		},
+		{
+			name: "agent instructions have no conflicting guardrails",
+			ok: instructionReview?.valid ?? true,
+			detail:
+				instructionReview === null
+					? "AGENTS.md not present in this project root"
+					: instructionReview.valid
+						? "valid"
+						: instructionReview.findings.join("; "),
+		},
+		{
+			name: "documentation quality criteria pass when docs are present",
+			ok: docsReview?.valid ?? true,
+			detail:
+				docsReview === null
+					? "docs/verification.md not present in this project root"
+					: docsReview.valid
+						? "valid"
+						: docsReview.findings.join("; "),
+		},
 	];
 	const warnings = [
 		...(rtk.degradedReason === null ? [] : [rtk.degradedReason]),
@@ -69,6 +109,24 @@ export async function buildAcceptanceReport(
 		...withoutDigest,
 		deterministicDigest: deterministicDigest(withoutDigest),
 	};
+}
+
+async function readOptional(filePath: string): Promise<string | null> {
+	try {
+		return await readFile(filePath, "utf8");
+	} catch (error) {
+		if (isNotFound(error)) return null;
+		throw error;
+	}
+}
+
+function isNotFound(error: unknown): boolean {
+	return (
+		typeof error === "object" &&
+		error !== null &&
+		"code" in error &&
+		(error as { code?: unknown }).code === "ENOENT"
+	);
 }
 
 export function formatAcceptanceReport(report: AcceptanceReport): string {

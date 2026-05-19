@@ -31,6 +31,8 @@ export {
 export { protectedPathReasons } from "./policy/protected-paths.js";
 export { decidePolicy, hookPolicyStatus } from "./policy/themis.js";
 export type {
+	AgentCommandClass,
+	CommandClassificationAudit,
 	HookPolicyStatus,
 	PolicyDecision,
 	PolicyEvent,
@@ -38,9 +40,14 @@ export type {
 	WorkspaceOperation,
 	WorkspaceOwnershipContext,
 } from "./policy/types.js";
-export type { WorkspaceCommandClassification } from "./policy/workspace-ownership.js";
+export type {
+	CommandClassPolicy,
+	WorkspaceCommandClassification,
+} from "./policy/workspace-ownership.js";
 export {
+	classifyPolicyEventCommand,
 	classifyWorkspaceCommand,
+	commandClassPolicy,
 	hasOwnershipProof,
 	workspaceOwnershipReasons,
 } from "./policy/workspace-ownership.js";

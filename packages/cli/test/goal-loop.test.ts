@@ -100,6 +100,32 @@ describe("Olympi goal-loop engine", () => {
 		expect(completed.state.status).toBe("completed");
 	});
 
+	test("completion rejects unintended diff files and unresolved blockers", () => {
+		const state = createGoalLoopState({
+			objective: "Harden active policy path",
+			acceptanceCriteria: ["policy path is active"],
+			verificationCommands: ["bun run olympi:test"],
+		});
+
+		const denied = requestGoalCompletion(state, {
+			completedRequirements: ["policy path is active"],
+			verification: [{ command: "bun run olympi:test", exitCode: 0 }],
+			completionAuditComplete: true,
+			intendedChangedFiles: [
+				"packages/safety/src/policy/workspace-ownership.ts",
+			],
+			observedChangedFiles: [
+				"packages/safety/src/policy/workspace-ownership.ts",
+				".pi/settings.json",
+			],
+			unresolvedBlockers: ["ambiguous .pi/settings.json ownership"],
+		});
+
+		expect(denied.action).toBe("continue");
+		expect(denied.reasons.join("\n")).toContain("unintended file");
+		expect(denied.reasons.join("\n")).toContain("unresolved blocker");
+	});
+
 	test("continuation recovery preserves objective and completion audit", () => {
 		const state = createGoalLoopState({
 			objective: "Port useful OAL legacy hooks into Olympi packages",

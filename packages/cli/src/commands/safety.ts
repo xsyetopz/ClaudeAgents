@@ -1,5 +1,6 @@
 import type { ExitCode } from "lifecycle";
 import { asJson } from "reporting";
+import type { CommandClassificationAudit } from "safety";
 import { auditRecordFromDecision, decidePolicy } from "safety";
 
 export interface SafetyCheckReport {
@@ -11,6 +12,7 @@ export interface SafetyCheckReport {
 		ok: boolean;
 		decision: string;
 		reasons: string[];
+		commandClassification?: CommandClassificationAudit | undefined;
 	}>;
 	auditPreview: ReturnType<typeof auditRecordFromDecision>;
 }
@@ -61,6 +63,7 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 			ok: unsafe.blocked,
 			decision: unsafe.decision,
 			reasons: unsafe.reasons,
+			commandClassification: unsafe.commandClassification,
 		},
 		{
 			name: "secret output redacted",
@@ -79,6 +82,7 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 			ok: ambiguousRestore.blocked,
 			decision: ambiguousRestore.decision,
 			reasons: ambiguousRestore.reasons,
+			commandClassification: ambiguousRestore.commandClassification,
 		},
 	];
 	return {
