@@ -27,6 +27,32 @@ export interface TrustContext {
 	networkDenied?: boolean;
 }
 
+export type WorkspaceOperation =
+	| "edit"
+	| "revert"
+	| "delete"
+	| "move"
+	| "format"
+	| "stage"
+	| "commit";
+
+export type OwnershipProof =
+	| "manifest-hash"
+	| "provenance-record"
+	| "agent-created-this-run"
+	| "explicit-user-approval"
+	| "unknown";
+
+export interface WorkspaceOwnershipContext {
+	operation?: WorkspaceOperation;
+	paths?: string[];
+	proof?: OwnershipProof;
+	ambiguous?: boolean;
+	userOwned?: boolean;
+	generated?: boolean;
+	changed?: boolean;
+}
+
 export interface PolicyEvent {
 	schemaVersion: 1;
 	eventType: PolicyEventType;
@@ -46,6 +72,7 @@ export interface PolicyEvent {
 	quotaPressure?: boolean;
 	olympiOwned?: boolean;
 	trust?: TrustContext;
+	workspace?: WorkspaceOwnershipContext;
 }
 
 export interface PolicyDecision {

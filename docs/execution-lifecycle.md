@@ -67,6 +67,7 @@ when it detects one.
 | Missing credentials | Report the missing credential or supported credential-free path. |
 | Missing files | Report the path and whether the objective can be revised. |
 | Unclear authority | Request approval or ownership clarification. |
+| Ambiguous ownership | Stop before restore, delete, move, format, stage, or commit; require manifest/hash/provenance proof or explicit approval. |
 | Unavailable command | Report the missing command and fallback, if one exists. |
 | Failing environment | Report the failing command/environment condition. |
 | Impossible constraints | Report the contradiction and ask for a revised objective. |
@@ -74,6 +75,11 @@ when it detects one.
 
 The correct output is a structured blocked state with attempted work, evidence,
 and needed action. Continuing unrelated cleanup is a defect.
+
+Unexplained workspace changes are user-owned. Path appearance is not ownership:
+generated-looking files, `.pi/**` paths, and existing project-local config still
+require a manifest hash, provenance record, same-run agent provenance, or
+explicit user approval before destructive or revert-like operations.
 
 ## Completion gate
 

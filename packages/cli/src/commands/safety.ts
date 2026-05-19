@@ -42,6 +42,19 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 		payloadBytes: 150_000,
 		quotaPressure: true,
 	});
+	const ambiguousRestore = decidePolicy({
+		schemaVersion: 1,
+		eventType: "tool_call",
+		toolName: "shell",
+		operation: "execute",
+		command: "git checkout HEAD -- .pi/settings.json",
+		workspace: {
+			operation: "revert",
+			paths: [".pi/settings.json"],
+			proof: "unknown",
+			ambiguous: true,
+		},
+	});
 	const checks = [
 		{
 			name: "unsafe tool_call blocked",
@@ -60,6 +73,12 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 			ok: provider.decision === "warn",
 			decision: provider.decision,
 			reasons: provider.reasons,
+		},
+		{
+			name: "ambiguous workspace restore blocked",
+			ok: ambiguousRestore.blocked,
+			decision: ambiguousRestore.decision,
+			reasons: ambiguousRestore.reasons,
 		},
 	];
 	return {

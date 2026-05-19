@@ -10,10 +10,12 @@ import {
 import {
 	appendHestiaAudit,
 	auditRecordFromDecision,
+	classifyWorkspaceCommand,
 	decidePolicy,
 	loadQuotaStatus,
 	runSandboxProbe,
 	validateBrokerRequest,
+	workspaceOwnershipHook,
 } from "safety";
 import {
 	buildExecutableTrustProof,
@@ -121,6 +123,93 @@ describe("Track A Themis policy decisions", () => {
 		});
 		expect(mismatch.blocked).toBe(true);
 		expect(mismatch.reasons.join("\n")).toContain("hash mismatch");
+	});
+
+	test("ambiguous project settings cannot be restored without ownership proof", () => {
+		const classified = classifyWorkspaceCommand(
+			"git checkout HEAD -- .pi/settings.json",
+		);
+		expect(classified.operation).toBe("revert");
+		expect(classified.requiresOwnershipProof).toBe(true);
+
+		const decision = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "shell",
+			operation: "execute",
+			command: "git checkout HEAD -- .pi/settings.json",
+			workspace: {
+				operation: "revert",
+				paths: [".pi/settings.json"],
+				proof: "unknown",
+				ambiguous: true,
+			},
+		});
+
+		expect(decision.blocked).toBe(true);
+		expect(decision.reasons.join("\n")).toContain("ambiguous workspace");
+		expect(decision.requiredNextAction).toContain("ownership");
+	});
+
+	test("broad formatter cannot rewrite user-owned files", () => {
+		const decision = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "shell",
+			operation: "execute",
+			command: "bun run biome:format",
+			workspace: {
+				operation: "format",
+				paths: [],
+				proof: "unknown",
+				userOwned: true,
+			},
+		});
+
+		expect(decision.blocked).toBe(true);
+		expect(decision.reasons.join("\n")).toContain("user-owned");
+		expect(decision.reasons.join("\n")).toContain("broad formatter");
+	});
+
+	test("agent-owned generated file can be reverted with provenance proof", () => {
+		const decision = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "shell",
+			operation: "execute",
+			command: "git restore -- .pi/olympi/reports/status.json",
+			manifestOwned: true,
+			workspace: {
+				operation: "revert",
+				paths: [".pi/olympi/reports/status.json"],
+				proof: "provenance-record",
+				ambiguous: false,
+				generated: true,
+			},
+		});
+
+		expect(decision.blocked).toBe(false);
+		expect(decision.decision).toBe("warn");
+		expect(decision.reasons.join("\n")).toContain("revert-like");
+	});
+
+	test("workspace ownership hook vetoes restore-like operations", () => {
+		const hook = workspaceOwnershipHook();
+		const result = hook.run({
+			schemaVersion: 1,
+			phase: "pre-action",
+			toolName: "shell",
+			command: "git restore .pi/settings.json",
+			workspace: {
+				operation: "revert",
+				paths: [".pi/settings.json"],
+				proof: "unknown",
+				ambiguous: true,
+			},
+		});
+
+		expect(result.decision).toBe("veto");
+		expect(result.requiredNextAction).toContain("prove ownership");
 	});
 });
 

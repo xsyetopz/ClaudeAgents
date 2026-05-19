@@ -25,9 +25,14 @@ git diff --check
 - hash mismatches preserve changed files;
 - fake-home checks protect user-global Pi state;
 - hook veto decisions stop unsafe actions;
+- ambiguous workspace paths cannot be restored, deleted, moved, broadly formatted, staged, or committed without ownership proof;
 - goal completion requires verification evidence;
 - continuation recovery preserves objective and audit requirements;
 - skill selection is topical and lazy.
+
+Operational failure reports must include `Failure`, `Impact`, `Change`,
+`Verification`, and `Remaining blocker`. Documentation checks should evaluate
+scope, evidence, and verification criteria rather than rely on phrase bans.
 
 ## Fixture policy
 

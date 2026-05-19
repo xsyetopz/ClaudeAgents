@@ -38,9 +38,15 @@ flowchart TD
 The current package APIs include:
 
 - Themis pre-action policy hook;
+- workspace-ownership pre-action hook;
 - validation gate hook;
 - architecture-boundary hook;
 - blocked-state hook.
+
+Workspace ownership is semantic, not path-based. Revert-like git operations,
+delete/move operations, staging/commit operations, and formatter writes require
+manifest/hash/provenance proof or explicit user approval. Ambiguous paths fail
+closed even when they look generated or project-local.
 
 The Aegis extension provides a first-party Pi runtime entrypoint for live policy
 integration. Loading it is explicit. Third-party hook packages are not executed

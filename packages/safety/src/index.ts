@@ -26,6 +26,7 @@ export {
 	policyPreActionHook,
 	runHookPipeline,
 	verificationHook,
+	workspaceOwnershipHook,
 } from "./hooks/interface.js";
 export { protectedPathReasons } from "./policy/protected-paths.js";
 export { decidePolicy, hookPolicyStatus } from "./policy/themis.js";
@@ -34,7 +35,15 @@ export type {
 	PolicyDecision,
 	PolicyEvent,
 	PolicyEventType,
+	WorkspaceOperation,
+	WorkspaceOwnershipContext,
 } from "./policy/types.js";
+export type { WorkspaceCommandClassification } from "./policy/workspace-ownership.js";
+export {
+	classifyWorkspaceCommand,
+	hasOwnershipProof,
+	workspaceOwnershipReasons,
+} from "./policy/workspace-ownership.js";
 export type { QuotaProfileLabel, QuotaStatusReport } from "./quota/profile.js";
 export { loadQuotaStatus } from "./quota/profile.js";
 export type { SandboxProbeReport } from "./sandbox/probe.js";

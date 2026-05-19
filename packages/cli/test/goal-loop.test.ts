@@ -38,6 +38,37 @@ describe("Olympi goal-loop engine", () => {
 		expect(transition.reasons.join("\n")).toContain(
 			"provide the missing credential",
 		);
+
+		const afterBlocker = planGoalStep(
+			transition.state,
+			"Do unrelated cleanup while blocked",
+			{ id: "unrelated" },
+		);
+		expect(afterBlocker.steps.find((step) => step.id === "unrelated")).toBe(
+			undefined,
+		);
+		expect(afterBlocker.ledger.at(-1)?.detail).toContain("planning paused");
+	});
+
+	test("ambiguous ownership blocker pauses goal loop", () => {
+		const initial = createGoalLoopState({
+			objective: "Safely repair project config",
+			acceptanceCriteria: ["config ownership is proven"],
+			verificationCommands: ["git status --short"],
+		});
+		const planned = planGoalStep(initial, "Restore config file", {
+			id: "restore",
+		});
+		const transition = applyWorkerResult(planned, {
+			stepId: "restore",
+			summary:
+				"Ambiguous workspace ownership for .pi/settings.json; ownership proof is missing",
+			evidence: ["git status showed pre-existing modification"],
+		});
+
+		expect(transition.action).toBe("pause");
+		expect(transition.blocker?.kind).toBe("ambiguous-ownership");
+		expect(transition.blocker?.requiredAction).toContain("provenance");
 	});
 
 	test("completion requires explicit verification and audit evidence", () => {

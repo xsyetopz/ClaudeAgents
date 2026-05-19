@@ -19,6 +19,9 @@ mirrored into project-local manifest-owned paths.
 - Applied install writes only `.pi/settings.json` and `.pi/olympi/**` paths.
 - Applied uninstall removes only manifest-owned files with matching hashes.
 - Hash mismatches preserve files for manual review.
+- Revert-like, delete, move, broad formatter, stage, and commit operations on
+  ambiguous workspace paths are blocked until ownership proof or explicit user
+  approval is present.
 - Verification uses temporary projects and fake homes.
 
 ## Current non-guarantees

@@ -11,6 +11,7 @@ This directory documents the active 0.1.0 source-tree system.
 - [`skills.md`](skills.md) — topical skill selection, lazy loading, and refinement loops.
 - [`package-model.md`](package-model.md) — Pi package inventory and project-local mirror layout.
 - [`verification.md`](verification.md) — local gates and fixture coverage.
+- [`agent-behavior-evidence.md`](agent-behavior-evidence.md) — inspected failure modes and enforcement points for agent behavior guardrails.
 - [`security.md`](security.md) — threat model and current non-guarantees.
 - [`extensions.md`](extensions.md) — first-party extension skeletons and inspection.
 - [`roadmap.md`](roadmap.md) — remaining work.

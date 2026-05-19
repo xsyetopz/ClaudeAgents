@@ -11,6 +11,7 @@ export type GoalBlockerKind =
 	| "credentials"
 	| "missing-files"
 	| "unclear-authority"
+	| "ambiguous-ownership"
 	| "unavailable-command"
 	| "failing-environment"
 	| "impossible-constraints"
@@ -149,6 +150,8 @@ const MISSING_FILE_BLOCKER_PATTERN =
 	/enoent|no such file|missing file|not found/;
 const UNCLEAR_AUTHORITY_BLOCKER_PATTERN =
 	/permission denied|approval|authority|who owns|unclear/;
+const AMBIGUOUS_OWNERSHIP_BLOCKER_PATTERN =
+	/ambiguous ownership|ambiguous workspace|unexplained change|user-owned|ownership proof/;
 const UNAVAILABLE_COMMAND_BLOCKER_PATTERN =
 	/command not found|not installed|unavailable command/;
 const FAILING_ENVIRONMENT_BLOCKER_PATTERN =
@@ -203,6 +206,14 @@ export function planGoalStep(
 	description: string,
 	options: { id?: string; maxAttempts?: number } = {},
 ): GoalLoopState {
+	if (state.status === "blocked" && state.activeBlocker !== null) {
+		return appendLedger(
+			state,
+			"blocked",
+			`planning paused while blocker is active: ${state.activeBlocker.detail}`,
+			undefined,
+		);
+	}
 	const step: GoalStep = {
 		id: options.id ?? `step-${state.steps.length + 1}`,
 		description,
@@ -411,6 +422,14 @@ export function detectGoalBlocker(options: {
 			"unclear-authority",
 			options.text,
 			"clarify ownership or grant explicit approval before continuing",
+			evidence,
+		);
+	}
+	if (AMBIGUOUS_OWNERSHIP_BLOCKER_PATTERN.test(text)) {
+		return blocker(
+			"ambiguous-ownership",
+			options.text,
+			"prove manifest/hash/provenance ownership or get explicit user approval before touching the path",
 			evidence,
 		);
 	}

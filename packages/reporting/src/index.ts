@@ -41,6 +41,20 @@ export {
 	buildAcceptanceReport,
 	formatAcceptanceReport,
 } from "./reports/acceptance.js";
+export type {
+	DocumentationReviewCriterion,
+	DocumentationReviewReport,
+	OperationalFailureField,
+	OperationalFailureReport,
+	OperationalFailureReportInput,
+} from "./reports/operational.js";
+export {
+	buildOperationalFailureReport,
+	formatOperationalFailureReport,
+	OPERATIONAL_FAILURE_FIELDS,
+	reviewDocumentationQuality,
+	validateOperationalFailureText,
+} from "./reports/operational.js";
 export { buildPackageRiskReport } from "./reports/package-risk.js";
 export {
 	deterministicDigest,

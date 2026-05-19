@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { PolicyDecision, PolicyEvent, PolicyEventType } from "safety";
-import { decidePolicy } from "safety";
+import { classifyWorkspaceCommand, decidePolicy } from "safety";
 
 export const AEGIS_PI_RUNTIME_EVENTS: PolicyEventType[] = [
 	"tool_call",
@@ -194,6 +194,11 @@ export function policyEventFromPi(
 		const input = asRecord(record["input"]);
 		const path = stringValue(input["path"]);
 		const command = stringValue(input["command"]);
+		const classified = classifyWorkspaceCommand(command);
+		const manifestOwned = path?.startsWith(".pi/olympi/") ?? false;
+		const classifiedManifestOwned =
+			classified.paths.length > 0 &&
+			classified.paths.every((entry) => entry.startsWith(".pi/olympi/"));
 		const operation = operationForTool(toolName);
 		return {
 			schemaVersion: 1,
@@ -203,8 +208,21 @@ export function policyEventFromPi(
 			...(command === undefined ? {} : { command }),
 			...(path === undefined ? {} : { path }),
 			generatedArtifact: toolName === "write" || toolName === "edit",
-			manifestOwned: path?.startsWith(".pi/olympi/") ?? false,
+			manifestOwned: manifestOwned || classifiedManifestOwned,
 			packageExecutable: toolName === "extension-load",
+			...(classified.operation === null
+				? {}
+				: {
+						workspace: {
+							operation: classified.operation,
+							paths: classified.paths,
+							proof:
+								manifestOwned || classifiedManifestOwned
+									? "manifest-hash"
+									: "unknown",
+							ambiguous: !(manifestOwned || classifiedManifestOwned),
+						},
+					}),
 		};
 	}
 	if (eventName === "tool_result") {

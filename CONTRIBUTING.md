@@ -18,6 +18,9 @@ git diff --check
   planning, status, catalog, spec, or verification flows.
 - Do not write to `~/.pi` by default.
 - Keep project-local mutations dry-run first and manifest-owned.
+- Treat unexplained workspace changes as user-owned. Do not restore, delete,
+  move, broadly format, stage, or commit ambiguous paths without manifest/hash,
+  provenance, same-run creation, or explicit user approval.
 - Bind trust and uninstall decisions to content hashes and explicit inventories.
 - Keep implemented behavior separate from planned work.
 - Do not claim sandbox, broker, global install, executable package support,

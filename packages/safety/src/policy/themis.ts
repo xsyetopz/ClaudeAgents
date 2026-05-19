@@ -11,6 +11,7 @@ import type {
 	PolicyEvent,
 	PolicyEventType,
 } from "./types.js";
+import { workspaceOwnershipReasons } from "./workspace-ownership.js";
 
 const SUBSCRIBED_EVENTS: PolicyEventType[] = [
 	"tool_call",
@@ -25,7 +26,7 @@ const SUBSCRIBED_EVENTS: PolicyEventType[] = [
 ];
 
 const BLOCK_REASON_PATTERN =
-	/blocked|denied|missing plan approval|hash mismatch|without lock|without manifest/i;
+	/blocked|denied|requires ownership proof|missing plan approval|hash mismatch|without lock|without manifest/i;
 
 export function decidePolicy(event: PolicyEvent): PolicyDecision {
 	const reasons: string[] = [];
@@ -35,6 +36,7 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 
 	if (event.eventType === "tool_call") {
 		reasons.push(...dangerousCommandReasons(event.command, event.argv));
+		reasons.push(...workspaceOwnershipReasons(event));
 		for (const filePath of event.paths ?? [event.path].filter(isString)) {
 			reasons.push(...protectedPathReasons(filePath, event.manifestOwned));
 		}
@@ -135,6 +137,7 @@ export function hookPolicyStatus(): HookPolicyStatus {
 		status: "ready-non-executing",
 		warnings: [
 			"Aegis skeleton calls pure Themis policy decisions only; no third-party package code is executed.",
+			"Workspace mutations require manifest/hash/provenance ownership or explicit user approval; ambiguous paths fail closed.",
 			"Safety decisions fail closed; token-efficiency degradations may allow only after recording reasons.",
 		],
 	};
@@ -173,6 +176,10 @@ function isBlockReason(reason: string): boolean {
 function nextAction(reasons: string[]): string {
 	if (reasons.some((reason) => reason.includes("plan approval")))
 		return "obtain explicit plan approval before retrying";
+	if (reasons.some((reason) => reason.includes("ownership proof")))
+		return "prove manifest/hash/provenance ownership or get explicit user approval before retrying";
+	if (reasons.some((reason) => reason.includes("ambiguous workspace")))
+		return "stop and ask for ownership clarification before touching ambiguous paths";
 	if (reasons.some((reason) => reason.includes("manifest")))
 		return "route through manifest-owned Olympi project operation";
 	if (reasons.some((reason) => reason.includes("sandbox")))

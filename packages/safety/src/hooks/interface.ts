@@ -1,6 +1,7 @@
 import { deterministicDigest, sortStrings } from "reporting";
 import { decidePolicy } from "../policy/themis.js";
 import type { PolicyEvent, PolicyEventType } from "../policy/types.js";
+import { workspaceOwnershipReasons } from "../policy/workspace-ownership.js";
 
 export type OlympiHookPhase =
 	| "pre-action"
@@ -30,6 +31,7 @@ export interface OlympiHookContext {
 	manifestOwned?: boolean;
 	requiresPlanApproval?: boolean;
 	planApproved?: boolean;
+	workspace?: PolicyEvent["workspace"];
 }
 
 export interface OlympiHookDecision {
@@ -167,6 +169,31 @@ export function blockedStateHook(id = "hestia-blocked-state"): OlympiHook {
 	};
 }
 
+export function workspaceOwnershipHook(
+	id = "hestia-workspace-ownership",
+): OlympiHook {
+	return {
+		id,
+		phase: "pre-action",
+		description:
+			"Veto revert-like, staging, delete, move, and format operations without ownership proof",
+		run(context) {
+			const event = policyEventFromHookContext(context, "tool_call");
+			const reasons = workspaceOwnershipReasons(event);
+			return hookDecision({
+				hookId: id,
+				phase: context.phase,
+				decision: reasons.length === 0 ? "allow" : "veto",
+				reasons,
+				requiredNextAction:
+					reasons.length === 0
+						? null
+						: "prove ownership by manifest hash, provenance record, same-run agent provenance, or explicit user approval",
+			});
+		},
+	};
+}
+
 export function architectureBoundaryHook(options: {
 	id?: string;
 	allowedPackageNames: string[];
@@ -220,6 +247,9 @@ function policyEventFromHookContext(
 		...(context.planApproved === undefined
 			? {}
 			: { planApproved: context.planApproved }),
+		...(context.workspace === undefined
+			? {}
+			: { workspace: context.workspace }),
 	};
 }
 
