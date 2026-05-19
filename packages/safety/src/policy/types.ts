@@ -52,6 +52,10 @@ export interface CommandClassificationAudit {
 	classes: AgentCommandClass[];
 	operation: WorkspaceOperation | null;
 	paths: string[];
+	executable?: string;
+	argv?: string[];
+	complexShell: boolean;
+	unknownMutationIndicators: string[];
 	requiresOwnershipProof: boolean;
 	blocksWhenAmbiguous: boolean;
 	writesWorkspace: boolean;
@@ -59,6 +63,21 @@ export interface CommandClassificationAudit {
 	requiredProvenanceChecks: string[];
 	blockerBehavior: string;
 	auditOutput: string[];
+}
+
+export interface ProviderMetadataContext {
+	source: "provider-event" | "normalized-wrapper";
+	missingFields: string[];
+	eventShape: string[];
+	explicitSafeWrapper?: boolean;
+	preventedOperation?: string;
+}
+
+export interface PolicyBlockerReport {
+	kind: "missing-provider-metadata" | "workspace-ownership" | "unknown-command";
+	missingFields: string[];
+	preventedOperation: string;
+	requiredAction: string;
 }
 
 export type OwnershipProof =
@@ -98,6 +117,7 @@ export interface PolicyEvent {
 	olympiOwned?: boolean;
 	trust?: TrustContext;
 	workspace?: WorkspaceOwnershipContext;
+	providerMetadata?: ProviderMetadataContext;
 }
 
 export interface PolicyDecision {
@@ -113,6 +133,7 @@ export interface PolicyDecision {
 	blocked: boolean;
 	redactedText: string | null;
 	commandClassification?: CommandClassificationAudit;
+	blocker?: PolicyBlockerReport;
 }
 
 export interface HookPolicyStatus {

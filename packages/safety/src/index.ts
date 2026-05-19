@@ -6,6 +6,14 @@ export {
 	validateBrokerFixture,
 	validateBrokerRequest,
 } from "./broker/read-only.js";
+export type {
+	CommandExecutionInput,
+	NormalizedCommandExecution,
+} from "./command-wrapper.js";
+export {
+	normalizeCommandExecution,
+	policyEventFromNormalizedCommand,
+} from "./command-wrapper.js";
 export type { HestiaAuditRecord } from "./hestia/state.js";
 export {
 	appendHestiaAudit,
@@ -34,9 +42,11 @@ export type {
 	AgentCommandClass,
 	CommandClassificationAudit,
 	HookPolicyStatus,
+	PolicyBlockerReport,
 	PolicyDecision,
 	PolicyEvent,
 	PolicyEventType,
+	ProviderMetadataContext,
 	WorkspaceOperation,
 	WorkspaceOwnershipContext,
 } from "./policy/types.js";

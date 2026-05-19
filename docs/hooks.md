@@ -51,6 +51,7 @@ closed even when they look generated or project-local.
 | Hook/policy | Runtime entrypoint | Test coverage | Block behavior |
 | --- | --- | --- | --- |
 | `classifyPolicyEventCommand` / command class policy | Themis `decidePolicy` and Aegis `policyEventFromPi` | `track-a-safety-runtime.test.ts` semantic command class tests | Emits command class, preconditions, provenance checks, blocker behavior, and audit fields. |
+| `normalizeCommandExecution` command wrapper | Olympi-controlled CLI/runtime command paths before Themis policy | `track-a-safety-runtime.test.ts` command wrapper test | Normalizes raw command, executable, argv, cwd, redaction status, class, candidate paths, provenance requirement, policy decision, and blocker reason. |
 | `workspaceOwnershipHook` | `runHookPipeline` pre-action phase; Themis also invokes the same ownership policy directly | `track-a-safety-runtime.test.ts` workspace ownership hook veto | Vetoes ambiguous revert, delete, move, format, stage, and commit operations with required ownership action. |
 | `verificationHook` | `runHookPipeline` validation phase | `goal-loop.test.ts` completion verification tests | Vetoes completion without explicit passing validation evidence. |
 | `blockedStateHook` and lifecycle blocked state | `runHookPipeline` blocked-state phase; `planGoalStep` lifecycle transition | `goal-loop.test.ts` blocked-loop tests | Pauses affected execution and refuses unrelated planning while a blocker is active. |

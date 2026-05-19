@@ -1,7 +1,11 @@
 import type { ExitCode } from "lifecycle";
 import { asJson } from "reporting";
 import type { CommandClassificationAudit } from "safety";
-import { auditRecordFromDecision, decidePolicy } from "safety";
+import {
+	auditRecordFromDecision,
+	decidePolicy,
+	normalizeCommandExecution,
+} from "safety";
 
 export interface SafetyCheckReport {
 	schemaVersion: 1;
@@ -15,6 +19,7 @@ export interface SafetyCheckReport {
 		commandClassification?: CommandClassificationAudit | undefined;
 	}>;
 	auditPreview: ReturnType<typeof auditRecordFromDecision>;
+	normalizedCommand: ReturnType<typeof normalizeCommandExecution>;
 }
 
 export function runSafety(args: string[], json: boolean): ExitCode {
@@ -57,6 +62,11 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 			ambiguous: true,
 		},
 	});
+	const normalizedCommand = normalizeCommandExecution({
+		rawCommand: "git status --short",
+		cwd: process.cwd(),
+		declaredOperationClass: "read-only-inspection",
+	});
 	const checks = [
 		{
 			name: "unsafe tool_call blocked",
@@ -91,6 +101,7 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 		ok: checks.every((check) => check.ok),
 		checks,
 		auditPreview: auditRecordFromDecision(provider),
+		normalizedCommand,
 	};
 }
 

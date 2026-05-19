@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "source": "provider-event",
+  "case": "write-tool-missing-path",
+  "eventShape": ["input.content", "input", "toolName"],
+  "expectedBlocker": {
+    "kind": "missing-provider-metadata",
+    "missingFields": ["path"],
+    "preventedOperation": "write",
+    "requiredAction": "route through the Olympi command wrapper or provide a richer provider tool event before retrying"
+  },
+  "reviewRequiredBeforeAllowing": true
+}

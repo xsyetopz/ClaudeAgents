@@ -20,6 +20,12 @@ const TOKEN_SPLIT_PATTERN = /\s+/;
 const TOKEN_QUOTE_TRIM_PATTERN = /^['"]|['"]$/g;
 const PACKAGE_FORMAT_SCRIPT_PATTERN =
 	/biome:(format|check:fix|lint:fix)|format:write/;
+const COMPLEX_SHELL_PATTERN =
+	/(\|\||(?:^|\s)\|(?:\s|$)|&&|;|`|\$\(|\([^)]*\)|(?:^|\s)[12]?>|>>|<|\*|\?|\{|\}|\bxargs\b|\b-exec\b|\balias\b|\bfunction\b)/;
+const ENV_PREFIX_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const MUTATION_INDICATOR_PATTERN =
+	/\b(write|delete|remove|move|copy|install|apply|restore|checkout|reset|stash|clean|commit|add|format|fix|touch|tee)\b/gi;
+const PACKAGE_MANAGERS = new Set(["bun", "npm", "pnpm", "yarn"]);
 const READ_ONLY_GIT_COMMANDS = new Set([
 	"status",
 	"diff",
@@ -42,6 +48,21 @@ const READ_ONLY_SHELL_COMMANDS = new Set([
 	"head",
 	"tail",
 ]);
+const REPO_READ_ONLY_SCRIPTS = new Set([
+	"typecheck",
+	"test",
+	"olympi:test",
+	"olympi:verify",
+	"olympi:catalog",
+	"build",
+	"biome:check",
+	"biome:lint",
+]);
+const REPO_WRITE_SCRIPTS = new Set([
+	"biome:format",
+	"biome:check:fix",
+	"biome:lint:fix",
+]);
 
 export interface CommandClassPolicy {
 	className: AgentCommandClass;
@@ -60,6 +81,10 @@ export interface WorkspaceCommandClassification {
 	operation: WorkspaceOperation | null;
 	reasons: string[];
 	paths: string[];
+	executable?: string;
+	argv: string[];
+	complexShell: boolean;
+	unknownMutationIndicators: string[];
 	requiresOwnershipProof: boolean;
 	blocksWhenAmbiguous: boolean;
 	writesWorkspace: boolean;
@@ -201,6 +226,21 @@ export function workspaceOwnershipReasons(event: PolicyEvent): string[] {
 	const reasons: string[] = [];
 
 	if (classified.reasons.length > 0) reasons.push(...classified.reasons);
+	if (classified.primaryClass === "unknown") {
+		if (classified.complexShell) {
+			reasons.push(
+				"unknown complex shell command blocked until classified by safe wrapper or trace review",
+			);
+		}
+		if (classified.unknownMutationIndicators.length > 0) {
+			reasons.push(
+				`unknown command has possible mutation indicators: ${classified.unknownMutationIndicators.join(", ")}`,
+			);
+		}
+		if (ambiguous) {
+			reasons.push("unknown command denied for ambiguous workspace paths");
+		}
+	}
 	if (operation === null) return reasons;
 	if (
 		!(sensitiveOperation(operation) || classified.policy.requiresOwnershipProof)
@@ -278,6 +318,12 @@ export function classifyPolicyEventCommand(
 					]
 				: []),
 		],
+		...(commandClassification.executable === undefined
+			? {}
+			: { executable: commandClassification.executable }),
+		argv: commandClassification.argv,
+		complexShell: commandClassification.complexShell,
+		unknownMutationIndicators: commandClassification.unknownMutationIndicators,
 	});
 }
 
@@ -285,14 +331,32 @@ export function classifyWorkspaceCommand(
 	command: string | undefined,
 	argv: string[] = [],
 ): WorkspaceCommandClassification {
-	const tokens = tokenizeCommand(command, argv);
+	const raw = [command ?? "", ...argv].join(" ").trim();
+	const complexShell = COMPLEX_SHELL_PATTERN.test(raw);
+	const tokens = stripEnvironmentPrefixes(tokenizeCommand(command, argv));
 	const reasons: string[] = [];
 	let operation: WorkspaceOperation | null = null;
 	const classes: AgentCommandClass[] = [];
+	const unknownMutationIndicators = mutationIndicators(raw);
+	const executable = tokens[0];
+	const commandArgv = tokens.slice(1);
+
+	if (complexShell) {
+		reasons.push(
+			"complex shell syntax requires explicit safe wrapper or trace-reviewed classifier",
+		);
+	}
 
 	if (tokens[0] === "git") {
 		const gitSubcommand = tokens[1];
-		if (gitSubcommand !== undefined && REVISION_COMMANDS.has(gitSubcommand)) {
+		if (gitSubcommand === "stash") {
+			operation = "revert";
+			classes.push("revert-like");
+			reasons.push("git stash is a revert-like workspace operation");
+		} else if (
+			gitSubcommand !== undefined &&
+			REVISION_COMMANDS.has(gitSubcommand)
+		) {
 			operation = gitSubcommand === "clean" ? "delete" : "revert";
 			classes.push(
 				gitSubcommand === "clean" ? "destructive-workspace" : "revert-like",
@@ -325,6 +389,15 @@ export function classifyWorkspaceCommand(
 		classes.push("destructive-workspace");
 		reasons.push("rm deletes workspace paths and requires ownership proof");
 	}
+	if (
+		tokens.includes("cp") ||
+		tokens.includes("touch") ||
+		tokens.includes("tee")
+	) {
+		operation = "write";
+		classes.push("formatting-write");
+		reasons.push("file write/copy command requires ownership proof");
+	}
 	if (tokens.includes("mv")) {
 		operation = "move";
 		classes.push("destructive-workspace");
@@ -335,8 +408,21 @@ export function classifyWorkspaceCommand(
 		classes.push("formatting-write");
 		reasons.push("formatter write command can rewrite unrelated files");
 	}
-	if (classes.length === 0 && READ_ONLY_SHELL_COMMANDS.has(tokens[0] ?? "")) {
+	if (isRepoPackageScript(tokens, REPO_READ_ONLY_SCRIPTS) && !complexShell) {
 		classes.push("read-only-inspection");
+		reasons.push("repo package script is classified as read-only validation");
+	}
+	if (isRepoPackageScript(tokens, REPO_WRITE_SCRIPTS)) {
+		operation = "format";
+		classes.push("formatting-write");
+		reasons.push("repo package script writes formatted workspace files");
+	}
+	if (classes.length === 0 && READ_ONLY_SHELL_COMMANDS.has(tokens[0] ?? "")) {
+		if (complexShell) {
+			reasons.push("read-only-looking shell command uses complex syntax");
+		} else {
+			classes.push("read-only-inspection");
+		}
 	}
 
 	return buildClassification({
@@ -344,6 +430,10 @@ export function classifyWorkspaceCommand(
 		operation,
 		paths: extractPathTokens(tokens),
 		reasons,
+		...(executable === undefined ? {} : { executable }),
+		argv: commandArgv,
+		complexShell,
+		unknownMutationIndicators,
 	});
 }
 
@@ -384,6 +474,17 @@ function tokenizeCommand(
 		.filter((token) => token.length > 0);
 }
 
+function stripEnvironmentPrefixes(tokens: string[]): string[] {
+	let index = 0;
+	while (
+		index < tokens.length &&
+		ENV_PREFIX_PATTERN.test(tokens[index] ?? "")
+	) {
+		index += 1;
+	}
+	return tokens.slice(index);
+}
+
 function isFormatterCommand(tokens: string[]): boolean {
 	return tokens.some((token, index) => {
 		if (PACKAGE_FORMAT_SCRIPT_PATTERN.test(token)) {
@@ -418,6 +519,22 @@ function extractPathTokens(tokens: string[]): string[] {
 	);
 }
 
+function mutationIndicators(command: string): string[] {
+	const indicators = new Set<string>();
+	for (const match of command.matchAll(MUTATION_INDICATOR_PATTERN)) {
+		const value = match[1];
+		if (value !== undefined) indicators.add(value.toLowerCase());
+	}
+	return [...indicators].sort();
+}
+
+function isRepoPackageScript(tokens: string[], scripts: Set<string>): boolean {
+	if (!PACKAGE_MANAGERS.has(tokens[0] ?? "")) return false;
+	const runIndex = tokens.indexOf("run");
+	const scriptName = runIndex === -1 ? tokens[1] : tokens[runIndex + 1];
+	return scriptName !== undefined && scripts.has(scriptName);
+}
+
 function pathList(path: string | undefined): string[] {
 	return path === undefined ? [] : [path];
 }
@@ -427,6 +544,10 @@ function buildClassification(options: {
 	operation: WorkspaceOperation | null;
 	paths: string[];
 	reasons: string[];
+	executable?: string;
+	argv: string[];
+	complexShell: boolean;
+	unknownMutationIndicators: string[];
 }): WorkspaceCommandClassification {
 	const primaryClass = primaryClassFor(options.classes);
 	const policy = COMMAND_CLASS_POLICIES[primaryClass];
@@ -444,6 +565,12 @@ function buildClassification(options: {
 		classes: options.classes,
 		operation: options.operation,
 		paths: options.paths,
+		...(options.executable === undefined
+			? {}
+			: { executable: options.executable }),
+		argv: options.argv,
+		complexShell: options.complexShell,
+		unknownMutationIndicators: options.unknownMutationIndicators,
 		requiresOwnershipProof,
 		blocksWhenAmbiguous,
 		writesWorkspace,
@@ -458,6 +585,12 @@ function buildClassification(options: {
 		operation: options.operation,
 		reasons: [...new Set(options.reasons)].sort(),
 		paths: options.paths,
+		...(options.executable === undefined
+			? {}
+			: { executable: options.executable }),
+		argv: options.argv,
+		complexShell: options.complexShell,
+		unknownMutationIndicators: options.unknownMutationIndicators,
 		requiresOwnershipProof,
 		blocksWhenAmbiguous,
 		writesWorkspace,

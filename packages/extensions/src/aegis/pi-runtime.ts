@@ -200,6 +200,13 @@ export function policyEventFromPi(
 			classified.paths.length > 0 &&
 			classified.paths.every((entry) => entry.startsWith(".pi/olympi/"));
 		const operation = operationForTool(toolName);
+		const missingFields = missingProviderMetadataFields({
+			operation,
+			command,
+			path,
+			classifiedPaths: classified.paths,
+			classificationRequiresOwnership: classified.requiresOwnershipProof,
+		});
 		return {
 			schemaVersion: 1,
 			eventType: "tool_call",
@@ -210,6 +217,13 @@ export function policyEventFromPi(
 			generatedArtifact: toolName === "write" || toolName === "edit",
 			manifestOwned: manifestOwned || classifiedManifestOwned,
 			packageExecutable: toolName === "extension-load",
+			providerMetadata: {
+				source: "provider-event",
+				missingFields,
+				eventShape: eventShape(record),
+				preventedOperation:
+					operation ?? classified.operation ?? classified.primaryClass,
+			},
 			...(classified.operation === null
 				? {}
 				: {
@@ -253,6 +267,39 @@ export function policyEventFromPi(
 		};
 	}
 	return { schemaVersion: 1, eventType: eventName };
+}
+
+function missingProviderMetadataFields(options: {
+	operation: PolicyEvent["operation"] | undefined;
+	command: string | undefined;
+	path: string | undefined;
+	classifiedPaths: string[];
+	classificationRequiresOwnership: boolean;
+}): string[] {
+	const missing = new Set<string>();
+	if (options.operation === "execute" && options.command === undefined) {
+		missing.add("command");
+	}
+	const pathSensitive =
+		options.operation === "write" ||
+		options.operation === "edit" ||
+		options.operation === "delete" ||
+		options.classificationRequiresOwnership;
+	if (
+		pathSensitive &&
+		options.path === undefined &&
+		options.classifiedPaths.length === 0
+	) {
+		missing.add("path");
+	}
+	return [...missing].sort();
+}
+
+function eventShape(record: Record<string, unknown>): string[] {
+	const shape = new Set(Object.keys(record).sort());
+	const input = asRecord(record["input"]);
+	for (const key of Object.keys(input).sort()) shape.add(`input.${key}`);
+	return [...shape].sort();
 }
 
 function recordDecision(decision: PolicyDecision, ctx: PiContextLike): void {

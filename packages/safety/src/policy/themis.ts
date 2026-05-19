@@ -8,6 +8,7 @@ import { redactPolicySecrets } from "./secrets.js";
 import type {
 	CommandClassificationAudit,
 	HookPolicyStatus,
+	PolicyBlockerReport,
 	PolicyDecision,
 	PolicyEvent,
 	PolicyEventType,
@@ -30,7 +31,7 @@ const SUBSCRIBED_EVENTS: PolicyEventType[] = [
 ];
 
 const BLOCK_REASON_PATTERN =
-	/blocked|denied|requires ownership proof|missing plan approval|hash mismatch|without lock|without manifest/i;
+	/blocked|denied|requires ownership proof|missing plan approval|hash mismatch|without lock|without manifest|unknown command|complex shell|provider metadata missing/i;
 
 export function decidePolicy(event: PolicyEvent): PolicyDecision {
 	const reasons: string[] = [];
@@ -38,9 +39,20 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 	let redactedText: string | null = null;
 	let requiredNextAction: string | null = null;
 	let commandClassification: CommandClassificationAudit | undefined;
+	let blocker: PolicyBlockerReport | undefined;
 
 	if (event.eventType === "tool_call") {
 		commandClassification = classifyPolicyEventCommand(event).audit;
+		const metadataBlocker = providerMetadataBlocker(
+			event,
+			commandClassification,
+		);
+		if (metadataBlocker !== undefined) {
+			blocker = metadataBlocker;
+			reasons.push(
+				`provider metadata missing ${metadataBlocker.missingFields.join(", ")} for ${metadataBlocker.preventedOperation}; explicit safe wrapper or richer tool event required`,
+			);
+		}
 		reasons.push(...dangerousCommandReasons(event.command, event.argv));
 		reasons.push(...workspaceOwnershipReasons(event));
 		for (const filePath of event.paths ?? [event.path].filter(isString)) {
@@ -128,6 +140,42 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 		blocked: decision === "block",
 		redactedText,
 		...(commandClassification === undefined ? {} : { commandClassification }),
+		...(blocker === undefined ? {} : { blocker }),
+	};
+}
+
+function providerMetadataBlocker(
+	event: PolicyEvent,
+	classification: CommandClassificationAudit,
+): PolicyBlockerReport | undefined {
+	const provider = event.providerMetadata;
+	if (provider?.source === "normalized-wrapper" && provider.explicitSafeWrapper)
+		return undefined;
+	const missingFields = provider?.missingFields ?? [];
+	if (missingFields.length === 0) return undefined;
+	const pathSensitive =
+		classification.requiresOwnershipProof ||
+		classification.writesWorkspace ||
+		event.operation === "write" ||
+		event.operation === "edit" ||
+		event.operation === "delete";
+	const commandSensitive =
+		event.operation === "execute" ||
+		classification.primaryClass !== "read-only-inspection";
+	const shouldBlock =
+		(missingFields.includes("command") && commandSensitive) ||
+		(missingFields.includes("path") && pathSensitive);
+	if (!shouldBlock) return undefined;
+	return {
+		kind: "missing-provider-metadata",
+		missingFields,
+		preventedOperation:
+			provider?.preventedOperation ??
+			classification.operation ??
+			event.operation ??
+			classification.primaryClass,
+		requiredAction:
+			"route through the Olympi command wrapper or provide a richer provider tool event before retrying",
 	};
 }
 
@@ -181,6 +229,9 @@ function isBlockReason(reason: string): boolean {
 }
 
 function nextAction(reasons: string[]): string {
+	if (reasons.some((reason) => reason.includes("provider metadata missing"))) {
+		return "route through the Olympi command wrapper or provide a richer provider tool event before retrying";
+	}
 	if (reasons.some((reason) => reason.includes("plan approval")))
 		return "obtain explicit plan approval before retrying";
 	if (reasons.some((reason) => reason.includes("ownership proof")))

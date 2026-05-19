@@ -6,6 +6,7 @@ import {
 	AEGIS_EXTENSION_MANIFEST,
 	aegisPolicyStatus,
 	createAegisPiExtension,
+	policyEventFromPi,
 } from "extensions";
 import {
 	appendHestiaAudit,
@@ -14,6 +15,7 @@ import {
 	commandClassPolicy,
 	decidePolicy,
 	loadQuotaStatus,
+	normalizeCommandExecution,
 	runSandboxProbe,
 	validateBrokerRequest,
 	workspaceOwnershipHook,
@@ -170,6 +172,82 @@ describe("Track A Themis policy decisions", () => {
 		expect(stagingPolicy.auditOutput).toContain("ownership proof");
 	});
 
+	test("common repo command mappers classify safe and unsafe commands", () => {
+		expect(
+			classifyWorkspaceCommand("git diff -- packages/safety").primaryClass,
+		).toBe("read-only-inspection");
+		expect(classifyWorkspaceCommand("git stash push").primaryClass).toBe(
+			"revert-like",
+		);
+		expect(classifyWorkspaceCommand("cp a b").primaryClass).toBe(
+			"formatting-write",
+		);
+		expect(classifyWorkspaceCommand("bun run typecheck").primaryClass).toBe(
+			"read-only-inspection",
+		);
+		expect(classifyWorkspaceCommand("bun run biome:format").primaryClass).toBe(
+			"formatting-write",
+		);
+	});
+
+	test("complex shell forms require review instead of silent allow", () => {
+		for (const command of [
+			"cat package.json | head",
+			"echo $(git status)",
+			"git status > out.txt",
+			"git status && rm file.txt",
+			"find . -exec rm {} ;",
+			"ls *.ts",
+		]) {
+			const decision = decidePolicy({
+				schemaVersion: 1,
+				eventType: "tool_call",
+				toolName: "shell",
+				operation: "execute",
+				command,
+			});
+
+			expect(decision.blocked).toBe(true);
+			expect(decision.commandClassification?.complexShell).toBe(true);
+		}
+
+		const envReadOnly = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "shell",
+			operation: "execute",
+			command: "NO_COLOR=1 git status --short",
+		});
+		expect(envReadOnly.blocked).toBe(false);
+		expect(envReadOnly.commandClassification?.primaryClass).toBe(
+			"read-only-inspection",
+		);
+	});
+
+	test("unknown command policy allows only non-mutating unambiguous shapes", () => {
+		const harmlessUnknown = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "shell",
+			operation: "execute",
+			command: "custom-status",
+		});
+		expect(harmlessUnknown.blocked).toBe(false);
+
+		const mutatingUnknown = decidePolicy({
+			schemaVersion: 1,
+			eventType: "tool_call",
+			toolName: "shell",
+			operation: "execute",
+			command: "custom-tool write .pi/settings.json",
+			workspace: { paths: [".pi/settings.json"], ambiguous: true },
+		});
+		expect(mutatingUnknown.blocked).toBe(true);
+		expect(mutatingUnknown.reasons.join("\n")).toContain(
+			"possible mutation indicators",
+		);
+	});
+
 	test("broad formatter cannot rewrite user-owned files", () => {
 		const decision = decidePolicy({
 			schemaVersion: 1,
@@ -277,6 +355,34 @@ describe("Track A Themis policy decisions", () => {
 		expect(result.decision).toBe("veto");
 		expect(result.requiredNextAction).toContain("prove ownership");
 	});
+
+	test("command wrapper normalizes metadata before direct policy", () => {
+		const normalized = normalizeCommandExecution({
+			rawCommand: "git restore -- .pi/settings.json",
+			cwd: process.cwd(),
+			candidateTouchedPaths: [".pi/settings.json"],
+		});
+
+		expect(normalized.executable).toBe("git");
+		expect(normalized.argv).toContain("restore");
+		expect(normalized.revert).toBe(true);
+		expect(normalized.policyDecision.blocked).toBe(true);
+		expect(normalized.blockerReason).toContain("ownership");
+	});
+
+	test("CLI safety check exposes wrapper-normalized command metadata", async () => {
+		const proc = Bun.spawn(["bun", CLI, "safety", "check", "--json"]);
+		const [stdout, exitCode] = await Promise.all([
+			new Response(proc.stdout).text(),
+			proc.exited,
+		]);
+		expect(exitCode).toBe(0);
+		const report = JSON.parse(stdout);
+		expect(report.normalizedCommand.executable).toBe("git");
+		expect(
+			report.normalizedCommand.policyDecision.commandClassification,
+		).toBeDefined();
+	});
 });
 
 describe("Track A sandbox, broker, quota, and Aegis", () => {
@@ -364,6 +470,45 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 			{ hasUI: false },
 		);
 		expect(result).toEqual(expect.objectContaining({ block: true }));
+	});
+
+	test("provider metadata fallback blocks unsafe events with missing metadata", async () => {
+		const missingCommand = policyEventFromPi("tool_call", {
+			toolName: "bash",
+			input: {},
+		});
+		const commandDecision = decidePolicy(missingCommand);
+		expect(commandDecision.blocked).toBe(true);
+		expect(commandDecision.blocker?.missingFields).toContain("command");
+		expect(commandDecision.blocker?.preventedOperation).toBe("execute");
+
+		const missingPath = policyEventFromPi("tool_call", {
+			toolName: "write",
+			input: { content: "x" },
+		});
+		const pathDecision = decidePolicy(missingPath);
+		expect(pathDecision.blocked).toBe(true);
+		expect(pathDecision.blocker?.missingFields).toContain("path");
+		expect(pathDecision.requiredNextAction).toContain("wrapper");
+
+		const readOnly = policyEventFromPi("tool_call", {
+			toolName: "read",
+			input: {},
+		});
+		expect(decidePolicy(readOnly).blocked).toBe(false);
+
+		const fixture = JSON.parse(
+			await readFile(
+				path.join(
+					import.meta.dir,
+					"fixtures",
+					"trace-missing-provider-metadata.json",
+				),
+				"utf8",
+			),
+		);
+		expect(fixture.eventShape).toContain("input.content");
+		expect(fixture.expectedBlocker.missingFields).toContain("path");
 	});
 
 	test("executable trust proof requires manifest, lock, signature, and sandbox gates", async () => {

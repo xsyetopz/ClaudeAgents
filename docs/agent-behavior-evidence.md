@@ -41,6 +41,21 @@ This report records the behavior mechanisms inspected before hardening Olympi ag
 - Each command class reports allowed preconditions, required provenance checks, blocker behavior, and audit fields through Themis `commandClassification` output.
 - Workspace mutation safety requires ownership proof: manifest hash, provenance record, same-run agent provenance, or explicit user approval.
 - Aegis runtime maps shell commands into workspace contexts before calling Themis.
+- Provider tool events with missing command/path metadata fail closed for path-sensitive or execution-sensitive operations and include a structured `missing-provider-metadata` blocker.
+- Olympi-controlled command paths use the command-wrapper contract to pass raw command, executable, argv, cwd, redaction status, class, candidate paths, provenance requirement, policy decision, and blocker reason into Themis.
+- Complex shell strings are not silently accepted. Pipelines, command substitution, redirection, globbing, chained commands, subshells, aliases/functions, and `find -exec`/`xargs` forms require a safe wrapper or trace-reviewed classifier.
 - Goal-loop state treats ambiguous ownership as a blocker and refuses unrelated planning while blocked.
 - Goal completion checks intended files, unexpected files, verification command records, and unresolved blockers.
 - Reporting validates structured operational failure reports, agent instruction consistency, and docs quality criteria without relying on phrase bans as the core mechanism.
+
+## Trace-driven classifier workflow
+
+Blocked unknown command shapes are captured as fixtures under `packages/cli/test/fixtures/trace-*.json`. A fixture records the provider/source, observed event shape, missing metadata, prevented operation, and expected blocker. A command form may move from blocked unknown to an allowed mapper only after evidence review and a regression test that proves the class, path extraction behavior, provenance requirement, and blocker behavior.
+
+## Final risk status
+
+| Previous risk | Status | Explicit behavior |
+| --- | --- | --- |
+| Provider events may omit command/path metadata. | Mitigated with conservative fallback. | Path-sensitive and execution-sensitive operations block with `missing-provider-metadata` and require the Olympi command wrapper or richer provider event. |
+| Shell tokenization is not a full shell parser. | Intentionally out of scope with blocker behavior. | Complex shell syntax is classified as unsafe unknown unless routed through a structured wrapper or trace-reviewed mapper. |
+| Classifier covers only the first vertical slice. | Mitigated by incremental mapper workflow. | Common repo commands have mappers; new unknown forms stay blocked until trace fixture and regression test are added. |
