@@ -2,10 +2,14 @@
   "enableSkillCommands": true,
   "treeFilterMode": "default",
   "compaction": {
-    "enabled": false,
+    "enabled": true,
     "reserveTokens": 16384,
     "keepRecentTokens": 20000
   },
-  "prompts": [".pi/prompts"],
-  "skills": [".pi/skills"]
+  "prompts": [
+    ".pi/prompts"
+  ],
+  "skills": [
+    ".pi/skills"
+  ]
 }
