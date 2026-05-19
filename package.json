@@ -14,10 +14,11 @@
 		"biome:format": "bunx biome format . --write --max-diagnostics 16384",
 		"typecheck": "bunx tsc --noEmit",
 		"test": "bun run olympus:test",
-		"olympus": "bun packages/olympus/src/cli.ts",
-		"olympus:test": "bun test packages/olympus/test/*.test.ts",
-		"olympus:verify": "bun packages/olympus/src/cli.ts verify",
-		"olympus:catalog": "bun packages/olympus/src/cli.ts catalog"
+		"olympus": "bun packages/cli/src/cli.ts",
+		"olympus:test": "bun test packages/cli/test/*.test.ts",
+		"olympus:verify": "bun packages/cli/src/cli.ts verify",
+		"olympus:catalog": "bun packages/cli/src/cli.ts catalog",
+		"build": "bun run typecheck"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",

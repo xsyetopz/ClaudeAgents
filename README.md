@@ -74,10 +74,10 @@ bun run olympus -- interactive
 
 ## Repository layout
 
-| Path               | Purpose                                                                |
-| ------------------ | ---------------------------------------------------------------------- |
-| `packages/olympus` | Active Olympus CLI, library modules, wrapper, and tests.               |
-| `docs`             | Active Olympus documentation.                                          |
-| `specs`            | Active Olympus 0.1.0 contracts.                                        |
-| `oal_legacy`       | Gitignored historical reference snapshot; not imported by active code. |
-| `third_party`      | Protected reference material pending a separate policy.                |
+| Path          | Purpose                                                                |
+| ------------- | ---------------------------------------------------------------------- |
+| `packages/*`  | Active single-word domain packages plus CLI tests and entrypoints.     |
+| `docs`        | Active Olympus documentation.                                          |
+| `specs`       | Active Olympus 0.1.0 contracts.                                        |
+| `oal_legacy`  | Gitignored historical reference snapshot; not imported by active code. |
+| `third_party` | Protected reference material pending a separate policy.                |

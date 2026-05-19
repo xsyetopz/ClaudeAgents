@@ -1,0 +1,66 @@
+import {
+	type ExitCode,
+	OlympusError,
+	readProfileStatus,
+	setProjectProfile,
+} from "lifecycle";
+import { asJson } from "reporting";
+
+export async function runProfile(
+	args: string[],
+	json: boolean,
+): Promise<ExitCode> {
+	if (args[0] === "status") {
+		const report = await readProfileStatus();
+		process.stdout.write(json ? asJson(report) : formatStatus(report));
+		return 0;
+	}
+	if (args[0] === "set") {
+		const name = readFlagValue(args, "--name") ?? args[1];
+		if (name === undefined) {
+			throw new OlympusError(
+				"usage: olympus profile set --name <name> [--apply] [--json]",
+				2,
+			);
+		}
+		const description = readFlagValue(args, "--description");
+		const report = await setProjectProfile({
+			name,
+			...(description === undefined ? {} : { description }),
+			apply: args.includes("--apply"),
+		});
+		process.stdout.write(json ? asJson(report) : formatSet(report));
+		return 0;
+	}
+	throw new OlympusError("usage: olympus profile <status|set> [--json]", 2);
+}
+
+function formatStatus(
+	report: Awaited<ReturnType<typeof readProfileStatus>>,
+): string {
+	return `Olympus profile: ${report.profile?.name ?? "unset"}\n`;
+}
+
+function formatSet(
+	report: Awaited<ReturnType<typeof setProjectProfile>>,
+): string {
+	const lines = [
+		`Olympus profile set: ${report.profile.name}`,
+		`Apply: ${report.apply ? "yes" : "no"}`,
+		`Reason: ${report.reason}`,
+	];
+	for (const writePath of report.wouldWrite)
+		lines.push(`would write: ${writePath}`);
+	for (const writePath of report.written) lines.push(`written: ${writePath}`);
+	return `${lines.join("\n")}\n`;
+}
+
+function readFlagValue(args: string[], flagName: string): string | undefined {
+	const index = args.indexOf(flagName);
+	if (index < 0) return undefined;
+	const value = args[index + 1];
+	if (value === undefined || value.startsWith("--")) {
+		throw new OlympusError(`${flagName} requires a value`, 2);
+	}
+	return value;
+}

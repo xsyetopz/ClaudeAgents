@@ -6,7 +6,7 @@ Required local gates for 0.1.0:
 bun install --frozen-lockfile
 bun run olympus:test
 bun run typecheck
-bunx biome check packages/olympus --max-diagnostics 200
+bun run biome:check
 bun run olympus:verify -- --json
 bun run olympus:catalog -- --json
 git diff --check

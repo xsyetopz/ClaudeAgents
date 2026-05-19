@@ -1,10 +1,10 @@
 # Olympus Architecture
 
-Olympus is a PiCodingAgent-first framework implemented in `packages/olympus`. It runs from a source checkout and exposes a standalone low-level CLI plus a high-level interactive wrapper.
+Olympus is a PiCodingAgent-first framework implemented as single-word domain packages under `packages/`. It runs from a source checkout and exposes a standalone low-level CLI plus a high-level interactive wrapper.
 
 ## Components
 
-- **CLI dispatch** — `packages/olympus/src/cli.ts` routes commands to service modules.
+- **CLI dispatch** — `packages/cli/src/cli.ts` routes commands to public domain package APIs.
 - **Inspection** — reads local package metadata and conventional Pi resource paths without executing package code.
 - **Evaluation** — classifies risks, executable resources, conflicts, and installability before trust.
 - **Extension authoring** — creates and inspects Olympus-owned extension skeletons with explicit metadata.
@@ -16,7 +16,7 @@ Olympus is a PiCodingAgent-first framework implemented in `packages/olympus`. It
 
 ## Product boundary
 
-Olympus 0.1.0 is a source-checkout product. It does not publish release artifacts or claim API stability. Active behavior is whatever is implemented and verified under `packages/olympus` and documented in `specs/`.
+Olympus 0.1.0 is a source-checkout product. It does not publish release artifacts or claim API stability. Active behavior is whatever is implemented and verified under `packages/` and documented in `specs/`.
 
 ## PiCodingAgent-first direction
 
