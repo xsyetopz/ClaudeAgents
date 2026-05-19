@@ -12,6 +12,21 @@ export {
 	auditDigest,
 	auditRecordFromDecision,
 } from "./hestia/state.js";
+export type {
+	OlympusHook,
+	OlympusHookContext,
+	OlympusHookDecision,
+	OlympusHookDecisionKind,
+	OlympusHookPhase,
+	OlympusHookPipelineResult,
+} from "./hooks/interface.js";
+export {
+	architectureBoundaryHook,
+	blockedStateHook,
+	policyPreActionHook,
+	runHookPipeline,
+	verificationHook,
+} from "./hooks/interface.js";
 export { protectedPathReasons } from "./policy/protected-paths.js";
 export { decidePolicy, hookPolicyStatus } from "./policy/themis.js";
 export type {

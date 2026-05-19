@@ -13,6 +13,9 @@ Olympus is a PiCodingAgent-first framework implemented as single-word domain pac
 - **Catalog/spec** — emits LLM-readable contracts generated from Olympus-owned source.
 - **Verification** — runs deterministic temp-project and fake-home checks.
 - **Interactive wrapper** — presents guided workflows while delegating behavior to the low-level modules.
+- **Goal-loop foundation** — `lifecycle` owns durable objectives, bounded step attempts, progress ledger entries, blocker detection, completion verification gates, and compaction/continuation recovery prompts.
+- **Hook interfaces** — `safety` owns typed hook phases and veto decisions for pre-action, validation, architecture-boundary, blocked-state, stop, and commit-adjacent guardrails.
+- **Skill discovery** — `authoring` owns topical skill metadata, lazy loading, model-tier hints, and generalized skill-refinement proposals.
 
 ## Product boundary
 
@@ -25,3 +28,11 @@ Olympus targets Pi packages and Pi extension authoring directly. It keeps packag
 ## Historical parity roadmap
 
 Historical architecture lessons inform the roadmap, but Olympus re-authors them as Pi-native features. Planned areas include hooks, skills, prompts, commands, token efficiency, plan review, prompt contracts, teams/subagents, quota awareness, and stronger sandbox/trust gates. These are roadmap items unless listed as implemented in the specs.
+
+## OAL/Codex delta applied in this slice
+
+- Retained OAL's route discipline, completion evidence, blocker reporting, bounded subagent guidance, and topical skill idea.
+- Rejected legacy provider-renderer resurrection and uncontrolled fan-out.
+- Avoided the Codex `/goal` failure mode where a blocked loop keeps doing unrelated hardening: concrete blockers now produce an explicit paused/blocked state with the needed action.
+- Completion requires objective-specific verification evidence and a completion audit, not a self-judged “looks good”.
+- Continuation recovery re-injects the durable objective and completion audit requirements after compaction.

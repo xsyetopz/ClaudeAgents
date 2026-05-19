@@ -2,10 +2,16 @@
 
 This spec lists planned OAL parity themes as future Olympus work. It is not an implementation claim for 0.1.0.
 
-Planned areas:
+Implemented foundation in this slice:
 
-- Hooks with explicit policy, provenance, and fixtures.
-- Skills, prompts, and commands with authoring, validation, and install contracts.
+- Package-API goal-loop state model with blocker-aware pause, verification gate, continuation recovery, and bounded retry state.
+- Package-API hook interface with pre-action, validation, architecture-boundary, blocked-state, stop, and commit-adjacent phases.
+- Package-API topical skill registry with lazy loading and generalized skill-refinement proposals.
+
+Remaining planned areas:
+
+- Provider-loaded hook deployment with explicit policy, provenance, and fixtures beyond the first-party Aegis skeleton.
+- Full skills, prompts, and commands with authoring, validation, and install contracts beyond initial first-party resource metadata and package-API registry.
 - RTK/token-efficiency and output compaction that preserve safety-relevant context.
 - Plan and diff review workflows.
 - Prompt contracts and prompt-quality checks.

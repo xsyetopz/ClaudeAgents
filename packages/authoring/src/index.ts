@@ -22,6 +22,22 @@ export {
 	validateResources,
 } from "./resources/validate.js";
 export type {
+	IndexedSkill,
+	LoadedSkill,
+	SkillIndexMetadata,
+	SkillModelTier,
+	SkillRefinementProposal,
+	SkillRegistry,
+	SkillSelection,
+} from "./skills/registry.js";
+export {
+	createSkillRegistry,
+	FIRST_PARTY_SKILL_INDEX,
+	loadSelectedSkills,
+	proposeSkillRefinement,
+	selectTopicalSkills,
+} from "./skills/registry.js";
+export type {
 	HephaestusApplyProof,
 	HephaestusApplyReport,
 } from "./workflow/apply-gate.js";

@@ -4,8 +4,9 @@ Olympus 0.1.0 starts the PiCodingAgent-first product boundary. The following wor
 
 ## Parity themes
 
-- Hooks with explicit safety policy and fixture coverage.
-- Skills, prompts, and command authoring flows with provenance and validation.
+- Provider-deployed hooks with explicit safety policy and fixture coverage. Initial package-API hook phases and veto decisions are implemented.
+- Skills, prompts, and command authoring flows with provenance and validation. Initial topical skill index, lazy loading, and refinement proposal support are implemented.
+- Goal-loop orchestration beyond the current package-API foundation, including CLI/reporting surfaces and provider runtime integration.
 - RTK/token-efficiency and output compaction that preserve decision-critical context.
 - Plan review, diff review, and prompt contract checks.
 - Read-only teams/subagents with bounded context and no uncontrolled swarm behavior.

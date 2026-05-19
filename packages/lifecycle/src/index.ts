@@ -1,4 +1,32 @@
 export { evaluateLocalPackage } from "./evaluation.js";
+export type {
+	GoalBlocker,
+	GoalBlockerKind,
+	GoalCompletionEvidence,
+	GoalContinuationState,
+	GoalLedgerEntry,
+	GoalLoopCreateOptions,
+	GoalLoopState,
+	GoalLoopStatus,
+	GoalObjective,
+	GoalRetryPolicy,
+	GoalStep,
+	GoalStepStatus,
+	GoalTransition,
+	GoalVerificationGate,
+	GoalVerificationRecord,
+	GoalWorkerResult,
+} from "./goal-loop.js";
+export {
+	applyWorkerResult,
+	createGoalLoopState,
+	detectGoalBlocker,
+	emptyCompletionEvidence,
+	planGoalStep,
+	recoverGoalContinuation,
+	requestGoalCompletion,
+	verifyGoalCompletion,
+} from "./goal-loop.js";
 export {
 	directoryExists,
 	fileExists,
