@@ -50,7 +50,7 @@ export async function runReport(
 		);
 		return report.ok ? 0 : 1;
 	}
-	if (subcommand === "package-risk" || subcommand === "risk") {
+	if (subcommand === "package-risk") {
 		const source = args[1];
 		if (source === undefined) {
 			throw new OlympiError(

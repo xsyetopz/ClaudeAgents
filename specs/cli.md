@@ -1,102 +1,141 @@
 # CLI Contract
 
-The active low-level binary is `olympi`. The source-tree invocation is `bun run olympi -- <command>`.
+The active binary is `olympi`. Source-tree invocations are
+`bun run olympi -- <command>` and `bun packages/cli/src/cli.ts <command>`.
+Local development linking uses `bun link`; source-global installation uses
+`bun install -g "$PWD" --production --ignore-scripts` from the repository root.
+That source-global command is covered by an install smoke test with isolated
+`BUN_INSTALL` and is not a registry install.
 
-## Read-only commands
+## Product shape
 
-- `inspect <local-package-path> [--json]`
-- `package evaluate <source> [--json]`
-- `package-evaluate <source> [--json]`
-- `evaluate <source> [--json]` / `eval <source> [--json]`
-- `package inspect <source> [--json]`
-- `package risk <source> [--json]` / `risk <source> [--json]`
-- `catalog [--json]`
-- `spec [--json]`
+Olympi is a Pi-based harness layer for agentic coding work. The CLI is not a
+menu of package internals. Public commands map to harness workflows:
+
+- human-present console;
+- local harness readiness and state inspection;
+- Pi package/resource intake;
+- project-local policy-gated install and manifest-backed uninstall;
+- status/handoff/acceptance reporting;
+- policy, hook, sandbox, broker, and trust gate inspection.
+
+Default operation is human-present: the user is available for decisions,
+confirmations, blockers, and review. Autonomous mode must be selected explicitly
+by caller/provider configuration and still requires policy gates, provenance,
+blocker handling, and verification evidence.
+
+## Public command surface
+
+- `olympi` / `olympi interactive`
 - `setup status [--json]`
 - `status [--json]`
-- `state [inspect|status] [--json]`
-- `report status [--json]`
-- `report status --write [--json]`
-- `report handoff [--json]`
-- `report handoff --write [--statusline <pi-statusline>] [--threshold-percent <n>] [--json]`
-- `report acceptance [--json]`
-- `report acceptance --write [--json]`
-- `report package-risk <source> [--json]`
-- `handoff current --write [--statusline <pi-statusline>] [--threshold-percent <n>] [--json]`
-- `audit append <event> --detail <detail> --apply [--json]`
-- `context statusline --statusline <pi-statusline> [--json]`
-- `context compact-advice --statusline <pi-statusline> [--after-handoff] [--threshold-percent <n>] [--json]`
-- `compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]`
-- `rtk status [--json]`
-- `rtk plan <command...> [--json]`
-- `quota status [--json]`
-- `lock queue <paths...> [--json]`
-- `profile status [--json]`
-- `profile set --name <name> [--apply] [--json]`
-- `safety check [--json]`
-- `hooks policy [--json]`
-- `hooks aegis-runtime [--json]`
-- `hooks aegis-install --project [--dry-run|--apply] [--json]`
-- `sandbox check [--json]`
-- `broker validate <fixture> [--json]`
-- `trust status [--json]`
-- `trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]`
-- `trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]`
-- `resources validate [path] [--json]`
-- `resources install --project [--dry-run|--apply] [--json]`
-- `prompt contract <input-or-file> [--json]`
-- `review plan <plan-file> [--json]`
-- `review diff <diff-file> [--json]`
-- `handoff current [--json]`
-- `module status [--json]`
-- `module run <module> --dry-run [--json]`
-- `module hephaestus proof <plan-file> [--json]`
-- `module hephaestus apply <plan-file> [--apply] [--json]`
-- `plan <operation> [source] [--json]`
 - `verify [--json]`
-- `check [--json]` / `accept [--json]`
-- `extension inspect <path> [--json]`
+- `catalog [--json]`
+- `package inspect <source> [--json]`
+- `package evaluate <source> [--json]`
+- `package risk <source> [--json]`
+- `install <source> --project [--dry-run|--apply] [--executable --signature-digest <sha256>] [--json]`
+- `uninstall <package-id> --project [--dry-run|--apply] [--json]`
+- `report status [--write] [--json]`
+- `report handoff [--write] [--statusline <pi-statusline>] [--threshold-percent <n>] [--json]`
+- `report acceptance [--write] [--json]`
+- `report package-risk <source> [--json]`
+- `safety check [--json]`
+- `safety hooks policy [--json]`
+- `safety hooks aegis-runtime [--json]`
+- `safety hooks aegis-install --project [--dry-run|--apply] [--json]`
+- `safety sandbox check [--json]`
+- `safety broker validate <fixture> [--json]`
+- `safety trust status [--json]`
+- `safety trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]`
+- `safety trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]`
+
+No undocumented compatibility aliases are part of the contract. A command absent
+from this public surface or the explicit `debug` surface must return malformed
+usage instead of routing to a legacy path.
+
+## Debug and authoring diagnostics
+
+Niche diagnostics and package-owned authoring utilities live behind explicit
+`debug` forms. `verify` and `catalog` are intentionally not debug commands:
+verification gates are part of normal harness operation, and the catalog is
+user-facing command/policy capability discovery.
+
+- `debug context statusline --statusline <pi-statusline> [--json]`
+- `debug context compact-advice --statusline <pi-statusline> [--after-handoff] [--threshold-percent <n>] [--json]`
+- `debug compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]`
+- `debug rtk status [--json]`
+- `debug rtk plan <command...> [--json]`
+- `debug quota status [--json]`
+- `debug lock queue <paths...> [--json]`
+- `debug profile status [--json]`
+- `debug profile set --name <name> [--apply] [--json]`
+- `debug resources validate [path] [--json]`
+- `debug resources install --project [--dry-run|--apply] [--json]`
+- `debug prompt contract <input-or-file> [--json]`
+- `debug review plan <plan-file> [--json]`
+- `debug review diff <diff-file> [--json]`
+- `debug handoff current [--write] [--statusline <pi-statusline>] [--threshold-percent <n>] [--json]`
+- `debug module status [--json]`
+- `debug module run <module> --dry-run [--json]`
+- `debug module hephaestus proof <plan-file> [--json]`
+- `debug module hephaestus apply <plan-file> [--apply] [--json]`
+- `debug extension inspect <path> [--json]`
+- `debug extension create <name> [--dry-run|--apply --output <directory>] [--json]`
+- `debug audit append <event> --detail <detail> --apply [--json]`
+
+`plan <operation>` is not public. Install/uninstall previews are the dry-run
+forms of `install` and `uninstall`.
 
 ## Mutating commands
 
-- `extension create <name> --apply --output <directory> [--json]` writes only to the explicit output directory.
-- `hooks aegis-install --project --apply [--json]` writes only `.pi/extensions/olympi-aegis.ts` in the current project.
-- `resources install --project --apply [--json]` writes only project-local `.pi/settings.json` and `.pi/olympi/**` first-party resource, manifest, lock, and audit paths.
-- `profile set --name <name> --apply [--json]` writes only `.pi/olympi/profile.json`.
-- `install <source> --project --apply [--json]` writes only Olympi-owned project-local mirror, lock, manifest, audit, and settings package entries.
-- `install <source> --project --executable --signature-digest <sha256> --apply [--json]` stages executable package mirror, manifest, and trusted-executable lock without enabling settings load.
-- `trust executable-load --package-id <id> --apply [--json]` writes the project-local settings package entry only after manifest, lock, signature, and sandbox proof pass.
-- `module hephaestus apply <plan-file> --apply [--json]` writes only operation paths from a proven plan and appends project-local audit.
-- `uninstall <package-id> --project --apply [--json]` removes only manifest-owned resources with matching hashes.
+Mutating behavior is explicit and scoped:
 
-Mutating commands support dry-run forms where applicable. Malformed usage returns exit code 2; safety blocks return exit code 3.
+- `install <source> --project --apply` writes only Olympi-owned project-local
+  mirror, lock, manifest, audit, and settings package entries.
+- `install <source> --project --executable --signature-digest <sha256> --apply`
+  stages executable package mirror, manifest, and trusted-executable lock without
+  enabling settings load.
+- `safety trust executable-load --package-id <id> --apply` writes the
+  project-local settings package entry only after manifest, lock, signature, and
+  sandbox proof pass.
+- `uninstall <package-id> --project --apply` removes only manifest-owned
+  resources with matching hashes.
+- `report status|handoff|acceptance --write`, `debug handoff current --write`,
+  and `debug audit append ... --apply` write only under project-local
+  `.pi/olympi/**` paths.
+- `debug resources install --project --apply` installs only first-party Olympi
+  resources into project-local Pi settings and manifest-owned `.pi/olympi/**`
+  paths.
+- `safety hooks aegis-install --project --apply` writes only
+  `.pi/extensions/olympi-aegis.ts` in the current project.
+- `debug profile set --name <name> --apply` writes only
+  `.pi/olympi/profile.json`.
+- `debug extension create <name> --apply --output <directory>` writes only to
+  the explicit output directory.
+- `debug module hephaestus apply <plan-file> --apply` writes only operation
+  paths from a proven plan and appends project-local audit.
+
+Malformed usage returns exit code 2; safety blocks return exit code 3.
 
 ## Interactive wrapper
 
-`olympi interactive` presents a compact command hub for status/setup, inspect, evaluate, install and uninstall dry-run/apply, verify/acceptance, catalog/spec, extension create/inspect, reports, RTK/compact, and safety/policy/sandbox status. It shows the current project root, project-local `.pi/olympi` path, and the global-write warning. Apply flows show dry-run output first and require confirmation. It must route behavior through the same service modules as the low-level CLI.
+`olympi` or `olympi interactive` starts with the product name, current project
+root, `.pi/olympi` state path, state summary, public workflow list, and prompt.
+The public interactive list is `package`, `install`, `uninstall`, `report`,
+`safety`, `setup`, `status`, `help`, and quit controls `q`, `quit`, and `exit`.
+Undocumented aliases are not accepted in the interactive wrapper.
 
-## Setup and state parity
+Apply flows show dry-run output first and require a confirmation that names the
+package id and project-local `.pi` target. Safety details are printed by
+`safety`, `setup`, `status`, or action-local confirmations, not by startup
+banners.
 
-`setup status` is read-only. It detects Bun from the current runtime/PATH, scans PATH for Pi and RTK without executing them, and reports project-local `.pi`, `.pi/olympi`, settings, manifest, lock, audit, quota profile, package mirror, and drift status. It does not install toolchains, run package managers, or mutate global homes. `state inspect` and `state status` are aliases for the current Olympi status report.
+## Verification and blocker behavior
 
-## Reporting and efficiency commands
-
-Track C reporting commands are read-only by default. They emit deterministic JSON with schemaVersion 1 and redact secret-looking compacted output before summaries. `rtk status` detects an RTK executable on PATH without executing it and marks RTK-backed paths as preferred for shell output, read, grep/find/rg, git diff/status/log, test output, and package-manager logs. `rtk plan <command...>` classifies an output-heavy command and reports RTK-preferred plus fallback command forms without executing either RTK or the command. If RTK is unavailable, reports include an explicit degraded/fallback reason.
-
-Durable reporting writes are explicit only. `report status --write`, `report handoff --write`, `report acceptance --write`, and `handoff current --write` write only under project-local `.pi/olympi/**` paths. Handoff writes may accept the Pi footer statusline string and parse the context segment that installed `@earendil-works/pi-coding-agent` renders from `ctx.getContextUsage()` / `AgentSession.getContextUsage()`, such as `52.5%/272k (auto)` or `?/200k (auto)`. Olympi then includes post-handoff `/compact` advice when the parsed context percentage is at or above the configured threshold. Olympi reports the exact next command `/compact`; it does not execute Pi commands.
-
-`audit append` is the explicit project-local audit write command. It requires `--apply` and appends only to `.pi/olympi/audit.jsonl`.
-
-`quota status` reads only project-local `.pi/olympi/quota/profile.json` when present. Supported user labels are `plus`, `pro-5x`, `pro-20x`, and `unknown`; provider limits remain `unknown` unless observed by a provider source.
-
-`lock queue <paths...>` is read-only. It reports deterministic queue keys for future parallel writes so manifest, lock, settings, audit, and source-file mutations can be serialized before any writer is enabled.
-
-`profile status` and `profile set` are Olympi-owned project-local UX only. They do not restore legacy provider-renderer profiles and never write global Pi state.
-
-## Safety/runtime commands
-
-Track A safety commands are read-only by default unless explicitly marked `--apply`. `safety check` runs deterministic Themis policy fixtures; `hooks policy` reports the non-executing Olympi-owned Aegis skeleton; `hooks aegis-runtime` reports the explicit first-party Pi extension entrypoint that can be loaded with `pi -e` and uses Pi's live event API to fail-close blocked `tool_call` events; `hooks aegis-install --project --apply` copies that first-party entrypoint only into project-local `.pi/extensions`; `sandbox check` reports sandbox readiness and fake-home secret denial without executing untrusted package code; `broker validate` accepts only typed read-only git, gh, and registry request schemas and denies arbitrary shell strings; `trust status` reports unsigned, locked, hash-mismatch, trusted-passive, executable-blocked, sandbox, home-denied, and network-denied signage; `trust executable-proof` proves manifest, lock, signature-subject digest, sandbox, home-denial, and network-denial gates without loading executable package code; `trust executable-load --apply` enables a staged executable package only in project-local Pi settings after those gates pass.
-
-## Authoring/workflow commands
-
-Track B authoring commands are read-only by default unless explicitly marked `--apply`. `resources validate` validates Olympi-owned skill/prompt/command metadata, provenance, support files, and command collisions. `resources install --project --apply` explicitly installs only first-party Olympi resources into project-local Pi settings and manifest-owned `.pi/olympi/**` paths. `prompt contract` emits deterministic prompt-contract JSON preserving user paths and constraints. `review plan` and `review diff` emit digest-backed review artifacts without external servers. `handoff current` emits compact Hermes handoff summaries without altering decisions. `module status` and `module run <module> --dry-run` expose bounded Olympi module shells; `module hephaestus proof` proves approved plan digest, path allowlist, manifest ownership, and Themis approval; `module hephaestus apply --apply` writes only the approved operation paths when proof and queue gates pass.
+Completion requires objective-specific evidence, passing verification command
+records, and no active blockers. Blocked states are valid outcomes and must
+report the exact required next action. Continuing unrelated edits after missing
+credentials, missing files, ambiguous ownership, unavailable commands, failing
+environments, impossible constraints, safety vetoes, or repeated failures is a
+CLI/product defect.

@@ -8,7 +8,7 @@ export async function runHandoff(
 ): Promise<ExitCode> {
 	if (args[0] !== "current")
 		throw new OlympiError(
-			"usage: olympi handoff current [--write] [--statusline <pi-statusline>] [--json]",
+			"usage: olympi debug handoff current [--write] [--statusline <pi-statusline>] [--json]",
 			2,
 		);
 	if (args.includes("--write")) {

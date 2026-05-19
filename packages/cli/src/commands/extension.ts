@@ -13,7 +13,10 @@ export function runExtension(
 	const subcommand = args[0];
 	if (subcommand === "inspect") return runExtensionInspect(args.slice(1), json);
 	if (subcommand === "create") return runExtensionCreate(args.slice(1), json);
-	throw new OlympiError("usage: olympi extension <inspect|create> ...", 2);
+	throw new OlympiError(
+		"usage: olympi debug extension <inspect|create> ...",
+		2,
+	);
 }
 
 async function runExtensionInspect(
@@ -22,7 +25,10 @@ async function runExtensionInspect(
 ): Promise<ExitCode> {
 	const source = args[0];
 	if (source === undefined) {
-		throw new OlympiError("usage: olympi extension inspect <path> [--json]", 2);
+		throw new OlympiError(
+			"usage: olympi debug extension inspect <path> [--json]",
+			2,
+		);
 	}
 	const report = await inspectExtensionPath(source);
 	process.stdout.write(json ? asJson(report) : formatExtensionInspect(report));
@@ -36,7 +42,7 @@ async function runExtensionCreate(
 	const name = args.find((arg) => !arg.startsWith("--"));
 	if (name === undefined) {
 		throw new OlympiError(
-			"usage: olympi extension create <name> [--dry-run|--apply --output <directory>] [--json]",
+			"usage: olympi debug extension create <name> [--dry-run|--apply --output <directory>] [--json]",
 			2,
 		);
 	}

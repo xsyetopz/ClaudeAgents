@@ -102,7 +102,7 @@ describe("Olympi package inspection", () => {
 		expect(passive.decision).toBe("trust-passive");
 		const mixed = await evaluateLocalPackage(fixturePath("mixed-package"));
 		expect(mixed.decision).toBe("inspect-more");
-		expect(mixed.recommendation).toContain("Executable resources are present");
+		expect(mixed.inspection.executables.length).toBeGreaterThan(0);
 	});
 });
 
@@ -111,6 +111,7 @@ describe("Olympi CLI", () => {
 		const proc = Bun.spawn([
 			"bun",
 			path.join(import.meta.dir, "..", "src", "cli.ts"),
+			"package",
 			"inspect",
 			fixturePath("passive-package"),
 			"--json",

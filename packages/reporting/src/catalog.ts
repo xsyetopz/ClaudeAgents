@@ -73,7 +73,7 @@ const RESOURCE_CONTRACTS: CatalogResourceContract[] = [
 
 const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
-		command: "inspect",
+		command: "package inspect",
 		purpose:
 			"Read local package metadata and resources without executing package code.",
 		mutationPolicy: "read-only",
@@ -133,7 +133,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "extension create",
+		command: "debug extension create",
 		purpose:
 			"Generate first-party Pi extension skeletons with explicit capability metadata.",
 		mutationPolicy: "explicit-output-only",
@@ -215,7 +215,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["implicit writes", "~/.pi writes", "secret persistence"],
 	},
 	{
-		command: "audit append",
+		command: "debug audit append",
 		purpose:
 			"Append explicit project-local Olympi audit events for handoff/report workflows.",
 		mutationPolicy: "dry-run-first-project-local",
@@ -223,7 +223,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["implicit audit mutation", "~/.pi writes"],
 	},
 	{
-		command: "context compact-advice",
+		command: "debug context compact-advice",
 		purpose:
 			"Parse Pi statusline context and recommend the exact post-handoff `/compact` command when threshold is reached.",
 		mutationPolicy: "read-only",
@@ -231,7 +231,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["executing Pi commands", "inventing context without statusline"],
 	},
 	{
-		command: "compact",
+		command: "debug compact",
 		purpose:
 			"Compact output-heavy fixture or file text with RTK-first status and explicit fallback reasons.",
 		mutationPolicy: "read-only",
@@ -243,7 +243,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "rtk status",
+		command: "debug rtk status",
 		purpose:
 			"Detect RTK on PATH and recommend RTK-backed paths for output-heavy workflows.",
 		mutationPolicy: "read-only",
@@ -254,7 +254,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "rtk plan",
+		command: "debug rtk plan",
 		purpose:
 			"Classify output-heavy commands and emit RTK-preferred plus fallback command forms without executing either command.",
 		mutationPolicy: "read-only",
@@ -262,7 +262,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["command execution", "silent RTK bypass"],
 	},
 	{
-		command: "quota status",
+		command: "debug quota status",
 		purpose:
 			"Read project-local quota profile labels and report uncertain usage estimates without fabricated provider limits.",
 		mutationPolicy: "read-only",
@@ -282,7 +282,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "hooks policy",
+		command: "safety hooks policy",
 		purpose:
 			"Report the non-executing Aegis hook policy skeleton and subscribed Pi event surfaces.",
 		mutationPolicy: "read-only",
@@ -293,7 +293,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "hooks aegis-runtime",
+		command: "safety hooks aegis-runtime",
 		purpose:
 			"Report the first-party Pi Aegis runtime extension entrypoint and fail-closed subscribed event contract.",
 		mutationPolicy: "read-only",
@@ -305,7 +305,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "hooks aegis-install",
+		command: "safety hooks aegis-install",
 		purpose:
 			"Plan or explicitly write the first-party Aegis extension entrypoint to project-local .pi/extensions only.",
 		mutationPolicy: "dry-run-first-project-local",
@@ -313,7 +313,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["global ~/.pi extension writes", "third-party code execution"],
 	},
 	{
-		command: "sandbox check",
+		command: "safety sandbox check",
 		purpose:
 			"Probe sandbox readiness and fake-home secret denial without untrusted package execution.",
 		mutationPolicy: "read-only",
@@ -325,7 +325,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "broker validate",
+		command: "safety broker validate",
 		purpose:
 			"Validate typed read-only git, gh, and registry broker requests and deny arbitrary shell strings.",
 		mutationPolicy: "read-only",
@@ -333,7 +333,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["arbitrary shell", "credential use", "broker mutations"],
 	},
 	{
-		command: "trust status",
+		command: "safety trust status",
 		purpose:
 			"Report trust/signage state including unsigned, locked, hash mismatch, executable blocked, sandbox, home, and network labels.",
 		mutationPolicy: "read-only",
@@ -341,7 +341,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["implicit trust", "executable load", "trust mutation"],
 	},
 	{
-		command: "trust executable-proof",
+		command: "safety trust executable-proof",
 		purpose:
 			"Prove executable package gates from manifest, lock, signature-subject digest, sandbox readiness, and home/network denial signage without loading code.",
 		mutationPolicy: "read-only",
@@ -353,7 +353,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "trust executable-load",
+		command: "safety trust executable-load",
 		purpose:
 			"Enable staged executable package loading in project-local Pi settings only after manifest, lock, signature, and sandbox proof pass.",
 		mutationPolicy: "dry-run-first-project-local",
@@ -369,7 +369,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "resources validate",
+		command: "debug resources validate",
 		purpose:
 			"Validate Olympi-owned skill, prompt, command, provenance, support-file, and collision metadata.",
 		mutationPolicy: "read-only",
@@ -381,7 +381,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "resources install",
+		command: "debug resources install",
 		purpose:
 			"Plan or explicitly install Olympi first-party resources into project-local Pi settings and Olympi-owned manifest paths.",
 		mutationPolicy: "dry-run-first-project-local",
@@ -399,7 +399,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "prompt contract",
+		command: "debug prompt contract",
 		purpose:
 			"Emit a deterministic prompt-contract artifact preserving goal, paths, constraints, risks, and stop conditions.",
 		mutationPolicy: "read-only",
@@ -411,7 +411,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "review plan",
+		command: "debug review plan",
 		purpose:
 			"Review plan artifacts with digests, approval state, allowlists, annotations, and feedback.",
 		mutationPolicy: "read-only",
@@ -419,7 +419,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["unapproved write continuation", "digest mismatch continuation"],
 	},
 	{
-		command: "review diff",
+		command: "debug review diff",
 		purpose:
 			"Review diff artifacts with changed/deleted file annotations and deterministic diff digest.",
 		mutationPolicy: "read-only",
@@ -427,7 +427,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["decision alteration", "secret persistence"],
 	},
 	{
-		command: "handoff current",
+		command: "debug handoff current",
 		purpose:
 			"Emit compact Hermes handoff summaries without changing decisions or mutating source.",
 		mutationPolicy: "read-only",
@@ -439,7 +439,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "module status",
+		command: "debug module status",
 		purpose:
 			"Report bounded Olympi module shells and non-goals for Athena, Themis, Apollo, Hermes, Hestia, Aegis, Moirai, and Hephaestus.",
 		mutationPolicy: "read-only",
@@ -451,7 +451,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "module hephaestus proof",
+		command: "debug module hephaestus proof",
 		purpose:
 			"Prove Hephaestus apply-gate prerequisites: approved digest, path allowlist, manifest ownership, and Themis approval; no writes are executed.",
 		mutationPolicy: "read-only",
@@ -463,7 +463,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "module hephaestus apply",
+		command: "debug module hephaestus apply",
 		purpose:
 			"Apply write operations only from a proven Hephaestus plan with digest, allowlist, manifest ownership, Themis, and queue gates passing.",
 		mutationPolicy: "dry-run-first-project-local",
@@ -476,7 +476,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "profile status",
+		command: "debug profile status",
 		purpose:
 			"Read the optional Olympi-owned project-local profile without legacy provider-renderer semantics.",
 		mutationPolicy: "read-only",
@@ -484,7 +484,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["provider-renderer profiles", "global Pi profile writes"],
 	},
 	{
-		command: "profile set",
+		command: "debug profile set",
 		purpose:
 			"Plan or explicitly write a bounded project-local Olympi profile distinct from legacy provider profiles.",
 		mutationPolicy: "dry-run-first-project-local",
@@ -492,7 +492,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		blocked: ["provider-renderer compatibility", "global Pi profile writes"],
 	},
 	{
-		command: "lock queue",
+		command: "debug lock queue",
 		purpose:
 			"Build a deterministic file-level mutation queue plan before future parallel writes touch manifest, lock, settings, audit, or source files.",
 		mutationPolicy: "read-only",
@@ -624,7 +624,7 @@ export function validateOlympiCatalog(
 		catalog.commands.map((command) => command.command),
 	);
 	for (const required of [
-		"inspect",
+		"package inspect",
 		"package evaluate",
 		"report package-risk",
 		"install",
@@ -636,33 +636,33 @@ export function validateOlympiCatalog(
 		"report handoff",
 		"report acceptance",
 		"report write",
-		"audit append",
-		"context compact-advice",
-		"compact",
-		"rtk status",
-		"rtk plan",
-		"quota status",
+		"debug audit append",
+		"debug context compact-advice",
+		"debug compact",
+		"debug rtk status",
+		"debug rtk plan",
+		"debug quota status",
 		"safety check",
-		"hooks policy",
-		"hooks aegis-runtime",
-		"hooks aegis-install",
-		"sandbox check",
-		"broker validate",
-		"trust status",
-		"trust executable-proof",
-		"trust executable-load",
-		"resources validate",
-		"resources install",
-		"prompt contract",
-		"review plan",
-		"review diff",
-		"handoff current",
-		"module status",
-		"module hephaestus proof",
-		"module hephaestus apply",
-		"profile status",
-		"profile set",
-		"lock queue",
+		"safety hooks policy",
+		"safety hooks aegis-runtime",
+		"safety hooks aegis-install",
+		"safety sandbox check",
+		"safety broker validate",
+		"safety trust status",
+		"safety trust executable-proof",
+		"safety trust executable-load",
+		"debug resources validate",
+		"debug resources install",
+		"debug prompt contract",
+		"debug review plan",
+		"debug review diff",
+		"debug handoff current",
+		"debug module status",
+		"debug module hephaestus proof",
+		"debug module hephaestus apply",
+		"debug profile status",
+		"debug profile set",
+		"debug lock queue",
 		"catalog",
 	]) {
 		if (!commandNames.has(required))

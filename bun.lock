@@ -19,11 +19,10 @@
       },
     },
     "packages/cli": {
-      "name": "cli",
+      "name": "@olympi/cli",
       "version": "0.1.0",
       "bin": {
         "olympi": "./src/cli.ts",
-        "olympi-interactive": "./src/interactive-cli.ts",
       },
       "dependencies": {
         "authoring": "workspace:*",
@@ -97,13 +96,13 @@
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.4.15", "", { "os": "win32", "cpu": "x64" }, "sha512-zBrGq5mx5wwpnow4+2BxUvleDM+GNd4sLbPaMapsSLQLD0NGRCquqPBTgN+7XkUteHvj7M+BstuI8tmnV7+HgQ=="],
 
+    "@olympi/cli": ["@olympi/cli@workspace:packages/cli"],
+
     "@types/node": ["@types/node@25.6.0", "", { "dependencies": { "undici-types": "~7.19.0" } }, "sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ=="],
 
     "authoring": ["authoring@workspace:packages/authoring"],
 
     "bun-types": ["bun-types@1.3.14", "", { "dependencies": { "@types/node": "*" } }, "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ=="],
-
-    "cli": ["cli@workspace:packages/cli"],
 
     "extensions": ["extensions@workspace:packages/extensions"],
 

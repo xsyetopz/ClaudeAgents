@@ -14,7 +14,7 @@ export async function runQuota(
 }
 
 function usage(): ExitCode {
-	process.stderr.write("olympi: usage: olympi quota status [--json]\n");
+	process.stderr.write("olympi: usage: olympi debug quota status [--json]\n");
 	return 2;
 }
 

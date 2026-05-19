@@ -5,14 +5,17 @@ export function runRtk(args: string[], json: boolean): ExitCode {
 	if (args[0] === "plan") {
 		const inputCommand = args.slice(1).join(" ").trim();
 		if (inputCommand.length === 0) {
-			throw new OlympiError("usage: olympi rtk plan <command...> [--json]", 2);
+			throw new OlympiError(
+				"usage: olympi debug rtk plan <command...> [--json]",
+				2,
+			);
 		}
 		const report = planRtkCommand(inputCommand);
 		process.stdout.write(json ? asJson(report) : formatPlan(report));
 		return 0;
 	}
 	if (args[0] !== "status") {
-		throw new OlympiError("usage: olympi rtk <status|plan> [--json]", 2);
+		throw new OlympiError("usage: olympi debug rtk <status|plan> [--json]", 2);
 	}
 	const report = detectRtk();
 	process.stdout.write(json ? asJson(report) : formatRtk(report));

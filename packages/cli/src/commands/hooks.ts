@@ -13,7 +13,7 @@ export function runHooks(
 	if (args[0] === "aegis-install") {
 		if (!args.includes("--project")) {
 			throw new OlympiError(
-				"usage: olympi hooks aegis-install --project [--dry-run|--apply] [--json]",
+				"usage: olympi safety hooks aegis-install --project [--dry-run|--apply] [--json]",
 				2,
 			);
 		}
@@ -31,7 +31,7 @@ export function runHooks(
 	}
 	if (args[0] !== "policy") {
 		throw new OlympiError(
-			"usage: olympi hooks <policy|aegis-runtime|aegis-install> [--json]",
+			"usage: olympi safety hooks <policy|aegis-runtime|aegis-install> [--json]",
 			2,
 		);
 	}

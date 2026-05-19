@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -97,6 +97,52 @@ describe("Olympi project-local passive install", () => {
 			await expect(readFile(fakeHomeMarker, "utf8")).rejects.toThrow();
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("does not overwrite user-owned project settings entries", async () => {
+		const projectRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-install-user-settings-"),
+		);
+		try {
+			const plan = await planPassiveInstall({
+				source: fixturePath("passive-package"),
+				projectRoot,
+				apply: false,
+			});
+			const settingsPath = path.join(projectRoot, ".pi", "settings.json");
+			const userSettings = {
+				packages: [
+					{
+						source: plan.settingsEntry.source,
+						extensions: ["+user-owned-extension.ts"],
+						skills: [],
+						prompts: [],
+						themes: [],
+					},
+				],
+			};
+			await mkdir(path.dirname(settingsPath), { recursive: true });
+			await writeFile(
+				settingsPath,
+				`${JSON.stringify(userSettings, null, 2)}\n`,
+			);
+
+			const report = await applyPassiveInstall({
+				source: fixturePath("passive-package"),
+				projectRoot,
+				apply: true,
+			});
+			expect(report.blocked).toBe(true);
+			expect(report.reason).toBe(
+				"blocked: .pi/settings.json package entry is user-owned; remove it or restore Olympi manifest provenance before retrying",
+			);
+			expect(report.written).toEqual([]);
+			expect(JSON.parse(await readFile(settingsPath, "utf8"))).toEqual(
+				userSettings,
+			);
+		} finally {
+			await rm(projectRoot, { recursive: true, force: true });
 		}
 	});
 

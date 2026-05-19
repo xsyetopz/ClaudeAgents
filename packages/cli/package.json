@@ -1,5 +1,5 @@
 {
-	"name": "cli",
+	"name": "@olympi/cli",
 	"version": "0.1.0",
 	"type": "module",
 	"private": true,
@@ -8,8 +8,7 @@
 	},
 	"types": "./src/index.ts",
 	"bin": {
-		"olympi": "./src/cli.ts",
-		"olympi-interactive": "./src/interactive-cli.ts"
+		"olympi": "./src/cli.ts"
 	},
 	"dependencies": {
 		"authoring": "workspace:*",

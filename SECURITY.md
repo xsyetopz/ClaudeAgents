@@ -17,6 +17,8 @@ mirrored into project-local manifest-owned paths.
 - Extension inspection parses metadata and source text without importing code.
 - Executable resources are blocked from default passive install.
 - Applied install writes only `.pi/settings.json` and `.pi/olympi/**` paths.
+- `.pi/settings.json` package entries are user-owned unless Olympi manifest and
+  hash provenance prove ownership; ambiguous entries must not be overwritten.
 - Applied uninstall removes only manifest-owned files with matching hashes.
 - Hash mismatches preserve files for manual review.
 - Revert-like, delete, move, broad formatter, stage, and commit operations on

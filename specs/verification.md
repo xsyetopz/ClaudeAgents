@@ -4,13 +4,15 @@ Required local gates for 0.1.0:
 
 ```sh
 bun install --frozen-lockfile
-bun run olympi:test
 bun run typecheck
+bun run olympi:test
 bun run biome:check
 bun run olympi:verify -- --json
 bun run olympi:catalog -- --json
-git diff --check
 ```
+
+CI also runs `bun run olympi:smoke` in temporary home/install directories to
+cover CLI source, help, local link, and source-global install invocation.
 
 Verification must prove:
 

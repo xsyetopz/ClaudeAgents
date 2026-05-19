@@ -13,7 +13,7 @@ export async function runCompact(
 	const filePath = readFilePath(args);
 	if (filePath === undefined) {
 		throw new OlympiError(
-			"usage: olympi compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]",
+			"usage: olympi debug compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]",
 			2,
 		);
 	}
@@ -56,7 +56,7 @@ function readKind(args: string[]): CompactionKind | "auto" {
 	) {
 		return value;
 	}
-	throw new OlympiError("invalid --kind for olympi compact", 2);
+	throw new OlympiError("invalid --kind for olympi debug compact", 2);
 }
 
 function readMode(args: string[]): CompactionMode {

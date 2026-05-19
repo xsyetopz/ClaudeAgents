@@ -133,7 +133,7 @@ function fallbackForm(
 	category: RtkCommandCategory,
 	inputCommand: string,
 ): string {
-	return `${inputCommand} 2>&1 | olympi compact --kind ${kindForCategory(category)}`;
+	return `${inputCommand} 2>&1 | olympi debug compact --kind ${kindForCategory(category)}`;
 }
 
 function kindForCategory(category: RtkCommandCategory): string {

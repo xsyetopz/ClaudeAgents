@@ -5,38 +5,108 @@ import path from "node:path";
 
 const CLI = path.join(import.meta.dir, "..", "src", "cli.ts");
 const FIXTURES = path.join(import.meta.dir, "fixtures");
+const LINE_SPLIT_PATTERN = /\r?\n/;
+const HELP_COMMAND_PATTERN = /^ {2}([a-z][a-z-]*)\s{2,}/gm;
+const DEBUG_SURFACE_PATTERN = /\bdebug\b/i;
+const INTERNAL_SAFETY_DETAIL_PATTERN = /\b(aegis|broker|sandbox)\b/i;
+const PROVIDER_DEPLOYMENT_PATTERN = /\b(provider renderers?|deploy)\b/i;
+const AWKWARD_GENERATED_WORDING_PATTERN = /\bhuman output\b/i;
 
 function fixturePath(name: string): string {
 	return path.join(FIXTURES, name);
 }
 
-async function runCli(args: string[], cwd: string = process.cwd()) {
-	const proc = Bun.spawn(["bun", CLI, ...args], {
-		cwd,
-		stderr: "pipe",
-		stdout: "pipe",
-	});
-	const [stdout, stderr, exitCode] = await Promise.all([
-		new Response(proc.stdout).text(),
-		new Response(proc.stderr).text(),
-		proc.exited,
-	]);
-	return { stdout, stderr, exitCode };
+async function runCli(args: string[], cwd?: string) {
+	const tempRoot =
+		cwd === undefined
+			? await mkdtemp(path.join(os.tmpdir(), "olympi-cli-cwd-"))
+			: null;
+	try {
+		const commandCwd = cwd ?? tempRoot;
+		if (commandCwd === null) throw new Error("missing CLI cwd");
+		const proc = Bun.spawn(["bun", CLI, ...args], {
+			cwd: commandCwd,
+			stderr: "pipe",
+			stdout: "pipe",
+		});
+		const [stdout, stderr, exitCode] = await Promise.all([
+			new Response(proc.stdout).text(),
+			new Response(proc.stderr).text(),
+			proc.exited,
+		]);
+		return { stdout, stderr, exitCode };
+	} finally {
+		if (tempRoot !== null) {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	}
+}
+
+function listedCommands(helpText: string): string[] {
+	const section =
+		helpText.split("Commands:\n")[1]?.split("\n\nModel:")[0] ?? "";
+	return Array.from(section.matchAll(HELP_COMMAND_PATTERN), (match) =>
+		String(match[1]),
+	);
+}
+
+function defaultSurfacePolicyViolations(output: string): string[] {
+	return [
+		["debug", DEBUG_SURFACE_PATTERN],
+		["internal-safety-detail", INTERNAL_SAFETY_DETAIL_PATTERN],
+		["provider-deployment", PROVIDER_DEPLOYMENT_PATTERN],
+		["awkward-generated-wording", AWKWARD_GENERATED_WORDING_PATTERN],
+	].flatMap(([label, pattern]) =>
+		(pattern as RegExp).test(output) ? [String(label)] : [],
+	);
 }
 
 describe("Olympi CLI/interactive parity command surface", () => {
-	test("help output includes grouped command areas and blocked legacy surfaces", async () => {
+	test("help output is concise and uses the public command surface", async () => {
 		const result = await runCli(["--help"]);
 		expect(result.exitCode).toBe(0);
-		expect(result.stdout).toContain("Core package commands:");
-		expect(result.stdout).toContain("Plan, install, uninstall:");
-		expect(result.stdout).toContain("Status, setup, acceptance:");
-		expect(result.stdout).toContain("Safety and runtime policy:");
-		expect(result.stdout).toContain("Provider renderers");
+		expect(listedCommands(result.stdout)).toEqual([
+			"package",
+			"install",
+			"uninstall",
+			"setup",
+			"status",
+			"verify",
+			"catalog",
+			"report",
+			"safety",
+			"interactive",
+		]);
+		expect(result.stdout.split(LINE_SPLIT_PATTERN).length).toBeLessThan(35);
+		expect(defaultSurfacePolicyViolations(result.stdout)).toEqual([]);
 	});
 
-	test("aliases route to implemented Olympi commands", async () => {
+	test("full help is available on request", async () => {
+		const result = await runCli(["help", "all"]);
+		expect(result.exitCode).toBe(0);
+		expect(result.stdout).toContain("olympi verify [--json]");
+		expect(result.stdout).toContain("olympi catalog [--json]");
+		expect(result.stdout).toContain("olympi debug compact");
+		expect(result.stdout).not.toContain("olympi debug verify");
+		expect(result.stdout).not.toContain("olympi debug catalog");
+		expect(result.stdout).not.toContain("olympi plan install");
+		expect(result.stdout).not.toContain("olympi hooks policy");
+	});
+
+	test("safety-specific vocabulary is scoped to safety surfaces", async () => {
+		const help = await runCli(["help", "all"]);
+		expect(help.exitCode).toBe(0);
+		expect(help.stdout).toContain("olympi safety sandbox check [--json]");
+		expect(help.stdout).toContain("olympi safety hooks aegis-runtime [--json]");
+
+		const sandbox = await runCli(["safety", "sandbox", "check", "--json"]);
+		expect([0, 1]).toContain(sandbox.exitCode);
+		expect(JSON.parse(sandbox.stdout).command).toBe("sandbox check");
+	});
+
+	test("canonical grouped commands route to implemented Olympi workflows", async () => {
 		const evaluate = await runCli([
+			"package",
 			"evaluate",
 			fixturePath("passive-package"),
 			"--json",
@@ -45,6 +115,7 @@ describe("Olympi CLI/interactive parity command surface", () => {
 		expect(JSON.parse(evaluate.stdout).decision).toBe("trust-passive");
 
 		const risk = await runCli([
+			"package",
 			"risk",
 			fixturePath("passive-package"),
 			"--json",
@@ -52,9 +123,56 @@ describe("Olympi CLI/interactive parity command surface", () => {
 		expect(risk.exitCode).toBe(0);
 		expect(JSON.parse(risk.stdout).command).toBe("report package-risk");
 
-		const accept = await runCli(["accept", "--json"]);
+		const accept = await runCli(["report", "acceptance", "--json"]);
 		expect(accept.exitCode).toBe(0);
 		expect(JSON.parse(accept.stdout).command).toBe("report acceptance");
+
+		const verify = await runCli(["verify", "--json"]);
+		expect(verify.exitCode).toBe(0);
+		expect(JSON.parse(verify.stdout).ok).toBe(true);
+
+		const catalog = await runCli(["catalog", "--json"]);
+		expect(catalog.exitCode).toBe(0);
+		expect(JSON.parse(catalog.stdout).valid).toBe(true);
+	});
+
+	test("undocumented compatibility aliases are not accepted", async () => {
+		const aliases = [
+			"inspect",
+			"evaluate",
+			"eval",
+			"risk",
+			"spec",
+			"state",
+			"check",
+			"accept",
+			"package-evaluate",
+		];
+		for (const alias of aliases) {
+			const result = await runCli([alias, "--json"]);
+			expect(result.exitCode).toBe(2);
+			expect(JSON.parse(result.stderr).error.message).toBe(
+				`unknown command: ${alias}`,
+			);
+		}
+	});
+
+	test("undocumented default and nested aliases are not accepted", async () => {
+		const commands = [
+			["setup"],
+			["setup", "inspect"],
+			["package", "eval"],
+			["report", "risk"],
+			["debug", "catalog"],
+			["debug", "spec"],
+			["debug", "verify"],
+			["safety"],
+			["safety", "sandbox"],
+		];
+		for (const args of commands) {
+			const result = await runCli([...args, "--json"]);
+			expect(result.exitCode).toBe(2);
+		}
 	});
 
 	test("JSON error output uses stable shape without stack traces", async () => {
@@ -73,7 +191,7 @@ describe("Olympi CLI/interactive parity command surface", () => {
 		expect(result.stderr).not.toContain("at ");
 	});
 
-	test("plan uninstall reports exact manifest-authorized actions", async () => {
+	test("uninstall dry-run reports exact manifest-authorized actions", async () => {
 		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-cli-plan-"));
 		try {
 			const install = await runCli(
@@ -89,7 +207,7 @@ describe("Olympi CLI/interactive parity command surface", () => {
 			expect(install.exitCode).toBe(0);
 			const packageId = JSON.parse(install.stdout).packageId;
 			const plan = await runCli(
-				["plan", "uninstall", packageId, "--json"],
+				["uninstall", packageId, "--project", "--dry-run", "--json"],
 				tempRoot,
 			);
 			expect(plan.exitCode).toBe(0);
@@ -98,6 +216,46 @@ describe("Olympi CLI/interactive parity command surface", () => {
 			expect(report.wouldRemove).toContain(".pi/settings.json packages entry");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("default command starts the human-present console", async () => {
+		const tempRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-cli-default-"),
+		);
+		try {
+			const result = await runCli([], tempRoot);
+			expect(result.exitCode).toBe(0);
+			expect(result.stdout.split(LINE_SPLIT_PATTERN).length).toBeLessThan(20);
+			expect(result.stdout).toContain("package");
+			expect(result.stdout).toContain("q|quit|exit");
+			expect(result.stdout).toContain("Done.");
+			expect(defaultSurfacePolicyViolations(result.stdout)).toEqual([]);
+		} finally {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("internal package utilities are not public top-level commands", async () => {
+		for (const command of [
+			"plan",
+			"hooks",
+			"sandbox",
+			"broker",
+			"trust",
+			"resources",
+			"prompt",
+			"review",
+			"handoff",
+			"module",
+			"rtk",
+			"quota",
+		]) {
+			const result = await runCli([command, "--json"]);
+			expect(result.exitCode).toBe(2);
+			expect(JSON.parse(result.stderr).error.message).toBe(
+				`unknown command: ${command}`,
+			);
 		}
 	});
 

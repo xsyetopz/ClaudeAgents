@@ -24,7 +24,7 @@ export function runModule(
 		const moduleName = args[1];
 		if (moduleName === undefined)
 			throw new OlympiError(
-				"usage: olympi module run <module> --dry-run [--json]",
+				"usage: olympi debug module run <module> --dry-run [--json]",
 				2,
 			);
 		const report = runModuleDry(moduleName, args.includes("--dry-run"));
@@ -39,7 +39,7 @@ export function runModule(
 		const planFile = args[2];
 		if (planFile === undefined) {
 			throw new OlympiError(
-				"usage: olympi module hephaestus proof <plan-file> [--json]",
+				"usage: olympi debug module hephaestus proof <plan-file> [--json]",
 				2,
 			);
 		}
@@ -54,7 +54,7 @@ export function runModule(
 		const planFile = args[2];
 		if (planFile === undefined) {
 			throw new OlympiError(
-				"usage: olympi module hephaestus apply <plan-file> [--apply] [--json]",
+				"usage: olympi debug module hephaestus apply <plan-file> [--apply] [--json]",
 				2,
 			);
 		}
@@ -69,5 +69,5 @@ export function runModule(
 			return report.blocked ? 3 : 0;
 		});
 	}
-	throw new OlympiError("usage: olympi module <status|run> ...", 2);
+	throw new OlympiError("usage: olympi debug module <status|run> ...", 2);
 }

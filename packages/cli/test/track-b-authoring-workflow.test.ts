@@ -242,6 +242,7 @@ describe("Track B prompt/review artifacts", () => {
 				[
 					"bun",
 					CLI,
+					"debug",
 					"module",
 					"hephaestus",
 					"apply",
@@ -356,12 +357,12 @@ describe("Track B CLI smoke and no global Pi writes", () => {
 			);
 			await writeFile(diffFile, "diff --git a/a.ts b/a.ts\n");
 			const commands = [
-				["resources", "validate", "--json"],
-				["prompt", "contract", promptFile, "--json"],
-				["review", "plan", planFile, "--json"],
-				["review", "diff", diffFile, "--json"],
-				["handoff", "current", "--json"],
-				["module", "status", "--json"],
+				["debug", "resources", "validate", "--json"],
+				["debug", "prompt", "contract", promptFile, "--json"],
+				["debug", "review", "plan", planFile, "--json"],
+				["debug", "review", "diff", diffFile, "--json"],
+				["debug", "handoff", "current", "--json"],
+				["debug", "module", "status", "--json"],
 			];
 			for (const args of commands) {
 				const proc = Bun.spawn(["bun", CLI, ...args], { cwd: tempRoot });
@@ -383,10 +384,13 @@ describe("Track B CLI smoke and no global Pi writes", () => {
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");
-			const proc = Bun.spawn(["bun", CLI, "module", "status", "--json"], {
-				cwd: tempRoot,
-				env: { ...process.env, HOME: fakeHome },
-			});
+			const proc = Bun.spawn(
+				["bun", CLI, "debug", "module", "status", "--json"],
+				{
+					cwd: tempRoot,
+					env: { ...process.env, HOME: fakeHome },
+				},
+			);
 			const exitCode = await proc.exited;
 			expect(exitCode).toBe(0);
 			await expect(

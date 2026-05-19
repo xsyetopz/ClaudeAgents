@@ -9,7 +9,7 @@ export async function runResources(
 	if (args[0] === "install") {
 		if (!args.includes("--project")) {
 			throw new OlympiError(
-				"usage: olympi resources install --project [--dry-run|--apply] [--json]",
+				"usage: olympi debug resources install --project [--dry-run|--apply] [--json]",
 				2,
 			);
 		}
@@ -21,7 +21,7 @@ export async function runResources(
 	}
 	if (args[0] !== "validate")
 		throw new OlympiError(
-			"usage: olympi resources <validate|install> [path] [--json]",
+			"usage: olympi debug resources <validate|install> [path] [--json]",
 			2,
 		);
 	const inputPath = args.slice(1).find((arg) => !arg.startsWith("--"));

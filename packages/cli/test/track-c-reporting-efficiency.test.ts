@@ -246,6 +246,7 @@ describe("Track C deterministic reports and quota", () => {
 				[
 					"bun",
 					CLI,
+					"debug",
 					"audit",
 					"append",
 					"handoff",
@@ -284,6 +285,7 @@ describe("Track C CLI smoke and no global Pi writes", () => {
 			const commands = [
 				["report", "status", "--json"],
 				[
+					"debug",
 					"context",
 					"compact-advice",
 					"--statusline",
@@ -293,9 +295,9 @@ describe("Track C CLI smoke and no global Pi writes", () => {
 				],
 				["report", "handoff", "--json"],
 				["report", "acceptance", "--json"],
-				["compact", outputFile, "--json"],
-				["rtk", "status", "--json"],
-				["quota", "status", "--json"],
+				["debug", "compact", outputFile, "--json"],
+				["debug", "rtk", "status", "--json"],
+				["debug", "quota", "status", "--json"],
 			];
 			for (const args of commands) {
 				const proc = Bun.spawn(["bun", CLI, ...args], { cwd: tempRoot });
@@ -317,10 +319,13 @@ describe("Track C CLI smoke and no global Pi writes", () => {
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");
-			const proc = Bun.spawn(["bun", CLI, "quota", "status", "--json"], {
-				cwd: tempRoot,
-				env: { ...process.env, HOME: fakeHome },
-			});
+			const proc = Bun.spawn(
+				["bun", CLI, "debug", "quota", "status", "--json"],
+				{
+					cwd: tempRoot,
+					env: { ...process.env, HOME: fakeHome },
+				},
+			);
 			const exitCode = await proc.exited;
 			expect(exitCode).toBe(0);
 			await expect(

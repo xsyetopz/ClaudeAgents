@@ -6,8 +6,8 @@ export async function runSetup(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	const subcommand = args[0] ?? "status";
-	if (subcommand !== "status" && subcommand !== "inspect") {
+	const subcommand = args[0];
+	if (subcommand !== "status") {
 		throw new OlympiError("usage: olympi setup status [--json]", 2);
 	}
 	const report = await readSetupStatus();

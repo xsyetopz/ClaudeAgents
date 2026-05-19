@@ -8,13 +8,13 @@ export async function runBroker(
 ): Promise<ExitCode> {
 	if (args[0] !== "validate")
 		throw new OlympiError(
-			"usage: olympi broker validate <fixture> [--json]",
+			"usage: olympi safety broker validate <fixture> [--json]",
 			2,
 		);
 	const fixture = args[1];
 	if (fixture === undefined)
 		throw new OlympiError(
-			"usage: olympi broker validate <fixture> [--json]",
+			"usage: olympi safety broker validate <fixture> [--json]",
 			2,
 		);
 	const report = await validateBrokerFixture(fixture);

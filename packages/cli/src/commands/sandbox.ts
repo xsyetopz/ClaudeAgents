@@ -4,7 +4,7 @@ import { runSandboxProbe } from "safety";
 
 export function runSandbox(args: string[], json: boolean): ExitCode {
 	if (args[0] !== "check")
-		throw new OlympiError("usage: olympi sandbox check [--json]", 2);
+		throw new OlympiError("usage: olympi safety sandbox check [--json]", 2);
 	const report = runSandboxProbe();
 	process.stdout.write(json ? asJson(report) : formatSandbox(report));
 	return report.executableLoadAllowed ? 0 : 1;

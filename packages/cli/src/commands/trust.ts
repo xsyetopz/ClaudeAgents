@@ -10,7 +10,7 @@ export async function runTrust(
 		const packageId = readFlagValue(args, "--package-id") ?? args[1];
 		if (packageId === undefined) {
 			throw new OlympiError(
-				"usage: olympi trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]",
+				"usage: olympi safety trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]",
 				2,
 			);
 		}
@@ -27,7 +27,7 @@ export async function runTrust(
 		const packageId = readFlagValue(args, "--package-id") ?? args[1];
 		if (packageId === undefined) {
 			throw new OlympiError(
-				"usage: olympi trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]",
+				"usage: olympi safety trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]",
 				2,
 			);
 		}
@@ -40,7 +40,7 @@ export async function runTrust(
 	}
 	if (args[0] !== "status") {
 		throw new OlympiError(
-			"usage: olympi trust <status|executable-proof|executable-load> [--json]",
+			"usage: olympi safety trust <status|executable-proof|executable-load> [--json]",
 			2,
 		);
 	}

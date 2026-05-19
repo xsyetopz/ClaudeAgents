@@ -8,13 +8,13 @@ export async function runPrompt(
 ): Promise<ExitCode> {
 	if (args[0] !== "contract")
 		throw new OlympiError(
-			"usage: olympi prompt contract <input-or-file> [--json]",
+			"usage: olympi debug prompt contract <input-or-file> [--json]",
 			2,
 		);
 	const input = args.slice(1).find((arg) => !arg.startsWith("--"));
 	if (input === undefined)
 		throw new OlympiError(
-			"usage: olympi prompt contract <input-or-file> [--json]",
+			"usage: olympi debug prompt contract <input-or-file> [--json]",
 			2,
 		);
 	const report = await buildPromptContract(input);

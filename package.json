@@ -16,6 +16,7 @@
 		"test": "bun run olympi:test",
 		"olympi": "bun packages/cli/src/cli.ts",
 		"olympi:test": "bun test packages/cli/test/*.test.ts",
+		"olympi:smoke": "bash scripts/ci-smoke.sh",
 		"olympi:verify": "bun packages/cli/src/cli.ts verify",
 		"olympi:catalog": "bun packages/cli/src/cli.ts catalog",
 		"build": "bun run typecheck"
@@ -26,5 +27,8 @@
 	},
 	"engines": {
 		"node": ">=24.14.1"
+	},
+	"bin": {
+		"olympi": "./packages/cli/src/cli.ts"
 	}
 }

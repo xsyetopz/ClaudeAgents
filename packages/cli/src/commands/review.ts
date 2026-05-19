@@ -10,7 +10,7 @@ export async function runReview(
 	const file = args[1];
 	if ((subcommand !== "plan" && subcommand !== "diff") || file === undefined)
 		throw new OlympiError(
-			"usage: olympi review <plan|diff> <file> [--json]",
+			"usage: olympi debug review <plan|diff> <file> [--json]",
 			2,
 		);
 	const report =

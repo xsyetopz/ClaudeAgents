@@ -38,7 +38,7 @@ export interface FirstPartyResourceInstallReport {
 	project: true;
 	apply: boolean;
 	packageId: "olympi-first-party-resources";
-	blocked: false;
+	blocked: boolean;
 	wouldWrite: string[];
 	written: string[];
 	settingsEntry: PiPackageSettingsEntry;
@@ -114,6 +114,26 @@ export async function installFirstPartyResources(options: {
 			relativeToProject(projectRoot, path.join(mirrorRoot, file.relativePath)),
 		),
 	].sort();
+	const settingsOwnershipBlock = await settingsEntryOwnershipBlock(
+		projectRoot,
+		settingsEntry.source,
+	);
+	if (settingsOwnershipBlock !== undefined) {
+		return {
+			schemaVersion: 1,
+			command: "resources install",
+			projectRoot,
+			project: true,
+			apply: options.apply,
+			packageId,
+			blocked: true,
+			wouldWrite,
+			written: [],
+			settingsEntry,
+			reason: settingsOwnershipBlock,
+			warnings: [settingsOwnershipBlock],
+		};
+	}
 	if (!options.apply) {
 		return {
 			schemaVersion: 1,
@@ -210,6 +230,28 @@ export async function installFirstPartyResources(options: {
 			"installed first-party Olympi resources into project-local .pi paths",
 		warnings: [],
 	};
+}
+
+async function settingsEntryOwnershipBlock(
+	projectRoot: string,
+	settingsSource: string,
+): Promise<string | undefined> {
+	const settings = await readPiSettings(projectRoot);
+	const existingEntry = (settings.packages ?? []).find(
+		(entry) => entry.source === settingsSource,
+	);
+	if (existingEntry === undefined) return undefined;
+	const manifest = await readManifest(projectRoot);
+	const owner = manifest.packages.find(
+		(record) => record.settingsSource === settingsSource,
+	);
+	if (owner === undefined) {
+		return "blocked: .pi/settings.json package entry is user-owned; remove it or restore Olympi manifest provenance before retrying";
+	}
+	if (hashJson(existingEntry) !== owner.settingsEntryHash) {
+		return "blocked: .pi/settings.json package entry changed; restore the manifest-owned entry or remove it before retrying";
+	}
+	return undefined;
 }
 
 function packageFiles(): Array<{ relativePath: string; content: string }> {

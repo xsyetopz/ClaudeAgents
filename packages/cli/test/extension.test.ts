@@ -62,30 +62,46 @@ describe("Olympi extension authoring", () => {
 	});
 
 	test("CLI create apply requires explicit output and writes no default project Pi state", async () => {
-		const proc = Bun.spawn(
-			["bun", CLI, "extension", "create", "blocked-panel", "--apply", "--json"],
-			{ stdout: "pipe", stderr: "pipe" },
+		const tempRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-extension-no-default-write-"),
 		);
-		const [stdout, stderr, exitCode] = await Promise.all([
-			new Response(proc.stdout).text(),
-			new Response(proc.stderr).text(),
-			proc.exited,
-		]);
-		expect(exitCode).toBe(3);
-		expect(`${stdout}${stderr}`).toContain("requires --output");
-		await expect(
-			readFile(
-				path.join(
-					process.cwd(),
-					".pi",
-					"olympi",
-					"extensions",
+		try {
+			const proc = Bun.spawn(
+				[
+					"bun",
+					CLI,
+					"debug",
+					"extension",
+					"create",
 					"blocked-panel",
-					"package.json",
+					"--apply",
+					"--json",
+				],
+				{ cwd: tempRoot, stdout: "pipe", stderr: "pipe" },
+			);
+			const [stdout, stderr, exitCode] = await Promise.all([
+				new Response(proc.stdout).text(),
+				new Response(proc.stderr).text(),
+				proc.exited,
+			]);
+			expect(exitCode).toBe(3);
+			expect(`${stdout}${stderr}`).toContain("requires --output");
+			await expect(
+				readFile(
+					path.join(
+						tempRoot,
+						".pi",
+						"olympi",
+						"extensions",
+						"blocked-panel",
+						"package.json",
+					),
+					"utf8",
 				),
-				"utf8",
-			),
-		).rejects.toThrow();
+			).rejects.toThrow();
+		} finally {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
 	});
 });
 
@@ -122,6 +138,7 @@ describe("Olympi third-party package evaluator", () => {
 			const proc = Bun.spawn([
 				"bun",
 				CLI,
+				"debug",
 				"extension",
 				"inspect",
 				path.join(tempRoot, "cli-panel"),

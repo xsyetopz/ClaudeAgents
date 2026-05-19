@@ -22,7 +22,7 @@ describe("Olympi catalog", () => {
 		expect(catalog.product).toBe("Olympi");
 		expect(validateOlympiCatalog(catalog)).toEqual([]);
 		expect(catalog.commands.map((command) => command.command)).toContain(
-			"install",
+			"package inspect",
 		);
 		expect(catalog.commands.map((command) => command.command)).toContain(
 			"status",

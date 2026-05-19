@@ -38,7 +38,7 @@ export const FIRST_PARTY_RESOURCE_METADATA: OlympiResourceMetadata[] = [
 		"safety-review",
 		"Review proposed changes for Olympi safety policy regressions.",
 		"skill",
-		["olympi safety check", "olympi hooks policy"],
+		["olympi safety check", "olympi safety hooks policy"],
 	),
 	resource(
 		"package-risk-review",
@@ -50,31 +50,31 @@ export const FIRST_PARTY_RESOURCE_METADATA: OlympiResourceMetadata[] = [
 		"extension-authoring",
 		"Guide first-party Pi extension skeleton authoring and metadata inspection.",
 		"skill",
-		["olympi extension inspect"],
+		["olympi debug extension inspect"],
 	),
 	resource(
 		"sandbox-troubleshooting",
 		"Troubleshoot sandbox readiness and fake-home denial evidence.",
 		"skill",
-		["olympi sandbox check"],
+		["olympi safety sandbox check"],
 	),
 	resource(
 		"cleanup-audit",
 		"Audit cleanup proposals without performing cleanup.",
 		"skill",
-		["olympi cleanup audit"],
+		["olympi debug audit append"],
 	),
 	resource(
 		"verification-handoff",
 		"Prepare verification evidence and compact handoff summaries.",
 		"skill",
-		["olympi verify", "olympi handoff current"],
+		["olympi debug verify", "olympi debug handoff current"],
 	),
 	resource(
 		"rtk-aware-command-guidance",
 		"Prefer RTK-backed guidance for output-heavy commands when RTK is available.",
 		"skill",
-		["olympi rtk status", "olympi compact"],
+		["olympi debug rtk status", "olympi debug compact"],
 	),
 	resource(
 		"plan-review",
@@ -123,6 +123,6 @@ function resource(
 			"uncontrolled swarm behavior",
 		],
 		verification:
-			"Validated by olympi resources validate and manifest-owned install planning only.",
+			"Validated by olympi debug resources validate and manifest-owned install planning only.",
 	};
 }

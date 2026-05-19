@@ -7,7 +7,7 @@ export async function runInspect(
 ): Promise<ExitCode> {
 	const source = args[0];
 	if (source === undefined) {
-		throwUsage("usage: olympi inspect <local-package-path> [--json]");
+		throwUsage("usage: olympi package inspect <local-package-path> [--json]");
 	}
 	const report = await inspectLocalPackage(source);
 	process.stdout.write(json ? asJson(report) : formatInspection(report));

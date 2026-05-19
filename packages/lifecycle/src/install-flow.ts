@@ -300,6 +300,10 @@ export async function loadExecutablePackage(
 	});
 	const settingsEntry =
 		record === undefined ? null : settingsEntryFromManifest(record);
+	const settingsOwnershipBlock =
+		record === undefined
+			? undefined
+			: await settingsEntryOwnershipBlock(projectRoot, record.settingsSource);
 	const wouldWrite = [
 		".pi/settings.json packages entry",
 		".pi/olympi/olympi-manifest.json",
@@ -308,7 +312,8 @@ export async function loadExecutablePackage(
 	if (
 		!proof.executableLoadAllowed ||
 		record === undefined ||
-		settingsEntry === null
+		settingsEntry === null ||
+		settingsOwnershipBlock !== undefined
 	) {
 		return {
 			schemaVersion: 1,
@@ -324,8 +329,15 @@ export async function loadExecutablePackage(
 			reason:
 				record === undefined
 					? "executable load blocked: package is not staged in Olympi manifest"
-					: "executable load blocked: trust, lock, signature, or sandbox proof failed",
-			warnings: proof.reasons,
+					: settingsOwnershipBlock === undefined
+						? "executable load blocked: trust, lock, signature, or sandbox proof failed"
+						: settingsOwnershipBlock,
+			warnings: [
+				...proof.reasons,
+				...(settingsOwnershipBlock === undefined
+					? []
+					: [settingsOwnershipBlock]),
+			],
 			proof,
 		};
 	}
@@ -510,7 +522,11 @@ async function buildInstallPlan(options: InstallOptions): Promise<InstallPlan> {
 		),
 		relativeToProject(projectRoot, path.join(mirrorRoot, "package.json")),
 	];
-	const blockReason = installBlockReason(evaluation);
+	const settingsOwnershipBlock = await settingsEntryOwnershipBlock(
+		projectRoot,
+		settingsEntry.source,
+	);
+	const blockReason = installBlockReason(evaluation) ?? settingsOwnershipBlock;
 	return {
 		report: {
 			schemaVersion: 1,
@@ -615,6 +631,28 @@ async function buildExecutableInstallPlan(
 		resources,
 		filesToCopy,
 	};
+}
+
+async function settingsEntryOwnershipBlock(
+	projectRoot: string,
+	settingsSource: string,
+): Promise<string | undefined> {
+	const settings = await readPiSettings(projectRoot);
+	const existingEntry = (settings.packages ?? []).find(
+		(entry) => entry.source === settingsSource,
+	);
+	if (existingEntry === undefined) return undefined;
+	const manifest = await readManifest(projectRoot);
+	const owner = manifest.packages.find(
+		(record) => record.settingsSource === settingsSource,
+	);
+	if (owner === undefined) {
+		return "blocked: .pi/settings.json package entry is user-owned; remove it or restore Olympi manifest provenance before retrying";
+	}
+	if (hashJson(existingEntry) !== owner.settingsEntryHash) {
+		return "blocked: .pi/settings.json package entry changed; restore the manifest-owned entry or remove it before retrying";
+	}
+	return undefined;
 }
 
 function installBlockReason(evaluation: EvaluationReport): string | undefined {

@@ -7,13 +7,15 @@ behavior and boundaries.
 
 ```sh
 bun install --frozen-lockfile
-bun run olympi:test
 bun run typecheck
+bun run olympi:test
 bun run biome:check
 bun run olympi:verify -- --json
 bun run olympi:catalog -- --json
-git diff --check
 ```
+
+CI adds `bun run olympi:smoke` for source, help, local link, and source-global
+install checks in temporary directories.
 
 ## What tests must prove
 

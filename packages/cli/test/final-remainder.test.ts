@@ -106,11 +106,25 @@ describe("Final Olympi remainder", () => {
 		);
 		try {
 			const commands = [
-				["rtk", "plan", "git", "diff", "--json"],
-				["profile", "status", "--json"],
-				["lock", "queue", ".pi/settings.json", "packages/x.ts", "--json"],
-				["resources", "install", "--project", "--dry-run", "--json"],
-				["hooks", "aegis-install", "--project", "--dry-run", "--json"],
+				["debug", "rtk", "plan", "git", "diff", "--json"],
+				["debug", "profile", "status", "--json"],
+				[
+					"debug",
+					"lock",
+					"queue",
+					".pi/settings.json",
+					"packages/x.ts",
+					"--json",
+				],
+				["debug", "resources", "install", "--project", "--dry-run", "--json"],
+				[
+					"safety",
+					"hooks",
+					"aegis-install",
+					"--project",
+					"--dry-run",
+					"--json",
+				],
 			];
 			for (const args of commands) {
 				const proc = Bun.spawn(["bun", CLI, ...args], { cwd: projectRoot });

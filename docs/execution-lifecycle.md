@@ -31,10 +31,10 @@ state. They must not run package code or mutate project state.
 Examples:
 
 ```sh
-bun run olympi -- inspect /path/to/package --json
+bun run olympi -- package inspect /path/to/package --json
 bun run olympi -- package evaluate /path/to/package --json
 bun run olympi -- status --json
-bun run olympi -- trust status --json
+bun run olympi -- safety trust status --json
 ```
 
 ## Planning phase
@@ -62,16 +62,16 @@ bun run olympi -- uninstall <package-id> --project --apply
 A blocker is a condition that prevents meaningful progress. The loop must pause
 when it detects one.
 
-| Blocker | Required behavior |
-| --- | --- |
-| Missing credentials | Report the missing credential or supported credential-free path. |
-| Missing files | Report the path and whether the objective can be revised. |
-| Unclear authority | Request approval or ownership clarification. |
-| Ambiguous ownership | Stop before restore, delete, move, format, stage, or commit; require manifest/hash/provenance proof or explicit approval. |
-| Unavailable command | Report the missing command and fallback, if one exists. |
-| Failing environment | Report the failing command/environment condition. |
-| Impossible constraints | Report the contradiction and ask for a revised objective. |
-| Repeated failures | Stop after bounded attempts and route to review/debug/refinement. |
+| Blocker                | Required behavior                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Missing credentials    | Report the missing credential or supported credential-free path.                                                          |
+| Missing files          | Report the path and whether the objective can be revised.                                                                 |
+| Unclear authority      | Request approval or ownership clarification.                                                                              |
+| Ambiguous ownership    | Stop before restore, delete, move, format, stage, or commit; require manifest/hash/provenance proof or explicit approval. |
+| Unavailable command    | Report the missing command and fallback, if one exists.                                                                   |
+| Failing environment    | Report the failing command/environment condition.                                                                         |
+| Impossible constraints | Report the contradiction and ask for a revised objective.                                                                 |
+| Repeated failures      | Stop after bounded attempts and route to review/debug/refinement.                                                         |
 
 The correct output is a structured blocked state with attempted work, evidence,
 and needed action. Continuing unrelated cleanup is a defect.

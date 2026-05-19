@@ -359,7 +359,7 @@ describe("Track A Themis policy decisions", () => {
 	test("command wrapper normalizes metadata before direct policy", () => {
 		const normalized = normalizeCommandExecution({
 			rawCommand: "git restore -- .pi/settings.json",
-			cwd: process.cwd(),
+			cwd: path.join(os.tmpdir(), "olympi-policy-fixture"),
 			candidateTouchedPaths: [".pi/settings.json"],
 		});
 
@@ -595,10 +595,10 @@ describe("Track A CLI smoke and no global Pi writes", () => {
 			);
 			const commands = [
 				["safety", "check", "--json"],
-				["hooks", "policy", "--json"],
-				["sandbox", "check", "--json"],
-				["broker", "validate", goodBroker, "--json"],
-				["trust", "status", "--json"],
+				["safety", "hooks", "policy", "--json"],
+				["safety", "sandbox", "check", "--json"],
+				["safety", "broker", "validate", goodBroker, "--json"],
+				["safety", "trust", "status", "--json"],
 			];
 			for (const args of commands) {
 				const proc = Bun.spawn(["bun", CLI, ...args], { cwd: tempRoot });
