@@ -3,7 +3,7 @@ import {
 	aegisPolicyStatus,
 	installAegisProjectExtension,
 } from "extensions";
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { asJson } from "reporting";
 
 export function runHooks(
@@ -12,8 +12,8 @@ export function runHooks(
 ): ExitCode | Promise<ExitCode> {
 	if (args[0] === "aegis-install") {
 		if (!args.includes("--project")) {
-			throw new OlympusError(
-				"usage: olympus hooks aegis-install --project [--dry-run|--apply] [--json]",
+			throw new OlympiError(
+				"usage: olympi hooks aegis-install --project [--dry-run|--apply] [--json]",
 				2,
 			);
 		}
@@ -30,8 +30,8 @@ export function runHooks(
 		return 0;
 	}
 	if (args[0] !== "policy") {
-		throw new OlympusError(
-			"usage: olympus hooks <policy|aegis-runtime|aegis-install> [--json]",
+		throw new OlympiError(
+			"usage: olympi hooks <policy|aegis-runtime|aegis-install> [--json]",
 			2,
 		);
 	}
@@ -44,7 +44,7 @@ function formatInstall(
 	report: Awaited<ReturnType<typeof installAegisProjectExtension>>,
 ): string {
 	const lines = [
-		`Olympus Aegis install: ${report.apply ? "applied" : "dry-run"}`,
+		`Olympi Aegis install: ${report.apply ? "applied" : "dry-run"}`,
 		`Entrypoint: ${report.entrypoint}`,
 		`Reason: ${report.reason}`,
 	];
@@ -58,7 +58,7 @@ function formatRuntime(
 	report: ReturnType<typeof aegisPiRuntimeStatus>,
 ): string {
 	const lines = [
-		"Olympus Aegis Pi runtime integration: available",
+		"Olympi Aegis Pi runtime integration: available",
 		`Entrypoint: ${report.extensionEntrypoint}`,
 		`Subscribed events: ${report.subscribedEvents.join(", ")}`,
 	];
@@ -68,7 +68,7 @@ function formatRuntime(
 
 function formatHooks(report: ReturnType<typeof aegisPolicyStatus>): string {
 	const lines = [
-		`Olympus hooks policy: ${report.status}`,
+		`Olympi hooks policy: ${report.status}`,
 		`Runtime execution: ${report.runtimeExecutionEnabled ? "enabled" : "disabled"}`,
 		`Subscribed events: ${report.subscribedEvents.join(", ")}`,
 	];

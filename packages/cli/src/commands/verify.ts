@@ -15,7 +15,7 @@ import {
 	readProjectStatus,
 	writeLock,
 } from "lifecycle";
-import { asJson, getOlympusCatalog, validateOlympusCatalog } from "reporting";
+import { asJson, getOlympiCatalog, validateOlympiCatalog } from "reporting";
 
 export interface VerifyCheck {
 	name: string;
@@ -37,7 +37,7 @@ export async function runVerify(json: boolean): Promise<ExitCode> {
 }
 
 export async function buildVerifyReport(): Promise<VerifyReport> {
-	const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-verify-"));
+	const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-verify-"));
 	try {
 		const checks: VerifyCheck[] = [];
 		const projectRoot = path.join(tempRoot, "temp-project");
@@ -45,9 +45,9 @@ export async function buildVerifyReport(): Promise<VerifyReport> {
 		const packagePath = path.join(tempRoot, "package-under-test");
 		await createFakeHome(fakeHome);
 		await createPassivePackage(packagePath);
-		const catalogErrors = validateOlympusCatalog(getOlympusCatalog());
+		const catalogErrors = validateOlympiCatalog(getOlympiCatalog());
 		checks.push({
-			name: "Olympus source-of-truth catalog validates",
+			name: "Olympi catalog validates",
 			ok: catalogErrors.length === 0,
 			detail:
 				catalogErrors.length === 0
@@ -75,7 +75,7 @@ export async function buildVerifyReport(): Promise<VerifyReport> {
 			name: "install dry-run is manifest-backed and unblocked for passive fixtures",
 			ok:
 				!installPlan.blocked &&
-				installPlan.wouldWrite.includes(".pi/olympus/olympus-manifest.json") &&
+				installPlan.wouldWrite.includes(".pi/olympi/olympi-manifest.json") &&
 				installPlan.wouldWrite.includes(".pi/settings.json packages entry"),
 			detail: installPlan.reason,
 		});
@@ -155,7 +155,7 @@ export async function buildVerifyReport(): Promise<VerifyReport> {
 				tempRoot,
 				"mismatch-project",
 				".pi",
-				"olympus",
+				"olympi",
 				"packages",
 				mismatchInstall.packageId,
 				"package",
@@ -246,7 +246,7 @@ async function createFakeHome(fakeHome: string): Promise<void> {
 }
 
 export function formatVerifyReport(report: VerifyReport): string {
-	const lines = [`Olympus verify: ${report.ok ? "ok" : "failed"}`];
+	const lines = [`Olympi verify: ${report.ok ? "ok" : "failed"}`];
 	for (const check of report.checks) {
 		lines.push(`${check.ok ? "ok" : "fail"}: ${check.name} — ${check.detail}`);
 	}

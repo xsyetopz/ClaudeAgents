@@ -72,12 +72,12 @@ export function buildSafetyCheckReport(): SafetyCheckReport {
 }
 
 function usage(): ExitCode {
-	process.stderr.write("olympus: usage: olympus safety check [--json]\n");
+	process.stderr.write("olympi: usage: olympi safety check [--json]\n");
 	return 2;
 }
 
 function formatSafety(report: SafetyCheckReport): string {
-	const lines = [`Olympus safety check: ${report.ok ? "ok" : "failed"}`];
+	const lines = [`Olympi safety check: ${report.ok ? "ok" : "failed"}`];
 	for (const check of report.checks) {
 		lines.push(
 			`${check.ok ? "ok" : "fail"}: ${check.name} (${check.decision})`,

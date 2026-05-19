@@ -1,14 +1,12 @@
-# Versioning Policy
+# Versioning
 
-Olympus uses a 0-series SemVer line.
-
-## Active format
+The project uses a 0-series SemVer line.
 
 ```text
 0.x.y
 ```
 
-Pre-release identifiers use:
+Pre-release identifiers:
 
 ```text
 0.x.y-a.1   alpha
@@ -16,15 +14,15 @@ Pre-release identifiers use:
 0.x.y-rc.1  release candidate
 ```
 
-## 0.1.0 meaning
+## Meaning of 0.1.0
 
-0.1.0 means the first committed Olympus source-checkout product boundary:
+0.1.0 means:
 
-- PiCodingAgent-first implementation exists;
-- historical parity foundation has started through re-authored Olympus features;
-- docs and specs describe the active product;
-- package metadata is set to 0.1.0.
+- local Pi package inspection exists;
+- project-local passive install/uninstall exists;
+- conservative safety boundaries are implemented and tested;
+- goal-loop, hook, and skill foundations exist as package APIs;
+- docs and specs describe the active behavior.
 
-0.1.0 does not mean API freeze, v1-style compatibility, completed roadmap parity, release artifact availability, or long-term extension ABI stability.
-
-There is no planned 1.0.0 milestone in this project line unless the owner explicitly changes the policy later.
+0.1.0 does not mean API freeze, v1 compatibility, completed roadmap parity,
+release artifacts, or stable extension ABI.

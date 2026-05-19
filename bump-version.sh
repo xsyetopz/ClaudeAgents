@@ -5,9 +5,7 @@ usage() {
   cat <<'USAGE'
 Usage: ./bump-version.sh <version> [--dry-run]
 
-Updates the active Olympus package metadata:
-  - package.json
-  - packages/olympus/package.json
+Updates root and workspace package metadata.
 USAGE
 }
 
@@ -31,10 +29,16 @@ if [[ ! "$next" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]]; then
 fi
 
 node --input-type=module <<'NODE' "$next" "$dry_run"
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 const [next, dryRun] = process.argv.slice(2);
-const paths = ["package.json", "packages/olympus/package.json"];
+const paths = [
+  "package.json",
+  ...readdirSync("packages")
+    .map((name) => join("packages", name, "package.json"))
+    .sort(),
+];
 
 for (const path of paths) {
   const data = JSON.parse(readFileSync(path, "utf8"));

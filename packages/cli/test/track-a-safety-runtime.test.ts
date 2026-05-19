@@ -74,9 +74,7 @@ describe("Track A Themis policy decisions", () => {
 	});
 
 	test("before_provider_request warning and audit work without raw secrets", async () => {
-		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-hestia-"),
-		);
+		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-hestia-"));
 		try {
 			const decision = decidePolicy({
 				schemaVersion: 1,
@@ -163,7 +161,7 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 
 	test("quota pressure warning does not invent limits", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-quota-a-"),
+			path.join(os.tmpdir(), "olympi-quota-a-"),
 		);
 		try {
 			const quota = await loadQuotaStatus(projectRoot);
@@ -181,8 +179,8 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 		}
 	});
 
-	test("Aegis skeleton is Olympus-owned and non-executing", () => {
-		expect(AEGIS_EXTENSION_MANIFEST.olympusOwned).toBe(true);
+	test("Aegis skeleton is Olympi-owned and non-executing", () => {
+		expect(AEGIS_EXTENSION_MANIFEST.olympiOwned).toBe(true);
 		expect(AEGIS_EXTENSION_MANIFEST.thirdPartyCodeExecution).toBe(false);
 		const status = aegisPolicyStatus();
 		expect(status.runtimeExecutionEnabled).toBe(false);
@@ -202,7 +200,7 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 				);
 			},
 			registerCommand(name) {
-				expect(name).toBe("olympus-aegis-status");
+				expect(name).toBe("olympi-aegis-status");
 			},
 		});
 		expect(handlers.has("tool_call")).toBe(true);
@@ -215,10 +213,10 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 
 	test("executable trust proof requires manifest, lock, signature, and sandbox gates", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-trust-proof-"),
+			path.join(os.tmpdir(), "olympi-trust-proof-"),
 		);
 		try {
-			await mkdir(path.join(projectRoot, ".pi", "olympus"), {
+			await mkdir(path.join(projectRoot, ".pi", "olympi"), {
 				recursive: true,
 			});
 			const resources = [
@@ -230,7 +228,7 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 				},
 			];
 			await writeFile(
-				path.join(projectRoot, ".pi", "olympus", "olympus-manifest.json"),
+				path.join(projectRoot, ".pi", "olympi", "olympi-manifest.json"),
 				JSON.stringify({
 					schemaVersion: 1,
 					packages: [
@@ -245,8 +243,8 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 								source: ".",
 								contentDigest: "sha256:content",
 							},
-							mirrorRoot: ".pi/olympus/packages/pkg",
-							settingsSource: ".pi/olympus/packages/pkg",
+							mirrorRoot: ".pi/olympi/packages/pkg",
+							settingsSource: ".pi/olympi/packages/pkg",
 							settingsEntryHash: "sha256:settings",
 							resources,
 							files: [],
@@ -255,7 +253,7 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 				}),
 			);
 			await writeFile(
-				path.join(projectRoot, ".pi", "olympus", "olympus.lock"),
+				path.join(projectRoot, ".pi", "olympi", "olympi.lock"),
 				JSON.stringify({
 					schemaVersion: 1,
 					packages: [
@@ -287,7 +285,7 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 describe("Track A CLI smoke and no global Pi writes", () => {
 	test("low-level CLI safety commands emit JSON", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-a-cli-"),
+			path.join(os.tmpdir(), "olympi-track-a-cli-"),
 		);
 		try {
 			const goodBroker = path.join(tempRoot, "broker.json");
@@ -318,7 +316,7 @@ describe("Track A CLI smoke and no global Pi writes", () => {
 
 	test("safety commands do not write to HOME ~/.pi by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-a-home-"),
+			path.join(os.tmpdir(), "olympi-track-a-home-"),
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");

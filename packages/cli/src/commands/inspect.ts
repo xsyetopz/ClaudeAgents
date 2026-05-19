@@ -1,4 +1,4 @@
-import { type ExitCode, inspectLocalPackage, OlympusError } from "lifecycle";
+import { type ExitCode, inspectLocalPackage, OlympiError } from "lifecycle";
 import { asJson, formatInspection } from "reporting";
 
 export async function runInspect(
@@ -7,7 +7,7 @@ export async function runInspect(
 ): Promise<ExitCode> {
 	const source = args[0];
 	if (source === undefined) {
-		throwUsage("usage: olympus inspect <local-package-path> [--json]");
+		throwUsage("usage: olympi inspect <local-package-path> [--json]");
 	}
 	const report = await inspectLocalPackage(source);
 	process.stdout.write(json ? asJson(report) : formatInspection(report));
@@ -15,5 +15,5 @@ export async function runInspect(
 }
 
 function throwUsage(message: string): never {
-	throw new OlympusError(message, 2);
+	throw new OlympiError(message, 2);
 }

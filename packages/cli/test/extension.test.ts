@@ -12,10 +12,10 @@ function fixturePath(name: string): string {
 	return path.join(FIXTURES, name);
 }
 
-describe("Olympus extension authoring", () => {
+describe("Olympi extension authoring", () => {
 	test("plans generated first-party extension skeletons without writing by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-extension-plan-"),
+			path.join(os.tmpdir(), "olympi-extension-plan-"),
 		);
 		try {
 			const report = await createExtensionSkeleton({
@@ -26,7 +26,7 @@ describe("Olympus extension authoring", () => {
 			expect(report.apply).toBe(false);
 			expect(report.blocked).toBe(false);
 			expect(report.wouldWrite).toContain(
-				path.join(tempRoot, "status-panel", "olympus-extension.json"),
+				path.join(tempRoot, "status-panel", "olympi-extension.json"),
 			);
 			await expect(
 				readFile(path.join(tempRoot, "status-panel", "package.json"), "utf8"),
@@ -36,9 +36,9 @@ describe("Olympus extension authoring", () => {
 		}
 	});
 
-	test("generates and inspects Olympus-owned extension skeletons with explicit apply/output", async () => {
+	test("generates and inspects Olympi-owned extension skeletons with explicit apply/output", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-extension-create-"),
+			path.join(os.tmpdir(), "olympi-extension-create-"),
 		);
 		try {
 			const createReport = await createExtensionSkeleton({
@@ -53,8 +53,8 @@ describe("Olympus extension authoring", () => {
 				path.join(tempRoot, "trust-panel"),
 			);
 			expect(inspectReport.manifest.valid).toBe(true);
-			expect(inspectReport.manifest.data?.olympusOwned).toBe(true);
-			expect(inspectReport.inferred.commands).toEqual(["/olympus-trust-panel"]);
+			expect(inspectReport.manifest.data?.olympiOwned).toBe(true);
+			expect(inspectReport.inferred.commands).toEqual(["/olympi-trust-panel"]);
 			expect(inspectReport.warnings).toEqual([]);
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
@@ -78,7 +78,7 @@ describe("Olympus extension authoring", () => {
 				path.join(
 					process.cwd(),
 					".pi",
-					"olympus",
+					"olympi",
 					"extensions",
 					"blocked-panel",
 					"package.json",
@@ -89,7 +89,7 @@ describe("Olympus extension authoring", () => {
 	});
 });
 
-describe("Olympus third-party package evaluator", () => {
+describe("Olympi third-party package evaluator", () => {
 	test("reports extension command, tool, provider, and event risks without execution", async () => {
 		const report = await evaluateLocalPackage(
 			fixturePath("extension-conflict-package"),
@@ -111,7 +111,7 @@ describe("Olympus third-party package evaluator", () => {
 
 	test("CLI extension inspect validates generated metadata", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-extension-cli-"),
+			path.join(os.tmpdir(), "olympi-extension-cli-"),
 		);
 		try {
 			await createExtensionSkeleton({
@@ -134,7 +134,7 @@ describe("Olympus third-party package evaluator", () => {
 			expect(exitCode).toBe(0);
 			const report = JSON.parse(stdout);
 			expect(report.manifest.valid).toBe(true);
-			expect(report.inferred.commands).toEqual(["/olympus-cli-panel"]);
+			expect(report.inferred.commands).toEqual(["/olympi-cli-panel"]);
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
 		}

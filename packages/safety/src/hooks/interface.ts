@@ -2,7 +2,7 @@ import { deterministicDigest, sortStrings } from "reporting";
 import { decidePolicy } from "../policy/themis.js";
 import type { PolicyEvent, PolicyEventType } from "../policy/types.js";
 
-export type OlympusHookPhase =
+export type OlympiHookPhase =
 	| "pre-action"
 	| "post-action"
 	| "pre-commit"
@@ -12,11 +12,11 @@ export type OlympusHookPhase =
 	| "architecture-boundary"
 	| "blocked-state";
 
-export type OlympusHookDecisionKind = "allow" | "warn" | "veto";
+export type OlympiHookDecisionKind = "allow" | "warn" | "veto";
 
-export interface OlympusHookContext {
+export interface OlympiHookContext {
 	schemaVersion: 1;
-	phase: OlympusHookPhase;
+	phase: OlympiHookPhase;
 	action?: string;
 	command?: string;
 	toolName?: string;
@@ -32,40 +32,40 @@ export interface OlympusHookContext {
 	planApproved?: boolean;
 }
 
-export interface OlympusHookDecision {
+export interface OlympiHookDecision {
 	schemaVersion: 1;
 	hookId: string;
-	phase: OlympusHookPhase;
-	decision: OlympusHookDecisionKind;
+	phase: OlympiHookPhase;
+	decision: OlympiHookDecisionKind;
 	reasons: string[];
 	requiredNextAction: string | null;
 	digest: string;
 }
 
-export interface OlympusHook {
+export interface OlympiHook {
 	id: string;
-	phase: OlympusHookPhase;
+	phase: OlympiHookPhase;
 	description: string;
-	run(context: OlympusHookContext): OlympusHookDecision;
+	run(context: OlympiHookContext): OlympiHookDecision;
 }
 
-export interface OlympusHookPipelineResult {
+export interface OlympiHookPipelineResult {
 	schemaVersion: 1;
-	phase: OlympusHookPhase;
-	decision: OlympusHookDecisionKind;
+	phase: OlympiHookPhase;
+	decision: OlympiHookDecisionKind;
 	vetoed: boolean;
-	decisions: OlympusHookDecision[];
+	decisions: OlympiHookDecision[];
 	reasons: string[];
 	requiredNextAction: string | null;
 	digest: string;
 }
 
 export function runHookPipeline(
-	context: OlympusHookContext,
-	hooks: OlympusHook[],
-): OlympusHookPipelineResult {
+	context: OlympiHookContext,
+	hooks: OlympiHook[],
+): OlympiHookPipelineResult {
 	const matching = hooks.filter((hook) => hook.phase === context.phase);
-	const decisions: OlympusHookDecision[] = [];
+	const decisions: OlympiHookDecision[] = [];
 	for (const hook of matching) {
 		const decision = hook.run(context);
 		decisions.push(decision);
@@ -73,7 +73,7 @@ export function runHookPipeline(
 	}
 	const veto = decisions.find((decision) => decision.decision === "veto");
 	const warning = decisions.find((decision) => decision.decision === "warn");
-	const decisionKind: OlympusHookDecisionKind = veto
+	const decisionKind: OlympiHookDecisionKind = veto
 		? "veto"
 		: warning
 			? "warn"
@@ -94,7 +94,7 @@ export function runHookPipeline(
 	return { ...withoutDigest, digest: deterministicDigest(withoutDigest) };
 }
 
-export function policyPreActionHook(id = "themis-pre-action"): OlympusHook {
+export function policyPreActionHook(id = "themis-pre-action"): OlympiHook {
 	return {
 		id,
 		phase: "pre-action",
@@ -117,7 +117,7 @@ export function policyPreActionHook(id = "themis-pre-action"): OlympusHook {
 	};
 }
 
-export function verificationHook(id = "apollo-validation-gate"): OlympusHook {
+export function verificationHook(id = "apollo-validation-gate"): OlympiHook {
 	return {
 		id,
 		phase: "validation",
@@ -141,7 +141,7 @@ export function verificationHook(id = "apollo-validation-gate"): OlympusHook {
 	};
 }
 
-export function blockedStateHook(id = "hestia-blocked-state"): OlympusHook {
+export function blockedStateHook(id = "hestia-blocked-state"): OlympiHook {
 	return {
 		id,
 		phase: "blocked-state",
@@ -170,7 +170,7 @@ export function blockedStateHook(id = "hestia-blocked-state"): OlympusHook {
 export function architectureBoundaryHook(options: {
 	id?: string;
 	allowedPackageNames: string[];
-}): OlympusHook {
+}): OlympiHook {
 	const allowed = new Set(options.allowedPackageNames);
 	const id = options.id ?? "athena-architecture-boundary";
 	return {
@@ -198,7 +198,7 @@ export function architectureBoundaryHook(options: {
 }
 
 function policyEventFromHookContext(
-	context: OlympusHookContext,
+	context: OlympiHookContext,
 	eventType: PolicyEventType,
 ): PolicyEvent {
 	return {
@@ -225,11 +225,11 @@ function policyEventFromHookContext(
 
 function hookDecision(options: {
 	hookId: string;
-	phase: OlympusHookPhase;
-	decision: OlympusHookDecisionKind;
+	phase: OlympiHookPhase;
+	decision: OlympiHookDecisionKind;
 	reasons: string[];
 	requiredNextAction: string | null;
-}): OlympusHookDecision {
+}): OlympiHookDecision {
 	const reasons = sortStrings(options.reasons);
 	const withoutDigest = {
 		schemaVersion: 1 as const,

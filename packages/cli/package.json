@@ -8,8 +8,8 @@
 	},
 	"types": "./src/index.ts",
 	"bin": {
-		"olympus": "./src/cli.ts",
-		"olympus-interactive": "./src/interactive-cli.ts"
+		"olympi": "./src/cli.ts",
+		"olympi-interactive": "./src/interactive-cli.ts"
 	},
 	"dependencies": {
 		"authoring": "workspace:*",

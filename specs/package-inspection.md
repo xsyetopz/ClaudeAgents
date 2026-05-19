@@ -4,7 +4,7 @@ Inspection and evaluation accept local package paths. They do not install depend
 
 ## Inventory
 
-Olympus records package identity, discovered Pi resources, scripts, executable indicators, support files, and hashes. Skill support files are included in the hash inventory when discovered.
+Olympi records package identity, discovered Pi resources, scripts, executable indicators, support files, and hashes. Skill support files are included in the hash inventory when discovered.
 
 ## Classification
 

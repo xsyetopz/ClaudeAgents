@@ -1,7 +1,7 @@
 import type { Stats } from "node:fs";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileExists, hashFile, OlympusError, toPosix } from "lifecycle";
+import { fileExists, hashFile, OlympiError, toPosix } from "lifecycle";
 
 const EXTENSION_NAME_PATTERN = /^[a-z][a-z0-9-]*$/;
 const REGISTER_COMMAND_PATTERN = /registerCommand\(\s*["']([^"']+)["']/g;
@@ -19,9 +19,9 @@ export interface ExtensionSideEffects {
 	credentials: string[];
 }
 
-export interface OlympusExtensionManifest {
+export interface OlympiExtensionManifest {
 	schemaVersion: 1;
-	olympusOwned: true;
+	olympiOwned: true;
 	name: string;
 	purpose: string;
 	nonGoals: string[];
@@ -48,7 +48,7 @@ export interface ExtensionInspectReport {
 		present: boolean;
 		valid: boolean;
 		path?: string;
-		data?: OlympusExtensionManifest;
+		data?: OlympiExtensionManifest;
 		errors: string[];
 	};
 	inferred: {
@@ -86,7 +86,7 @@ interface SkeletonFile {
 
 export function validateExtensionName(name: string): void {
 	if (!EXTENSION_NAME_PATTERN.test(name)) {
-		throw new OlympusError(
+		throw new OlympiError(
 			`invalid extension name: ${name}; use lowercase letters, digits, and hyphens, starting with a letter`,
 			2,
 		);
@@ -97,7 +97,7 @@ export async function createExtensionSkeleton(
 	options: CreateOptions,
 ): Promise<ExtensionCreatePlan> {
 	validateExtensionName(options.name);
-	const outputDirectory = options.outputDirectory ?? ".pi/olympus/extensions";
+	const outputDirectory = options.outputDirectory ?? ".pi/olympi/extensions";
 	const targetDirectory = path.resolve(outputDirectory, options.name);
 	const files = skeletonFiles(options.name);
 	const writePaths = files.map((file) =>
@@ -118,7 +118,7 @@ export async function createExtensionSkeleton(
 		};
 	}
 	if (options.outputDirectory === undefined) {
-		throw new OlympusError(
+		throw new OlympiError(
 			"extension create apply requires --output <directory>; default project .pi writes wait for manifest-backed install",
 			3,
 		);
@@ -138,7 +138,7 @@ export async function createExtensionSkeleton(
 		targetDirectory,
 		wouldWrite: [],
 		written: writePaths,
-		reason: "generated Olympus-owned first-party extension skeleton",
+		reason: "generated Olympi-owned first-party extension skeleton",
 	};
 }
 
@@ -194,13 +194,13 @@ async function assertTargetEmpty(targetDirectory: string): Promise<void> {
 	try {
 		const entries = await readdir(targetDirectory);
 		if (entries.length > 0) {
-			throw new OlympusError(
+			throw new OlympiError(
 				`extension target directory is not empty: ${targetDirectory}`,
 				3,
 			);
 		}
 	} catch (error) {
-		if (error instanceof OlympusError) throw error;
+		if (error instanceof OlympiError) throw error;
 	}
 }
 
@@ -208,7 +208,7 @@ async function safeStat(sourcePath: string): Promise<Stats> {
 	try {
 		return await stat(sourcePath);
 	} catch {
-		throw new OlympusError(`extension path does not exist: ${sourcePath}`, 2);
+		throw new OlympiError(`extension path does not exist: ${sourcePath}`, 2);
 	}
 }
 
@@ -219,7 +219,7 @@ async function resolveEntrypoints(
 	if (sourceStat.isFile())
 		return [{ path: sourcePath, hash: await hashFile(sourcePath) }];
 	if (!sourceStat.isDirectory()) {
-		throw new OlympusError(
+		throw new OlympiError(
 			`extension path is not a file or directory: ${sourcePath}`,
 			2,
 		);
@@ -251,7 +251,7 @@ async function readExtensionManifest(
 ): Promise<ExtensionInspectReport["manifest"]> {
 	if (!sourceStat.isDirectory())
 		return { present: false, valid: false, errors: [] };
-	const manifestPath = path.join(sourcePath, "olympus-extension.json");
+	const manifestPath = path.join(sourcePath, "olympi-extension.json");
 	if (!(await fileExists(manifestPath)))
 		return { present: false, valid: false, errors: [] };
 	try {
@@ -260,11 +260,11 @@ async function readExtensionManifest(
 		const base = {
 			present: true,
 			valid: errors.length === 0,
-			path: "olympus-extension.json",
+			path: "olympi-extension.json",
 			errors,
 		};
 		return errors.length === 0
-			? { ...base, data: data as OlympusExtensionManifest }
+			? { ...base, data: data as OlympiExtensionManifest }
 			: base;
 	} catch (error) {
 		const message =
@@ -272,8 +272,8 @@ async function readExtensionManifest(
 		return {
 			present: true,
 			valid: false,
-			path: "olympus-extension.json",
-			errors: [`malformed olympus-extension.json: ${message}`],
+			path: "olympi-extension.json",
+			errors: [`malformed olympi-extension.json: ${message}`],
 		};
 	}
 }
@@ -320,7 +320,7 @@ function validateManifestData(data: unknown): string[] {
 	const record = data as Record<string, unknown>;
 	const errors: string[] = [];
 	if (record["schemaVersion"] !== 1) errors.push("schemaVersion must be 1");
-	if (record["olympusOwned"] !== true) errors.push("olympusOwned must be true");
+	if (record["olympiOwned"] !== true) errors.push("olympiOwned must be true");
 	for (const key of ["name", "purpose", "verification", "uninstall"]) {
 		if (typeof record[key] !== "string" || record[key].length === 0)
 			errors.push(`${key} must be a non-empty string`);
@@ -356,7 +356,7 @@ function extensionWarnings(
 ): string[] {
 	const warnings: string[] = [];
 	if (entrypoints.length === 0) warnings.push("no extension entrypoint found");
-	if (!manifest.present) warnings.push("no Olympus extension manifest found");
+	if (!manifest.present) warnings.push("no Olympi extension manifest found");
 	for (const error of manifest.errors) warnings.push(error);
 	for (const tool of inferred.tools) {
 		if (["bash", "read", "write", "edit"].includes(tool))
@@ -381,7 +381,7 @@ function skeletonFiles(name: string): SkeletonFile[] {
 			content: generatedReadme(name),
 		},
 		{
-			relativePath: "olympus-extension.json",
+			relativePath: "olympi-extension.json",
 			content: `${JSON.stringify(manifest, null, 2)}\n`,
 		},
 		{
@@ -391,41 +391,41 @@ function skeletonFiles(name: string): SkeletonFile[] {
 	];
 }
 
-function generatedManifest(name: string): OlympusExtensionManifest {
+function generatedManifest(name: string): OlympiExtensionManifest {
 	return {
 		schemaVersion: 1,
-		olympusOwned: true,
+		olympiOwned: true,
 		name,
 		purpose:
 			"Describe the first-party Pi extension purpose before enabling it.",
 		nonGoals: [
 			"Does not execute third-party package code",
-			"Does not bypass Olympus trust or sandbox policy",
+			"Does not bypass Olympi trust or sandbox policy",
 		],
 		piEvents: ["command"],
-		commands: [`/olympus-${name}`],
+		commands: [`/olympi-${name}`],
 		tools: [],
 		sideEffects: {
 			filesystem: [
-				"read project-local Olympus state only until changed by the author",
+				"read project-local Olympi state only until changed by the author",
 			],
 			network: [],
 			process: [],
 			credentials: [],
 		},
 		capabilities: ["project-state-read"],
-		verification: "bun run olympus:test",
+		verification: "bun run olympi:test",
 		uninstall:
 			"Remove this generated extension directory and its manifest-owned settings entry when install support exists.",
 	};
 }
 
 function generatedIndex(name: string): string {
-	return `// Generated by Olympus. Review olympus-extension.json before enabling this Pi extension.\nexport const olympusExtension = {\n\tname: ${JSON.stringify(name)},\n\tcommands: [${JSON.stringify(`/olympus-${name}`)}],\n\tevents: ["command"],\n\tactivate() {\n\t\treturn {\n\t\t\tstatus: "inspect-only",\n\t\t\tmessage: "Olympus-generated extension skeleton; implement Pi bindings after reviewing declared capabilities.",\n\t\t};\n\t},\n};\n`;
+	return `// Generated by Olympi. Review olympi-extension.json before enabling this Pi extension.\nexport const olympiExtension = {\n\tname: ${JSON.stringify(name)},\n\tcommands: [${JSON.stringify(`/olympi-${name}`)}],\n\tevents: ["command"],\n\tactivate() {\n\t\treturn {\n\t\t\tstatus: "inspect-only",\n\t\t\tmessage: "Olympi-generated extension skeleton; implement Pi bindings after reviewing declared capabilities.",\n\t\t};\n\t},\n};\n`;
 }
 
 function generatedReadme(name: string): string {
-	return `# ${name}\n\nOlympus-generated first-party Pi extension skeleton.\n\n## Purpose\n\nDescribe the extension purpose before enabling it.\n\n## Safety\n\n- Does not execute third-party package code by default.\n- Must not bypass Olympus trust, manifest, or sandbox policy.\n- Update \`olympus-extension.json\` when adding commands, tools, events, or side effects.\n\n## Verification\n\nRun the verification command declared in \`olympus-extension.json\`.\n\n## Disable/uninstall\n\nRemove this directory and any future manifest-owned settings entry.\n`;
+	return `# ${name}\n\nOlympi-generated first-party Pi extension skeleton.\n\n## Purpose\n\nDescribe the extension purpose before enabling it.\n\n## Safety\n\n- Does not execute third-party package code by default.\n- Must not bypass Olympi trust, manifest, or sandbox policy.\n- Update \`olympi-extension.json\` when adding commands, tools, events, or side effects.\n\n## Verification\n\nRun the verification command declared in \`olympi-extension.json\`.\n\n## Disable/uninstall\n\nRemove this directory and any future manifest-owned settings entry.\n`;
 }
 
 function uniqueMatches(sourceText: string, ...patterns: RegExp[]): string[] {

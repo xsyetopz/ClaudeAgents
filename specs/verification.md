@@ -4,11 +4,11 @@ Required local gates for 0.1.0:
 
 ```sh
 bun install --frozen-lockfile
-bun run olympus:test
+bun run olympi:test
 bun run typecheck
 bun run biome:check
-bun run olympus:verify -- --json
-bun run olympus:catalog -- --json
+bun run olympi:verify -- --json
+bun run olympi:catalog -- --json
 git diff --check
 ```
 

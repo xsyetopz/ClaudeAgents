@@ -74,7 +74,7 @@ export function promptContractFromText(
 		],
 		verificationCommands:
 			verification.length === 0
-				? ["bun run olympus:test", "bunx tsc --noEmit", "git diff --check"]
+				? ["bun run olympi:test", "bunx tsc --noEmit", "git diff --check"]
 				: verification,
 		riskFlags: riskFlags(redacted.text),
 		stopConditions: [

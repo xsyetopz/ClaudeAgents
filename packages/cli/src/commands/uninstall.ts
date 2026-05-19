@@ -1,7 +1,7 @@
 import {
 	applyManifestUninstall,
 	type ExitCode,
-	OlympusError,
+	OlympiError,
 	planManifestUninstall,
 } from "lifecycle";
 import { asJson } from "reporting";
@@ -12,13 +12,13 @@ export async function runUninstall(
 ): Promise<ExitCode> {
 	const packageId = args.find((arg) => !arg.startsWith("--"));
 	if (packageId === undefined) {
-		throw new OlympusError(
-			"usage: olympus uninstall <package-id> --project [--dry-run|--apply] [--json]",
+		throw new OlympiError(
+			"usage: olympi uninstall <package-id> --project [--dry-run|--apply] [--json]",
 			2,
 		);
 	}
 	if (!args.includes("--project")) {
-		throw new OlympusError(
+		throw new OlympiError(
 			"uninstall requires --project; global writes are forbidden",
 			3,
 		);
@@ -26,7 +26,7 @@ export async function runUninstall(
 	const apply = args.includes("--apply");
 	const dryRun = args.includes("--dry-run") || !apply;
 	if (apply && dryRun && args.includes("--dry-run")) {
-		throw new OlympusError("uninstall cannot combine --apply and --dry-run", 2);
+		throw new OlympiError("uninstall cannot combine --apply and --dry-run", 2);
 	}
 	const report = apply
 		? await applyManifestUninstall({ packageId, apply: true })
@@ -40,7 +40,7 @@ function formatUninstall(
 	report: Awaited<ReturnType<typeof planManifestUninstall>>,
 ): string {
 	const lines = [
-		`Olympus uninstall ${report.apply ? "apply" : "dry-run"}`,
+		`Olympi uninstall ${report.apply ? "apply" : "dry-run"}`,
 		`Package: ${report.packageId}`,
 		`Blocked: ${report.blocked ? "yes" : "no"}`,
 		`Reason: ${report.reason}`,

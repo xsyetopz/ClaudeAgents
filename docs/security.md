@@ -1,17 +1,27 @@
 # Security Model
 
-Olympus 0.1.0 chooses conservative inspection over execution.
+The current security model is inspection without execution.
 
-## Invariants
+## Current guarantees
 
-- Inspect/evaluate do not execute third-party package code.
-- Extension inspection does not import or run extension code.
-- Executable resources are blocked unless future trust and sandbox gates exist.
-- Mutating install/uninstall commands are project-local, dry-run first, and manifest-owned.
+- Package inspection and evaluation do not run lifecycle scripts, package
+  scripts, extension code, hooks, tools, or providers.
+- Extension inspection reads metadata and source shape without importing code.
+- Executable resources are blocked from default passive install.
+- Apply commands write only documented project-local paths.
+- Uninstall removes only manifest-owned files with matching hashes.
 - No command writes to `~/.pi` by default.
-- Hash mismatches prevent deletion of changed files.
-- Verification uses temp projects and fake homes.
+- Verification includes fake-home checks.
 
-## Planned hardening
+## Current non-guarantees
 
-Future work may add explicit trust policy, sandbox execution, host capability brokers, stronger provenance, and richer policy checks. Those protections are not implemented in 0.1.0 and must not be claimed until verified.
+0.1.0 does not provide:
+
+- safe execution of untrusted packages;
+- OS sandbox containment for executable resources;
+- brokered access to host credentials or arbitrary shell commands;
+- remote package provenance verification;
+- global Pi installation safety.
+
+Executable support requires explicit trust proof, sandbox evidence, host broker
+policy, and tests before it can become a supported behavior.

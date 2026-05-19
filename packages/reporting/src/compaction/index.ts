@@ -8,7 +8,7 @@ import type {
 	CompactionReport,
 } from "./types.js";
 
-// biome-ignore lint/performance/noBarrelFile: compaction is a bounded public Olympus module surface.
+// biome-ignore lint/performance/noBarrelFile: compaction is a bounded public Olympi module surface.
 export { detectRtk } from "./rtk.js";
 export type {
 	CompactionKind,

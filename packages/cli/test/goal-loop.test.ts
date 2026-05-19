@@ -15,7 +15,7 @@ import {
 } from "lifecycle";
 import { policyPreActionHook, runHookPipeline } from "safety";
 
-describe("Olympus goal-loop engine", () => {
+describe("Olympi goal-loop engine", () => {
 	test("blocked loop pauses instead of continuing unrelated work", () => {
 		const initial = createGoalLoopState({
 			objective: "Ship migration",
@@ -71,7 +71,7 @@ describe("Olympus goal-loop engine", () => {
 
 	test("continuation recovery preserves objective and completion audit", () => {
 		const state = createGoalLoopState({
-			objective: "Port useful OAL legacy hooks into Olympus packages",
+			objective: "Port useful OAL legacy hooks into Olympi packages",
 			completionAuditRequirements: ["verify every required test passes"],
 		});
 		const recovered = recoverGoalContinuation(
@@ -80,7 +80,7 @@ describe("Olympus goal-loop engine", () => {
 		);
 
 		expect(recovered.objective.objective).toBe(
-			"Port useful OAL legacy hooks into Olympus packages",
+			"Port useful OAL legacy hooks into Olympi packages",
 		);
 		expect(recovered.continuation.objectivePreserved).toBe(true);
 		expect(recovered.continuation.completionAuditPreserved).toBe(true);
@@ -90,7 +90,7 @@ describe("Olympus goal-loop engine", () => {
 	});
 });
 
-describe("Olympus hook and skill systems", () => {
+describe("Olympi hook and skill systems", () => {
 	test("pre-action hooks can veto unsafe actions", () => {
 		const result = runHookPipeline(
 			{

@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { buildCurrentHandoff } from "authoring";
-import { appendAuditEvent, auditPath, olympusDirectory } from "lifecycle";
+import { appendAuditEvent, auditPath, olympiDirectory } from "lifecycle";
 import {
 	buildContextCompactionAdvice,
 	type ContextCompactionAdvice,
@@ -133,7 +133,7 @@ export async function appendAuditArtifact(options: {
 		bytes: Buffer.byteLength(options.detail, "utf8"),
 		digest: contentDigest,
 		compactAdvice: null,
-		reason: "appended explicit project-local Olympus audit event",
+		reason: "appended explicit project-local Olympi audit event",
 	};
 }
 
@@ -159,7 +159,7 @@ async function writeArtifact(options: {
 	compactAdvice: ContextCompactionAdvice | null;
 }): Promise<ArtifactWriteReport> {
 	const projectRoot = path.resolve(options.projectRoot);
-	const target = path.join(olympusDirectory(projectRoot), options.relativePath);
+	const target = path.join(olympiDirectory(projectRoot), options.relativePath);
 	await mkdir(path.dirname(target), { recursive: true });
 	await writeFile(target, options.content);
 	return {

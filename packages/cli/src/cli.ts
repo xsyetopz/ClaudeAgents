@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { runAudit } from "./commands/audit.js";
 import { runBroker } from "./commands/broker.js";
 import { runCatalog } from "./commands/catalog.js";
@@ -119,7 +119,7 @@ function dispatch(parsed: ParsedArgs): ExitCode | Promise<ExitCode> {
 	if (parsed.command === "install") return runInstall(parsed.args, parsed.json);
 	if (parsed.command === "uninstall")
 		return runUninstall(parsed.args, parsed.json);
-	throw new OlympusError(`unknown command: ${parsed.command}`, 2);
+	throw new OlympiError(`unknown command: ${parsed.command}`, 2);
 }
 
 function runPackage(args: string[], json: boolean): Promise<ExitCode> {
@@ -130,8 +130,8 @@ function runPackage(args: string[], json: boolean): Promise<ExitCode> {
 	if (subcommand === "risk") {
 		return runReport(["package-risk", ...args.slice(1)], json);
 	}
-	throw new OlympusError(
-		"usage: olympus package <inspect|evaluate|risk> <source> [--json]",
+	throw new OlympiError(
+		"usage: olympi package <inspect|evaluate|risk> <source> [--json]",
 		2,
 	);
 }
@@ -141,11 +141,11 @@ function runState(args: string[], json: boolean): Promise<ExitCode> {
 	if (subcommand === "inspect" || subcommand === "status") {
 		return runStatus(json);
 	}
-	throw new OlympusError("usage: olympus state [inspect|status] [--json]", 2);
+	throw new OlympiError("usage: olympi state [inspect|status] [--json]", 2);
 }
 
 function handleError(error: unknown, json: boolean): ExitCode {
-	if (error instanceof OlympusError) {
+	if (error instanceof OlympiError) {
 		writeError(error.message, error.exitCode, json);
 		return error.exitCode;
 	}
@@ -162,7 +162,7 @@ function writeError(message: string, exitCode: ExitCode, json: boolean): void {
 		);
 		return;
 	}
-	process.stderr.write(`olympus: ${message}\n`);
+	process.stderr.write(`olympi: ${message}\n`);
 }
 
 function errorCode(exitCode: ExitCode): string {
@@ -174,85 +174,85 @@ function errorCode(exitCode: ExitCode): string {
 }
 
 function helpText(): string {
-	return `Olympus CLI
+	return `Olympi CLI
 
 Usage:
-  olympus <command> [--json]
-  olympus interactive
+  olympi <command> [--json]
+  olympi interactive
 
 Core package commands:
-  olympus inspect <local-package-path> [--json]
-  olympus package evaluate <source> [--json]
-  olympus evaluate <source> [--json]
-  olympus eval <source> [--json]
-  olympus package-evaluate <source> [--json]
-  olympus package inspect <source> [--json]
-  olympus package risk <source> [--json]
-  olympus risk <source> [--json]
+  olympi inspect <local-package-path> [--json]
+  olympi package evaluate <source> [--json]
+  olympi evaluate <source> [--json]
+  olympi eval <source> [--json]
+  olympi package-evaluate <source> [--json]
+  olympi package inspect <source> [--json]
+  olympi package risk <source> [--json]
+  olympi risk <source> [--json]
 
 Plan, install, uninstall:
-  olympus plan install <source> [--json]
-  olympus plan uninstall <package-id> [--json]
-  olympus install <source> --project [--dry-run|--apply] [--json]
-  olympus install <source> --project --executable [--signature-digest <sha256>] [--dry-run|--apply] [--json]
-  olympus uninstall <package-id> --project [--dry-run|--apply] [--json]
+  olympi plan install <source> [--json]
+  olympi plan uninstall <package-id> [--json]
+  olympi install <source> --project [--dry-run|--apply] [--json]
+  olympi install <source> --project --executable [--signature-digest <sha256>] [--dry-run|--apply] [--json]
+  olympi uninstall <package-id> --project [--dry-run|--apply] [--json]
 
 Status, setup, acceptance:
-  olympus catalog [--json]
-  olympus spec [--json]
-  olympus setup status [--json]
-  olympus status [--json]
-  olympus state [inspect|status] [--json]
-  olympus verify [--json]
-  olympus check [--json]
-  olympus accept [--json]
+  olympi catalog [--json]
+  olympi spec [--json]
+  olympi setup status [--json]
+  olympi status [--json]
+  olympi state [inspect|status] [--json]
+  olympi verify [--json]
+  olympi check [--json]
+  olympi accept [--json]
 
 Reports and efficiency:
-  olympus report status [--json]
-  olympus report status --write [--json]
-  olympus report handoff [--json]
-  olympus report handoff --write [--statusline <pi-statusline>] [--json]
-  olympus report acceptance [--json]
-  olympus report acceptance --write [--json]
-  olympus report package-risk <source> [--json]
-  olympus handoff current --write [--statusline <pi-statusline>] [--json]
-  olympus audit append <event> --detail <detail> --apply [--json]
-  olympus context compact-advice --statusline <pi-statusline> --after-handoff [--json]
-  olympus compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]
-  olympus rtk status [--json]
-  olympus rtk plan <command...> [--json]
-  olympus quota status [--json]
-  olympus lock queue <paths...> [--json]
-  olympus profile status [--json]
-  olympus profile set --name <name> [--apply] [--json]
+  olympi report status [--json]
+  olympi report status --write [--json]
+  olympi report handoff [--json]
+  olympi report handoff --write [--statusline <pi-statusline>] [--json]
+  olympi report acceptance [--json]
+  olympi report acceptance --write [--json]
+  olympi report package-risk <source> [--json]
+  olympi handoff current --write [--statusline <pi-statusline>] [--json]
+  olympi audit append <event> --detail <detail> --apply [--json]
+  olympi context compact-advice --statusline <pi-statusline> --after-handoff [--json]
+  olympi compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]
+  olympi rtk status [--json]
+  olympi rtk plan <command...> [--json]
+  olympi quota status [--json]
+  olympi lock queue <paths...> [--json]
+  olympi profile status [--json]
+  olympi profile set --name <name> [--apply] [--json]
 
 Safety and runtime policy:
-  olympus safety check [--json]
-  olympus hooks policy [--json]
-  olympus hooks aegis-runtime [--json]
-  olympus hooks aegis-install --project [--dry-run|--apply] [--json]
-  olympus sandbox check [--json]
-  olympus broker validate <fixture> [--json]
-  olympus trust status [--json]
-  olympus trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]
-  olympus trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]
+  olympi safety check [--json]
+  olympi hooks policy [--json]
+  olympi hooks aegis-runtime [--json]
+  olympi hooks aegis-install --project [--dry-run|--apply] [--json]
+  olympi sandbox check [--json]
+  olympi broker validate <fixture> [--json]
+  olympi trust status [--json]
+  olympi trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]
+  olympi trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]
 
 Authoring and workflow:
-  olympus resources validate [path] [--json]
-  olympus resources install --project [--dry-run|--apply] [--json]
-  olympus prompt contract <input-or-file> [--json]
-  olympus review plan <plan-file> [--json]
-  olympus review diff <diff-file> [--json]
-  olympus handoff current [--json]
-  olympus module status [--json]
-  olympus module run <module> --dry-run [--json]
-  olympus module hephaestus proof <plan-file> [--json]
-  olympus module hephaestus apply <plan-file> [--apply] [--json]
-  olympus extension inspect <path> [--json]
-  olympus extension create <name> [--dry-run|--apply --output <directory>] [--json]
+  olympi resources validate [path] [--json]
+  olympi resources install --project [--dry-run|--apply] [--json]
+  olympi prompt contract <input-or-file> [--json]
+  olympi review plan <plan-file> [--json]
+  olympi review diff <diff-file> [--json]
+  olympi handoff current [--json]
+  olympi module status [--json]
+  olympi module run <module> --dry-run [--json]
+  olympi module hephaestus proof <plan-file> [--json]
+  olympi module hephaestus apply <plan-file> [--apply] [--json]
+  olympi extension inspect <path> [--json]
+  olympi extension create <name> [--dry-run|--apply --output <directory>] [--json]
 
 Interactive:
-  olympus interactive
+  olympi interactive
 
 Blocked/obsolete OAL surfaces:
   Provider renderers, Codex/Claude/OpenCode adapter generation, provider-home deploy,

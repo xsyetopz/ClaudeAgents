@@ -10,7 +10,7 @@ function fixturePath(name: string): string {
 	return path.join(FIXTURES, name);
 }
 
-describe("Olympus package inspection", () => {
+describe("Olympi package inspection", () => {
 	test("discovers passive resources from pi manifest and conventional directories", async () => {
 		const report = await inspectLocalPackage(fixturePath("passive-package"));
 		expect(report.schemaVersion).toBe(1);
@@ -106,7 +106,7 @@ describe("Olympus package inspection", () => {
 	});
 });
 
-describe("Olympus CLI", () => {
+describe("Olympi CLI", () => {
 	test("emits JSON inspection reports", async () => {
 		const proc = Bun.spawn([
 			"bun",
@@ -126,7 +126,7 @@ describe("Olympus CLI", () => {
 	});
 
 	test("plans passive install without writing fake home or project state", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-cli-test-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-cli-test-"));
 		try {
 			const marker = path.join(tempRoot, "fake-home", ".pi", "marker.json");
 			const proc = Bun.spawn(

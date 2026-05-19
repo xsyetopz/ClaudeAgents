@@ -25,9 +25,9 @@ export interface CatalogAcceptanceContract {
 	fixtureScope: "temp-project" | "fake-home" | "read-only";
 }
 
-export interface OlympusCatalog {
+export interface OlympiCatalog {
 	schemaVersion: 1;
-	product: "Olympus";
+	product: "Olympi";
 	contract: string;
 	sourceOfTruth: string[];
 	resources: CatalogResourceContract[];
@@ -103,10 +103,10 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
 			".pi/settings.json packages entry",
-			".pi/olympus/olympus-manifest.json",
-			".pi/olympus/olympus.lock for executable stage",
-			".pi/olympus/audit.jsonl",
-			".pi/olympus/packages/<package-id>/package/**",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/olympi.lock for executable stage",
+			".pi/olympi/audit.jsonl",
+			".pi/olympi/packages/<package-id>/package/**",
 		],
 		blocked: [
 			"~/.pi writes",
@@ -123,8 +123,8 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
 			".pi/settings.json",
-			".pi/olympus/olympus-manifest.json",
-			".pi/olympus/audit.jsonl",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/audit.jsonl",
 		],
 		blocked: [
 			"path-name ownership inference",
@@ -158,7 +158,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "setup status",
 		purpose:
-			"Detect Bun, Pi, RTK, and project-local Olympus state without mutating setup or global homes.",
+			"Detect Bun, Pi, RTK, and project-local Olympi state without mutating setup or global homes.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: [
@@ -170,7 +170,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "status",
 		purpose:
-			"Read project-local Olympus manifest, lock, audit, and settings state for handoff.",
+			"Read project-local Olympi manifest, lock, audit, and settings state for handoff.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["state repair", "implicit trust", "manifest mutation"],
@@ -189,8 +189,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	},
 	{
 		command: "report handoff",
-		purpose:
-			"Emit a compact, actionable handoff report for LLM and human continuation.",
+		purpose: "Emit a compact handoff report for continuation.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["handoff file write by default", "secret persistence"],
@@ -206,21 +205,21 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "report write",
 		purpose:
-			"Explicitly write status, handoff, and acceptance artifacts under project-local .pi/olympus paths only.",
+			"Explicitly write status, handoff, and acceptance artifacts under project-local .pi/olympi paths only.",
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
-			".pi/olympus/reports/status.json",
-			".pi/olympus/reports/acceptance.json",
-			".pi/olympus/handoff/current.md",
+			".pi/olympi/reports/status.json",
+			".pi/olympi/reports/acceptance.json",
+			".pi/olympi/handoff/current.md",
 		],
 		blocked: ["implicit writes", "~/.pi writes", "secret persistence"],
 	},
 	{
 		command: "audit append",
 		purpose:
-			"Append explicit project-local Olympus audit events for handoff/report workflows.",
+			"Append explicit project-local Olympi audit events for handoff/report workflows.",
 		mutationPolicy: "dry-run-first-project-local",
-		writes: [".pi/olympus/audit.jsonl"],
+		writes: [".pi/olympi/audit.jsonl"],
 		blocked: ["implicit audit mutation", "~/.pi writes"],
 	},
 	{
@@ -273,7 +272,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "safety check",
 		purpose:
-			"Run deterministic Olympus safety policy fixtures for unsafe tools, redaction, provider payload, and quota-pressure warnings.",
+			"Run deterministic Olympi safety policy fixtures for unsafe tools, redaction, provider payload, and quota-pressure warnings.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: [
@@ -310,7 +309,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		purpose:
 			"Plan or explicitly write the first-party Aegis extension entrypoint to project-local .pi/extensions only.",
 		mutationPolicy: "dry-run-first-project-local",
-		writes: [".pi/extensions/olympus-aegis.ts"],
+		writes: [".pi/extensions/olympi-aegis.ts"],
 		blocked: ["global ~/.pi extension writes", "third-party code execution"],
 	},
 	{
@@ -360,19 +359,19 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
 			".pi/settings.json packages entry",
-			".pi/olympus/olympus-manifest.json",
-			".pi/olympus/audit.jsonl",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/audit.jsonl",
 		],
 		blocked: [
 			"failed executable proof",
-			"untrusted code execution by Olympus CLI",
+			"untrusted code execution by Olympi CLI",
 			"global trust mutation",
 		],
 	},
 	{
 		command: "resources validate",
 		purpose:
-			"Validate Olympus-owned skill, prompt, command, provenance, support-file, and collision metadata.",
+			"Validate Olympi-owned skill, prompt, command, provenance, support-file, and collision metadata.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: [
@@ -384,14 +383,14 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "resources install",
 		purpose:
-			"Plan or explicitly install Olympus first-party resources into project-local Pi settings and Olympus-owned manifest paths.",
+			"Plan or explicitly install Olympi first-party resources into project-local Pi settings and Olympi-owned manifest paths.",
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
 			".pi/settings.json",
-			".pi/olympus/first-party-resources/**",
-			".pi/olympus/olympus-manifest.json",
-			".pi/olympus/olympus.lock",
-			".pi/olympus/audit.jsonl",
+			".pi/olympi/first-party-resources/**",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/olympi.lock",
+			".pi/olympi/audit.jsonl",
 		],
 		blocked: [
 			"global resource install",
@@ -442,7 +441,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "module status",
 		purpose:
-			"Report bounded Olympus module shells and non-goals for Athena, Themis, Apollo, Hermes, Hestia, Aegis, Moirai, and Hephaestus.",
+			"Report bounded Olympi module shells and non-goals for Athena, Themis, Apollo, Hermes, Hestia, Aegis, Moirai, and Hephaestus.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: [
@@ -468,7 +467,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		purpose:
 			"Apply write operations only from a proven Hephaestus plan with digest, allowlist, manifest ownership, Themis, and queue gates passing.",
 		mutationPolicy: "dry-run-first-project-local",
-		writes: ["approved plan operation paths", ".pi/olympus/audit.jsonl"],
+		writes: ["approved plan operation paths", ".pi/olympi/audit.jsonl"],
 		blocked: [
 			"unproven plan digest",
 			"path outside allowlist",
@@ -479,7 +478,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "profile status",
 		purpose:
-			"Read the optional Olympus-owned project-local profile without legacy provider-renderer semantics.",
+			"Read the optional Olympi-owned project-local profile without legacy provider-renderer semantics.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["provider-renderer profiles", "global Pi profile writes"],
@@ -487,9 +486,9 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "profile set",
 		purpose:
-			"Plan or explicitly write a bounded project-local Olympus profile distinct from legacy provider profiles.",
+			"Plan or explicitly write a bounded project-local Olympi profile distinct from legacy provider profiles.",
 		mutationPolicy: "dry-run-first-project-local",
-		writes: [".pi/olympus/profile.json"],
+		writes: [".pi/olympi/profile.json"],
 		blocked: ["provider-renderer compatibility", "global Pi profile writes"],
 	},
 	{
@@ -502,8 +501,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	},
 	{
 		command: "catalog",
-		purpose:
-			"Emit the Olympus source-of-truth contracts for humans and LLM sessions.",
+		purpose: "Emit implemented command and safety contracts.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["old command aliases", "legacy renderer assumptions"],
@@ -537,7 +535,7 @@ const ACCEPTANCE_CONTRACTS: CatalogAcceptanceContract[] = [
 	{
 		name: "catalog-contract",
 		proves:
-			"LLM-readable product contracts stay aligned with implemented command boundaries",
+			"catalog contracts stay aligned with implemented command boundaries",
 		fixtureScope: "read-only",
 	},
 	{
@@ -563,28 +561,28 @@ const ACCEPTANCE_CONTRACTS: CatalogAcceptanceContract[] = [
 const SAFETY_INVARIANTS = [
 	"Local package inspection never executes package code or lifecycle scripts.",
 	"Executable resources are inspected and hashed, not installed as trusted code by default.",
-	"Mutating project commands plan before apply and write only project-local Olympus-owned paths.",
-	"Global ~/.pi writes are outside the default Olympus safety boundary.",
-	"Uninstall authority comes from the Olympus manifest, not path names.",
+	"Mutating project commands plan before apply and write only project-local Olympi-owned paths.",
+	"Global ~/.pi writes are outside the default Olympi safety boundary.",
+	"Uninstall authority comes from the Olympi manifest, not path names.",
 	"Hash mismatches preserve user-modified files for manual review.",
-	"LLM-readable status and catalog output is generated from Olympus-owned contracts, not legacy names.",
+	"Status and catalog output is generated from active contracts, not legacy names.",
 	"RTK availability is explicit for output-heavy workflows; fallback compaction records degraded reasons.",
 	"RTK command planning is advisory and does not execute RTK or shell commands.",
 	"Quota reports label unknown quota as unknown and do not fabricate opaque provider limits.",
 	"Safety policy fails closed for dangerous commands, protected paths, executable package loads, unapproved generated writes, and unsafe global Pi paths.",
 	"Broker APIs validate typed read-only requests and deny arbitrary shell strings.",
-	"Olympus module names are bounded codenames, not personas, and do not grant write authority by prompt instruction.",
+	"Olympi module names are bounded codenames, not personas, and do not grant write authority by prompt instruction.",
 	"Hephaestus remains blocked unless approved plan digest, path allowlist, manifest ownership, and Themis approval are proven.",
-	"Project-local profiles are Olympus UX hints only and never restore legacy provider-renderer profiles.",
+	"Project-local profiles are Olympi UX hints only and never restore legacy provider-renderer profiles.",
 	"File-level mutation queue plans are deterministic prerequisites before future parallel writes.",
 ];
 
-export function getOlympusCatalog(): OlympusCatalog {
+export function getOlympiCatalog(): OlympiCatalog {
 	return {
 		schemaVersion: 1,
-		product: "Olympus",
+		product: "Olympi",
 		contract:
-			"PiCodingAgent-first harness for safe local agent augmentation through inspect, evaluate, manifest-owned install, verify, and uninstall.",
+			"Local Pi package inspection, risk evaluation, project-local install, verification, and manifest-backed uninstall.",
 		sourceOfTruth: [
 			"packages/reporting/src/catalog.ts",
 			"packages/lifecycle/src/inspection.ts",
@@ -618,8 +616,8 @@ export function getOlympusCatalog(): OlympusCatalog {
 	};
 }
 
-export function validateOlympusCatalog(
-	catalog: OlympusCatalog = getOlympusCatalog(),
+export function validateOlympiCatalog(
+	catalog: OlympiCatalog = getOlympiCatalog(),
 ): string[] {
 	const errors: string[] = [];
 	const commandNames = new Set(
@@ -693,9 +691,9 @@ export function validateOlympusCatalog(
 	return errors;
 }
 
-export function formatOlympusCatalog(catalog: OlympusCatalog): string {
+export function formatOlympiCatalog(catalog: OlympiCatalog): string {
 	const lines = [
-		"# Olympus Source-of-Truth Catalog",
+		"# Olympi Catalog",
 		"",
 		catalog.contract,
 		"",
@@ -710,7 +708,7 @@ export function formatOlympusCatalog(catalog: OlympusCatalog): string {
 	}
 	lines.push("", "## Command contracts");
 	for (const command of catalog.commands) {
-		lines.push(`- olympus ${command.command}: ${command.purpose}`);
+		lines.push(`- olympi ${command.command}: ${command.purpose}`);
 		lines.push(`  - mutation: ${command.mutationPolicy}`);
 		lines.push(
 			`  - writes: ${command.writes.length === 0 ? "none" : command.writes.join(", ")}`,

@@ -1,25 +1,48 @@
 # Product Contract
 
-Olympus 0.1.0 is a PiCodingAgent-first framework for inspecting local Pi packages, evaluating resource risk, authoring first-party extension skeletons, and mirroring approved passive resources into project-local manifest-owned paths.
+0.1.0 provides local Pi package inspection, risk evaluation, first-party
+extension skeleton authoring, project-local passive resource mirroring,
+manifest-backed uninstall, and package APIs for goal-loop, hook, and skill state.
 
 ## Implemented
 
-- Low-level CLI and interactive wrapper.
-- Local package inspection and risk evaluation without code execution.
+- CLI and interactive wrapper.
+- Local package inspection without code execution.
 - Passive/executable resource classification and hashing.
-- Extension create/inspect flows for Olympus-owned skeletons.
+- Package risk evaluation.
+- First-party extension skeleton create/inspect commands.
 - Project-local passive install and manifest-backed uninstall.
-- Grouped CLI help, useful aliases, and interactive command hub parity for the current Olympus boundary.
-- Status, setup status, catalog/spec, verification, deterministic report/handoff/acceptance/package-risk JSON, explicit project-local report/audit/handoff artifact writes, Pi footer context parsing aligned to the installed Pi `getContextUsage()` footer rendering with post-handoff `/compact` advice, RTK status and advisory command-form planning, fallback compaction, quota labeling, safety policy checks, non-executing Aegis hook-policy skeleton plus explicit first-party Pi Aegis runtime entrypoint and project-local install copy, sandbox probes, executable package staging/loading only after trust/lock/signature/sandbox gates, executable trust/signature proof reports, read-only broker schema validation, trust signage, first-party resource metadata validation and explicit project-local install UX, prompt contracts, plan/diff review artifacts, Hephaestus apply-gate proof and apply reports, Hermes handoff summaries, deterministic mutation queue planning, bounded project-local profile UX, bounded module shells, and JSON output where useful.
-- Initial package-API goal-loop foundation: durable objective state, planned steps, progress ledger, concrete blocker detection with pause/escalation state, bounded retry policy, completion verification gate, compaction/continuation recovery, typed hook pipeline/veto interface, and topical lazy skill registry/refinement proposal support.
+- Status, setup status, catalog/spec, acceptance, handoff, and package-risk
+  reports.
+- Explicit project-local report, audit, and handoff artifact writes.
+- Pi statusline parsing and `/compact` advice; the command is recommended, not
+  executed.
+- RTK status, command-form planning, and fallback compaction.
+- Quota labels without provider-limit claims.
+- Safety policy checks, Aegis policy skeleton, and explicit Aegis project
+  extension install.
+- Sandbox probes and read-only broker schema validation.
+- Executable package staging/loading only after manifest, lock, signature, and
+  sandbox proof gates pass.
+- Trust status and executable trust proof reports.
+- First-party resource metadata validation and project-local install.
+- Prompt contracts, plan/diff review artifacts, Hephaestus apply gates, Hermes
+  handoff summaries, mutation queue planning, profile state, and bounded module
+  shells.
+- Goal-loop state model: objective, planned steps, ledger, blocker detection,
+  pause state, bounded retry, verification gate, and continuation recovery.
+- Hook pipeline model: typed phases, deterministic decisions, and veto results.
+- Skill registry model: topical metadata, lazy loading, model-tier hints, and
+  generalized refinement proposals.
 
-## Non-goals at 0.1.0
+## Non-goals
 
-- API freeze or v1 compatibility guarantee.
+- Stable public API.
 - Global Pi installation.
-- Legacy provider-renderer profile compatibility.
-- Automatic execution of Pi `/compact`; Olympus may recommend the exact command from parsed statusline context but does not run it.
+- Legacy provider-renderer compatibility.
+- Automatic execution of Pi `/compact`.
 - Execution of untrusted or unproven executable resources.
-- Live trust broker mutation or host capability broker execution claims.
-- Release archives, package registry publishing, or platform package-manager distribution.
-- Full parity roadmap for TUI review workflows, uncontrolled teams/subagents, provider renderer deploy/adapter generation, or OAL compatibility mode. Initial Track A/B/C and CLI/interactive parity surfaces are implemented, executable/write authority is gate-proven and explicit only, and Track C does not claim provider quota authority.
+- Live host capability broker execution.
+- Release archives, registry publishing, or package-manager distribution.
+- Unbounded teams/subagents.
+- Completion without objective-specific verification evidence.

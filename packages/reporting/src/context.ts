@@ -188,7 +188,7 @@ function contextWarnings(
 	}
 	if (contextPercent === null) {
 		return [
-			"Pi reports current context tokens as unknown, usually immediately after compaction before the next LLM response",
+			"Pi reports current context tokens as unknown, usually immediately after compaction before the next response",
 		];
 	}
 	return [];

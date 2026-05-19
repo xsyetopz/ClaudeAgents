@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { OlympusResourceMetadata } from "authoring";
+import type { OlympiResourceMetadata } from "authoring";
 import {
 	applyHephaestusPlan,
 	buildCurrentHandoff,
@@ -44,7 +44,7 @@ describe("Track B first-party resources", () => {
 		expect(first).toBeDefined();
 		expect(second).toBeDefined();
 		if (first === undefined || second === undefined) return;
-		const resources: OlympusResourceMetadata[] = [
+		const resources: OlympiResourceMetadata[] = [
 			{ ...first, name: "a", commands: ["same"] },
 			{ ...second, name: "b", commands: ["same"] },
 		];
@@ -55,9 +55,7 @@ describe("Track B first-party resources", () => {
 	});
 
 	test("support files are generated and hashed", async () => {
-		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-resources-"),
-		);
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-resources-"));
 		try {
 			const plan = await writeFirstPartyResourcePackage(tempRoot, true);
 			expect(plan.written.length).toBeGreaterThan(0);
@@ -103,12 +101,12 @@ describe("Track B first-party resources", () => {
 
 describe("Track B prompt/review artifacts", () => {
 	test("prompt contract preserves user paths and constraints", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-contract-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-contract-"));
 		try {
 			const promptFile = path.join(tempRoot, "prompt.md");
 			await writeFile(
 				promptFile,
-				"Update packages/cli/src/cli.ts\nMust not write ~/.pi\nRun bun run olympus:test\n",
+				"Update packages/cli/src/cli.ts\nMust not write ~/.pi\nRun bun run olympi:test\n",
 			);
 			const contract = await buildPromptContract(promptFile);
 			expect(contract.inspectedSurfaces).toContain("packages/cli/src/cli.ts");
@@ -120,7 +118,7 @@ describe("Track B prompt/review artifacts", () => {
 	});
 
 	test("unapproved write plan and approval digest mismatch are blocked", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-plan-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-plan-"));
 		try {
 			const planFile = path.join(tempRoot, "plan.json");
 			await writeFile(
@@ -145,13 +143,13 @@ describe("Track B prompt/review artifacts", () => {
 
 	test("Hephaestus apply proof requires digest, allowlist, manifest ownership, and Themis", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-hephaestus-"),
+			path.join(os.tmpdir(), "olympi-hephaestus-"),
 		);
 		try {
 			const planSubject = {
-				writes: [".pi/olympus/reports/status.json"],
-				allowedPaths: [".pi/olympus/reports/status.json"],
-				manifestOwnedPaths: [".pi/olympus/reports/status.json"],
+				writes: [".pi/olympi/reports/status.json"],
+				allowedPaths: [".pi/olympi/reports/status.json"],
+				manifestOwnedPaths: [".pi/olympi/reports/status.json"],
 				operations: [],
 			};
 			const approvedDigest = hephaestusPlanDigest(planSubject);
@@ -181,10 +179,10 @@ describe("Track B prompt/review artifacts", () => {
 
 	test("Hephaestus applies only fully proven write operations", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-hephaestus-apply-"),
+			path.join(os.tmpdir(), "olympi-hephaestus-apply-"),
 		);
 		try {
-			const target = ".pi/olympus/generated/out.txt";
+			const target = ".pi/olympi/generated/out.txt";
 			const planSubject = {
 				writes: [target],
 				allowedPaths: [target],
@@ -221,10 +219,10 @@ describe("Track B prompt/review artifacts", () => {
 
 	test("CLI Hephaestus apply writes approved operation paths", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-hephaestus-cli-"),
+			path.join(os.tmpdir(), "olympi-hephaestus-cli-"),
 		);
 		try {
-			const target = ".pi/olympus/generated/cli.txt";
+			const target = ".pi/olympi/generated/cli.txt";
 			const planSubject = {
 				writes: [target],
 				allowedPaths: [target],
@@ -266,7 +264,7 @@ describe("Track B prompt/review artifacts", () => {
 	});
 
 	test("diff review preserves changed and deleted files", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-diff-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-diff-"));
 		try {
 			const diffFile = path.join(tempRoot, "diff.patch");
 			await writeFile(
@@ -301,7 +299,7 @@ describe("Track B module shells and Hermes", () => {
 		).toContain("Apollo rejects commands outside allowlist");
 		expect(
 			runModuleDry("hestia", true, { path: "tmp/out.json" }).reasons,
-		).toContain("Hestia refuses writes outside .pi/olympus");
+		).toContain("Hestia refuses writes outside .pi/olympi");
 		expect(runModuleDry("hephaestus", true).reasons.join("\n")).toContain(
 			"missing plan digest",
 		);
@@ -311,11 +309,11 @@ describe("Track B module shells and Hermes", () => {
 	});
 
 	test("Hermes produces compact handoff without secrets", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-hermes-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-hermes-"));
 		try {
 			const handoff = await buildCurrentHandoff(tempRoot);
 			expect(handoff.compact).toBe(true);
-			expect(handoff.markdown).toContain("# Olympus Handoff");
+			expect(handoff.markdown).toContain("# Olympi Handoff");
 			expect(handoff.markdown).not.toContain("sk-1234567890abcdef");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
@@ -323,7 +321,7 @@ describe("Track B module shells and Hermes", () => {
 	});
 
 	test("RTK-aware guidance appears when fake RTK is available", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-rtk-b-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-rtk-b-"));
 		try {
 			const fakeRtk = path.join(tempRoot, "rtk");
 			await writeFile(fakeRtk, "#!/bin/sh\necho rtk\n");
@@ -342,7 +340,7 @@ describe("Track B module shells and Hermes", () => {
 describe("Track B CLI smoke and no global Pi writes", () => {
 	test("low-level CLI workflow commands emit JSON", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-b-cli-"),
+			path.join(os.tmpdir(), "olympi-track-b-cli-"),
 		);
 		try {
 			const promptFile = path.join(tempRoot, "prompt.md");
@@ -381,7 +379,7 @@ describe("Track B CLI smoke and no global Pi writes", () => {
 
 	test("module commands do not write to HOME ~/.pi by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-b-home-"),
+			path.join(os.tmpdir(), "olympi-track-b-home-"),
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");

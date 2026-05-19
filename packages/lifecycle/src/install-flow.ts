@@ -195,7 +195,7 @@ export async function applyPassiveInstall(
 		apply: true,
 		written: packageRecord.files.map((file) => file.path),
 		reason:
-			"installed passive resources into an Olympus-owned project-local Pi package mirror",
+			"installed passive resources into an Olympi-owned project-local Pi package mirror",
 	};
 }
 
@@ -272,9 +272,9 @@ export async function stageExecutableInstall(
 		apply: true,
 		written: [
 			...packageRecord.files.map((file) => file.path),
-			".pi/olympus/olympus-manifest.json",
-			".pi/olympus/olympus.lock",
-			".pi/olympus/audit.jsonl",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/olympi.lock",
+			".pi/olympi/audit.jsonl",
 		].sort(),
 		reason:
 			"staged trusted executable package; run trust executable-load after sandbox proof to enable Pi settings load",
@@ -302,8 +302,8 @@ export async function loadExecutablePackage(
 		record === undefined ? null : settingsEntryFromManifest(record);
 	const wouldWrite = [
 		".pi/settings.json packages entry",
-		".pi/olympus/olympus-manifest.json",
-		".pi/olympus/audit.jsonl",
+		".pi/olympi/olympi-manifest.json",
+		".pi/olympi/audit.jsonl",
 	];
 	if (
 		!proof.executableLoadAllowed ||
@@ -323,7 +323,7 @@ export async function loadExecutablePackage(
 			settingsEntry,
 			reason:
 				record === undefined
-					? "executable load blocked: package is not staged in Olympus manifest"
+					? "executable load blocked: package is not staged in Olympi manifest"
 					: "executable load blocked: trust, lock, signature, or sandbox proof failed",
 			warnings: proof.reasons,
 			proof,
@@ -492,7 +492,7 @@ async function buildInstallPlan(options: InstallOptions): Promise<InstallPlan> {
 	const mirrorRoot = path.join(
 		projectRoot,
 		".pi",
-		"olympus",
+		"olympi",
 		"packages",
 		packageId,
 		"package",
@@ -503,8 +503,8 @@ async function buildInstallPlan(options: InstallOptions): Promise<InstallPlan> {
 	const filesToCopy = filesToMirror(inspection, resources, mirrorRoot);
 	const wouldWrite = [
 		".pi/settings.json packages entry",
-		".pi/olympus/olympus-manifest.json",
-		".pi/olympus/audit.jsonl",
+		".pi/olympi/olympi-manifest.json",
+		".pi/olympi/audit.jsonl",
 		...filesToCopy.map((file) =>
 			relativeToProject(projectRoot, file.targetPath),
 		),
@@ -528,8 +528,8 @@ async function buildInstallPlan(options: InstallOptions): Promise<InstallPlan> {
 			reason:
 				blockReason ??
 				(options.apply
-					? "ready to install passive resources into an Olympus-owned project-local Pi package mirror"
-					: "dry-run plan for passive resource install; rerun with --apply to write project-local Olympus-owned files"),
+					? "ready to install passive resources into an Olympi-owned project-local Pi package mirror"
+					: "dry-run plan for passive resource install; rerun with --apply to write project-local Olympi-owned files"),
 			warnings: [...inspection.warnings, ...evaluation.conflicts],
 		},
 		evaluation,
@@ -550,7 +550,7 @@ async function buildExecutableInstallPlan(
 	const mirrorRoot = path.join(
 		projectRoot,
 		".pi",
-		"olympus",
+		"olympi",
 		"packages",
 		packageId,
 		"package",
@@ -578,9 +578,9 @@ async function buildExecutableInstallPlan(
 		options.apply,
 	);
 	const wouldWrite = [
-		".pi/olympus/olympus-manifest.json",
-		".pi/olympus/olympus.lock",
-		".pi/olympus/audit.jsonl",
+		".pi/olympi/olympi-manifest.json",
+		".pi/olympi/olympi.lock",
+		".pi/olympi/audit.jsonl",
 		...filesToCopy.map((file) =>
 			relativeToProject(projectRoot, file.targetPath),
 		),
@@ -639,7 +639,7 @@ function executableStageBlockReason(
 		return "executable stage blocked: package has no executable resources";
 	}
 	if (evaluation.inspection.scripts.some((script) => script.lifecycle)) {
-		return "executable stage blocked: lifecycle package scripts are not loadable by Olympus";
+		return "executable stage blocked: lifecycle package scripts are not loadable by Olympi";
 	}
 	if (apply && signatureDigest !== signatureSubjectDigest) {
 		return "executable stage blocked: signature digest does not match signature subject digest";
@@ -652,7 +652,7 @@ function settingsEntryForResources(
 	resources: ResourceReport[],
 ): PiPackageSettingsEntry {
 	return {
-		source: `./olympus/packages/${packageId}/package`,
+		source: `./olympi/packages/${packageId}/package`,
 		extensions: [],
 		skills: filterPaths(resources, "skill"),
 		prompts: filterPaths(resources, "prompt"),
@@ -727,7 +727,7 @@ async function writePackageMirror(plan: InstallPlan): Promise<void> {
 		await writeFile(file.targetPath, await readFile(file.sourcePath));
 	}
 	const packageJson = {
-		name: `olympus-mirror-${plan.report.packageId}`,
+		name: `olympi-mirror-${plan.report.packageId}`,
 		version: plan.evaluation.inspection.package.version,
 		private: true,
 		pi: {
@@ -789,12 +789,12 @@ async function buildUninstallReport(
 			project: true,
 			apply: options.apply,
 			blocked: true,
-			wouldRead: [".pi/olympus/olympus-manifest.json"],
+			wouldRead: [".pi/olympi/olympi-manifest.json"],
 			wouldRemove: [],
 			removed: [],
 			preserved: [],
 			reason:
-				"uninstall blocked: package id is not present in the Olympus manifest",
+				"uninstall blocked: package id is not present in the Olympi manifest",
 			warnings: [],
 		};
 	}
@@ -806,7 +806,7 @@ async function buildUninstallReport(
 		project: true,
 		apply: options.apply,
 		blocked: false,
-		wouldRead: [".pi/olympus/olympus-manifest.json", ".pi/settings.json"],
+		wouldRead: [".pi/olympi/olympi-manifest.json", ".pi/settings.json"],
 		wouldRemove: [
 			".pi/settings.json packages entry",
 			...record.files
@@ -817,7 +817,7 @@ async function buildUninstallReport(
 		preserved: [],
 		reason: options.apply
 			? "ready to remove only manifest-owned files with matching hashes"
-			: "dry-run uninstall plan from Olympus manifest authority; rerun with --apply to remove matching files",
+			: "dry-run uninstall plan from Olympi manifest authority; rerun with --apply to remove matching files",
 		warnings: [],
 	};
 }

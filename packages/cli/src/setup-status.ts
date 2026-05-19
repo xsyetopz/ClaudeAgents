@@ -1,6 +1,6 @@
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
-import { type OlympusProjectStatus, readProjectStatus } from "lifecycle";
+import { type OlympiProjectStatus, readProjectStatus } from "lifecycle";
 import { detectRtk, type RtkStatusReport } from "reporting";
 
 const EXECUTABLE_NAMES = {
@@ -24,7 +24,7 @@ export interface SetupStatusReport {
 	tools: ToolStatus[];
 	paths: {
 		projectPi: string;
-		olympusState: string;
+		olympiState: string;
 		settings: string;
 		manifest: string;
 		lock: string;
@@ -33,7 +33,7 @@ export interface SetupStatusReport {
 	};
 	configured: {
 		projectPiPresent: boolean;
-		olympusStatePresent: boolean;
+		olympiStatePresent: boolean;
 		settingsPresent: boolean;
 		manifestPresent: boolean;
 		lockPresent: boolean;
@@ -62,7 +62,7 @@ export async function readSetupStatus(
 	const rtk = detectRtk(env);
 	const configured = {
 		projectPiPresent: exists(paths.projectPi),
-		olympusStatePresent: exists(paths.olympusState),
+		olympiStatePresent: exists(paths.olympiState),
 		settingsPresent: exists(paths.settings),
 		manifestPresent: exists(paths.manifest),
 		lockPresent: exists(paths.lock),
@@ -78,12 +78,12 @@ export async function readSetupStatus(
 		tools: [detectTool("bun", env), detectTool("pi", env), rtkTool(rtk)],
 		paths: {
 			projectPi: ".pi",
-			olympusState: ".pi/olympus",
+			olympiState: ".pi/olympi",
 			settings: ".pi/settings.json",
-			manifest: ".pi/olympus/olympus-manifest.json",
-			lock: ".pi/olympus/olympus.lock",
-			audit: ".pi/olympus/audit.jsonl",
-			quota: ".pi/olympus/quota/profile.json",
+			manifest: ".pi/olympi/olympi-manifest.json",
+			lock: ".pi/olympi/olympi.lock",
+			audit: ".pi/olympi/audit.jsonl",
+			quota: ".pi/olympi/quota/profile.json",
 		},
 		configured,
 		state: {
@@ -101,7 +101,7 @@ export async function readSetupStatus(
 
 export function formatSetupStatus(report: SetupStatusReport): string {
 	const lines = [
-		"Olympus setup status",
+		"Olympi setup status",
 		`Project: ${report.projectRoot}`,
 		"Mutation policy: read-only (no setup writes were performed)",
 		"Tools:",
@@ -118,7 +118,7 @@ export function formatSetupStatus(report: SetupStatusReport): string {
 		`- .pi: ${report.configured.projectPiPresent ? "present" : "absent"}`,
 	);
 	lines.push(
-		`- .pi/olympus: ${report.configured.olympusStatePresent ? "present" : "absent"}`,
+		`- .pi/olympi: ${report.configured.olympiStatePresent ? "present" : "absent"}`,
 	);
 	lines.push(
 		`- manifest: ${report.configured.manifestPresent ? "present" : "absent"} (${report.state.manifestPackages} packages)`,
@@ -140,7 +140,7 @@ export function formatSetupStatus(report: SetupStatusReport): string {
 
 interface SetupStatusPathsAbsolute {
 	projectPi: string;
-	olympusState: string;
+	olympiState: string;
 	settings: string;
 	manifest: string;
 	lock: string;
@@ -151,12 +151,12 @@ interface SetupStatusPathsAbsolute {
 function setupPaths(projectRoot: string): SetupStatusPathsAbsolute {
 	return {
 		projectPi: path.join(projectRoot, ".pi"),
-		olympusState: path.join(projectRoot, ".pi", "olympus"),
+		olympiState: path.join(projectRoot, ".pi", "olympi"),
 		settings: path.join(projectRoot, ".pi", "settings.json"),
-		manifest: path.join(projectRoot, ".pi", "olympus", "olympus-manifest.json"),
-		lock: path.join(projectRoot, ".pi", "olympus", "olympus.lock"),
-		audit: path.join(projectRoot, ".pi", "olympus", "audit.jsonl"),
-		quota: path.join(projectRoot, ".pi", "olympus", "quota", "profile.json"),
+		manifest: path.join(projectRoot, ".pi", "olympi", "olympi-manifest.json"),
+		lock: path.join(projectRoot, ".pi", "olympi", "olympi.lock"),
+		audit: path.join(projectRoot, ".pi", "olympi", "audit.jsonl"),
+		quota: path.join(projectRoot, ".pi", "olympi", "quota", "profile.json"),
 	};
 }
 
@@ -211,16 +211,16 @@ function exists(filePath: string): boolean {
 
 function buildWarnings(
 	configured: SetupStatusReport["configured"],
-	status: OlympusProjectStatus,
+	status: OlympiProjectStatus,
 	rtk: RtkStatusReport,
 ): string[] {
 	return [
 		...(configured.projectPiPresent
 			? []
 			: ["project .pi directory is absent; install/apply remains explicit"]),
-		...(configured.olympusStatePresent
+		...(configured.olympiStatePresent
 			? []
-			: ["project .pi/olympus state directory is absent"]),
+			: ["project .pi/olympi state directory is absent"]),
 		...(rtk.status === "unavailable" && rtk.degradedReason !== null
 			? [rtk.degradedReason]
 			: []),
@@ -230,7 +230,7 @@ function buildWarnings(
 
 function buildNextActions(
 	configured: SetupStatusReport["configured"],
-	status: OlympusProjectStatus,
+	status: OlympiProjectStatus,
 	rtk: RtkStatusReport,
 ): string[] {
 	const actions: string[] = [];
@@ -247,7 +247,7 @@ function buildNextActions(
 	}
 	if (actions.length === 0) {
 		actions.push(
-			"No setup action required; continue with project-local Olympus commands.",
+			"No setup action required; continue with project-local Olympi commands.",
 		);
 	}
 	return actions.sort((left, right) => left.localeCompare(right));

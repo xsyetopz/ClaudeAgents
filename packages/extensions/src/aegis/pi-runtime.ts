@@ -63,7 +63,7 @@ export interface AegisProjectInstallReport {
 	blocked: false;
 	wouldWrite: string[];
 	written: string[];
-	entrypoint: ".pi/extensions/olympus-aegis.ts";
+	entrypoint: ".pi/extensions/olympi-aegis.ts";
 	reason: string;
 	warnings: string[];
 }
@@ -82,7 +82,7 @@ export function aegisPiRuntimeStatus(): AegisPiRuntimeStatus {
 		piApiSource:
 			"@earendil-works/pi-coding-agent docs/extensions.md and dist/core/extensions/types.d.ts from the installed package",
 		warnings: [
-			"Load explicitly with pi -e ./packages/extensions/src/extensions/aegis/pi-runtime.ts; Olympus does not write global ~/.pi extension files.",
+			"Load explicitly with pi -e ./packages/extensions/src/extensions/aegis/pi-runtime.ts; Olympi does not write global ~/.pi extension files.",
 			"The live hook blocks only via Pi's tool_call block contract and otherwise records warnings/status without executing package code.",
 		],
 	};
@@ -93,7 +93,7 @@ export async function installAegisProjectExtension(options: {
 	apply: boolean;
 }): Promise<AegisProjectInstallReport> {
 	const projectRoot = path.resolve(options.projectRoot ?? process.cwd());
-	const entrypoint = ".pi/extensions/olympus-aegis.ts" as const;
+	const entrypoint = ".pi/extensions/olympi-aegis.ts" as const;
 	const target = path.join(projectRoot, entrypoint);
 	const wouldWrite = [entrypoint];
 	if (!options.apply) {
@@ -135,7 +135,7 @@ function aegisProjectExtensionSource(): string {
 		'import { createAegisPiExtension } from "extensions";',
 		'import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";',
 		"",
-		"export default function olympusAegis(pi: ExtensionAPI): void {",
+		"export default function olympiAegis(pi: ExtensionAPI): void {",
 		"\tcreateAegisPiExtension(pi);",
 		"}",
 		"",
@@ -146,8 +146,8 @@ export function createAegisPiExtension(pi: PiExtensionApiLike): void {
 	for (const eventName of AEGIS_PI_RUNTIME_EVENTS) {
 		pi.on(eventName, (event, ctx) => handleAegisEvent(eventName, event, ctx));
 	}
-	pi.registerCommand?.("olympus-aegis-status", {
-		description: "Show Olympus Aegis policy/runtime status",
+	pi.registerCommand?.("olympi-aegis-status", {
+		description: "Show Olympi Aegis policy/runtime status",
 		handler: (_args, ctx) => {
 			const usage = ctx.getContextUsage?.();
 			ctx.ui?.notify?.(
@@ -203,7 +203,7 @@ export function policyEventFromPi(
 			...(command === undefined ? {} : { command }),
 			...(path === undefined ? {} : { path }),
 			generatedArtifact: toolName === "write" || toolName === "edit",
-			manifestOwned: path?.startsWith(".pi/olympus/") ?? false,
+			manifestOwned: path?.startsWith(".pi/olympi/") ?? false,
 			packageExecutable: toolName === "extension-load",
 		};
 	}
@@ -239,10 +239,10 @@ export function policyEventFromPi(
 
 function recordDecision(decision: PolicyDecision, ctx: PiContextLike): void {
 	if (decision.decision === "allow") return;
-	ctx.ui?.setStatus?.("olympus-aegis", `Aegis ${decision.decision}`);
+	ctx.ui?.setStatus?.("olympi-aegis", `Aegis ${decision.decision}`);
 	if (ctx.hasUI === false) return;
 	ctx.ui?.notify?.(
-		`Olympus Aegis ${decision.decision}: ${decision.reasons[0] ?? decision.redactions[0] ?? "policy event"}`,
+		`Olympi Aegis ${decision.decision}: ${decision.reasons[0] ?? decision.redactions[0] ?? "policy event"}`,
 		decision.blocked ? "error" : "warning",
 	);
 }

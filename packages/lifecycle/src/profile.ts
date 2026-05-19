@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { olympusDirectory } from "./manifest.js";
+import { olympiDirectory } from "./manifest.js";
 
-export interface OlympusProfile {
+export interface OlympiProfile {
 	schemaVersion: 1;
 	name: string;
 	description: string;
@@ -15,8 +15,8 @@ export interface ProfileStatusReport {
 	schemaVersion: 1;
 	command: "profile status";
 	projectRoot: string;
-	path: ".pi/olympus/profile.json";
-	profile: OlympusProfile | null;
+	path: ".pi/olympi/profile.json";
+	profile: OlympiProfile | null;
 	warnings: string[];
 }
 
@@ -24,11 +24,11 @@ export interface ProfileSetReport {
 	schemaVersion: 1;
 	command: "profile set";
 	projectRoot: string;
-	path: ".pi/olympus/profile.json";
+	path: ".pi/olympi/profile.json";
 	apply: boolean;
 	wouldWrite: string[];
 	written: string[];
-	profile: OlympusProfile;
+	profile: OlympiProfile;
 	reason: string;
 }
 
@@ -40,7 +40,7 @@ export async function readProfileStatus(
 		schemaVersion: 1,
 		command: "profile status",
 		projectRoot: root,
-		path: ".pi/olympus/profile.json",
+		path: ".pi/olympi/profile.json",
 		profile: await readProfile(root),
 		warnings: [],
 	};
@@ -53,17 +53,17 @@ export async function setProjectProfile(options: {
 	apply: boolean;
 }): Promise<ProfileSetReport> {
 	const root = path.resolve(options.projectRoot ?? process.cwd());
-	const profile: OlympusProfile = {
+	const profile: OlympiProfile = {
 		schemaVersion: 1,
 		name: sanitizeProfileName(options.name),
-		description: options.description ?? "Project-local Olympus profile",
+		description: options.description ?? "Project-local Olympi profile",
 		providerRendererCompatibility: false,
 		globalPiWrites: false,
 		createdAt: new Date().toISOString(),
 	};
-	const writePath = ".pi/olympus/profile.json";
+	const writePath = ".pi/olympi/profile.json";
 	if (options.apply) {
-		await mkdir(olympusDirectory(root), { recursive: true });
+		await mkdir(olympiDirectory(root), { recursive: true });
 		await writeFile(
 			path.join(root, writePath),
 			`${JSON.stringify(profile, null, 2)}\n`,
@@ -79,23 +79,21 @@ export async function setProjectProfile(options: {
 		written: options.apply ? [writePath] : [],
 		profile,
 		reason: options.apply
-			? "wrote project-local Olympus profile without provider-renderer compatibility"
-			: "dry-run profile plan; rerun with --apply to write project-local Olympus profile",
+			? "wrote project-local Olympi profile without provider-renderer compatibility"
+			: "dry-run profile plan; rerun with --apply to write project-local Olympi profile",
 	};
 }
 
-async function readProfile(
-	projectRoot: string,
-): Promise<OlympusProfile | null> {
+async function readProfile(projectRoot: string): Promise<OlympiProfile | null> {
 	try {
 		const parsed = JSON.parse(
 			await readFile(
-				path.join(projectRoot, ".pi", "olympus", "profile.json"),
+				path.join(projectRoot, ".pi", "olympi", "profile.json"),
 				"utf8",
 			),
 		) as unknown;
 		return typeof parsed === "object" && parsed !== null
-			? (parsed as OlympusProfile)
+			? (parsed as OlympiProfile)
 			: null;
 	} catch (error) {
 		if (isNotFound(error)) return null;

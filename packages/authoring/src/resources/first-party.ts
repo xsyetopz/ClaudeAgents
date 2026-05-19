@@ -37,7 +37,7 @@ export interface FirstPartyResourceInstallReport {
 	projectRoot: string;
 	project: true;
 	apply: boolean;
-	packageId: "olympus-first-party-resources";
+	packageId: "olympi-first-party-resources";
 	blocked: false;
 	wouldWrite: string[];
 	written: string[];
@@ -89,16 +89,16 @@ export async function installFirstPartyResources(options: {
 	apply: boolean;
 }): Promise<FirstPartyResourceInstallReport> {
 	const projectRoot = path.resolve(options.projectRoot ?? process.cwd());
-	const packageId = "olympus-first-party-resources" as const;
+	const packageId = "olympi-first-party-resources" as const;
 	const mirrorRoot = path.join(
 		projectRoot,
 		".pi",
-		"olympus",
+		"olympi",
 		"first-party-resources",
 		"package",
 	);
 	const settingsEntry: PiPackageSettingsEntry = {
-		source: "./olympus/first-party-resources/package",
+		source: "./olympi/first-party-resources/package",
 		extensions: [],
 		skills: ["+resources/skills"],
 		prompts: ["+resources/prompts"],
@@ -107,9 +107,9 @@ export async function installFirstPartyResources(options: {
 	const generated = packageFiles();
 	const wouldWrite = [
 		".pi/settings.json packages entry",
-		".pi/olympus/olympus-manifest.json",
-		".pi/olympus/olympus.lock",
-		".pi/olympus/audit.jsonl",
+		".pi/olympi/olympi-manifest.json",
+		".pi/olympi/olympi.lock",
+		".pi/olympi/audit.jsonl",
 		...generated.map((file) =>
 			relativeToProject(projectRoot, path.join(mirrorRoot, file.relativePath)),
 		),
@@ -127,7 +127,7 @@ export async function installFirstPartyResources(options: {
 			written: [],
 			settingsEntry,
 			reason:
-				"dry-run plan for first-party Olympus resource install; rerun with --apply to write project-local .pi files",
+				"dry-run plan for first-party Olympi resource install; rerun with --apply to write project-local .pi files",
 			warnings: [],
 		};
 	}
@@ -156,12 +156,12 @@ export async function installFirstPartyResources(options: {
 			{
 				packageId,
 				installedAt: new Date().toISOString(),
-				source: "first-party:olympus",
+				source: "first-party:olympi",
 				package: {
 					name: packageId,
 					version: "0.1.0",
 					sourceType: "local",
-					source: "first-party:olympus",
+					source: "first-party:olympi",
 					contentDigest,
 				},
 				mirrorRoot: relativeToProject(projectRoot, mirrorRoot),
@@ -191,9 +191,9 @@ export async function installFirstPartyResources(options: {
 	await appendAuditEvent(projectRoot, {
 		event: "resources-install",
 		packageId,
-		source: "first-party:olympus",
+		source: "first-party:olympi",
 		ok: true,
-		detail: "installed first-party Olympus resources project-locally",
+		detail: "installed first-party Olympi resources project-locally",
 	});
 	return {
 		schemaVersion: 1,
@@ -207,7 +207,7 @@ export async function installFirstPartyResources(options: {
 		written: wouldWrite,
 		settingsEntry,
 		reason:
-			"installed first-party Olympus resources into project-local .pi paths",
+			"installed first-party Olympi resources into project-local .pi paths",
 		warnings: [],
 	};
 }
@@ -215,7 +215,7 @@ export async function installFirstPartyResources(options: {
 function packageFiles(): Array<{ relativePath: string; content: string }> {
 	const files: Array<{ relativePath: string; content: string }> = [
 		{
-			relativePath: "olympus-resources.json",
+			relativePath: "olympi-resources.json",
 			content: stablePrettyJson({
 				schemaVersion: 1,
 				resources: FIRST_PARTY_RESOURCE_METADATA,

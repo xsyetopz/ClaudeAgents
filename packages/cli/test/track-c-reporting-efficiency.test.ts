@@ -17,7 +17,7 @@ import {
 	buildStatusReport,
 	compactText,
 	detectRtk,
-	getOlympusCatalog,
+	getOlympiCatalog,
 	parsePiStatusline,
 } from "reporting";
 import { loadQuotaStatus } from "safety";
@@ -32,7 +32,7 @@ function fixturePath(name: string): string {
 
 describe("Track C RTK status and command policy", () => {
 	test("detects RTK when a fake rtk executable exists on PATH", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-rtk-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-rtk-"));
 		try {
 			const fakeRtk = path.join(tempRoot, "rtk");
 			await writeFile(fakeRtk, "#!/bin/sh\necho fake rtk\n");
@@ -62,7 +62,7 @@ describe("Track C RTK status and command policy", () => {
 describe("Track C fallback compaction", () => {
 	test("keeps failing tests and error messages visible", () => {
 		const report = compactText({
-			text: "FAIL packages/olympus/test/sample.test.ts\n✗ rejects unsafe write\nError: expected true to be false\nexit code: 1\n",
+			text: "FAIL packages/cli/test/sample.test.ts\n✗ rejects unsafe write\nError: expected true to be false\nexit code: 1\n",
 			kind: "test",
 			env: { PATH: "" },
 			exitStatus: 1,
@@ -103,7 +103,7 @@ describe("Track C fallback compaction", () => {
 describe("Track C deterministic reports and quota", () => {
 	test("status report is deterministic and handoff is compact/actionable", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-c-status-"),
+			path.join(os.tmpdir(), "olympi-track-c-status-"),
 		);
 		try {
 			await applyPassiveInstall({
@@ -114,9 +114,9 @@ describe("Track C deterministic reports and quota", () => {
 			const first = await buildStatusReport(projectRoot);
 			const second = await buildStatusReport(projectRoot);
 			expect(first.deterministicDigest).toBe(second.deterministicDigest);
-			expect(first.reportPaths.status).toBe(".pi/olympus/reports/status.json");
+			expect(first.reportPaths.status).toBe(".pi/olympi/reports/status.json");
 			const handoff = await buildHandoffReport(projectRoot);
-			expect(handoff.markdown).toContain("# Olympus Handoff");
+			expect(handoff.markdown).toContain("# Olympi Handoff");
 			expect(handoff.actionItems.join("\n")).toContain("RTK");
 		} finally {
 			await rm(projectRoot, { recursive: true, force: true });
@@ -131,20 +131,20 @@ describe("Track C deterministic reports and quota", () => {
 	});
 
 	test("catalog has no stale active-OAL claims", () => {
-		const serialized = JSON.stringify(getOlympusCatalog()).toLowerCase();
+		const serialized = JSON.stringify(getOlympiCatalog()).toLowerCase();
 		expect(serialized).not.toContain("openagentlayer");
 		expect(serialized).not.toContain("active oal");
 		expect(serialized).not.toContain("oal vnext");
 	});
 
 	test("quota profile loads and unknown quota is labeled unknown", async () => {
-		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-quota-"));
+		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-quota-"));
 		try {
-			await mkdir(path.join(projectRoot, ".pi", "olympus", "quota"), {
+			await mkdir(path.join(projectRoot, ".pi", "olympi", "quota"), {
 				recursive: true,
 			});
 			await writeFile(
-				path.join(projectRoot, ".pi", "olympus", "quota", "profile.json"),
+				path.join(projectRoot, ".pi", "olympi", "quota", "profile.json"),
 				'{"profile":"pro-5x"}\n',
 			);
 			const configured = await loadQuotaStatus(projectRoot);
@@ -186,7 +186,7 @@ describe("Track C deterministic reports and quota", () => {
 
 	test("explicit report and handoff artifact writes are project-local", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-artifacts-"),
+			path.join(os.tmpdir(), "olympi-artifacts-"),
 		);
 		try {
 			const handoffProc = Bun.spawn(
@@ -208,10 +208,10 @@ describe("Track C deterministic reports and quota", () => {
 			]);
 			expect(handoffExit).toBe(0);
 			const handoff = JSON.parse(handoffStdout);
-			expect(handoff.path).toBe(".pi/olympus/handoff/current.md");
+			expect(handoff.path).toBe(".pi/olympi/handoff/current.md");
 			expect(handoff.compactAdvice.nextCommand).toBe("/compact");
 			const markdown = await readFile(
-				path.join(projectRoot, ".pi", "olympus", "handoff", "current.md"),
+				path.join(projectRoot, ".pi", "olympi", "handoff", "current.md"),
 				"utf8",
 			);
 			expect(markdown).toContain("Next Pi command: `/compact`");
@@ -226,11 +226,11 @@ describe("Track C deterministic reports and quota", () => {
 			]);
 			expect(statusExit).toBe(0);
 			expect(JSON.parse(statusStdout).path).toBe(
-				".pi/olympus/reports/status.json",
+				".pi/olympi/reports/status.json",
 			);
 			await expect(
 				readFile(
-					path.join(projectRoot, ".pi", "olympus", "reports", "status.json"),
+					path.join(projectRoot, ".pi", "olympi", "reports", "status.json"),
 					"utf8",
 				),
 			).resolves.toContain('"command": "status"');
@@ -240,7 +240,7 @@ describe("Track C deterministic reports and quota", () => {
 	});
 
 	test("explicit audit append writes only project-local audit log", async () => {
-		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-audit-"));
+		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-audit-"));
 		try {
 			const proc = Bun.spawn(
 				[
@@ -261,9 +261,9 @@ describe("Track C deterministic reports and quota", () => {
 				proc.exited,
 			]);
 			expect(exitCode).toBe(0);
-			expect(JSON.parse(stdout).path).toBe(".pi/olympus/audit.jsonl");
+			expect(JSON.parse(stdout).path).toBe(".pi/olympi/audit.jsonl");
 			const audit = await readFile(
-				path.join(projectRoot, ".pi", "olympus", "audit.jsonl"),
+				path.join(projectRoot, ".pi", "olympi", "audit.jsonl"),
 				"utf8",
 			);
 			expect(audit).toContain("handoff complete");
@@ -276,7 +276,7 @@ describe("Track C deterministic reports and quota", () => {
 describe("Track C CLI smoke and no global Pi writes", () => {
 	test("low-level CLI commands emit JSON", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-c-cli-"),
+			path.join(os.tmpdir(), "olympi-track-c-cli-"),
 		);
 		try {
 			const outputFile = path.join(tempRoot, "output.txt");
@@ -313,7 +313,7 @@ describe("Track C CLI smoke and no global Pi writes", () => {
 
 	test("reporting commands do not write to HOME ~/.pi by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-track-c-home-"),
+			path.join(os.tmpdir(), "olympi-track-c-home-"),
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");

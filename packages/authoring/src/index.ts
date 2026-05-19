@@ -3,8 +3,8 @@ export { buildCurrentHandoff } from "./handoff/current.js";
 export type {
 	ModuleRunReport,
 	ModuleStatusReport,
-	OlympusModuleContract,
-	OlympusModuleName,
+	OlympiModuleContract,
+	OlympiModuleName,
 } from "./modules/contracts.js";
 export { moduleStatus, runModuleDry } from "./modules/contracts.js";
 export type { FirstPartyPackagePlan } from "./resources/first-party.js";
@@ -13,7 +13,7 @@ export {
 	writeFirstPartyResourcePackage,
 } from "./resources/first-party.js";
 export type {
-	OlympusResourceMetadata,
+	OlympiResourceMetadata,
 	ResourceValidationReport,
 } from "./resources/schema.js";
 export { FIRST_PARTY_RESOURCE_METADATA } from "./resources/schema.js";

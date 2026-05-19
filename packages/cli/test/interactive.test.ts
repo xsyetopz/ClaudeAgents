@@ -40,13 +40,13 @@ class ScriptedSession implements InteractiveSession {
 	}
 }
 
-describe("Olympus interactive wrapper", () => {
+describe("Olympi interactive wrapper", () => {
 	test("shows status before exiting", async () => {
 		const session = new ScriptedSession(["q"]);
 		const exitCode = await runInteractiveSession(session);
 		expect(exitCode).toBe(0);
-		expect(session.text()).toContain("Olympus interactive command hub");
-		expect(session.text()).toContain("Olympus status");
+		expect(session.text()).toContain("Olympi interactive command hub");
+		expect(session.text()).toContain("Olympi status");
 		expect(session.text()).toContain("inspect local package (read-only)");
 		expect(session.text()).toContain("global ~/.pi writes are never performed");
 		expect(session.text()).toContain("Install passive package");
@@ -63,7 +63,7 @@ describe("Olympus interactive wrapper", () => {
 		expect(exitCode).toBe(0);
 		expect(session.text()).toContain("Safe prompt: evaluation is read-only");
 		expect(session.text()).toContain(
-			"Olympus package evaluation: passive-package@1.0.0",
+			"Olympi package evaluation: passive-package@1.0.0",
 		);
 		expect(session.text()).toContain("Decision: trust-passive");
 		expect(session.text()).toContain(
@@ -73,7 +73,7 @@ describe("Olympus interactive wrapper", () => {
 
 	test("creates first-party extension skeletons only after explicit output confirmation", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-interactive-extension-"),
+			path.join(os.tmpdir(), "olympi-interactive-extension-"),
 		);
 		try {
 			const session = new ScriptedSession([
@@ -85,16 +85,16 @@ describe("Olympus interactive wrapper", () => {
 			]);
 			const exitCode = await runInteractiveSession(session);
 			expect(exitCode).toBe(0);
-			expect(session.text()).toContain("Olympus extension create dry-run");
-			expect(session.text()).toContain("Olympus extension create apply");
+			expect(session.text()).toContain("Olympi extension create dry-run");
+			expect(session.text()).toContain("Olympi extension create apply");
 			const manifest = JSON.parse(
 				await readFile(
-					path.join(tempRoot, "guided-panel", "olympus-extension.json"),
+					path.join(tempRoot, "guided-panel", "olympi-extension.json"),
 					"utf8",
 				),
 			);
-			expect(manifest.olympusOwned).toBe(true);
-			expect(manifest.commands).toEqual(["/olympus-guided-panel"]);
+			expect(manifest.olympiOwned).toBe(true);
+			expect(manifest.commands).toEqual(["/olympi-guided-panel"]);
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
 		}
@@ -112,7 +112,7 @@ describe("Olympus interactive wrapper", () => {
 				path.join(
 					process.cwd(),
 					".pi",
-					"olympus",
+					"olympi",
 					"extensions",
 					"dry-panel",
 					"package.json",
@@ -135,7 +135,7 @@ describe("Olympus interactive wrapper", () => {
 
 	test("runs interactive install dry-run before confirmed apply", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-interactive-install-"),
+			path.join(os.tmpdir(), "olympi-interactive-install-"),
 		);
 		try {
 			const session = new ScriptedSession(
@@ -144,14 +144,14 @@ describe("Olympus interactive wrapper", () => {
 			);
 			const exitCode = await runInteractiveSession(session);
 			expect(exitCode).toBe(0);
-			expect(session.text()).toContain("Olympus install dry-run");
+			expect(session.text()).toContain("Olympi install dry-run");
 			expect(session.text()).toContain(
 				"Dry-run complete before apply confirmation.",
 			);
-			expect(session.text()).toContain("Olympus install apply");
+			expect(session.text()).toContain("Olympi install apply");
 			const manifest = JSON.parse(
 				await readFile(
-					path.join(tempRoot, ".pi", "olympus", "olympus-manifest.json"),
+					path.join(tempRoot, ".pi", "olympi", "olympi-manifest.json"),
 					"utf8",
 				),
 			);
@@ -163,7 +163,7 @@ describe("Olympus interactive wrapper", () => {
 
 	test("runs interactive uninstall dry-run before confirmed apply", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-interactive-uninstall-"),
+			path.join(os.tmpdir(), "olympi-interactive-uninstall-"),
 		);
 		try {
 			const install = await applyPassiveInstall({
@@ -177,14 +177,14 @@ describe("Olympus interactive wrapper", () => {
 			);
 			const exitCode = await runInteractiveSession(session);
 			expect(exitCode).toBe(0);
-			expect(session.text()).toContain("Olympus uninstall dry-run");
+			expect(session.text()).toContain("Olympi uninstall dry-run");
 			expect(session.text()).toContain(
 				"Dry-run complete before apply confirmation.",
 			);
-			expect(session.text()).toContain("Olympus uninstall apply");
+			expect(session.text()).toContain("Olympi uninstall apply");
 			const manifest = JSON.parse(
 				await readFile(
-					path.join(tempRoot, ".pi", "olympus", "olympus-manifest.json"),
+					path.join(tempRoot, ".pi", "olympi", "olympi-manifest.json"),
 					"utf8",
 				),
 			);
@@ -196,7 +196,7 @@ describe("Olympus interactive wrapper", () => {
 
 	test("setup status detects project state without mutation", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-setup-status-"),
+			path.join(os.tmpdir(), "olympi-setup-status-"),
 		);
 		try {
 			const before = await readSetupStatus(tempRoot);

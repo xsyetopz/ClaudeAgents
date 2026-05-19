@@ -1,6 +1,7 @@
-# Olympus Specs
+# Specs
 
-These specs define the Olympus 0.1.0 source-checkout product contract. The executable source of truth remains `packages/` plus generated `olympus catalog` / `olympus spec` output.
+These specs define the 0.1.0 product contract. The executable source of truth is
+`packages/` plus `olympi catalog` and `olympi spec` output.
 
 - [`product.md`](product.md)
 - [`versioning.md`](versioning.md)

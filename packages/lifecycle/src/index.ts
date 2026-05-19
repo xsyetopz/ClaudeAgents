@@ -50,13 +50,13 @@ export {
 	planPassiveInstall,
 	stageExecutableInstall,
 } from "./install-flow.js";
-export type { LockPackageRecord, OlympusLock } from "./lock.js";
+export type { LockPackageRecord, OlympiLock } from "./lock.js";
 export { hasLockDigestMismatch, readLock, writeLock } from "./lock.js";
 export type {
 	AuditEvent,
 	ManifestFileRecord,
 	ManifestPackageRecord,
-	OlympusManifest,
+	OlympiManifest,
 } from "./manifest.js";
 export {
 	appendAuditEvent,
@@ -65,19 +65,19 @@ export {
 	hashJson,
 	lockPath,
 	manifestPath,
-	olympusDirectory,
+	olympiDirectory,
 	readManifest,
 	relativeToProject,
 	writeManifest,
 } from "./manifest.js";
 export type {
-	OlympusProfile,
+	OlympiProfile,
 	ProfileSetReport,
 	ProfileStatusReport,
 } from "./profile.js";
 export { readProfileStatus, setProjectProfile } from "./profile.js";
 export type {
-	OlympusProjectStatus,
+	OlympiProjectStatus,
 	ProjectPackageStatus,
 } from "./project-status.js";
 export { formatProjectStatus, readProjectStatus } from "./project-status.js";
@@ -100,4 +100,4 @@ export type {
 	ScriptReport,
 	SupportFile,
 } from "./types.js";
-export { OlympusError } from "./types.js";
+export { OlympiError } from "./types.js";

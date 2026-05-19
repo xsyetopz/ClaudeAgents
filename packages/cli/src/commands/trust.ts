@@ -1,4 +1,4 @@
-import { type ExitCode, loadExecutablePackage, OlympusError } from "lifecycle";
+import { type ExitCode, loadExecutablePackage, OlympiError } from "lifecycle";
 import { asJson } from "reporting";
 import { buildExecutableTrustProof, readTrustStatus } from "trust";
 
@@ -9,8 +9,8 @@ export async function runTrust(
 	if (args[0] === "executable-load") {
 		const packageId = readFlagValue(args, "--package-id") ?? args[1];
 		if (packageId === undefined) {
-			throw new OlympusError(
-				"usage: olympus trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]",
+			throw new OlympiError(
+				"usage: olympi trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]",
 				2,
 			);
 		}
@@ -26,8 +26,8 @@ export async function runTrust(
 	if (args[0] === "executable-proof") {
 		const packageId = readFlagValue(args, "--package-id") ?? args[1];
 		if (packageId === undefined) {
-			throw new OlympusError(
-				"usage: olympus trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]",
+			throw new OlympiError(
+				"usage: olympi trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]",
 				2,
 			);
 		}
@@ -39,8 +39,8 @@ export async function runTrust(
 		return report.executableLoadAllowed ? 0 : 1;
 	}
 	if (args[0] !== "status") {
-		throw new OlympusError(
-			"usage: olympus trust <status|executable-proof|executable-load> [--json]",
+		throw new OlympiError(
+			"usage: olympi trust <status|executable-proof|executable-load> [--json]",
 			2,
 		);
 	}
@@ -53,7 +53,7 @@ function formatLoad(
 	report: Awaited<ReturnType<typeof loadExecutablePackage>>,
 ): string {
 	const lines = [
-		`Olympus executable load: ${report.blocked ? "blocked" : report.apply ? "applied" : "dry-run"}`,
+		`Olympi executable load: ${report.blocked ? "blocked" : report.apply ? "applied" : "dry-run"}`,
 		`Package: ${report.packageId}`,
 		`Reason: ${report.reason}`,
 	];
@@ -68,7 +68,7 @@ function formatProof(
 	report: Awaited<ReturnType<typeof buildExecutableTrustProof>>,
 ): string {
 	const lines = [
-		`Olympus executable trust proof: ${report.executableLoadAllowed ? "allowed" : "blocked"}`,
+		`Olympi executable trust proof: ${report.executableLoadAllowed ? "allowed" : "blocked"}`,
 		`Package: ${report.packageId}`,
 		`Signature subject: ${report.signatureSubjectDigest ?? "unknown"}`,
 	];
@@ -79,7 +79,7 @@ function formatProof(
 function formatTrust(
 	report: Awaited<ReturnType<typeof readTrustStatus>>,
 ): string {
-	const lines = [`Olympus trust status: sandbox ${report.sandbox}`];
+	const lines = [`Olympi trust status: sandbox ${report.sandbox}`];
 	for (const packageStatus of report.packages) {
 		lines.push(
 			`- ${packageStatus.packageId}: ${packageStatus.signs.join(", ")}`,
@@ -94,7 +94,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }

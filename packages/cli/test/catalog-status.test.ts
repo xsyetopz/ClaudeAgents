@@ -4,9 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import { applyPassiveInstall, readProjectStatus } from "lifecycle";
 import {
-	formatOlympusCatalog,
-	getOlympusCatalog,
-	validateOlympusCatalog,
+	formatOlympiCatalog,
+	getOlympiCatalog,
+	validateOlympiCatalog,
 } from "reporting";
 
 const FIXTURES = path.join(import.meta.dir, "fixtures");
@@ -16,20 +16,18 @@ function fixturePath(name: string): string {
 	return path.join(FIXTURES, name);
 }
 
-describe("Olympus source-of-truth catalog", () => {
-	test("defines LLM-readable Olympus contracts without legacy framing", () => {
-		const catalog = getOlympusCatalog();
-		expect(catalog.product).toBe("Olympus");
-		expect(validateOlympusCatalog(catalog)).toEqual([]);
+describe("Olympi catalog", () => {
+	test("defines Olympi contracts without legacy framing", () => {
+		const catalog = getOlympiCatalog();
+		expect(catalog.product).toBe("Olympi");
+		expect(validateOlympiCatalog(catalog)).toEqual([]);
 		expect(catalog.commands.map((command) => command.command)).toContain(
 			"install",
 		);
 		expect(catalog.commands.map((command) => command.command)).toContain(
 			"status",
 		);
-		expect(formatOlympusCatalog(catalog)).toContain(
-			"# Olympus Source-of-Truth Catalog",
-		);
+		expect(formatOlympiCatalog(catalog)).toContain("# Olympi Catalog");
 		expect(JSON.stringify(catalog).toLowerCase()).not.toContain(
 			"openagentlayer",
 		);
@@ -54,10 +52,10 @@ describe("Olympus source-of-truth catalog", () => {
 	});
 });
 
-describe("Olympus project status", () => {
+describe("Olympi project status", () => {
 	test("reports empty project state without mutating it", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-status-empty-"),
+			path.join(os.tmpdir(), "olympi-status-empty-"),
 		);
 		try {
 			const status = await readProjectStatus(projectRoot);
@@ -74,7 +72,7 @@ describe("Olympus project status", () => {
 
 	test("reports manifest-owned installed package state", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-status-install-"),
+			path.join(os.tmpdir(), "olympi-status-install-"),
 		);
 		try {
 			const install = await applyPassiveInstall({
@@ -95,7 +93,7 @@ describe("Olympus project status", () => {
 
 	test("reports changed manifest-owned files for handoff", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-status-drift-"),
+			path.join(os.tmpdir(), "olympi-status-drift-"),
 		);
 		try {
 			const install = await applyPassiveInstall({
@@ -107,7 +105,7 @@ describe("Olympus project status", () => {
 				path.join(
 					projectRoot,
 					".pi",
-					"olympus",
+					"olympi",
 					"packages",
 					install.packageId,
 					"package",
@@ -132,7 +130,7 @@ describe("Olympus project status", () => {
 
 	test("CLI status exits nonzero when drift is visible", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-status-cli-"),
+			path.join(os.tmpdir(), "olympi-status-cli-"),
 		);
 		try {
 			const install = await applyPassiveInstall({
@@ -144,7 +142,7 @@ describe("Olympus project status", () => {
 				path.join(
 					projectRoot,
 					".pi",
-					"olympus",
+					"olympi",
 					"packages",
 					install.packageId,
 					"package",

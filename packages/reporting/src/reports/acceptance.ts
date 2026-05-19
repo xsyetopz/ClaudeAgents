@@ -1,4 +1,4 @@
-import { getOlympusCatalog, validateOlympusCatalog } from "reporting";
+import { getOlympiCatalog, validateOlympiCatalog } from "reporting";
 import { loadQuotaStatus } from "safety";
 import { detectRtk } from "../compaction/index.js";
 import { deterministicDigest } from "./schema.js";
@@ -22,8 +22,8 @@ export interface AcceptanceReport {
 export async function buildAcceptanceReport(
 	projectRoot: string = process.cwd(),
 ): Promise<AcceptanceReport> {
-	const catalog = getOlympusCatalog();
-	const catalogErrors = validateOlympusCatalog(catalog);
+	const catalog = getOlympiCatalog();
+	const catalogErrors = validateOlympiCatalog(catalog);
 	const rtk = detectRtk();
 	const quota = await loadQuotaStatus(projectRoot);
 	const serializedCatalog = JSON.stringify(catalog).toLowerCase();
@@ -35,7 +35,7 @@ export async function buildAcceptanceReport(
 				serializedCatalog.includes("active oal") ||
 				serializedCatalog.includes("oal vnext")
 			),
-			detail: "Olympus catalog uses Olympus product authority only.",
+			detail: "Olympi catalog uses Olympi product authority only.",
 		},
 		{
 			name: "catalog validates implemented commands",
@@ -72,7 +72,7 @@ export async function buildAcceptanceReport(
 }
 
 export function formatAcceptanceReport(report: AcceptanceReport): string {
-	const lines = [`Olympus acceptance report: ${report.ok ? "ok" : "failed"}`];
+	const lines = [`Olympi acceptance report: ${report.ok ? "ok" : "failed"}`];
 	for (const check of report.checks) {
 		lines.push(`${check.ok ? "ok" : "fail"}: ${check.name} — ${check.detail}`);
 	}

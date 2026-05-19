@@ -1,5 +1,5 @@
 {
-	"name": "olympus",
+	"name": "olympi",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -13,11 +13,11 @@
 		"biome:lint:fix": "bun run biome:lint --write",
 		"biome:format": "bunx biome format . --write --max-diagnostics 16384",
 		"typecheck": "bunx tsc --noEmit",
-		"test": "bun run olympus:test",
-		"olympus": "bun packages/cli/src/cli.ts",
-		"olympus:test": "bun test packages/cli/test/*.test.ts",
-		"olympus:verify": "bun packages/cli/src/cli.ts verify",
-		"olympus:catalog": "bun packages/cli/src/cli.ts catalog",
+		"test": "bun run olympi:test",
+		"olympi": "bun packages/cli/src/cli.ts",
+		"olympi:test": "bun test packages/cli/test/*.test.ts",
+		"olympi:verify": "bun packages/cli/src/cli.ts verify",
+		"olympi:catalog": "bun packages/cli/src/cli.ts catalog",
 		"build": "bun run typecheck"
 	},
 	"devDependencies": {

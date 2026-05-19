@@ -20,7 +20,7 @@ export function dangerousCommandReasons(
 	if (RM_RF_PATTERN.test(text))
 		reasons.push("dangerous recursive force delete command blocked");
 	if (SUDO_PATTERN.test(text))
-		reasons.push("sudo command blocked by Olympus safety policy");
+		reasons.push("sudo command blocked by Olympi safety policy");
 	if (CHMOD_OPEN_PATTERN.test(text))
 		reasons.push("world-writable chmod command blocked");
 	if (SHELL_PIPE_INSTALL_PATTERN.test(text))

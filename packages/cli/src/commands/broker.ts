@@ -1,4 +1,4 @@
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { asJson } from "reporting";
 import { validateBrokerFixture } from "safety";
 
@@ -7,14 +7,14 @@ export async function runBroker(
 	json: boolean,
 ): Promise<ExitCode> {
 	if (args[0] !== "validate")
-		throw new OlympusError(
-			"usage: olympus broker validate <fixture> [--json]",
+		throw new OlympiError(
+			"usage: olympi broker validate <fixture> [--json]",
 			2,
 		);
 	const fixture = args[1];
 	if (fixture === undefined)
-		throw new OlympusError(
-			"usage: olympus broker validate <fixture> [--json]",
+		throw new OlympiError(
+			"usage: olympi broker validate <fixture> [--json]",
 			2,
 		);
 	const report = await validateBrokerFixture(fixture);
@@ -25,7 +25,7 @@ export async function runBroker(
 function formatBroker(
 	report: Awaited<ReturnType<typeof validateBrokerFixture>>,
 ): string {
-	const lines = [`Olympus broker validate: ${report.valid ? "ok" : "failed"}`];
+	const lines = [`Olympi broker validate: ${report.valid ? "ok" : "failed"}`];
 	lines.push(`kind: ${report.kind}`);
 	lines.push(`operation: ${report.operation ?? "unknown"}`);
 	for (const reason of report.reasons) lines.push(`reason: ${reason}`);

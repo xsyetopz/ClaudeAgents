@@ -1,38 +1,44 @@
-# Olympus Security
+# Security
 
-Olympus 0.1.0 is designed to inspect, evaluate, and mirror local Pi resources conservatively. It is not a sandbox for arbitrary third-party code.
+The 0.1.0 security model is inspection without execution. Local Pi packages are
+untrusted input.
 
 ## Threat model
 
-Olympus assumes a local Pi package may contain misleading metadata, executable files, lifecycle scripts, hooks, tools, provider adapters, or extension code. The 0.1.0 safety goal is to inspect and classify those files without executing them, then allow only passive resources into project-local, manifest-owned mirrors.
+A package may contain misleading metadata, executable files, lifecycle scripts,
+hooks, tools, provider adapters, or extension code. Inspection must classify and
+hash those files without running them. Only approved passive resources may be
+mirrored into project-local manifest-owned paths.
 
 ## Current protections
 
-- Package inspection and evaluation read files only; they do not run lifecycle scripts, package scripts, extension code, hooks, tools, or providers.
-- Executable resources are classified conservatively and blocked from default passive install.
-- Extension inspection reads `olympus-extension.json` and source-shape metadata without importing or running extension code.
-- Applied install writes only Olympus-owned project-local `.pi/olympus/**` files plus managed `.pi/settings.json` package entries.
-- Applied uninstall removes only manifest-owned resources with matching hashes.
-- Hash mismatches are preserved for manual review.
-- Verification uses temporary projects and fake homes to check no-global-write behavior.
+- Inspect/evaluate do not run package scripts, lifecycle scripts, extension
+  code, hooks, tools, or providers.
+- Extension inspection parses metadata and source text without importing code.
+- Executable resources are blocked from default passive install.
+- Applied install writes only `.pi/settings.json` and `.pi/olympi/**` paths.
+- Applied uninstall removes only manifest-owned files with matching hashes.
+- Hash mismatches preserve files for manual review.
+- Verification uses temporary projects and fake homes.
 
 ## Current non-guarantees
 
-Olympus 0.1.0 does not provide:
+0.1.0 does not provide:
 
-- safe execution of untrusted third-party extensions, tools, hooks, providers, package scripts, or lifecycle scripts;
-- user-global Pi installation safety;
-- operating-system sandbox containment;
-- brokered access to host credentials, shells, files outside the project, network services, or external APIs;
-- supply-chain verification beyond local file hashing and conservative resource classification.
+- safe execution of untrusted third-party code;
+- OS sandbox containment;
+- access brokering for credentials, shell, filesystem, network, or external
+  APIs;
+- remote supply-chain verification;
+- global Pi installation safety.
 
 ## Reporting vulnerabilities
 
-Please report security issues privately to the repository maintainers. Include:
+Report security issues privately to the maintainers. Include:
 
-- affected command and Olympus version or commit;
-- reproduction steps using temporary projects or fake homes where possible;
-- observed file writes, code execution, or boundary violation;
-- expected safety boundary.
+- affected command and commit;
+- reproduction steps using temporary projects or fake homes when possible;
+- observed writes, execution, or boundary violation;
+- expected boundary.
 
-Do not include real secrets in reports.
+Do not include real secrets.

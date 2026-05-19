@@ -1,17 +1,21 @@
-# Olympus Docs
+# Documentation
 
-These docs describe Olympus 0.1.0, the first source-checkout product boundary in the 0-series line.
+This directory documents the active 0.1.0 source-tree system.
 
-- [`architecture.md`](architecture.md) — system architecture and implemented components.
-- [`package-model.md`](package-model.md) — local Pi package/resource model and project-local mirror behavior.
-- [`security.md`](security.md) — security model, current protections, and planned hardening.
-- [`extensions.md`](extensions.md) — Olympus-owned extension authoring and inspection.
-- [`roadmap.md`](roadmap.md) — planned parity work that is not yet complete.
-- [`oal-lessons.md`](oal-lessons.md) — historical lessons retained or rejected by Olympus.
+## Core documents
 
-Root documents:
+- [`architecture.md`](architecture.md) — package layout, state ownership, and major data flows.
+- [`package-boundaries.md`](package-boundaries.md) — package responsibilities and dependency rules.
+- [`execution-lifecycle.md`](execution-lifecycle.md) — inspect/evaluate/plan/apply/report lifecycle and blocker behavior.
+- [`hooks.md`](hooks.md) — hook phases, veto semantics, and provider deployment status.
+- [`skills.md`](skills.md) — topical skill selection, lazy loading, and refinement loops.
+- [`package-model.md`](package-model.md) — Pi package inventory and project-local mirror layout.
+- [`verification.md`](verification.md) — local gates and fixture coverage.
+- [`security.md`](security.md) — threat model and current non-guarantees.
+- [`extensions.md`](extensions.md) — first-party extension skeletons and inspection.
+- [`roadmap.md`](roadmap.md) — remaining work.
+- [`oal-lessons.md`](oal-lessons.md) — retained lessons from the legacy implementation.
 
-- [`../README.md`](../README.md) — product overview and quick commands.
-- [`../INSTALLATION.md`](../INSTALLATION.md) — source-checkout installation and project-local install behavior.
-- [`../SECURITY.md`](../SECURITY.md) — vulnerability reporting and threat model.
-- [`../specs/`](../specs/README.md) — normative 0.1.0 contracts.
+## Normative specs
+
+The specs in [`../specs`](../specs/README.md) define the 0.1.0 command and product contracts. Update specs when command behavior, write paths, safety boundaries, or verification requirements change.

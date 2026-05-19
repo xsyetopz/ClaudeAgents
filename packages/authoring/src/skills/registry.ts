@@ -68,7 +68,7 @@ export const FIRST_PARTY_SKILL_INDEX: SkillIndexMetadata[] = [
 		["goal", "orchestration", "continuation", "blocker"],
 		["goal", "loop", "blocked", "continue", "completion", "verification"],
 		"strong-reviewer",
-		["olympus goal-loop tests"],
+		["olympi goal-loop tests"],
 	),
 	skill(
 		"implementation-worker",
@@ -77,7 +77,7 @@ export const FIRST_PARTY_SKILL_INDEX: SkillIndexMetadata[] = [
 		["implementation", "worker", "refactor"],
 		["implement", "edit", "refactor", "fix"],
 		"cheap-worker",
-		["bun run olympus:test", "bun run typecheck"],
+		["bun run olympi:test", "bun run typecheck"],
 	),
 	skill(
 		"reviewer-audit",

@@ -1,6 +1,6 @@
 # Roadmap Parity Spec
 
-This spec lists planned OAL parity themes as future Olympus work. It is not an implementation claim for 0.1.0.
+This spec lists planned OAL parity themes as future Olympi work. It is not an implementation claim for 0.1.0.
 
 Implemented foundation in this slice:
 

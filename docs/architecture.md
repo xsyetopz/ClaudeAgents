@@ -1,38 +1,99 @@
-# Olympus Architecture
+# Architecture
 
-Olympus is a PiCodingAgent-first framework implemented as single-word domain packages under `packages/`. It runs from a source checkout and exposes a standalone low-level CLI plus a high-level interactive wrapper.
+The system is a set of single-word domain packages plus a CLI dispatcher. Domain
+packages expose public APIs from `src/index.ts`. The CLI imports those APIs and
+contains argument parsing only.
 
-## Components
+```mermaid
+flowchart LR
+    CLI[cli]
+    CLI --> Lifecycle[lifecycle]
+    CLI --> Safety[safety]
+    CLI --> Trust[trust]
+    CLI --> Reporting[reporting]
+    CLI --> Authoring[authoring]
+    CLI --> Extensions[extensions]
 
-- **CLI dispatch** — `packages/cli/src/cli.ts` routes commands to public domain package APIs.
-- **Inspection** — reads local package metadata and conventional Pi resource paths without executing package code.
-- **Evaluation** — classifies risks, executable resources, conflicts, and installability before trust.
-- **Extension authoring** — creates and inspects Olympus-owned extension skeletons with explicit metadata.
-- **Install/uninstall** — mirrors approved passive resources into project-local `.pi/olympus/**` paths and removes only manifest-owned files with matching hashes.
-- **Status** — reads project-local lock, manifest, audit, and settings state for handoff.
-- **Catalog/spec** — emits LLM-readable contracts generated from Olympus-owned source.
-- **Verification** — runs deterministic temp-project and fake-home checks.
-- **Interactive wrapper** — presents guided workflows while delegating behavior to the low-level modules.
-- **Goal-loop foundation** — `lifecycle` owns durable objectives, bounded step attempts, progress ledger entries, blocker detection, completion verification gates, and compaction/continuation recovery prompts.
-- **Hook interfaces** — `safety` owns typed hook phases and veto decisions for pre-action, validation, architecture-boundary, blocked-state, stop, and commit-adjacent guardrails.
-- **Skill discovery** — `authoring` owns topical skill metadata, lazy loading, model-tier hints, and generalized skill-refinement proposals.
+    Reporting --> Lifecycle
+    Reporting --> Safety
+    Authoring --> Lifecycle
+    Authoring --> Safety
+    Trust --> Lifecycle
+    Trust --> Safety
+    Extensions --> Safety
+```
 
-## Product boundary
+The graph is intentionally small. There is no shared catch-all package. New code
+must live in the package that owns the state or decision it changes.
 
-Olympus 0.1.0 is a source-checkout product. It does not publish release artifacts or claim API stability. Active behavior is whatever is implemented and verified under `packages/` and documented in `specs/`.
+## Domain packages
 
-## PiCodingAgent-first direction
+| Package | Owns | Does not own |
+| --- | --- | --- |
+| `lifecycle` | Local package inspection, evaluation, install/uninstall plans, manifest/lock/audit state, project status, goal-loop state. | CLI parsing, policy definitions, trust signatures, report formatting. |
+| `safety` | Policy decisions, hook interfaces, sandbox probes, broker request validation, quota labels, safety audit records. | Package install state, executable trust proof, CLI output. |
+| `trust` | Executable package load proof and trust status. | Package inspection, sandbox implementation, CLI commands. |
+| `reporting` | Catalogs, status reports, handoffs, acceptance reports, compaction, RTK command planning. | Mutating project state except explicit artifact writes routed through lifecycle-owned paths. |
+| `authoring` | First-party resource metadata, prompt contracts, plan/diff review artifacts, mutation queues, module gates, skill registry. | Package evaluation, runtime safety policy, executable trust decisions. |
+| `extensions` | First-party extension skeletons and Aegis runtime entrypoint. | Third-party extension execution or trust decisions. |
+| `cli` | Command routing and process I/O. | Domain behavior. |
 
-Olympus targets Pi packages and Pi extension authoring directly. It keeps package inspection, resource classification, status output, and generated contracts readable by both humans and coding-agent sessions.
+## State locations
 
-## Historical parity roadmap
+Project-local state is under `.pi/olympi/**`:
 
-Historical architecture lessons inform the roadmap, but Olympus re-authors them as Pi-native features. Planned areas include hooks, skills, prompts, commands, token efficiency, plan review, prompt contracts, teams/subagents, quota awareness, and stronger sandbox/trust gates. These are roadmap items unless listed as implemented in the specs.
+```text
+.pi/settings.json
+.pi/olympi/olympi.lock
+.pi/olympi/olympi-manifest.json
+.pi/olympi/audit.jsonl
+.pi/olympi/packages/<package-id>/package/**
+.pi/olympi/reports/**
+.pi/olympi/handoff/**
+.pi/olympi/profile.json
+```
 
-## OAL/Codex delta applied in this slice
+The manifest owns installed files. The lock records trust decisions. The audit
+log records explicit operations. Uninstall uses the manifest and hashes; path
+names alone are not authority.
 
-- Retained OAL's route discipline, completion evidence, blocker reporting, bounded subagent guidance, and topical skill idea.
-- Rejected legacy provider-renderer resurrection and uncontrolled fan-out.
-- Avoided the Codex `/goal` failure mode where a blocked loop keeps doing unrelated hardening: concrete blockers now produce an explicit paused/blocked state with the needed action.
-- Completion requires objective-specific verification evidence and a completion audit, not a self-judged “looks good”.
-- Continuation recovery re-injects the durable objective and completion audit requirements after compaction.
+## Resource classification
+
+```mermaid
+flowchart TD
+    Package[local Pi package]
+    Package --> Inventory[resource inventory]
+    Inventory --> Passive[passive resources]
+    Inventory --> Executable[executable resources]
+    Passive --> Mirror[project-local mirror]
+    Executable --> Block[blocked until trust proof]
+```
+
+Passive resources are skills, prompts, and static themes. Executable resources
+include extensions, hooks, tools, providers, lifecycle scripts, package scripts,
+and support scripts. Executable resources are inspected and hashed but not loaded
+by default.
+
+## Goal-loop foundation
+
+Goal-loop state belongs to `lifecycle` because it is durable workflow state. It
+contains the objective, planned steps, bounded retry policy, ledger entries,
+active blocker, verification gate, and continuation recovery state.
+
+The loop is not an autonomous executor. It is a state model used by callers and
+future provider integrations. It makes completion and blocker handling explicit.
+
+## Hook foundation
+
+Hook decisions belong to `safety`. A hook pipeline receives a typed context and
+returns `allow`, `warn`, or `veto`. Vetoes include a required next action.
+
+Provider deployment is separate from hook semantics. This prevents provider
+adapter details from defining the policy model.
+
+## Skill foundation
+
+Skill discovery belongs to `authoring`. The registry indexes skills by metadata
+and loads bodies only after topical selection. Refinement proposals are based on
+reviewer findings and repeated failure patterns; one-off task fixes are not
+promoted into general guidance.

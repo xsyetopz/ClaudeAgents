@@ -21,7 +21,7 @@ export interface ManifestPackageRecord {
 	files: ManifestFileRecord[];
 }
 
-export interface OlympusManifest {
+export interface OlympiManifest {
 	schemaVersion: 1;
 	packages: ManifestPackageRecord[];
 }
@@ -36,25 +36,25 @@ export interface AuditEvent {
 	timestamp: string;
 }
 
-export function olympusDirectory(projectRoot: string): string {
-	return path.join(projectRoot, ".pi", "olympus");
+export function olympiDirectory(projectRoot: string): string {
+	return path.join(projectRoot, ".pi", "olympi");
 }
 
 export function manifestPath(projectRoot: string): string {
-	return path.join(olympusDirectory(projectRoot), "olympus-manifest.json");
+	return path.join(olympiDirectory(projectRoot), "olympi-manifest.json");
 }
 
 export function auditPath(projectRoot: string): string {
-	return path.join(olympusDirectory(projectRoot), "audit.jsonl");
+	return path.join(olympiDirectory(projectRoot), "audit.jsonl");
 }
 
 export function lockPath(projectRoot: string): string {
-	return path.join(olympusDirectory(projectRoot), "olympus.lock");
+	return path.join(olympiDirectory(projectRoot), "olympi.lock");
 }
 
 export async function readManifest(
 	projectRoot: string,
-): Promise<OlympusManifest> {
+): Promise<OlympiManifest> {
 	try {
 		const parsed = JSON.parse(
 			await readFile(manifestPath(projectRoot), "utf8"),
@@ -68,9 +68,9 @@ export async function readManifest(
 
 export async function writeManifest(
 	projectRoot: string,
-	manifest: OlympusManifest,
+	manifest: OlympiManifest,
 ): Promise<void> {
-	await mkdir(olympusDirectory(projectRoot), { recursive: true });
+	await mkdir(olympiDirectory(projectRoot), { recursive: true });
 	await writeFile(
 		manifestPath(projectRoot),
 		`${JSON.stringify(manifest, null, 2)}\n`,
@@ -81,7 +81,7 @@ export async function appendAuditEvent(
 	projectRoot: string,
 	event: Omit<AuditEvent, "schemaVersion" | "timestamp">,
 ): Promise<void> {
-	await mkdir(olympusDirectory(projectRoot), { recursive: true });
+	await mkdir(olympiDirectory(projectRoot), { recursive: true });
 	const record: AuditEvent = {
 		schemaVersion: 1,
 		timestamp: new Date().toISOString(),
@@ -107,17 +107,17 @@ export function relativeToProject(
 	return toPosix(path.relative(projectRoot, filePath));
 }
 
-function emptyManifest(): OlympusManifest {
+function emptyManifest(): OlympiManifest {
 	return { schemaVersion: 1, packages: [] };
 }
 
-function normalizeManifest(value: unknown): OlympusManifest {
+function normalizeManifest(value: unknown): OlympiManifest {
 	if (typeof value !== "object" || value === null) return emptyManifest();
 	const record = value as Record<string, unknown>;
 	if (record["schemaVersion"] !== 1 || !Array.isArray(record["packages"])) {
 		return emptyManifest();
 	}
-	return value as OlympusManifest;
+	return value as OlympiManifest;
 }
 
 function isNotFound(error: unknown): boolean {

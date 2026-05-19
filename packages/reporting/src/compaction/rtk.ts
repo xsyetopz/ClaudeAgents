@@ -49,7 +49,7 @@ export function detectRtk(
 		path: rtkPath,
 		degradedReason:
 			rtkPath === null
-				? "RTK executable was not found on PATH; Olympus will use explicit in-house fallback compactors."
+				? "RTK executable was not found on PATH; Olympi will use explicit in-house fallback compactors."
 				: null,
 		recommendations: buildRtkRecommendations(rtkPath !== null),
 	};
@@ -98,7 +98,7 @@ export function planRtkCommand(
 			status.status === "available"
 				? "RTK is available on PATH; prefer RTK-shaped bounded output before fallback compaction."
 				: (status.degradedReason ?? "RTK unavailable; use fallback form."),
-			"Command plan is advisory only; Olympus does not execute RTK or the input command.",
+			"Command plan is advisory only; Olympi does not execute RTK or the input command.",
 		],
 	};
 }
@@ -133,7 +133,7 @@ function fallbackForm(
 	category: RtkCommandCategory,
 	inputCommand: string,
 ): string {
-	return `${inputCommand} 2>&1 | olympus compact --kind ${kindForCategory(category)}`;
+	return `${inputCommand} 2>&1 | olympi compact --kind ${kindForCategory(category)}`;
 }
 
 function kindForCategory(category: RtkCommandCategory): string {

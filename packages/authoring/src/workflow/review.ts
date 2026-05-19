@@ -119,7 +119,7 @@ function artifact(
 			),
 		),
 		feedbackMarkdown: [
-			`# Olympus ${command}`,
+			`# Olympi ${command}`,
 			"",
 			`Decision: ${decision}`,
 			...sortedReasons.map((reason) => `- ${reason}`),

@@ -5,7 +5,7 @@ import { stablePrettyJson } from "./reports/schema.js";
 
 export function formatInspection(report: InspectionReport): string {
 	const lines = [
-		`Olympus inspection: ${report.package.name}@${report.package.version}`,
+		`Olympi inspection: ${report.package.name}@${report.package.version}`,
 		`Source: ${report.package.source}`,
 		`Digest: ${report.package.contentDigest}`,
 		`Pi manifest: ${report.piManifest.present ? "present" : "absent"}`,
@@ -33,7 +33,7 @@ export function formatInspection(report: InspectionReport): string {
 
 export function formatEvaluation(report: EvaluationReport): string {
 	const lines = [
-		`Olympus package evaluation: ${report.inspection.package.name}@${report.inspection.package.version}`,
+		`Olympi package evaluation: ${report.inspection.package.name}@${report.inspection.package.version}`,
 		`Decision: ${report.decision}`,
 		`Recommendation: ${report.recommendation}`,
 		`Labels: ${report.labels.join(", ")}`,
@@ -46,7 +46,7 @@ export function formatEvaluation(report: EvaluationReport): string {
 
 export function formatExtensionInspect(report: ExtensionInspectReport): string {
 	const lines = [
-		`Olympus extension inspection: ${report.path}`,
+		`Olympi extension inspection: ${report.path}`,
 		`Entrypoints: ${report.entrypoints.length}`,
 		`Manifest: ${report.manifest.present ? (report.manifest.valid ? "valid" : "invalid") : "absent"}`,
 	];
@@ -66,7 +66,7 @@ export function formatExtensionInspect(report: ExtensionInspectReport): string {
 
 export function formatExtensionCreate(report: ExtensionCreatePlan): string {
 	const lines = [
-		`Olympus extension create ${report.apply ? "apply" : "dry-run"}`,
+		`Olympi extension create ${report.apply ? "apply" : "dry-run"}`,
 		`Name: ${report.name}`,
 		`Target: ${path.relative(process.cwd(), report.targetDirectory) || "."}`,
 		`Reason: ${report.reason}`,

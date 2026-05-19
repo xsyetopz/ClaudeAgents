@@ -19,10 +19,10 @@ function fixturePath(name: string): string {
 	return path.join(FIXTURES, name);
 }
 
-describe("Olympus project-local passive install", () => {
+describe("Olympi project-local passive install", () => {
 	test("dry-runs passive mirror install without project writes", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-install-plan-"),
+			path.join(os.tmpdir(), "olympi-install-plan-"),
 		);
 		try {
 			const report = await planPassiveInstall({
@@ -47,7 +47,7 @@ describe("Olympus project-local passive install", () => {
 
 	test("applies passive mirror install with manifest ownership and no global writes", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-install-apply-"),
+			path.join(os.tmpdir(), "olympi-install-apply-"),
 		);
 		const projectRoot = path.join(tempRoot, "project");
 		const fakeHomeMarker = path.join(
@@ -68,14 +68,14 @@ describe("Olympus project-local passive install", () => {
 			);
 			expect(settings.packages).toHaveLength(1);
 			expect(settings.packages[0].source).toBe(
-				`./olympus/packages/${report.packageId}/package`,
+				`./olympi/packages/${report.packageId}/package`,
 			);
 			const mirrorPackage = JSON.parse(
 				await readFile(
 					path.join(
 						projectRoot,
 						".pi",
-						"olympus",
+						"olympi",
 						"packages",
 						report.packageId,
 						"package",
@@ -88,7 +88,7 @@ describe("Olympus project-local passive install", () => {
 			expect(mirrorPackage.pi.prompts).toEqual(["prompts/review.md"]);
 			const manifest = JSON.parse(
 				await readFile(
-					path.join(projectRoot, ".pi", "olympus", "olympus-manifest.json"),
+					path.join(projectRoot, ".pi", "olympi", "olympi-manifest.json"),
 					"utf8",
 				),
 			);
@@ -102,7 +102,7 @@ describe("Olympus project-local passive install", () => {
 
 	test("blocks executable package install", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-install-block-"),
+			path.join(os.tmpdir(), "olympi-install-block-"),
 		);
 		try {
 			const report = await planPassiveInstall({
@@ -119,7 +119,7 @@ describe("Olympus project-local passive install", () => {
 
 	test("stages and loads executable package only after trust lock signature and sandbox gates", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-executable-load-"),
+			path.join(os.tmpdir(), "olympi-executable-load-"),
 		);
 		try {
 			const plan = await planExecutableInstall({
@@ -171,10 +171,10 @@ describe("Olympus project-local passive install", () => {
 	});
 });
 
-describe("Olympus manifest-backed uninstall", () => {
+describe("Olympi manifest-backed uninstall", () => {
 	test("dry-runs and applies manifest-authorized uninstall", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-uninstall-"),
+			path.join(os.tmpdir(), "olympi-uninstall-"),
 		);
 		try {
 			const install = await applyPassiveInstall({
@@ -202,7 +202,7 @@ describe("Olympus manifest-backed uninstall", () => {
 			expect(settings.packages).toEqual([]);
 			const manifest = JSON.parse(
 				await readFile(
-					path.join(projectRoot, ".pi", "olympus", "olympus-manifest.json"),
+					path.join(projectRoot, ".pi", "olympi", "olympi-manifest.json"),
 					"utf8",
 				),
 			);
@@ -214,7 +214,7 @@ describe("Olympus manifest-backed uninstall", () => {
 
 	test("preserves user-modified manifest files on uninstall", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-uninstall-preserve-"),
+			path.join(os.tmpdir(), "olympi-uninstall-preserve-"),
 		);
 		try {
 			const install = await applyPassiveInstall({
@@ -225,7 +225,7 @@ describe("Olympus manifest-backed uninstall", () => {
 			const promptPath = path.join(
 				projectRoot,
 				".pi",
-				"olympus",
+				"olympi",
 				"packages",
 				install.packageId,
 				"package",
@@ -251,7 +251,7 @@ describe("Olympus manifest-backed uninstall", () => {
 
 	test("CLI install and uninstall apply run inside explicit project cwd", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-cli-install-"),
+			path.join(os.tmpdir(), "olympi-cli-install-"),
 		);
 		try {
 			const installProc = Bun.spawn(
@@ -300,7 +300,7 @@ describe("Olympus manifest-backed uninstall", () => {
 
 	test("CLI executable stage writes no settings load entry", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-cli-executable-stage-"),
+			path.join(os.tmpdir(), "olympi-cli-executable-stage-"),
 		);
 		try {
 			const dryRunProc = Bun.spawn(
@@ -342,7 +342,7 @@ describe("Olympus manifest-backed uninstall", () => {
 			]);
 			expect(applyExit).toBe(0);
 			expect(JSON.parse(applyStdout).written).toContain(
-				".pi/olympus/olympus.lock",
+				".pi/olympi/olympi.lock",
 			);
 			await expect(
 				readFile(path.join(projectRoot, ".pi", "settings.json"), "utf8"),

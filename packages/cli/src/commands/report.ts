@@ -1,4 +1,4 @@
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import {
 	asJson,
 	buildAcceptanceReport,
@@ -53,8 +53,8 @@ export async function runReport(
 	if (subcommand === "package-risk" || subcommand === "risk") {
 		const source = args[1];
 		if (source === undefined) {
-			throw new OlympusError(
-				"usage: olympus report package-risk <source> [--json]",
+			throw new OlympiError(
+				"usage: olympi report package-risk <source> [--json]",
 				2,
 			);
 		}
@@ -62,8 +62,8 @@ export async function runReport(
 		process.stdout.write(json ? asJson(report) : formatPackageRisk(report));
 		return report.decision === "trust-passive" ? 0 : 1;
 	}
-	throw new OlympusError(
-		"usage: olympus report <status|handoff|acceptance|package-risk> [--json]",
+	throw new OlympiError(
+		"usage: olympi report <status|handoff|acceptance|package-risk> [--json]",
 		2,
 	);
 }
@@ -84,7 +84,7 @@ function formatArtifact(
 	report: Awaited<ReturnType<typeof writeStatusArtifact>>,
 ): string {
 	const lines = [
-		`Olympus artifact write: ${report.artifact}`,
+		`Olympi artifact write: ${report.artifact}`,
 		`Path: ${report.path}`,
 		`Reason: ${report.reason}`,
 	];
@@ -101,7 +101,7 @@ function formatPackageRisk(
 	report: Awaited<ReturnType<typeof buildPackageRiskReport>>,
 ): string {
 	const lines = [
-		`Olympus package risk: ${report.package.name}@${report.package.version}`,
+		`Olympi package risk: ${report.package.name}@${report.package.version}`,
 		`Decision: ${report.decision}`,
 		`Recommendation: ${report.recommendation}`,
 		`Digest: ${report.package.contentDigest}`,
@@ -119,7 +119,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }
@@ -129,7 +129,7 @@ function readNumberFlag(args: string[], flagName: string): number | undefined {
 	if (value === undefined) return undefined;
 	const parsed = Number(value);
 	if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
-		throw new OlympusError(`${flagName} must be a number from 0 to 100`, 2);
+		throw new OlympiError(`${flagName} must be a number from 0 to 100`, 2);
 	}
 	return parsed;
 }

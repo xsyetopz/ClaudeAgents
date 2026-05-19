@@ -13,12 +13,12 @@ export {
 	auditRecordFromDecision,
 } from "./hestia/state.js";
 export type {
-	OlympusHook,
-	OlympusHookContext,
-	OlympusHookDecision,
-	OlympusHookDecisionKind,
-	OlympusHookPhase,
-	OlympusHookPipelineResult,
+	OlympiHook,
+	OlympiHookContext,
+	OlympiHookDecision,
+	OlympiHookDecisionKind,
+	OlympiHookPhase,
+	OlympiHookPipelineResult,
 } from "./hooks/interface.js";
 export {
 	architectureBoundaryHook,

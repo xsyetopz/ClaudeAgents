@@ -1,5 +1,5 @@
 import { createExtensionSkeleton, inspectExtensionPath } from "extensions";
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import {
 	asJson,
 	formatExtensionCreate,
@@ -13,7 +13,7 @@ export function runExtension(
 	const subcommand = args[0];
 	if (subcommand === "inspect") return runExtensionInspect(args.slice(1), json);
 	if (subcommand === "create") return runExtensionCreate(args.slice(1), json);
-	throw new OlympusError("usage: olympus extension <inspect|create> ...", 2);
+	throw new OlympiError("usage: olympi extension <inspect|create> ...", 2);
 }
 
 async function runExtensionInspect(
@@ -22,10 +22,7 @@ async function runExtensionInspect(
 ): Promise<ExitCode> {
 	const source = args[0];
 	if (source === undefined) {
-		throw new OlympusError(
-			"usage: olympus extension inspect <path> [--json]",
-			2,
-		);
+		throw new OlympiError("usage: olympi extension inspect <path> [--json]", 2);
 	}
 	const report = await inspectExtensionPath(source);
 	process.stdout.write(json ? asJson(report) : formatExtensionInspect(report));
@@ -38,8 +35,8 @@ async function runExtensionCreate(
 ): Promise<ExitCode> {
 	const name = args.find((arg) => !arg.startsWith("--"));
 	if (name === undefined) {
-		throw new OlympusError(
-			"usage: olympus extension create <name> [--dry-run|--apply --output <directory>] [--json]",
+		throw new OlympiError(
+			"usage: olympi extension create <name> [--dry-run|--apply --output <directory>] [--json]",
 			2,
 		);
 	}
@@ -47,7 +44,7 @@ async function runExtensionCreate(
 	const apply = args.includes("--apply");
 	const dryRun = args.includes("--dry-run") || !apply;
 	if (apply && dryRun && args.includes("--dry-run")) {
-		throw new OlympusError(
+		throw new OlympiError(
 			"extension create cannot combine --apply and --dry-run",
 			2,
 		);
@@ -66,7 +63,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }

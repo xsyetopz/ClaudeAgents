@@ -1,18 +1,18 @@
-export type OlympusResourceKind = "skill" | "prompt" | "command";
+export type OlympiResourceKind = "skill" | "prompt" | "command";
 
-export interface OlympusSupportFileMetadata {
+export interface OlympiSupportFileMetadata {
 	path: string;
 	hash?: string;
 }
 
-export interface OlympusResourceMetadata {
+export interface OlympiResourceMetadata {
 	schemaVersion: 1;
 	name: string;
 	description: string;
-	resourceKind: OlympusResourceKind;
-	olympusOwned: true;
+	resourceKind: OlympiResourceKind;
+	olympiOwned: true;
 	provenance: "first-party" | "project-local";
-	supportFiles: OlympusSupportFileMetadata[];
+	supportFiles: OlympiSupportFileMetadata[];
 	commands: string[];
 	nonGoals: string[];
 	verification: string;
@@ -29,91 +29,91 @@ export interface ResourceValidationReport {
 	command: "resources validate";
 	valid: boolean;
 	resourceCount: number;
-	resources: OlympusResourceMetadata[];
+	resources: OlympiResourceMetadata[];
 	findings: ResourceValidationFinding[];
 }
 
-export const FIRST_PARTY_RESOURCE_METADATA: OlympusResourceMetadata[] = [
+export const FIRST_PARTY_RESOURCE_METADATA: OlympiResourceMetadata[] = [
 	resource(
 		"safety-review",
-		"Review proposed changes for Olympus safety policy regressions.",
+		"Review proposed changes for Olympi safety policy regressions.",
 		"skill",
-		["olympus safety check", "olympus hooks policy"],
+		["olympi safety check", "olympi hooks policy"],
 	),
 	resource(
 		"package-risk-review",
 		"Review local Pi package risk without executing package code.",
 		"skill",
-		["olympus package evaluate"],
+		["olympi package evaluate"],
 	),
 	resource(
 		"extension-authoring",
 		"Guide first-party Pi extension skeleton authoring and metadata inspection.",
 		"skill",
-		["olympus extension inspect"],
+		["olympi extension inspect"],
 	),
 	resource(
 		"sandbox-troubleshooting",
 		"Troubleshoot sandbox readiness and fake-home denial evidence.",
 		"skill",
-		["olympus sandbox check"],
+		["olympi sandbox check"],
 	),
 	resource(
 		"cleanup-audit",
 		"Audit cleanup proposals without performing cleanup.",
 		"skill",
-		["olympus cleanup audit"],
+		["olympi cleanup audit"],
 	),
 	resource(
 		"verification-handoff",
 		"Prepare verification evidence and compact handoff summaries.",
 		"skill",
-		["olympus verify", "olympus handoff current"],
+		["olympi verify", "olympi handoff current"],
 	),
 	resource(
 		"rtk-aware-command-guidance",
 		"Prefer RTK-backed guidance for output-heavy commands when RTK is available.",
 		"skill",
-		["olympus rtk status", "olympus compact"],
+		["olympi rtk status", "olympi compact"],
 	),
 	resource(
 		"plan-review",
 		"Prompt template for deterministic plan review and approval boundaries.",
 		"prompt",
-		["/olympus-plan-review"],
+		["/olympi-plan-review"],
 	),
 	resource(
 		"prompt-contract",
 		"Prompt template that preserves goal, paths, constraints, non-goals, and stop conditions.",
 		"prompt",
-		["/olympus-prompt-contract"],
+		["/olympi-prompt-contract"],
 	),
 	resource(
 		"quota-aware-workflow",
 		"Prompt template for quota-aware workflow choices without invented limits.",
 		"prompt",
-		["/olympus-quota-aware-workflow"],
+		["/olympi-quota-aware-workflow"],
 	),
 	resource(
 		"rtk-aware-command-guidance-prompt",
 		"Prompt template for RTK-aware command selection in output-heavy workflows.",
 		"prompt",
-		["/olympus-rtk-guidance"],
+		["/olympi-rtk-guidance"],
 	),
 ];
 
 function resource(
 	name: string,
 	description: string,
-	resourceKind: OlympusResourceKind,
+	resourceKind: OlympiResourceKind,
 	commands: string[],
-): OlympusResourceMetadata {
+): OlympiResourceMetadata {
 	return {
 		schemaVersion: 1,
 		name,
 		description,
 		resourceKind,
-		olympusOwned: true,
+		olympiOwned: true,
 		provenance: "first-party",
 		supportFiles: [{ path: `resources/${resourceKind}s/${name}/README.md` }],
 		commands,
@@ -123,6 +123,6 @@ function resource(
 			"uncontrolled swarm behavior",
 		],
 		verification:
-			"Validated by olympus resources validate and manifest-owned install planning only.",
+			"Validated by olympi resources validate and manifest-owned install planning only.",
 	};
 }

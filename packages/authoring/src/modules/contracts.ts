@@ -1,7 +1,7 @@
 import { deterministicDigest, sortStrings } from "reporting";
 import { decidePolicy } from "safety";
 
-export type OlympusModuleName =
+export type OlympiModuleName =
 	| "athena"
 	| "themis"
 	| "apollo"
@@ -19,8 +19,8 @@ export type ModuleAuthority =
 	| "ordering-only"
 	| "blocked-write-gate";
 
-export interface OlympusModuleContract {
-	name: OlympusModuleName;
+export interface OlympiModuleContract {
+	name: OlympiModuleName;
 	description: string;
 	authority: ModuleAuthority;
 	canWriteProjectSource: boolean;
@@ -31,14 +31,14 @@ export interface OlympusModuleContract {
 export interface ModuleStatusReport {
 	schemaVersion: 1;
 	command: "module status";
-	modules: OlympusModuleContract[];
+	modules: OlympiModuleContract[];
 	warnings: string[];
 }
 
 export interface ModuleRunReport {
 	schemaVersion: 1;
 	command: "module run";
-	module: OlympusModuleName;
+	module: OlympiModuleName;
 	dryRun: boolean;
 	decision: "allowed-dry-run" | "blocked";
 	reasons: string[];
@@ -46,7 +46,7 @@ export interface ModuleRunReport {
 	digest: string;
 }
 
-export const MODULE_CONTRACTS: OlympusModuleContract[] = [
+export const MODULE_CONTRACTS: OlympiModuleContract[] = [
 	contract("athena", "planning and architecture review", "read-only", [
 		"review plan",
 	]),
@@ -61,8 +61,8 @@ export const MODULE_CONTRACTS: OlympusModuleContract[] = [
 	contract("hermes", "handoff routing and compact summaries", "summary-only", [
 		"handoff current",
 	]),
-	contract("hestia", "Olympus-owned state and continuity", "state-only", [
-		"audit .pi/olympus only",
+	contract("hestia", "Olympi-owned state and continuity", "state-only", [
+		"audit .pi/olympi only",
 	]),
 	contract("aegis", "runtime safety policy skeleton", "decision-only", [
 		"hooks policy",
@@ -117,11 +117,9 @@ export function runModuleDry(
 		reasons.push("Apollo rejects commands outside allowlist");
 	if (
 		module === "hestia" &&
-		!String(options["path"] ?? ".pi/olympus/state.json").startsWith(
-			".pi/olympus",
-		)
+		!String(options["path"] ?? ".pi/olympi/state.json").startsWith(".pi/olympi")
 	)
-		reasons.push("Hestia refuses writes outside .pi/olympus");
+		reasons.push("Hestia refuses writes outside .pi/olympi");
 	if (module === "hephaestus") {
 		if (
 			typeof options["approvedDigest"] !== "string" ||
@@ -152,11 +150,11 @@ export function runModuleDry(
 }
 
 function contract(
-	name: OlympusModuleName,
+	name: OlympiModuleName,
 	description: string,
 	authority: ModuleAuthority,
 	commands: string[],
-): OlympusModuleContract {
+): OlympiModuleContract {
 	return {
 		name,
 		description,
@@ -172,7 +170,7 @@ function contract(
 	};
 }
 
-function parseModule(value: string): OlympusModuleName {
+function parseModule(value: string): OlympiModuleName {
 	if (
 		[
 			"athena",
@@ -185,7 +183,7 @@ function parseModule(value: string): OlympusModuleName {
 			"hephaestus",
 		].includes(value)
 	)
-		return value as OlympusModuleName;
+		return value as OlympiModuleName;
 	return "hephaestus";
 }
 

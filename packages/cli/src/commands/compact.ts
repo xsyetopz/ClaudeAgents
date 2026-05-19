@@ -1,4 +1,4 @@
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import {
 	asJson,
 	type CompactionKind,
@@ -12,8 +12,8 @@ export async function runCompact(
 ): Promise<ExitCode> {
 	const filePath = readFilePath(args);
 	if (filePath === undefined) {
-		throw new OlympusError(
-			"usage: olympus compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]",
+		throw new OlympiError(
+			"usage: olympi compact <fixture-or-file> [--kind <kind>] [--raw|--verbose] [--json]",
 			2,
 		);
 	}
@@ -56,7 +56,7 @@ function readKind(args: string[]): CompactionKind | "auto" {
 	) {
 		return value;
 	}
-	throw new OlympusError("invalid --kind for olympus compact", 2);
+	throw new OlympiError("invalid --kind for olympi compact", 2);
 }
 
 function readMode(args: string[]): CompactionMode {
@@ -69,7 +69,7 @@ function formatCompact(
 	report: Awaited<ReturnType<typeof compactFile>>,
 ): string {
 	const lines = [
-		`Olympus compaction: ${report.kind}`,
+		`Olympi compaction: ${report.kind}`,
 		`RTK: ${report.rtkStatus}`,
 		`Fallback: ${report.fallbackReason ?? "none"}`,
 		...report.summary,

@@ -14,7 +14,7 @@ export async function runQuota(
 }
 
 function usage(): ExitCode {
-	process.stderr.write("olympus: usage: olympus quota status [--json]\n");
+	process.stderr.write("olympi: usage: olympi quota status [--json]\n");
 	return 2;
 }
 
@@ -22,7 +22,7 @@ function formatQuota(
 	report: Awaited<ReturnType<typeof loadQuotaStatus>>,
 ): string {
 	const lines = [
-		`Olympus quota status: ${report.profile}`,
+		`Olympi quota status: ${report.profile}`,
 		`Limits: ${report.limits}`,
 		`Uncertainty: ${report.uncertainty}`,
 		`Warning: ${report.expensiveWorkflowWarning}`,

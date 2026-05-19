@@ -1,31 +1,38 @@
 # Extensions
 
-Olympus 0.1.0 supports first-party Pi extension authoring and inspection. It does not execute third-party extension code.
+Extension support is limited to first-party skeleton generation, static
+inspection, and the explicit Aegis runtime entrypoint.
 
-## Create
-
-Dry-run:
-
-```sh
-bun run olympus -- extension create my-extension --dry-run
-```
-
-Apply to an explicit directory:
+## Create a skeleton
 
 ```sh
-bun run olympus -- extension create my-extension --apply --output ./tmp
+bun run olympi -- extension create my-extension --dry-run
+bun run olympi -- extension create my-extension --apply --output ./tmp
 ```
 
-There is no default write to project `.pi` for extension creation.
+`--apply` requires `--output`. The command does not write a default project
+extension.
 
-## Metadata
+Generated skeletons include `olympi-extension.json` with identity,
+capabilities, side-effect declarations, verification notes, and uninstall notes.
 
-Generated skeletons include `olympus-extension.json`. The metadata records extension identity, side-effect declarations, and declared capabilities so future trust gates can reason about command, tool, provider, and event behavior.
-
-## Inspect
+## Inspect an extension
 
 ```sh
-bun run olympus -- extension inspect ./tmp/my-extension --json
+bun run olympi -- extension inspect ./tmp/my-extension --json
 ```
 
-Inspection reads metadata and source shape. It infers command/tool/provider/event indicators conservatively and reports conflicts or missing metadata without running extension code.
+Inspection reads metadata and source text. It infers command, tool, provider,
+and event indicators. It does not import or execute the extension.
+
+## Aegis runtime
+
+Aegis is a first-party Pi extension entrypoint for live policy checks. It wraps
+pure safety policy functions. Install is explicit and project-local:
+
+```sh
+bun run olympi -- hooks aegis-install --project --dry-run
+bun run olympi -- hooks aegis-install --project --apply
+```
+
+Third-party extension loading remains blocked until trust and sandbox gates pass.

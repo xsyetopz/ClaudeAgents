@@ -319,7 +319,7 @@ export function recoverGoalContinuation(
 	compactionSummary: string,
 ): GoalLoopState {
 	const recoveredPrompt = [
-		"Continue working toward the active Olympus goal.",
+		"Continue working toward the active Olympi goal.",
 		`Objective: ${state.objective.objective}`,
 		"Completion audit requirements:",
 		...state.objective.completionAuditRequirements.map(

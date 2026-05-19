@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { olympusDirectory } from "lifecycle";
+import { olympiDirectory } from "lifecycle";
 import { deterministicDigest, stableJson } from "reporting";
 import type { PolicyDecision } from "../policy/types.js";
 
@@ -42,7 +42,7 @@ export async function appendHestiaAudit(
 	projectRoot: string,
 	record: HestiaAuditRecord,
 ): Promise<string> {
-	const targetDirectory = path.join(olympusDirectory(projectRoot), "policy");
+	const targetDirectory = path.join(olympiDirectory(projectRoot), "policy");
 	await mkdir(targetDirectory, { recursive: true });
 	const targetPath = path.join(targetDirectory, "decisions.jsonl");
 	const sanitized = sanitizeAuditRecord(record);

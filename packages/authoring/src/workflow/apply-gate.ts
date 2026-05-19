@@ -176,7 +176,7 @@ export async function applyHephaestusPlan(
 
 export function hephaestusPlanDigest(plan: Record<string, unknown>): string {
 	return deterministicDigest({
-		purpose: "olympus-hephaestus-apply-plan-v1",
+		purpose: "olympi-hephaestus-apply-plan-v1",
 		writes: strings(plan["writes"] ?? plan["writePaths"]),
 		allowedPaths: strings(plan["allowedPaths"]),
 		manifestOwnedPaths: strings(plan["manifestOwnedPaths"]),

@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { OlympusError } from "./types.js";
+import { OlympiError } from "./types.js";
 
 export interface PiPackageSettingsEntry {
 	source: string;
@@ -27,17 +27,17 @@ export async function readPiSettings(
 			await readFile(settingsPath(projectRoot), "utf8"),
 		) as unknown;
 		if (typeof parsed !== "object" || parsed === null) {
-			throw new OlympusError(".pi/settings.json must be an object", 2);
+			throw new OlympiError(".pi/settings.json must be an object", 2);
 		}
 		const settings = parsed as PiSettingsFile;
 		if (settings.packages !== undefined && !Array.isArray(settings.packages)) {
-			throw new OlympusError(".pi/settings.json packages must be an array", 2);
+			throw new OlympiError(".pi/settings.json packages must be an array", 2);
 		}
 		return settings;
 	} catch (error) {
 		if (isNotFound(error)) return {};
 		if (error instanceof SyntaxError) {
-			throw new OlympusError(
+			throw new OlympiError(
 				`.pi/settings.json is malformed: ${error.message}`,
 				2,
 			);

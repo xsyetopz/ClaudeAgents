@@ -1,4 +1,4 @@
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { appendAuditArtifact, asJson } from "reporting";
 
 export async function runAudit(
@@ -6,21 +6,21 @@ export async function runAudit(
 	json: boolean,
 ): Promise<ExitCode> {
 	if (args[0] !== "append") {
-		throw new OlympusError(
-			"usage: olympus audit append <event> --detail <detail> --apply [--json]",
+		throw new OlympiError(
+			"usage: olympi audit append <event> --detail <detail> --apply [--json]",
 			2,
 		);
 	}
 	const event = args.slice(1).find((arg) => !arg.startsWith("--"));
 	const detail = readFlagValue(args, "--detail");
 	if (event === undefined || detail === undefined) {
-		throw new OlympusError(
-			"usage: olympus audit append <event> --detail <detail> --apply [--json]",
+		throw new OlympiError(
+			"usage: olympi audit append <event> --detail <detail> --apply [--json]",
 			2,
 		);
 	}
 	if (!args.includes("--apply")) {
-		throw new OlympusError(
+		throw new OlympiError(
 			"audit append requires --apply to write project-local audit state",
 			3,
 		);
@@ -37,7 +37,7 @@ export async function runAudit(
 function formatAudit(
 	report: Awaited<ReturnType<typeof appendAuditArtifact>>,
 ): string {
-	return `Olympus audit append\nPath: ${report.path}\nReason: ${report.reason}\n`;
+	return `Olympi audit append\nPath: ${report.path}\nReason: ${report.reason}\n`;
 }
 
 function readFlagValue(args: string[], flagName: string): string | undefined {
@@ -45,7 +45,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }

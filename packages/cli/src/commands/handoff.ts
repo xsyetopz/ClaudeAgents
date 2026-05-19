@@ -1,5 +1,5 @@
 import { buildCurrentHandoff } from "authoring";
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { asJson, writeCurrentHandoffArtifact } from "reporting";
 
 export async function runHandoff(
@@ -7,8 +7,8 @@ export async function runHandoff(
 	json: boolean,
 ): Promise<ExitCode> {
 	if (args[0] !== "current")
-		throw new OlympusError(
-			"usage: olympus handoff current [--write] [--statusline <pi-statusline>] [--json]",
+		throw new OlympiError(
+			"usage: olympi handoff current [--write] [--statusline <pi-statusline>] [--json]",
 			2,
 		);
 	if (args.includes("--write")) {
@@ -39,7 +39,7 @@ function formatArtifact(
 	report: Awaited<ReturnType<typeof writeCurrentHandoffArtifact>>,
 ): string {
 	const lines = [
-		`Olympus handoff artifact: ${report.path}`,
+		`Olympi handoff artifact: ${report.path}`,
 		`Reason: ${report.reason}`,
 	];
 	if (
@@ -56,7 +56,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }
@@ -66,7 +66,7 @@ function readNumberFlag(args: string[], flagName: string): number | undefined {
 	if (value === undefined) return undefined;
 	const parsed = Number(value);
 	if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
-		throw new OlympusError(`${flagName} must be a number from 0 to 100`, 2);
+		throw new OlympiError(`${flagName} must be a number from 0 to 100`, 2);
 	}
 	return parsed;
 }

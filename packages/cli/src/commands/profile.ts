@@ -1,6 +1,6 @@
 import {
 	type ExitCode,
-	OlympusError,
+	OlympiError,
 	readProfileStatus,
 	setProjectProfile,
 } from "lifecycle";
@@ -18,8 +18,8 @@ export async function runProfile(
 	if (args[0] === "set") {
 		const name = readFlagValue(args, "--name") ?? args[1];
 		if (name === undefined) {
-			throw new OlympusError(
-				"usage: olympus profile set --name <name> [--apply] [--json]",
+			throw new OlympiError(
+				"usage: olympi profile set --name <name> [--apply] [--json]",
 				2,
 			);
 		}
@@ -32,20 +32,20 @@ export async function runProfile(
 		process.stdout.write(json ? asJson(report) : formatSet(report));
 		return 0;
 	}
-	throw new OlympusError("usage: olympus profile <status|set> [--json]", 2);
+	throw new OlympiError("usage: olympi profile <status|set> [--json]", 2);
 }
 
 function formatStatus(
 	report: Awaited<ReturnType<typeof readProfileStatus>>,
 ): string {
-	return `Olympus profile: ${report.profile?.name ?? "unset"}\n`;
+	return `Olympi profile: ${report.profile?.name ?? "unset"}\n`;
 }
 
 function formatSet(
 	report: Awaited<ReturnType<typeof setProjectProfile>>,
 ): string {
 	const lines = [
-		`Olympus profile set: ${report.profile.name}`,
+		`Olympi profile set: ${report.profile.name}`,
 		`Apply: ${report.apply ? "yes" : "no"}`,
 		`Reason: ${report.reason}`,
 	];
@@ -60,7 +60,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }

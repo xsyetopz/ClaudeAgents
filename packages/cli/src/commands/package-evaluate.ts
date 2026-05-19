@@ -1,4 +1,4 @@
-import { type ExitCode, evaluateLocalPackage, OlympusError } from "lifecycle";
+import { type ExitCode, evaluateLocalPackage, OlympiError } from "lifecycle";
 import { asJson, formatEvaluation } from "reporting";
 
 export async function runPackageEvaluate(
@@ -7,8 +7,8 @@ export async function runPackageEvaluate(
 ): Promise<ExitCode> {
 	const source = args[0];
 	if (source === undefined) {
-		throw new OlympusError(
-			"usage: olympus package evaluate <source> [--json]",
+		throw new OlympiError(
+			"usage: olympi package evaluate <source> [--json]",
 			2,
 		);
 	}

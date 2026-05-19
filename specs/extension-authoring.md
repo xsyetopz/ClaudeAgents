@@ -1,12 +1,12 @@
 # Extension Authoring Contract
 
-Olympus extension authoring is first-party skeleton generation plus static inspection.
+Olympi extension authoring is first-party skeleton generation plus static inspection.
 
 ## Create
 
 `extension create <name> --dry-run` reports planned files. `extension create <name> --apply --output <directory>` writes a skeleton only under the explicit output directory.
 
-Generated skeletons include source files and `olympus-extension.json` metadata with identity, side-effect declarations, and capability declarations.
+Generated skeletons include source files and `olympi-extension.json` metadata with identity, side-effect declarations, and capability declarations.
 
 ## Inspect
 

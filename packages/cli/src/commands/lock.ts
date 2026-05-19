@@ -1,14 +1,14 @@
 import { buildMutationQueuePlan } from "authoring";
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { asJson } from "reporting";
 
 export function runLock(args: string[], json: boolean): ExitCode {
 	if (args[0] !== "queue") {
-		throw new OlympusError("usage: olympus lock queue <paths...> [--json]", 2);
+		throw new OlympiError("usage: olympi lock queue <paths...> [--json]", 2);
 	}
 	const paths = args.slice(1).filter((arg) => !arg.startsWith("--"));
 	if (paths.length === 0) {
-		throw new OlympusError("usage: olympus lock queue <paths...> [--json]", 2);
+		throw new OlympiError("usage: olympi lock queue <paths...> [--json]", 2);
 	}
 	const report = buildMutationQueuePlan(paths);
 	process.stdout.write(json ? asJson(report) : formatQueue(report));
@@ -19,7 +19,7 @@ function formatQueue(
 	report: ReturnType<typeof buildMutationQueuePlan>,
 ): string {
 	const lines = [
-		`Olympus lock queue: ${report.parallelSafe ? "parallel-safe" : "serialize"}`,
+		`Olympi lock queue: ${report.parallelSafe ? "parallel-safe" : "serialize"}`,
 		`Queues: ${report.queues.length}`,
 	];
 	for (const queue of report.queues) {

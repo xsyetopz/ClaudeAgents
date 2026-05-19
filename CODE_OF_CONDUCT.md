@@ -36,7 +36,7 @@ We agree to restrict the following behaviors in our community. Instances, threat
 
 1. **Misleading identity.** Impersonating someone else for any reason, or pretending to be someone else to evade enforcement actions.
 2. **Failing to credit sources.** Not properly crediting the sources of content you contribute.
-3. **Promotional materials**. Sharing marketing or other commercial content in a way that is outside the norms of the community.
+3. **Commercial solicitation**. Sharing commercial content in a way that is outside the norms of the community.
 4. **Irresponsible communication.** Failing to responsibly present content which includes, links or describes any other restricted behaviors.
 
 ## Reporting an Issue
@@ -57,8 +57,8 @@ If an investigation by the Community Moderators finds that this Code of Conduct 
    3) Repair: Examples of repair include a private written apology, acknowledgement of responsibility, and seeking clarification on expectations.
 2) Temporarily Limited Activities
    1) Event: A repeated incidence of a violation that previously resulted in a warning, or the first incidence of a more serious violation.
-   2) Consequence: A private, written warning with a time-limited cooldown period designed to underscore the seriousness of the situation and give the community members involved time to process the incident. The cooldown period may be limited to particular communication channels or interactions with particular community members.
-   3) Repair: Examples of repair may include making an apology, using the cooldown period to reflect on actions and impact, and being thoughtful about re-entering community spaces after the period is over.
+   2) Consequence: A private, written warning with a time-limited pause period designed to underscore the seriousness of the situation and give the community members involved time to process the incident. The pause period may be limited to particular communication channels or interactions with particular community members.
+   3) Repair: Examples of repair may include making an apology, using the pause period to reflect on actions and impact, and being thoughtful about re-entering community spaces after the period is over.
 3) Temporary Suspension
    1) Event: A pattern of repeated violation which the Community Moderators have tried to address with warnings, or a single serious violation.
    2) Consequence: A private written warning with conditions for return from suspension. In general, temporary suspensions give the person being suspended time to reflect upon their behavior and possible corrective actions.

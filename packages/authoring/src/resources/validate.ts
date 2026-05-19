@@ -3,7 +3,7 @@ import path from "node:path";
 import { hashFile } from "lifecycle";
 import {
 	FIRST_PARTY_RESOURCE_METADATA,
-	type OlympusResourceMetadata,
+	type OlympiResourceMetadata,
 	type ResourceValidationFinding,
 	type ResourceValidationReport,
 } from "./schema.js";
@@ -27,7 +27,7 @@ export async function validateResources(
 }
 
 export async function validateResourceSet(
-	resources: OlympusResourceMetadata[],
+	resources: OlympiResourceMetadata[],
 	basePath?: string,
 ): Promise<ResourceValidationFinding[]> {
 	const findings: ResourceValidationFinding[] = [];
@@ -56,13 +56,13 @@ export async function validateResourceSet(
 }
 
 export function validateMetadata(
-	resource: OlympusResourceMetadata,
+	resource: OlympiResourceMetadata,
 ): ResourceValidationFinding[] {
 	const findings: ResourceValidationFinding[] = [];
 	if (resource.schemaVersion !== 1)
 		findings.push(error("schemaVersion must be 1", resource));
-	if (resource.olympusOwned !== true)
-		findings.push(error("resource must be Olympus-owned", resource));
+	if (resource.olympiOwned !== true)
+		findings.push(error("resource must be Olympi-owned", resource));
 	if (
 		resource.provenance !== "first-party" &&
 		resource.provenance !== "project-local"
@@ -82,7 +82,7 @@ export function validateMetadata(
 }
 
 async function validateSupportFiles(
-	resource: OlympusResourceMetadata,
+	resource: OlympiResourceMetadata,
 	inputPath: string,
 ): Promise<ResourceValidationFinding[]> {
 	const findings: ResourceValidationFinding[] = [];
@@ -107,22 +107,22 @@ async function validateSupportFiles(
 
 async function readResourceFile(
 	inputPath: string,
-): Promise<OlympusResourceMetadata[]> {
+): Promise<OlympiResourceMetadata[]> {
 	const parsed = JSON.parse(await readFile(inputPath, "utf8")) as unknown;
-	if (Array.isArray(parsed)) return parsed as OlympusResourceMetadata[];
+	if (Array.isArray(parsed)) return parsed as OlympiResourceMetadata[];
 	if (
 		typeof parsed === "object" &&
 		parsed !== null &&
 		Array.isArray((parsed as { resources?: unknown }).resources)
 	) {
-		return (parsed as { resources: OlympusResourceMetadata[] }).resources;
+		return (parsed as { resources: OlympiResourceMetadata[] }).resources;
 	}
 	return [];
 }
 
 function error(
 	message: string,
-	resource: OlympusResourceMetadata,
+	resource: OlympiResourceMetadata,
 ): ResourceValidationFinding {
 	return { level: "error", message, resource: resource.name };
 }

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { olympusDirectory } from "lifecycle";
+import { olympiDirectory } from "lifecycle";
 
 export type QuotaProfileLabel = "plus" | "pro-5x" | "pro-20x" | "unknown";
 export type QuotaUncertainty =
@@ -44,7 +44,7 @@ export async function loadQuotaStatus(
 	projectRoot: string = process.cwd(),
 ): Promise<QuotaStatusReport> {
 	const profilePath = path.join(
-		olympusDirectory(projectRoot),
+		olympiDirectory(projectRoot),
 		"quota",
 		"profile.json",
 	);
@@ -63,7 +63,7 @@ export async function loadQuotaStatus(
 			implementationDetail:
 				"Soju06/codex-lb documents ChatGPT account pooling with per-account token/cost usage, 28-day trends, API-key token/cost windows, a dashboard, and usage endpoints including /v1/usage and /api/codex/usage.",
 			endpoints: ["/v1/usage", "/api/codex/usage"],
-			localPath: ".pi/olympus/quota/usage-estimates.jsonl",
+			localPath: ".pi/olympi/quota/usage-estimates.jsonl",
 			lastObservedAt: null,
 			inputTokens: null,
 			outputTokens: null,
@@ -76,7 +76,7 @@ export async function loadQuotaStatus(
 		warnings: [
 			...(profile === "unknown"
 				? [
-						"Quota profile is unknown; Olympus will not fabricate provider limits.",
+						"Quota profile is unknown; Olympi will not fabricate provider limits.",
 					]
 				: []),
 			"Opaque provider limits are intentionally reported as unknown unless supplied by a provider-observed source.",

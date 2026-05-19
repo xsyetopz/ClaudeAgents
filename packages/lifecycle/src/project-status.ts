@@ -17,7 +17,7 @@ export interface ProjectPackageStatus {
 	lockDigestMatches: boolean | "no-lock-record";
 }
 
-export interface OlympusProjectStatus {
+export interface OlympiProjectStatus {
 	schemaVersion: 1;
 	command: "status";
 	projectRoot: string;
@@ -36,7 +36,7 @@ export interface OlympusProjectStatus {
 
 export async function readProjectStatus(
 	projectRoot: string = process.cwd(),
-): Promise<OlympusProjectStatus> {
+): Promise<OlympiProjectStatus> {
 	const root = path.resolve(projectRoot);
 	const manifest = await readManifest(root);
 	const lock = await readLock(root);
@@ -105,9 +105,9 @@ export async function readProjectStatus(
 		projectRoot: root,
 		paths: {
 			settings: ".pi/settings.json",
-			manifest: ".pi/olympus/olympus-manifest.json",
-			lock: ".pi/olympus/olympus.lock",
-			audit: ".pi/olympus/audit.jsonl",
+			manifest: ".pi/olympi/olympi-manifest.json",
+			lock: ".pi/olympi/olympi.lock",
+			audit: ".pi/olympi/audit.jsonl",
 		},
 		manifestPackages: manifest.packages.length,
 		lockRecords: lock.packages.length,
@@ -117,9 +117,9 @@ export async function readProjectStatus(
 	};
 }
 
-export function formatProjectStatus(status: OlympusProjectStatus): string {
+export function formatProjectStatus(status: OlympiProjectStatus): string {
 	const lines = [
-		"Olympus project status",
+		"Olympi project status",
 		`Project: ${status.projectRoot}`,
 		`Manifest packages: ${status.manifestPackages}`,
 		`Lock records: ${status.lockRecords}`,

@@ -12,7 +12,7 @@ const upstreamConfigPath = join(
 	"third_party/gitleaks/config/gitleaks.toml",
 );
 const patchPath = join(root, "patches/gitleaks-toml.patch");
-const outputPath = join(root, "olympus-impl/reference/gitleaks-rules.mjs");
+const outputPath = join(root, "olympi-impl/reference/gitleaks-rules.mjs");
 const check = process.argv.includes("--check");
 const RULE_SPLIT_PATTERN = /^\[\[rules\]\]\s*$/m;
 
@@ -33,7 +33,7 @@ if (check) {
 }
 
 async function patchedGitleaksConfig() {
-	const tempRoot = await mkdtemp(join(tmpdir(), "olympus-gitleaks-rules-"));
+	const tempRoot = await mkdtemp(join(tmpdir(), "olympi-gitleaks-rules-"));
 	try {
 		await mkdir(join(tempRoot, "config"), { recursive: true });
 		await writeFile(

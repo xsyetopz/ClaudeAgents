@@ -1,4 +1,4 @@
-name: Olympus CI
+name: Olympi CI
 
 on:
   push:
@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: olympus-${{ github.workflow }}-${{ github.ref }}
+  group: olympi-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    name: Olympus quality gates
+    name: Olympi quality gates
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -32,12 +32,12 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
       - name: Test
-        run: bun run olympus:test
+        run: bun run olympi:test
       - name: Verify
-        run: bun run olympus:verify -- --json
+        run: bun run olympi:verify -- --json
       - name: Catalog smoke
-        run: bun run olympus:catalog -- --json
-      - name: Lint Olympus package
-        run: bunx biome check packages/olympus --max-diagnostics 200
+        run: bun run olympi:catalog -- --json
+      - name: Biome check
+        run: bun run biome:check
       - name: Diff whitespace check
         run: git diff --check

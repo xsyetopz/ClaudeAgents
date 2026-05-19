@@ -44,7 +44,7 @@ export interface PolicyEvent {
 	requiresPlanApproval?: boolean;
 	planApproved?: boolean;
 	quotaPressure?: boolean;
-	olympusOwned?: boolean;
+	olympiOwned?: boolean;
 	trust?: TrustContext;
 }
 

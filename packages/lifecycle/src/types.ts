@@ -88,12 +88,12 @@ export interface EvaluationReport {
 	recommendation: string;
 }
 
-export class OlympusError extends Error {
+export class OlympiError extends Error {
 	readonly exitCode: ExitCode;
 
 	constructor(message: string, exitCode: ExitCode) {
 		super(message);
-		this.name = "OlympusError";
+		this.name = "OlympiError";
 		this.exitCode = exitCode;
 	}
 }

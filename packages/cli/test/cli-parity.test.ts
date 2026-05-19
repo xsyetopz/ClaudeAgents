@@ -24,7 +24,7 @@ async function runCli(args: string[], cwd: string = process.cwd()) {
 	return { stdout, stderr, exitCode };
 }
 
-describe("Olympus CLI/interactive parity command surface", () => {
+describe("Olympi CLI/interactive parity command surface", () => {
 	test("help output includes grouped command areas and blocked legacy surfaces", async () => {
 		const result = await runCli(["--help"]);
 		expect(result.exitCode).toBe(0);
@@ -35,7 +35,7 @@ describe("Olympus CLI/interactive parity command surface", () => {
 		expect(result.stdout).toContain("Provider renderers");
 	});
 
-	test("aliases route to implemented Olympus commands", async () => {
+	test("aliases route to implemented Olympi commands", async () => {
 		const evaluate = await runCli([
 			"evaluate",
 			fixturePath("passive-package"),
@@ -74,7 +74,7 @@ describe("Olympus CLI/interactive parity command surface", () => {
 	});
 
 	test("plan uninstall reports exact manifest-authorized actions", async () => {
-		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympus-cli-plan-"));
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-cli-plan-"));
 		try {
 			const install = await runCli(
 				[
@@ -94,7 +94,7 @@ describe("Olympus CLI/interactive parity command surface", () => {
 			);
 			expect(plan.exitCode).toBe(0);
 			const report = JSON.parse(plan.stdout);
-			expect(report.wouldRead).toContain(".pi/olympus/olympus-manifest.json");
+			expect(report.wouldRead).toContain(".pi/olympi/olympi-manifest.json");
 			expect(report.wouldRemove).toContain(".pi/settings.json packages entry");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
@@ -102,9 +102,7 @@ describe("Olympus CLI/interactive parity command surface", () => {
 	});
 
 	test("setup status is read-only and detects empty project state", async () => {
-		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-cli-setup-"),
-		);
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-cli-setup-"));
 		try {
 			const result = await runCli(["setup", "status", "--json"], tempRoot);
 			expect(result.exitCode).toBe(1);

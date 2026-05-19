@@ -9,7 +9,7 @@ import { planRtkCommand } from "reporting";
 
 const CLI = path.join(import.meta.dir, "..", "src", "cli.ts");
 
-describe("Final Olympus remainder", () => {
+describe("Final Olympi remainder", () => {
 	test("RTK command planning is advisory and command-form aware", () => {
 		const plan = planRtkCommand("git diff --stat", { PATH: "" });
 		expect(plan.category).toBe("git-diff-status-log");
@@ -19,7 +19,7 @@ describe("Final Olympus remainder", () => {
 
 	test("first-party resources install is project-local and explicit", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-resources-install-"),
+			path.join(os.tmpdir(), "olympi-resources-install-"),
 		);
 		try {
 			const dryRun = await installFirstPartyResources({
@@ -47,21 +47,21 @@ describe("Final Olympus remainder", () => {
 
 	test("Aegis project install writes only project-local extension entrypoint", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-aegis-install-"),
+			path.join(os.tmpdir(), "olympi-aegis-install-"),
 		);
 		try {
 			const dryRun = await installAegisProjectExtension({
 				projectRoot,
 				apply: false,
 			});
-			expect(dryRun.wouldWrite).toEqual([".pi/extensions/olympus-aegis.ts"]);
+			expect(dryRun.wouldWrite).toEqual([".pi/extensions/olympi-aegis.ts"]);
 			const applied = await installAegisProjectExtension({
 				projectRoot,
 				apply: true,
 			});
-			expect(applied.written).toEqual([".pi/extensions/olympus-aegis.ts"]);
+			expect(applied.written).toEqual([".pi/extensions/olympi-aegis.ts"]);
 			const source = await readFile(
-				path.join(projectRoot, ".pi", "extensions", "olympus-aegis.ts"),
+				path.join(projectRoot, ".pi", "extensions", "olympi-aegis.ts"),
 				"utf8",
 			);
 			expect(source).toContain("createAegisPiExtension");
@@ -72,7 +72,7 @@ describe("Final Olympus remainder", () => {
 
 	test("profile UX is project-local and not provider-renderer compatibility", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-profile-"),
+			path.join(os.tmpdir(), "olympi-profile-"),
 		);
 		try {
 			const unset = await readProfileStatus(projectRoot);
@@ -84,7 +84,7 @@ describe("Final Olympus remainder", () => {
 			});
 			expect(report.profile.name).toBe("review-mode");
 			expect(report.profile.providerRendererCompatibility).toBe(false);
-			expect(report.written).toEqual([".pi/olympus/profile.json"]);
+			expect(report.written).toEqual([".pi/olympi/profile.json"]);
 		} finally {
 			await rm(projectRoot, { recursive: true, force: true });
 		}
@@ -92,8 +92,8 @@ describe("Final Olympus remainder", () => {
 
 	test("mutation queue plan serializes shared manifest targets", () => {
 		const plan = buildMutationQueuePlan([
-			".pi/olympus/olympus-manifest.json",
-			".pi/olympus/olympus-manifest.json",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/olympi-manifest.json",
 			"packages/cli/src/cli.ts",
 		]);
 		expect(plan.parallelSafe).toBe(false);
@@ -102,7 +102,7 @@ describe("Final Olympus remainder", () => {
 
 	test("new CLI remainder commands emit JSON", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympus-remainder-cli-"),
+			path.join(os.tmpdir(), "olympi-remainder-cli-"),
 		);
 		try {
 			const commands = [

@@ -55,11 +55,11 @@ function normalizePath(input: string, projectRoot: string): string {
 
 function queueKeyFor(filePath: string): string {
 	if (filePath === ".pi/settings.json") return ".pi/settings.json";
-	if (filePath.startsWith(".pi/olympus/olympus-manifest.json"))
-		return ".pi/olympus/olympus-manifest.json";
-	if (filePath.startsWith(".pi/olympus/olympus.lock"))
-		return ".pi/olympus/olympus.lock";
-	if (filePath.startsWith(".pi/olympus/audit.jsonl"))
-		return ".pi/olympus/audit.jsonl";
+	if (filePath.startsWith(".pi/olympi/olympi-manifest.json"))
+		return ".pi/olympi/olympi-manifest.json";
+	if (filePath.startsWith(".pi/olympi/olympi.lock"))
+		return ".pi/olympi/olympi.lock";
+	if (filePath.startsWith(".pi/olympi/audit.jsonl"))
+		return ".pi/olympi/audit.jsonl";
 	return filePath;
 }

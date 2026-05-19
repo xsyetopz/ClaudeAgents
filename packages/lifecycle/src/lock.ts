@@ -9,12 +9,12 @@ export interface LockPackageRecord {
 	signatureSubjectDigest?: string;
 }
 
-export interface OlympusLock {
+export interface OlympiLock {
 	schemaVersion: 1;
 	packages: LockPackageRecord[];
 }
 
-export async function readLock(projectRoot: string): Promise<OlympusLock> {
+export async function readLock(projectRoot: string): Promise<OlympiLock> {
 	try {
 		const parsed = JSON.parse(
 			await readFile(lockPath(projectRoot), "utf8"),
@@ -25,7 +25,7 @@ export async function readLock(projectRoot: string): Promise<OlympusLock> {
 			(parsed as { schemaVersion?: unknown }).schemaVersion === 1 &&
 			Array.isArray((parsed as { packages?: unknown }).packages)
 		) {
-			return parsed as OlympusLock;
+			return parsed as OlympiLock;
 		}
 		return { schemaVersion: 1, packages: [] };
 	} catch (error) {
@@ -36,14 +36,14 @@ export async function readLock(projectRoot: string): Promise<OlympusLock> {
 
 export async function writeLock(
 	projectRoot: string,
-	lock: OlympusLock,
+	lock: OlympiLock,
 ): Promise<void> {
 	await mkdir(path.dirname(lockPath(projectRoot)), { recursive: true });
 	await writeFile(lockPath(projectRoot), `${JSON.stringify(lock, null, 2)}\n`);
 }
 
 export function hasLockDigestMismatch(
-	lock: OlympusLock,
+	lock: OlympiLock,
 	packageId: string,
 	contentDigest: string,
 ): boolean {

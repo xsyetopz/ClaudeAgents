@@ -10,12 +10,12 @@ export type {
 	CatalogAcceptanceContract,
 	CatalogCommandContract,
 	CatalogResourceContract,
-	OlympusCatalog,
+	OlympiCatalog,
 } from "./catalog.js";
 export {
-	formatOlympusCatalog,
-	getOlympusCatalog,
-	validateOlympusCatalog,
+	formatOlympiCatalog,
+	getOlympiCatalog,
+	validateOlympiCatalog,
 } from "./catalog.js";
 export type {
 	CompactionKind,

@@ -1,21 +1,18 @@
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { asJson, detectRtk, planRtkCommand } from "reporting";
 
 export function runRtk(args: string[], json: boolean): ExitCode {
 	if (args[0] === "plan") {
 		const inputCommand = args.slice(1).join(" ").trim();
 		if (inputCommand.length === 0) {
-			throw new OlympusError(
-				"usage: olympus rtk plan <command...> [--json]",
-				2,
-			);
+			throw new OlympiError("usage: olympi rtk plan <command...> [--json]", 2);
 		}
 		const report = planRtkCommand(inputCommand);
 		process.stdout.write(json ? asJson(report) : formatPlan(report));
 		return 0;
 	}
 	if (args[0] !== "status") {
-		throw new OlympusError("usage: olympus rtk <status|plan> [--json]", 2);
+		throw new OlympiError("usage: olympi rtk <status|plan> [--json]", 2);
 	}
 	const report = detectRtk();
 	process.stdout.write(json ? asJson(report) : formatRtk(report));
@@ -24,7 +21,7 @@ export function runRtk(args: string[], json: boolean): ExitCode {
 
 function formatPlan(report: ReturnType<typeof planRtkCommand>): string {
 	const lines = [
-		`Olympus RTK plan: ${report.category}`,
+		`Olympi RTK plan: ${report.category}`,
 		`Preferred: ${report.preferred ? "yes" : "no"}`,
 		`RTK form: ${report.recommendedForm}`,
 		`Fallback form: ${report.fallbackForm}`,
@@ -34,7 +31,7 @@ function formatPlan(report: ReturnType<typeof planRtkCommand>): string {
 }
 
 function formatRtk(report: ReturnType<typeof detectRtk>): string {
-	const lines = [`Olympus RTK status: ${report.status}`];
+	const lines = [`Olympi RTK status: ${report.status}`];
 	if (report.path !== null) lines.push(`Path: ${report.path}`);
 	if (report.degradedReason !== null)
 		lines.push(`degraded: ${report.degradedReason}`);

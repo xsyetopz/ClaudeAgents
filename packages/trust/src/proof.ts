@@ -94,14 +94,14 @@ export function executableSignatureSubjectDigest(subject: {
 	resources: unknown;
 }): string {
 	return deterministicDigest({
-		purpose: "olympus-executable-package-trust-v1",
+		purpose: "olympi-executable-package-trust-v1",
 		...subject,
 	});
 }
 
 function gateReasons(gates: ExecutableTrustProofReport["gates"]): string[] {
 	const reasons: string[] = [];
-	if (!gates.manifestRecord) reasons.push("missing Olympus manifest record");
+	if (!gates.manifestRecord) reasons.push("missing Olympi manifest record");
 	if (!gates.executableResources)
 		reasons.push("no executable extension resource recorded");
 	if (!gates.lockRecord) reasons.push("missing lock record");

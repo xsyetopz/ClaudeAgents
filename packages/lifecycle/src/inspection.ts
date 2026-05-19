@@ -10,7 +10,7 @@ import {
 import {
 	type ExecutableReport,
 	type InspectionReport,
-	OlympusError,
+	OlympiError,
 	type ResourceKind,
 	type ResourceReport,
 	type RiskLabel,
@@ -76,7 +76,7 @@ export async function inspectLocalPackage(
 	const rootPath = await resolvePackagePath(inputPath);
 	const packageJsonPath = path.join(rootPath, "package.json");
 	if (!(await fileExists(packageJsonPath))) {
-		throw new OlympusError(`missing package.json at ${packageJsonPath}`, 2);
+		throw new OlympiError(`missing package.json at ${packageJsonPath}`, 2);
 	}
 
 	const packageJson = await readPackageJson(packageJsonPath);
@@ -116,15 +116,12 @@ async function resolvePackagePath(inputPath: string): Promise<string> {
 	try {
 		const candidateStat = await stat(candidate);
 		if (!candidateStat.isDirectory()) {
-			throw new OlympusError(
-				`package path is not a directory: ${candidate}`,
-				2,
-			);
+			throw new OlympiError(`package path is not a directory: ${candidate}`, 2);
 		}
 		return await realpath(candidate);
 	} catch (error) {
-		if (error instanceof OlympusError) throw error;
-		throw new OlympusError(`package path does not exist: ${candidate}`, 2);
+		if (error instanceof OlympiError) throw error;
+		throw new OlympiError(`package path does not exist: ${candidate}`, 2);
 	}
 }
 
@@ -134,7 +131,7 @@ async function readPackageJson(packageJsonPath: string): Promise<PackageJson> {
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "unknown parse error";
-		throw new OlympusError(
+		throw new OlympiError(
 			`malformed package.json at ${packageJsonPath}: ${message}`,
 			2,
 		);

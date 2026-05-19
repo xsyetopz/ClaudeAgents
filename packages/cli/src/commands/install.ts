@@ -2,7 +2,7 @@ import {
 	applyPassiveInstall,
 	type ExitCode,
 	type InstallReport,
-	OlympusError,
+	OlympiError,
 	planExecutableInstall,
 	planPassiveInstall,
 	stageExecutableInstall,
@@ -15,13 +15,13 @@ export async function runInstall(
 ): Promise<ExitCode> {
 	const source = args.find((arg) => !arg.startsWith("--"));
 	if (source === undefined) {
-		throw new OlympusError(
-			"usage: olympus install <source> --project [--dry-run|--apply] [--executable --signature-digest <sha256>] [--json]",
+		throw new OlympiError(
+			"usage: olympi install <source> --project [--dry-run|--apply] [--executable --signature-digest <sha256>] [--json]",
 			2,
 		);
 	}
 	if (!args.includes("--project")) {
-		throw new OlympusError(
+		throw new OlympiError(
 			"install requires --project; global writes are forbidden",
 			3,
 		);
@@ -29,7 +29,7 @@ export async function runInstall(
 	const apply = args.includes("--apply");
 	const dryRun = args.includes("--dry-run") || !apply;
 	if (apply && dryRun && args.includes("--dry-run")) {
-		throw new OlympusError("install cannot combine --apply and --dry-run", 2);
+		throw new OlympiError("install cannot combine --apply and --dry-run", 2);
 	}
 	const signatureDigest = readFlagValue(args, "--signature-digest");
 	const executable = args.includes("--executable");
@@ -54,7 +54,7 @@ export async function runInstall(
 
 function formatInstall(report: InstallReport): string {
 	const lines = [
-		`Olympus install ${report.apply ? "apply" : "dry-run"}`,
+		`Olympi install ${report.apply ? "apply" : "dry-run"}`,
 		`Package: ${report.packageId}`,
 		`Source: ${report.source}`,
 		`Blocked: ${report.blocked ? "yes" : "no"}`,
@@ -76,7 +76,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }

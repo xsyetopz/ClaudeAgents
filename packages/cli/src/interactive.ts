@@ -13,7 +13,7 @@ import {
 	type ExitCode,
 	evaluateLocalPackage,
 	inspectLocalPackage,
-	OlympusError,
+	OlympiError,
 	planManifestUninstall,
 	planPassiveInstall,
 } from "lifecycle";
@@ -30,9 +30,9 @@ import {
 	formatExtensionInspect,
 	formatHandoffMarkdown,
 	formatInspection,
-	formatOlympusCatalog,
+	formatOlympiCatalog,
 	formatStatusReport,
-	getOlympusCatalog,
+	getOlympiCatalog,
 } from "reporting";
 import { hookPolicyStatus, runSandboxProbe } from "safety";
 import { buildSafetyCheckReport } from "./commands/safety.ts";
@@ -54,7 +54,7 @@ export interface InteractiveStatus {
 	projectPiPresent: boolean;
 	projectLocalStatePath: string;
 	globalWriteWarning: string;
-	olympusState: {
+	olympiState: {
 		lockPresent: boolean;
 		manifestPresent: boolean;
 		auditPresent: boolean;
@@ -86,7 +86,7 @@ export async function runInteractiveSession(
 	session: InteractiveSession,
 ): Promise<ExitCode> {
 	const mode: InteractiveMode = { json: false };
-	session.write("Olympus interactive command hub\n");
+	session.write("Olympi interactive command hub\n");
 	await showStatus(session, mode);
 	while (true) {
 		session.write(menuText(mode));
@@ -190,10 +190,10 @@ export async function readInteractiveStatus(
 		schemaVersion: 1,
 		cwd: setup.projectRoot,
 		projectPiPresent: setup.configured.projectPiPresent,
-		projectLocalStatePath: path.join(setup.projectRoot, ".pi", "olympus"),
+		projectLocalStatePath: path.join(setup.projectRoot, ".pi", "olympi"),
 		globalWriteWarning:
-			"Olympus interactive never writes to ~/.pi by default; apply flows are project-local and confirmation-gated.",
-		olympusState: {
+			"Olympi interactive never writes to ~/.pi by default; apply flows are project-local and confirmation-gated.",
+		olympiState: {
 			lockPresent: setup.configured.lockPresent,
 			manifestPresent: setup.configured.manifestPresent,
 			auditPresent: setup.configured.auditPresent,
@@ -217,14 +217,14 @@ export async function readInteractiveStatus(
 
 export function formatInteractiveStatus(status: InteractiveStatus): string {
 	const lines = [
-		"Olympus status",
+		"Olympi status",
 		`Project: ${status.cwd}`,
 		`Project-local state: ${status.projectLocalStatePath}`,
 		`Safety: ${status.globalWriteWarning}`,
 		`Project .pi: ${status.projectPiPresent ? "present" : "absent"}`,
-		`Lock: ${status.olympusState.lockPresent ? "present" : "absent"}`,
-		`Manifest: ${status.olympusState.manifestPresent ? "present" : "absent"}`,
-		`Audit: ${status.olympusState.auditPresent ? "present" : "absent"}`,
+		`Lock: ${status.olympiState.lockPresent ? "present" : "absent"}`,
+		`Manifest: ${status.olympiState.manifestPresent ? "present" : "absent"}`,
+		`Audit: ${status.olympiState.auditPresent ? "present" : "absent"}`,
 		"Available guided flows:",
 	];
 	for (const flow of status.availableFlows) lines.push(`- ${flow}`);
@@ -502,8 +502,8 @@ function guidedCatalog(
 	session: InteractiveSession,
 	mode: InteractiveMode,
 ): void {
-	const catalog = getOlympusCatalog();
-	writeFormatted(session, mode, catalog, formatOlympusCatalog(catalog));
+	const catalog = getOlympiCatalog();
+	writeFormatted(session, mode, catalog, formatOlympiCatalog(catalog));
 }
 
 function guidedRtk(session: InteractiveSession, mode: InteractiveMode): void {
@@ -593,14 +593,14 @@ function normalizeChoice(value: string): string {
 
 function formatInteractiveError(error: unknown, json: boolean): string {
 	const message =
-		error instanceof OlympusError || error instanceof Error
+		error instanceof OlympiError || error instanceof Error
 			? error.message
 			: "unknown error";
-	const exitCode = error instanceof OlympusError ? error.exitCode : 5;
+	const exitCode = error instanceof OlympiError ? error.exitCode : 5;
 	if (json) {
 		return `${JSON.stringify({ schemaVersion: 1, ok: false, error: { message, exitCode } })}\n`;
 	}
-	return `olympus interactive: ${message}\n`;
+	return `olympi interactive: ${message}\n`;
 }
 
 function menuText(mode: InteractiveMode): string {
@@ -608,7 +608,7 @@ function menuText(mode: InteractiveMode): string {
   1) Inspect a local Pi package
   2) Evaluate a local Pi package
   3) Create a first-party extension skeleton
-  4) Show Olympus status
+  4) Show Olympi status
   5) Install passive package (dry-run, confirm apply)
   6) Uninstall manifest-owned package (dry-run, confirm apply)
   7) Verify / acceptance
@@ -627,14 +627,14 @@ function menuText(mode: InteractiveMode): string {
 }
 
 function interactiveHelpText(): string {
-	return "Olympus interactive command hub\n\nUsage:\n  olympus interactive\n\nGuided flows route through the same Olympus services as the CLI: inspect, evaluate, install/uninstall dry-run and confirmed project-local apply, status, setup, reports, acceptance, catalog/spec, extension create/inspect, RTK/compact, and safety checks. Global ~/.pi writes, provider renderers, OAL compatibility mode, and third-party package execution remain blocked.\n";
+	return "Olympi interactive command hub\n\nUsage:\n  olympi interactive\n\nGuided flows route through the same Olympi services as the CLI: inspect, evaluate, install/uninstall dry-run and confirmed project-local apply, status, setup, reports, acceptance, catalog/spec, extension create/inspect, RTK/compact, and safety checks. Global ~/.pi writes, provider renderers, OAL compatibility mode, and third-party package execution remain blocked.\n";
 }
 
 function formatInstall(
 	report: Awaited<ReturnType<typeof planPassiveInstall>>,
 ): string {
 	const lines = [
-		`Olympus install ${report.apply ? "apply" : "dry-run"}`,
+		`Olympi install ${report.apply ? "apply" : "dry-run"}`,
 		`Package: ${report.packageId}`,
 		`Source: ${report.source}`,
 		`Blocked: ${report.blocked ? "yes" : "no"}`,
@@ -651,7 +651,7 @@ function formatUninstall(
 	report: Awaited<ReturnType<typeof planManifestUninstall>>,
 ): string {
 	const lines = [
-		`Olympus uninstall ${report.apply ? "apply" : "dry-run"}`,
+		`Olympi uninstall ${report.apply ? "apply" : "dry-run"}`,
 		`Package: ${report.packageId}`,
 		`Blocked: ${report.blocked ? "yes" : "no"}`,
 		`Reason: ${report.reason}`,
@@ -671,7 +671,7 @@ function formatUninstall(
 }
 
 function formatRtk(report: ReturnType<typeof detectRtk>): string {
-	const lines = [`Olympus RTK status: ${report.status}`];
+	const lines = [`Olympi RTK status: ${report.status}`];
 	if (report.path !== null) lines.push(`Path: ${report.path}`);
 	if (report.degradedReason !== null)
 		lines.push(`degraded: ${report.degradedReason}`);
@@ -687,7 +687,7 @@ function formatCompact(
 	report: Awaited<ReturnType<typeof compactFile>>,
 ): string {
 	const lines = [
-		`Olympus compaction: ${report.kind}`,
+		`Olympi compaction: ${report.kind}`,
 		`RTK: ${report.rtkStatus}`,
 		`Fallback: ${report.fallbackReason ?? "none"}`,
 		...report.summary,
@@ -704,7 +704,7 @@ function formatSafety(report: {
 	sandbox: ReturnType<typeof runSandboxProbe>;
 }): string {
 	const lines = [
-		`Olympus safety check: ${report.safety.ok ? "ok" : "failed"}`,
+		`Olympi safety check: ${report.safety.ok ? "ok" : "failed"}`,
 		`Aegis hooks: ${report.hooks.status}`,
 		`Aegis runtime entrypoint: ${report.runtime.extensionEntrypoint}`,
 		`Hook policy: ${report.policy.status}`,

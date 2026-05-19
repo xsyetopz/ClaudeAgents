@@ -4,7 +4,7 @@ import {
 	proveHephaestusApplyGate,
 	runModuleDry,
 } from "authoring";
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import { asJson } from "reporting";
 
 export function runModule(
@@ -16,38 +16,36 @@ export function runModule(
 		process.stdout.write(
 			json
 				? asJson(report)
-				: `Olympus module status: ${report.modules.length} modules\n`,
+				: `Olympi module status: ${report.modules.length} modules\n`,
 		);
 		return 0;
 	}
 	if (args[0] === "run") {
 		const moduleName = args[1];
 		if (moduleName === undefined)
-			throw new OlympusError(
-				"usage: olympus module run <module> --dry-run [--json]",
+			throw new OlympiError(
+				"usage: olympi module run <module> --dry-run [--json]",
 				2,
 			);
 		const report = runModuleDry(moduleName, args.includes("--dry-run"));
 		process.stdout.write(
 			json
 				? asJson(report)
-				: `Olympus module run ${moduleName}: ${report.decision}\n`,
+				: `Olympi module run ${moduleName}: ${report.decision}\n`,
 		);
 		return report.decision === "allowed-dry-run" ? 0 : 1;
 	}
 	if (args[0] === "hephaestus" && args[1] === "proof") {
 		const planFile = args[2];
 		if (planFile === undefined) {
-			throw new OlympusError(
-				"usage: olympus module hephaestus proof <plan-file> [--json]",
+			throw new OlympiError(
+				"usage: olympi module hephaestus proof <plan-file> [--json]",
 				2,
 			);
 		}
 		return proveHephaestusApplyGate(planFile).then((report) => {
 			process.stdout.write(
-				json
-					? asJson(report)
-					: `Olympus Hephaestus proof: ${report.decision}\n`,
+				json ? asJson(report) : `Olympi Hephaestus proof: ${report.decision}\n`,
 			);
 			return report.decision === "proven" ? 0 : 1;
 		});
@@ -55,8 +53,8 @@ export function runModule(
 	if (args[0] === "hephaestus" && args[1] === "apply") {
 		const planFile = args[2];
 		if (planFile === undefined) {
-			throw new OlympusError(
-				"usage: olympus module hephaestus apply <plan-file> [--apply] [--json]",
+			throw new OlympiError(
+				"usage: olympi module hephaestus apply <plan-file> [--apply] [--json]",
 				2,
 			);
 		}
@@ -66,10 +64,10 @@ export function runModule(
 			process.stdout.write(
 				json
 					? asJson(report)
-					: `Olympus Hephaestus apply: ${report.blocked ? "blocked" : report.apply ? "applied" : "dry-run"}\n`,
+					: `Olympi Hephaestus apply: ${report.blocked ? "blocked" : report.apply ? "applied" : "dry-run"}\n`,
 			);
 			return report.blocked ? 3 : 0;
 		});
 	}
-	throw new OlympusError("usage: olympus module <status|run> ...", 2);
+	throw new OlympiError("usage: olympi module <status|run> ...", 2);
 }

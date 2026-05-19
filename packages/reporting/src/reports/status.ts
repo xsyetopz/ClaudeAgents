@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { OlympusProjectStatus } from "lifecycle";
+import type { OlympiProjectStatus } from "lifecycle";
 import {
 	formatProjectStatus,
-	olympusDirectory,
+	olympiDirectory,
 	readProjectStatus,
 } from "lifecycle";
 import type { HookPolicyStatus } from "safety";
@@ -22,7 +22,7 @@ export interface DriftSummary {
 	lockMismatchedPackages: string[];
 }
 
-export interface OlympusStatusReport extends OlympusProjectStatus {
+export interface OlympiStatusReport extends OlympiProjectStatus {
 	rtk: RtkStatusReport;
 	quota: QuotaStatusReport;
 	safety: {
@@ -41,7 +41,7 @@ export interface OlympusStatusReport extends OlympusProjectStatus {
 	deterministicDigest: string;
 }
 
-export interface OlympusHandoffReport {
+export interface OlympiHandoffReport {
 	schemaVersion: 1;
 	command: "report handoff";
 	projectRoot: string;
@@ -60,7 +60,7 @@ export interface OlympusHandoffReport {
 
 export async function buildStatusReport(
 	projectRoot: string = process.cwd(),
-): Promise<OlympusStatusReport> {
+): Promise<OlympiStatusReport> {
 	const base = await readProjectStatus(projectRoot);
 	const rtk = detectRtk();
 	const quota = await loadQuotaStatus(projectRoot);
@@ -86,13 +86,13 @@ export async function buildStatusReport(
 
 export async function buildHandoffReport(
 	projectRoot: string = process.cwd(),
-): Promise<OlympusHandoffReport> {
+): Promise<OlympiHandoffReport> {
 	const status = await buildStatusReport(projectRoot);
 	const actionItems = buildActionItems(status);
 	const summary =
 		status.warnings.length === 0
-			? "Olympus project state is clean; continue with project-local, manifest-owned operations."
-			: "Olympus project state has drift or degraded reporting context; review action items before trust-sensitive work.";
+			? "Olympi project state is clean; continue with project-local, manifest-owned operations."
+			: "Olympi project state has drift or degraded reporting context; review action items before trust-sensitive work.";
 	const withoutDigest = {
 		schemaVersion: 1 as const,
 		command: "report handoff" as const,
@@ -120,7 +120,7 @@ export async function buildHandoffReport(
 	};
 }
 
-export function formatStatusReport(report: OlympusStatusReport): string {
+export function formatStatusReport(report: OlympiStatusReport): string {
 	const lines = [
 		formatProjectStatus(report).trimEnd(),
 		`RTK: ${report.rtk.status}${report.rtk.path === null ? "" : ` (${report.rtk.path})`}`,
@@ -138,14 +138,8 @@ export function formatStatusReport(report: OlympusStatusReport): string {
 	return `${lines.join("\n")}\n`;
 }
 
-export function formatHandoffMarkdown(report: OlympusHandoffReport): string {
-	const lines = [
-		"# Olympus Handoff",
-		"",
-		report.summary,
-		"",
-		"## Action items",
-	];
+export function formatHandoffMarkdown(report: OlympiHandoffReport): string {
+	const lines = ["# Olympi Handoff", "", report.summary, "", "## Action items"];
 	for (const item of report.actionItems) lines.push(`- ${item}`);
 	lines.push("", "## Drift summary");
 	lines.push(
@@ -167,7 +161,7 @@ export function formatHandoffMarkdown(report: OlympusHandoffReport): string {
 	return `${lines.join("\n")}\n`;
 }
 
-function buildDriftSummary(status: OlympusProjectStatus): DriftSummary {
+function buildDriftSummary(status: OlympiProjectStatus): DriftSummary {
 	return {
 		changedFiles: sortStrings(
 			status.packages.flatMap(
@@ -194,7 +188,7 @@ function buildDriftSummary(status: OlympusProjectStatus): DriftSummary {
 	};
 }
 
-function buildActionItems(status: OlympusStatusReport): string[] {
+function buildActionItems(status: OlympiStatusReport): string[] {
 	const items: string[] = [];
 	if (status.driftSummary.changedFiles.length > 0) {
 		items.push(
@@ -217,28 +211,28 @@ function buildActionItems(status: OlympusStatusReport): string[] {
 	}
 	if (status.quota.profile === "unknown") {
 		items.push(
-			"Configure .pi/olympus/quota/profile.json if local quota labeling is needed.",
+			"Configure .pi/olympi/quota/profile.json if local quota labeling is needed.",
 		);
 	}
 	if (items.length === 0)
-		items.push("No immediate Olympus reporting action required.");
+		items.push("No immediate Olympi reporting action required.");
 	return items.sort((left, right) => left.localeCompare(right));
 }
 
-function reportPaths(): OlympusStatusReport["reportPaths"] {
+function reportPaths(): OlympiStatusReport["reportPaths"] {
 	return {
-		status: ".pi/olympus/reports/status.json",
-		handoff: ".pi/olympus/handoff/current.md",
-		acceptance: ".pi/olympus/reports/acceptance.json",
-		compaction: ".pi/olympus/reports/compaction/*.json",
-		quota: ".pi/olympus/quota/profile.json",
+		status: ".pi/olympi/reports/status.json",
+		handoff: ".pi/olympi/handoff/current.md",
+		acceptance: ".pi/olympi/reports/acceptance.json",
+		compaction: ".pi/olympi/reports/compaction/*.json",
+		quota: ".pi/olympi/quota/profile.json",
 	};
 }
 
 async function countPolicyDecisionEvents(projectRoot: string): Promise<number> {
 	try {
 		const text = await readFile(
-			path.join(olympusDirectory(projectRoot), "policy", "decisions.jsonl"),
+			path.join(olympiDirectory(projectRoot), "policy", "decisions.jsonl"),
 			"utf8",
 		);
 		return text

@@ -81,9 +81,9 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 		}
 	}
 
-	if (event.eventType === "resources_discover" && event.olympusOwned !== true) {
+	if (event.eventType === "resources_discover" && event.olympiOwned !== true) {
 		reasons.push(
-			"non-Olympus-owned resource discovery blocked from runtime exposure",
+			"non-Olympi-owned resource discovery blocked from runtime exposure",
 		);
 	}
 
@@ -174,10 +174,10 @@ function nextAction(reasons: string[]): string {
 	if (reasons.some((reason) => reason.includes("plan approval")))
 		return "obtain explicit plan approval before retrying";
 	if (reasons.some((reason) => reason.includes("manifest")))
-		return "route through manifest-owned Olympus project operation";
+		return "route through manifest-owned Olympi project operation";
 	if (reasons.some((reason) => reason.includes("sandbox")))
 		return "prove trust, lock, and sandbox gates before executable load";
-	return "stop and review Olympus safety policy before retrying";
+	return "stop and review Olympi safety policy before retrying";
 }
 
 function subjectFor(event: PolicyEvent): string {

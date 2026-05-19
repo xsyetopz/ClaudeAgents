@@ -1,4 +1,4 @@
-import { type ExitCode, OlympusError } from "lifecycle";
+import { type ExitCode, OlympiError } from "lifecycle";
 import {
 	asJson,
 	buildContextCompactionAdvice,
@@ -10,8 +10,8 @@ export function runContext(args: string[], json: boolean): ExitCode {
 	const statusline = readFlagValue(args, "--statusline");
 	if (subcommand === "statusline") {
 		if (statusline === undefined) {
-			throw new OlympusError(
-				"usage: olympus context statusline --statusline <pi-statusline> [--json]",
+			throw new OlympiError(
+				"usage: olympi context statusline --statusline <pi-statusline> [--json]",
 				2,
 			);
 		}
@@ -21,8 +21,8 @@ export function runContext(args: string[], json: boolean): ExitCode {
 	}
 	if (subcommand === "compact-advice") {
 		if (statusline === undefined) {
-			throw new OlympusError(
-				"usage: olympus context compact-advice --statusline <pi-statusline> [--after-handoff] [--threshold-percent <n>] [--json]",
+			throw new OlympiError(
+				"usage: olympi context compact-advice --statusline <pi-statusline> [--after-handoff] [--threshold-percent <n>] [--json]",
 				2,
 			);
 		}
@@ -34,8 +34,8 @@ export function runContext(args: string[], json: boolean): ExitCode {
 		process.stdout.write(json ? asJson(report) : formatAdvice(report));
 		return 0;
 	}
-	throw new OlympusError(
-		"usage: olympus context <statusline|compact-advice> --statusline <pi-statusline> [--json]",
+	throw new OlympiError(
+		"usage: olympi context <statusline|compact-advice> --statusline <pi-statusline> [--json]",
 		2,
 	);
 }
@@ -50,7 +50,7 @@ function formatStatusline(
 	report: ReturnType<typeof parsePiStatusline>,
 ): string {
 	const lines = [
-		"Olympus Pi context statusline",
+		"Olympi Pi context statusline",
 		`Context: ${report.contextPercent ?? "unknown"}%/${report.contextWindowTokens ?? "unknown"} tokens`,
 		`Used estimate: ${report.contextUsedTokensEstimate ?? "unknown"}`,
 		`Input: ${report.inputTokens ?? "unknown"}`,
@@ -67,7 +67,7 @@ function formatAdvice(
 	report: ReturnType<typeof buildContextCompactionAdvice>,
 ): string {
 	const lines = [
-		"Olympus context compact advice",
+		"Olympi context compact advice",
 		`After handoff: ${report.afterHandoff ? "yes" : "no"}`,
 		`Context: ${report.statusline.contextPercent ?? "unknown"}%/${report.statusline.contextWindowTokens ?? "unknown"} tokens`,
 		`Threshold: ${report.thresholdPercent}%`,
@@ -84,7 +84,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 	if (index < 0) return undefined;
 	const value = args[index + 1];
 	if (value === undefined || value.startsWith("--")) {
-		throw new OlympusError(`${flagName} requires a value`, 2);
+		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
 }
@@ -94,7 +94,7 @@ function readNumberFlag(args: string[], flagName: string): number | undefined {
 	if (value === undefined) return undefined;
 	const parsed = Number(value);
 	if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
-		throw new OlympusError(`${flagName} must be a number from 0 to 100`, 2);
+		throw new OlympiError(`${flagName} must be a number from 0 to 100`, 2);
 	}
 	return parsed;
 }

@@ -1,6 +1,6 @@
 import {
 	type ExitCode,
-	OlympusError,
+	OlympiError,
 	planManifestUninstall,
 	planPassiveInstall,
 } from "lifecycle";
@@ -23,8 +23,8 @@ export async function runPlan(
 ): Promise<ExitCode> {
 	const operation = args[0];
 	if (operation === undefined)
-		throw new OlympusError(
-			"usage: olympus plan <operation> [source] [--json]",
+		throw new OlympiError(
+			"usage: olympi plan <operation> [source] [--json]",
 			2,
 		);
 	const source = args[1];
@@ -90,13 +90,13 @@ async function createPlan(
 		wouldWrite: [],
 		wouldRemove: [],
 		blocked: true,
-		reason: "operation is not apply-capable in the current Olympus boundary",
+		reason: "operation is not apply-capable in the current Olympi boundary",
 	};
 }
 
 function formatPlan(report: PlanReport): string {
 	const lines = [
-		`Olympus plan: ${report.operation}`,
+		`Olympi plan: ${report.operation}`,
 		`Mutation policy: ${report.mutationPolicy}`,
 		`Blocked: ${report.blocked ? "yes" : "no"}`,
 		`Reason: ${report.reason}`,
