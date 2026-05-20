@@ -228,7 +228,7 @@ describe("Olympi product workflows", () => {
 			});
 			expect(blocked.blocked).toBe(true);
 			expect(blocked.written).toEqual([]);
-			expect(blocked.reason).toContain("--confirm-global");
+			expect(blocked.reason).toContain("explicit confirmation provenance");
 
 			const applied = await installAegisPiExtension({
 				scope: "global",
@@ -437,12 +437,55 @@ describe("Olympi product workflows", () => {
 				["bun", CLI, "install", "--global", "--apply", "--json"],
 				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
 			);
-			const [blockedStdout, blockedExit] = await Promise.all([
+			const [applyStdout, applyExit] = await Promise.all([
 				new Response(globalApply.stdout).text(),
 				globalApply.exited,
 			]);
-			expect(blockedExit).toBe(3);
-			expect(JSON.parse(blockedStdout).reason).toContain("--confirm-global");
+			expect(applyExit).toBe(0);
+			const applyReport = JSON.parse(applyStdout);
+			expect(applyReport.scope).toBe("global");
+			expect(applyReport.written).toEqual([
+				"~/.pi/agent/extensions/olympi-aegis.ts",
+			]);
+			expect(
+				await readFile(
+					path.join(homeDir, ".pi", "agent", "extensions", "olympi-aegis.ts"),
+					"utf8",
+				),
+			).toContain("createAegisPiExtension");
+
+			await rm(path.join(homeDir, ".pi"), { recursive: true, force: true });
+
+			const confirmedGlobalApply = Bun.spawn(
+				[
+					"bun",
+					CLI,
+					"install",
+					"--global",
+					"--apply",
+					"--confirm-global",
+					"--provenance",
+					"explicit-user-approval",
+					"--json",
+				],
+				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+			);
+			const [confirmedStdout, confirmedExit] = await Promise.all([
+				new Response(confirmedGlobalApply.stdout).text(),
+				confirmedGlobalApply.exited,
+			]);
+			expect(confirmedExit).toBe(0);
+			const confirmedReport = JSON.parse(confirmedStdout);
+			expect(confirmedReport.scope).toBe("global");
+			expect(confirmedReport.written).toEqual([
+				"~/.pi/agent/extensions/olympi-aegis.ts",
+			]);
+			expect(
+				await readFile(
+					path.join(homeDir, ".pi", "agent", "extensions", "olympi-aegis.ts"),
+					"utf8",
+				),
+			).toContain("createAegisPiExtension");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
 		}

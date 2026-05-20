@@ -234,11 +234,11 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "install",
 		purpose:
-			"Register the Olympi Pi extension project-locally by default, register it globally only with explicit --global confirmation/provenance, or mirror approved passive package resources when a source is provided.",
+			"Register the Olympi Pi extension project-locally by default, register it globally only with explicit --global --apply, or mirror approved passive package resources when a source is provided.",
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
 			".pi/extensions/olympi-aegis.ts by default extension install",
-			"~/.pi/agent/extensions/olympi-aegis.ts only with --global --confirm-global --provenance explicit-user-approval",
+			"~/.pi/agent/extensions/olympi-aegis.ts only with olympi install --global --apply",
 			".pi/settings.json packages entry",
 			".pi/olympi/olympi-manifest.json",
 			".pi/olympi/olympi.lock for executable stage",
@@ -247,7 +247,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 		blocked: [
 			"implicit ~/.pi writes without --global",
-			"global install without --confirm-global and explicit provenance",
+			"global install without explicit --global --apply",
 			"executable settings load during stage",
 			"executable stage without matching signature digest",
 			"direct .pi/skills writes",

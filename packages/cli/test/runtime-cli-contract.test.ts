@@ -68,7 +68,7 @@ describe("runtime model and CLI foundations", () => {
 			".pi/extensions/olympi-aegis.ts after olympi install --apply or safety hooks aegis-install --project --apply",
 		);
 		expect(report.runtimeModel.allowedGlobalWrites).toEqual([
-			"~/.pi/agent/extensions/olympi-aegis.ts only after explicit --global --apply --confirm-global --provenance explicit-user-approval",
+			"~/.pi/agent/extensions/olympi-aegis.ts only after explicit olympi install --global --apply",
 		]);
 		expect(report.runtimeModel.unsupported).toContain(
 			"standalone replacement for Pi",

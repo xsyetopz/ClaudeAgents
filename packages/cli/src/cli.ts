@@ -530,7 +530,7 @@ CLI bootstrap/admin workflow:
   The CLI installs/uninstalls/registers Pi resources, reports health/status, and supports CI/dev automation.
   Package-manager global CLI install is not Pi extension registration.
   Outside the product surface: implicit global Pi writes or undeclared global/provider-home writes.
-  olympi install [--dry-run|--apply] [--global --confirm-global --provenance explicit-user-approval] [--json]
+  olympi install [--dry-run|--apply] [--global] [--json]
   olympi uninstall [--dry-run|--apply] [--json]
   olympi status [--json]
   olympi doctor [--json]

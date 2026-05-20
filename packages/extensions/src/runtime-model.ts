@@ -54,13 +54,13 @@ export function olympiExtensionRuntime(): OlympiExtensionRuntime {
 			".pi/extensions/olympi-aegis.ts after olympi install --apply or safety hooks aegis-install --project --apply",
 		],
 		allowedGlobalWrites: [
-			"~/.pi/agent/extensions/olympi-aegis.ts only after explicit --global --apply --confirm-global --provenance explicit-user-approval",
+			"~/.pi/agent/extensions/olympi-aegis.ts only after explicit olympi install --global --apply",
 		],
 		installFlow: [
 			"Install Pi separately.",
 			"Make the Olympi CLI available from the source checkout or an explicit package-manager bin for development/admin automation.",
 			"Run olympi install --apply to install/register the Pi extension in the current project by default.",
-			"Run olympi install --global --apply --confirm-global --provenance explicit-user-approval only when global Pi registration is intended.",
+			"Run olympi install --global --apply only when global Pi registration is intended.",
 			"Package-manager global CLI installation is separate from Pi extension registration.",
 		],
 		invocationFlow: [

@@ -14,7 +14,10 @@ export async function runInstall(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	const source = args.find((arg) => !arg.startsWith("--"));
+	const source = positionalArgs(args, [
+		"--provenance",
+		"--signature-digest",
+	])[0];
 	if (source === undefined) {
 		return runExtensionInstall(args, json);
 	}
@@ -65,11 +68,14 @@ async function runExtensionInstall(
 	if (apply && dryRun && args.includes("--dry-run")) {
 		throw new OlympiError("install cannot combine --apply and --dry-run", 2);
 	}
-	const provenance = readFlagValue(args, "--provenance");
+	const globalApply = args.includes("--global") && apply;
+	const provenance =
+		readFlagValue(args, "--provenance") ??
+		(globalApply ? "explicit-user-approval" : undefined);
 	const report = await installAegisPiExtension({
 		scope: args.includes("--global") ? "global" : "project-local",
 		apply,
-		confirmed: args.includes("--confirm-global"),
+		confirmed: args.includes("--confirm-global") || globalApply,
 		...(provenance === undefined ? {} : { provenance }),
 	});
 	process.stdout.write(json ? asJson(report) : formatExtensionInstall(report));
@@ -135,4 +141,22 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
+}
+
+function positionalArgs(
+	args: string[],
+	valuedFlags: readonly string[],
+): string[] {
+	const positionals: string[] = [];
+	for (let index = 0; index < args.length; index += 1) {
+		const arg = args[index];
+		if (arg === undefined) continue;
+		if (valuedFlags.includes(arg)) {
+			index += 1;
+			continue;
+		}
+		if (arg.startsWith("--")) continue;
+		positionals.push(arg);
+	}
+	return positionals;
 }

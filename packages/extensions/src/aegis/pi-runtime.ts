@@ -258,7 +258,7 @@ export async function installAegisPiExtension(options: {
 			written: [],
 			entrypoint,
 			reason:
-				"global Pi install blocked: rerun with --global --confirm-global --provenance explicit-user-approval after reviewing dry-run output",
+				"global Pi install blocked: CLI users can run olympi install --global --apply after reviewing dry-run output; low-level callers must provide explicit confirmation provenance",
 			warnings: [
 				"global Pi registration affects all Pi projects for this user",
 				"package-manager global CLI installation is separate and does not satisfy this confirmation gate",
@@ -281,7 +281,7 @@ export async function installAegisPiExtension(options: {
 			reason:
 				scope === "project-local"
 					? "dry-run plan for default project-local Aegis extension registration; rerun with --apply to write project .pi/extensions"
-					: "dry-run plan for explicit global Aegis extension registration; rerun with --global --apply --confirm-global --provenance explicit-user-approval to write ~/.pi/agent/extensions",
+					: "dry-run plan for explicit global Aegis extension registration; rerun with --global --apply to write ~/.pi/agent/extensions",
 			warnings:
 				scope === "global"
 					? [
@@ -928,6 +928,13 @@ function routePiToolCommand(
 	const route = planRtkRoute(command);
 	const missing = rtkMissingExecutableBlocker(route);
 	if (missing !== null) {
+		if (command !== route.rtkCommandText) {
+			return {
+				blocked: true,
+				reason:
+					"direct process execution is blocked where RTK proxy is required",
+			};
+		}
 		return {
 			blocked: true,
 			reason: `RTK route required but executable is unavailable; required route: ${missing.requiredRtkRoute}`,
