@@ -397,4 +397,39 @@ describe("Olympi manifest-backed uninstall", () => {
 			await rm(projectRoot, { recursive: true, force: true });
 		}
 	});
+
+	test("CLI rejects mistyped global flag without project-local writes", async () => {
+		const projectRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-cli-install-bad-global-"),
+		);
+		try {
+			const installProc = Bun.spawn(
+				["bun", CLI, "install", "---global", "--apply"],
+				{ cwd: projectRoot, stderr: "pipe" },
+			);
+			const [stderr, exit] = await Promise.all([
+				new Response(installProc.stderr).text(),
+				installProc.exited,
+			]);
+			expect(exit).toBe(2);
+			expect(stderr).toContain("Unknown install option: ---global");
+			await expect(
+				readFile(path.join(projectRoot, ".pi", "settings.json"), "utf8"),
+			).rejects.toThrow();
+			await expect(
+				readFile(
+					path.join(projectRoot, ".pi", "extensions", "olympi-aegis.ts"),
+					"utf8",
+				),
+			).rejects.toThrow();
+			await expect(
+				readFile(
+					path.join(projectRoot, ".pi", "olympi", "olympi-manifest.json"),
+					"utf8",
+				),
+			).rejects.toThrow();
+		} finally {
+			await rm(projectRoot, { recursive: true, force: true });
+		}
+	});
 });

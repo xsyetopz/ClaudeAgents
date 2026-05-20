@@ -14,6 +14,7 @@ export async function runInstall(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
+	assertKnownInstallFlags(args);
 	const source = positionalArgs(args, [
 		"--provenance",
 		"--signature-digest",
@@ -141,6 +142,32 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 		throw new OlympiError(`${flagName} requires a value`, 2);
 	}
 	return value;
+}
+
+const KNOWN_INSTALL_FLAGS = new Set([
+	"--apply",
+	"--dry-run",
+	"--executable",
+	"--global",
+	"--json",
+	"--project",
+	"--provenance",
+	"--signature-digest",
+]);
+
+function assertKnownInstallFlags(args: string[]): void {
+	for (let index = 0; index < args.length; index += 1) {
+		const arg = args[index];
+		if (arg === undefined || !arg.startsWith("-")) continue;
+		if (!KNOWN_INSTALL_FLAGS.has(arg)) {
+			throw new OlympiError(`Unknown install option: ${arg}`, 2, {
+				input: arg,
+				expected: Array.from(KNOWN_INSTALL_FLAGS).sort().join(", "),
+				written: [],
+			});
+		}
+		if (arg === "--provenance" || arg === "--signature-digest") index += 1;
+	}
 }
 
 function positionalArgs(
