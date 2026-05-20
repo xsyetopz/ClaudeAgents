@@ -1,4 +1,4 @@
-import { Database } from "bun:sqlite";
+import type { Database } from "bun:sqlite";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileExists } from "./hashing.js";
@@ -122,7 +122,7 @@ export async function readMemoryStatus(
 			entries: [],
 		};
 	}
-	const db = openMemoryDatabase(projectRoot);
+	const db = await openMemoryDatabase(projectRoot);
 	try {
 		ensureSchema(db);
 		return {
@@ -159,7 +159,7 @@ export async function initializeMemoryStore(options: {
 		};
 	}
 	await mkdir(path.dirname(memoryPath(projectRoot)), { recursive: true });
-	const db = openMemoryDatabase(projectRoot);
+	const db = await openMemoryDatabase(projectRoot);
 	try {
 		ensureSchema(db);
 		writeDefaultEntries(db);
@@ -198,7 +198,7 @@ export async function setMemoryEnabled(options: {
 		};
 	}
 	await mkdir(path.dirname(memoryPath(projectRoot)), { recursive: true });
-	const db = openMemoryDatabase(projectRoot);
+	const db = await openMemoryDatabase(projectRoot);
 	try {
 		ensureSchema(db);
 		writeDefaultEntries(db);
@@ -232,7 +232,8 @@ function memoryPath(projectRoot: string): string {
 	return path.join(projectRoot, MEMORY_RELATIVE_PATH);
 }
 
-function openMemoryDatabase(projectRoot: string): Database {
+async function openMemoryDatabase(projectRoot: string): Promise<Database> {
+	const { Database } = await import("bun:sqlite");
 	return new Database(memoryPath(projectRoot));
 }
 
