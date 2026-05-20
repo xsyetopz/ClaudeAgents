@@ -109,6 +109,7 @@ export interface PiExtensionApiLike {
 		event: string,
 		handler: (event: unknown, ctx: PiContextLike) => unknown,
 	): void;
+	sendUserMessage?(message: string, options?: Record<string, unknown>): unknown;
 	registerTool?(tool: unknown): void;
 	registerCommand?(
 		name: string,
@@ -122,6 +123,7 @@ export interface PiExtensionApiLike {
 export interface PiContextLike {
 	hasUI?: boolean;
 	cwd?: string;
+	isIdle?(): boolean;
 	sendUserMessage?(message: string, options?: Record<string, unknown>): unknown;
 	sendMessage?(message: unknown, options?: Record<string, unknown>): unknown;
 	ui?: {
@@ -879,7 +881,7 @@ export function createAegisPiExtension(pi: PiExtensionApiLike): void {
 		pi.registerCommand?.(command, {
 			description: slashCommandDescription(command),
 			handler: async (args, ctx) => {
-				await handleSlashCommand(command, args, ctx);
+				await handleSlashCommand(command, args, ctx, pi);
 			},
 		});
 	}
@@ -899,10 +901,11 @@ async function handleSlashCommand(
 	command: string,
 	args: string,
 	ctx: PiContextLike,
+	pi?: PiExtensionApiLike,
 ): Promise<void> {
 	try {
 		const prompt = await materializeSlashCommand(command, args, ctx);
-		queueUserPrompt(prompt, ctx);
+		queueUserPrompt(prompt, ctx, pi);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		ctx.ui?.notify?.(`Olympi ${command} failed: ${message}`, "error");
@@ -932,7 +935,11 @@ async function materializeSlashCommand(
 				`Olympi goal saved: ${report.goalId} (${report.statePath})`,
 				"info",
 			);
-			return `${await slashCommandPrompt(command, args)}\n\nSaved goal state: ${report.statePath}\nGoal id: ${report.goalId}\nNext: inspect the repository, plan one bounded step with /olympi-plan ${report.goalId} <step>, then execute only governed RTK-routed commands.`;
+			return await goalKickoffPrompt(
+				report.statePath,
+				report.goalId,
+				trimmedArgs,
+			);
 		}
 		case "olympi-plan": {
 			const parsed = parseGoalIdAndRemainder(trimmedArgs);
@@ -1028,17 +1035,38 @@ async function materializeSlashCommand(
 	}
 }
 
-function queueUserPrompt(prompt: string, ctx: PiContextLike): void {
-	if (ctx.sendUserMessage === undefined) {
+function queueUserPrompt(
+	prompt: string,
+	ctx: PiContextLike,
+	pi?: PiExtensionApiLike,
+): void {
+	const target = pi?.sendUserMessage === undefined ? ctx : pi;
+	if (target.sendUserMessage === undefined) {
 		ctx.ui?.notify?.(prompt, "info");
 		return;
 	}
-	const options = { deliverAs: "steer", triggerTurn: true };
-	const dispatch = Promise.resolve(ctx.sendUserMessage(prompt, options));
+	const options =
+		ctx.isIdle?.() === false ? { deliverAs: "followUp" } : undefined;
+	const dispatch = Promise.resolve(target.sendUserMessage(prompt, options));
 	dispatch.catch((error) => {
 		const message = error instanceof Error ? error.message : String(error);
 		ctx.ui?.notify?.(`Olympi prompt dispatch failed: ${message}`, "error");
 	});
+}
+
+async function goalKickoffPrompt(
+	statePath: string,
+	goalId: string,
+	objective: string,
+): Promise<string> {
+	const memory = await memoryPromptSuffix();
+	return `Use /skill:olympi-goal-loop. Governed Olympi goal state is already saved; do not stop after restating this kickoff.
+
+Goal id: ${goalId}
+Saved goal state: ${statePath}
+Objective: ${objective}
+
+Begin now, in this turn: inspect the repository with narrow RTK-routed commands, update the saved goal with one bounded plan step when useful, execute the next safe step through governed RTK-routed tooling, record RTK-routed execution evidence in project-local state, and stop only on the configured blockers. Do not tell the user to run /olympi-plan or /olympi-execute when you can perform the governed work yourself.${memory}`;
 }
 
 function parseGoalIdAndRemainder(

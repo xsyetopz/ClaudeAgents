@@ -76,7 +76,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "/olympi-goal",
 		purpose:
-			"Save a project-local goal-loop state with planned steps, verification commands, and stop conditions, then queue a non-blocking continuation prompt.",
+			"Save a project-local goal-loop state with planned steps, verification commands, and stop conditions, then inject an actual follow-up user message that begins governed work instead of stopping at instructions.",
 		mutationPolicy: "explicit-project-local",
 		writes: [".pi/olympi/goals/<goal-id>.json"],
 		blocked: [

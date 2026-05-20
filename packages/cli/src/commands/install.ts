@@ -172,7 +172,7 @@ async function initializeRtkForInstall(options: {
 			stderr: message,
 			written: [],
 			reason:
-				"RTK executable is unavailable; install RTK, then rerun olympi install --global --apply",
+				"RTK executable is unavailable; Olympi setup is blocked until RTK is present on PATH",
 		};
 	}
 	const [stdout, stderr, exitCode] = await Promise.all([
@@ -194,7 +194,7 @@ async function initializeRtkForInstall(options: {
 		stderr,
 		written: options.apply && !blocked ? ["~/.claude/settings.json"] : [],
 		reason: blocked
-			? "RTK global hook initialization failed; run rtk init -g manually and inspect stderr"
+			? "RTK global hook initialization failed; Olympi setup is blocked before provider hook initialization completed; inspect stderr"
 			: options.apply
 				? "RTK global hook initialized through rtk init --global --hook-only --auto-patch"
 				: "RTK global hook initialization dry-run completed",

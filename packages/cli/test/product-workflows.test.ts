@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { buildMutationQueuePlan, installFirstPartyResources } from "authoring";
@@ -223,6 +223,48 @@ describe("Olympi product workflows", () => {
 			expect(sent.at(-1)).not.toContain("Project memory:");
 		} finally {
 			process.chdir(previousCwd);
+			await rm(projectRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("Pi goal slash command injects a real follow-up user message through the Pi runtime", async () => {
+		const projectRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-goal-kickoff-"),
+		);
+		const sent: Array<{ message: string; options: unknown }> = [];
+		const registered = new Map<
+			string,
+			(args: string, ctx: unknown) => unknown
+		>();
+		try {
+			createAegisPiExtension({
+				on() {
+					// Event registration is not under test here.
+				},
+				sendUserMessage(message, options) {
+					sent.push({ message, options });
+				},
+				registerCommand(name, options) {
+					registered.set(
+						name,
+						options.handler as (args: string, ctx: unknown) => unknown,
+					);
+				},
+			});
+			await registered.get("olympi-goal")?.("dogfood goal loop", {
+				cwd: projectRoot,
+				isIdle: () => true,
+			});
+			const kickoff = sent.at(-1);
+			expect(kickoff?.options).toBeUndefined();
+			expect(kickoff?.message).toContain(
+				"Governed Olympi goal state is already saved",
+			);
+			expect(kickoff?.message).toContain("Begin now, in this turn");
+			expect(kickoff?.message).toContain(
+				"Do not tell the user to run /olympi-plan or /olympi-execute",
+			);
+		} finally {
 			await rm(projectRoot, { recursive: true, force: true });
 		}
 	});
@@ -513,11 +555,36 @@ describe("Olympi product workflows", () => {
 		);
 		const projectRoot = path.join(tempRoot, "project");
 		const homeDir = path.join(tempRoot, "home");
+		const binDir = path.join(tempRoot, "bin");
 		await mkdir(projectRoot, { recursive: true });
+		await mkdir(binDir, { recursive: true });
+		await writeFile(
+			path.join(binDir, "rtk"),
+			[
+				"#!/usr/bin/env bash",
+				"set -euo pipefail",
+				'if [ "$#" -eq 0 ] || [ "$1" != "init" ]; then echo \'unsupported fake rtk command\' >&2; exit 1; fi',
+				"dry_run=0",
+				'for arg in "$@"; do if [ "$arg" = "--dry-run" ]; then dry_run=1; fi; done',
+				'if [ "$dry_run" = "0" ]; then',
+				'  mkdir -p "$HOME/.claude"',
+				'  printf \'%s\n\' \'{"hooks":{"Stop":[{"matcher":"","hooks":[{"type":"command","command":"rtk hook claude"}]}]}}\' > "$HOME/.claude/settings.json"',
+				"fi",
+				"echo 'fake rtk init ok'",
+				"exit 0",
+				"",
+			].join("\n"),
+			{ mode: 0o755 },
+		);
+		const env = {
+			...process.env,
+			HOME: homeDir,
+			PATH: `${binDir}${path.delimiter}${process.env["PATH"] ?? ""}`,
+		};
 		try {
 			const projectDryRun = Bun.spawn(
 				["bun", CLI, "install", "--dry-run", "--json"],
-				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+				{ cwd: projectRoot, env },
 			);
 			const [projectStdout, projectExit] = await Promise.all([
 				new Response(projectDryRun.stdout).text(),
@@ -542,7 +609,7 @@ describe("Olympi product workflows", () => {
 
 			const projectApply = Bun.spawn(
 				["bun", CLI, "install", "--apply", "--json"],
-				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+				{ cwd: projectRoot, env },
 			);
 			const [projectApplyStdout, projectApplyExit] = await Promise.all([
 				new Response(projectApply.stdout).text(),
@@ -564,7 +631,7 @@ describe("Olympi product workflows", () => {
 
 			const globalDryRun = Bun.spawn(
 				["bun", CLI, "install", "--global", "--dry-run", "--json"],
-				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+				{ cwd: projectRoot, env },
 			);
 			const [globalStdout, globalExit] = await Promise.all([
 				new Response(globalDryRun.stdout).text(),
@@ -583,7 +650,7 @@ describe("Olympi product workflows", () => {
 
 			const globalApply = Bun.spawn(
 				["bun", CLI, "install", "--global", "--apply", "--json"],
-				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+				{ cwd: projectRoot, env },
 			);
 			const [applyStdout, applyExit] = await Promise.all([
 				new Response(globalApply.stdout).text(),
@@ -624,7 +691,7 @@ describe("Olympi product workflows", () => {
 					"explicit-user-approval",
 					"--json",
 				],
-				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+				{ cwd: projectRoot, env },
 			);
 			const [confirmedStdout, confirmedExit] = await Promise.all([
 				new Response(confirmedGlobalApply.stdout).text(),
