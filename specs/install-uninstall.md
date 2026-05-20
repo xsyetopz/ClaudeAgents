@@ -1,8 +1,27 @@
 # Install and Uninstall Contract
 
-Olympi 0.1.0 supports project-local passive install and manifest-backed uninstall only.
+The current install/uninstall contract supports project-local Pi extension
+entrypoint install, project-local package/resource install, and manifest-backed
+uninstall. Project-local install is the default; global Pi extension
+registration is supported only with explicit `--global` confirmation/provenance.
 
-## Install
+## Pi extension entrypoint install
+
+`install --dry-run` previews the default project-local first-party Olympi Aegis
+extension entrypoint. `install --apply` writes only:
+
+```text
+.pi/extensions/olympi-aegis.ts
+```
+
+Pi invokes Olympi by auto-discovering that project extension, or by an explicit
+`pi -e <olympi-runtime-path>` one-off invocation. `install --global --dry-run`
+previews global registration at `~/.pi/agent/extensions/olympi-aegis.ts`; global
+apply requires `--global --apply --confirm-global --provenance
+explicit-user-approval`. The `olympi` CLI remains a development/admin entrypoint
+and is not the primary runtime.
+
+## Package/resource install
 
 `install <source> --project --dry-run` previews writes. `install <source> --project --apply` performs approved writes:
 
@@ -14,7 +33,9 @@ Olympi 0.1.0 supports project-local passive install and manifest-backed uninstal
 .pi/olympi/packages/<package-id>/package/**
 ```
 
-Executable resources block passive install. User-global `~/.pi` writes are out of scope.
+Executable resources block passive install. User-global `~/.pi/agent/**` writes
+are out of scope except for explicit global extension registration with the
+gates above.
 
 ## Settings merge
 

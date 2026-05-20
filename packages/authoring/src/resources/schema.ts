@@ -68,13 +68,7 @@ export const FIRST_PARTY_RESOURCE_METADATA: OlympiResourceMetadata[] = [
 		"verification-handoff",
 		"Prepare verification evidence and compact handoff summaries.",
 		"skill",
-		["olympi debug verify", "olympi debug handoff current"],
-	),
-	resource(
-		"rtk-aware-command-guidance",
-		"Prefer RTK-backed guidance for output-heavy commands when RTK is available.",
-		"skill",
-		["olympi debug rtk status", "olympi debug compact"],
+		["olympi dev verify", "olympi debug handoff current"],
 	),
 	resource(
 		"plan-review",
@@ -93,12 +87,6 @@ export const FIRST_PARTY_RESOURCE_METADATA: OlympiResourceMetadata[] = [
 		"Prompt template for quota-aware workflow choices without invented limits.",
 		"prompt",
 		["/olympi-quota-aware-workflow"],
-	),
-	resource(
-		"rtk-aware-command-guidance-prompt",
-		"Prompt template for RTK-aware command selection in output-heavy workflows.",
-		"prompt",
-		["/olympi-rtk-guidance"],
 	),
 ];
 

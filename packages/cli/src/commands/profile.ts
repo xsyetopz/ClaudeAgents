@@ -10,29 +10,32 @@ export async function runProfile(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	if (args[0] === "status") {
-		const report = await readProfileStatus();
-		process.stdout.write(json ? asJson(report) : formatStatus(report));
-		return 0;
-	}
-	if (args[0] === "set") {
-		const name = readFlagValue(args, "--name") ?? args[1];
-		if (name === undefined) {
-			throw new OlympiError(
-				"usage: olympi profile set --name <name> [--apply] [--json]",
-				2,
-			);
+	switch (args[0]) {
+		case "status": {
+			const report = await readProfileStatus();
+			process.stdout.write(json ? asJson(report) : formatStatus(report));
+			return 0;
 		}
-		const description = readFlagValue(args, "--description");
-		const report = await setProjectProfile({
-			name,
-			...(description === undefined ? {} : { description }),
-			apply: args.includes("--apply"),
-		});
-		process.stdout.write(json ? asJson(report) : formatSet(report));
-		return 0;
+		case "set": {
+			const name = readFlagValue(args, "--name") ?? args[1];
+			if (name === undefined) {
+				throw new OlympiError(
+					"usage: olympi profile set --name <name> [--apply] [--json]",
+					2,
+				);
+			}
+			const description = readFlagValue(args, "--description");
+			const report = await setProjectProfile({
+				name,
+				...(description === undefined ? {} : { description }),
+				apply: args.includes("--apply"),
+			});
+			process.stdout.write(json ? asJson(report) : formatSet(report));
+			return 0;
+		}
+		default:
+			throw new OlympiError("usage: olympi profile <status|set> [--json]", 2);
 	}
-	throw new OlympiError("usage: olympi profile <status|set> [--json]", 2);
 }
 
 function formatStatus(

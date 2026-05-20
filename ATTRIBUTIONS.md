@@ -4,4 +4,4 @@ Olympi keeps upstream reference material in `third_party/` until a final third-p
 
 No active Olympi command vendors or executes that reference material by default.
 
-The gitignored legacy snapshot remains available locally as historical reference material and is not part of the active product package graph.
+Historical reference material is not part of the active product package graph.

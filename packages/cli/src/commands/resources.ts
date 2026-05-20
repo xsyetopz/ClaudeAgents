@@ -6,32 +6,36 @@ export async function runResources(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	if (args[0] === "install") {
-		if (!args.includes("--project")) {
+	switch (args[0]) {
+		case "install": {
+			if (!args.includes("--project")) {
+				throw new OlympiError(
+					"usage: olympi debug resources install --project [--dry-run|--apply] [--json]",
+					2,
+				);
+			}
+			const report = await installFirstPartyResources({
+				apply: args.includes("--apply"),
+			});
+			process.stdout.write(json ? asJson(report) : formatInstall(report));
+			return 0;
+		}
+		case "validate": {
+			const inputPath = args.slice(1).find((arg) => !arg.startsWith("--"));
+			const report = await validateResources(inputPath);
+			process.stdout.write(
+				json
+					? asJson(report)
+					: `Olympi resources validate: ${report.valid ? "ok" : "failed"}\n`,
+			);
+			return report.valid ? 0 : 1;
+		}
+		default:
 			throw new OlympiError(
-				"usage: olympi debug resources install --project [--dry-run|--apply] [--json]",
+				"usage: olympi debug resources <validate|install> [path] [--json]",
 				2,
 			);
-		}
-		const report = await installFirstPartyResources({
-			apply: args.includes("--apply"),
-		});
-		process.stdout.write(json ? asJson(report) : formatInstall(report));
-		return 0;
 	}
-	if (args[0] !== "validate")
-		throw new OlympiError(
-			"usage: olympi debug resources <validate|install> [path] [--json]",
-			2,
-		);
-	const inputPath = args.slice(1).find((arg) => !arg.startsWith("--"));
-	const report = await validateResources(inputPath);
-	process.stdout.write(
-		json
-			? asJson(report)
-			: `Olympi resources validate: ${report.valid ? "ok" : "failed"}\n`,
-	);
-	return report.valid ? 0 : 1;
 }
 
 function formatInstall(

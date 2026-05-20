@@ -7,10 +7,15 @@ export async function runQuota(
 	json: boolean,
 ): Promise<ExitCode> {
 	const subcommand = args[0];
-	if (subcommand !== "status") return usage();
-	const report = await loadQuotaStatus();
-	process.stdout.write(json ? asJson(report) : formatQuota(report));
-	return 0;
+	switch (subcommand) {
+		case "status": {
+			const report = await loadQuotaStatus();
+			process.stdout.write(json ? asJson(report) : formatQuota(report));
+			return 0;
+		}
+		default:
+			return usage();
+	}
 }
 
 function usage(): ExitCode {

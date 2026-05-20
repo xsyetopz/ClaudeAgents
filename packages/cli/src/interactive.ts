@@ -1,13 +1,13 @@
 import path from "node:path";
 import process from "node:process";
-import { createInterface } from "node:readline/promises";
-import { aegisPiRuntimeStatus, aegisPolicyStatus } from "extensions";
+import {
+	confirm as confirmPrompt,
+	input as inputPrompt,
+} from "@inquirer/prompts";
 import {
 	applyManifestUninstall,
 	applyPassiveInstall,
 	type ExitCode,
-	evaluateLocalPackage,
-	inspectLocalPackage,
 	OlympiError,
 	planManifestUninstall,
 	planPassiveInstall,
@@ -18,25 +18,27 @@ import {
 	buildHandoffReport,
 	buildStatusReport,
 	formatAcceptanceReport,
-	formatEvaluation,
 	formatHandoffMarkdown,
-	formatInspection,
 	formatStatusReport,
 } from "reporting";
-import { hookPolicyStatus, runSandboxProbe } from "safety";
-import { buildSafetyCheckReport } from "./commands/safety.ts";
-import { formatSetupStatus, readSetupStatus } from "./setup-status.ts";
+import { buildDoctorReport, formatDoctorReport } from "./commands/doctor.ts";
+import { readSetupStatus } from "./setup-status.ts";
 
 const LINE_SPLIT_PATTERN = /\r?\n/;
 const WORD_SPLIT_PATTERN = /\s+/;
+const PROMPT_TRAILING_COLON_PATTERN = /:\s*$/;
+const PROMPT_CONFIRM_SUFFIX_PATTERN = /\s*\[[yY]\/N]\s*$/;
 
+/** Host-agnostic session adapter used by the admin session. */
 export interface InteractiveSession {
 	cwd: string;
 	ask(question: string): Promise<string>;
+	confirm?(question: string, defaultValue: boolean): Promise<boolean>;
 	write(message: string): void;
 	close?(): void | Promise<void>;
 }
 
+/** Project summary shown before interactive commands ask for input. */
 export interface InteractiveStatus {
 	schemaVersion: 1;
 	cwd: string;
@@ -56,6 +58,7 @@ interface InteractiveMode {
 	json: boolean;
 }
 
+/** Start the process-backed admin/bootstrap prompt. */
 export async function runInteractiveCli(
 	args: string[] = [],
 ): Promise<ExitCode> {
@@ -71,6 +74,7 @@ export async function runInteractiveCli(
 	}
 }
 
+/** Run an admin/bootstrap prompt against a supplied session adapter. */
 export async function runInteractiveSession(
 	session: InteractiveSession,
 ): Promise<ExitCode> {
@@ -82,54 +86,47 @@ export async function runInteractiveSession(
 		const request = parseInteractiveInput(input);
 		if (request.command.length === 0) continue;
 		try {
-			if (["q", "quit", "exit"].includes(request.command)) {
-				session.write("Done.\n");
-				return 0;
+			switch (request.command) {
+				case "q":
+				case "quit":
+				case "exit":
+					session.write("Done.\n");
+					return 0;
+				case "json":
+					mode.json = request.args[0] !== "off";
+					session.write(`JSON: ${mode.json ? "on" : "off"}\n`);
+					break;
+				case "help":
+				case "?":
+					session.write(interactiveCommandsText());
+					break;
+				case "status":
+					await showStatus(session, mode);
+					break;
+				case "install":
+					await guidedInstall(session, mode);
+					break;
+				case "uninstall":
+					await guidedUninstall(session, mode);
+					break;
+				case "report":
+					await guidedReport(session, mode, request.args[0]);
+					break;
+				case "doctor":
+					await guidedDoctor(session, mode);
+					break;
+				default:
+					session.write(
+						`Unknown command: ${request.command}; expected status, doctor, install, uninstall, report, help, json, or quit. Run help.\nwritten: none\n`,
+					);
 			}
-			if (request.command === "json") {
-				mode.json = request.args[0] !== "off";
-				session.write(`JSON: ${mode.json ? "on" : "off"}\n`);
-				continue;
-			}
-			if (request.command === "help" || request.command === "?") {
-				session.write(interactiveCommandsText());
-				continue;
-			}
-			if (request.command === "status") {
-				await showStatus(session, mode);
-				continue;
-			}
-			if (request.command === "package") {
-				await guidedPackage(session, mode, request.args[0]);
-				continue;
-			}
-			if (request.command === "install") {
-				await guidedInstall(session, mode);
-				continue;
-			}
-			if (request.command === "uninstall") {
-				await guidedUninstall(session, mode);
-				continue;
-			}
-			if (request.command === "report") {
-				await guidedReport(session, mode, request.args[0]);
-				continue;
-			}
-			if (request.command === "safety") {
-				guidedSafety(session, mode);
-				continue;
-			}
-			if (request.command === "setup") {
-				await guidedSetupStatus(session, mode);
-				continue;
-			}
-			session.write("Unknown command. Run help.\n");
 		} catch (error) {
 			session.write(formatInteractiveError(error, mode.json));
 		}
 	}
 }
 
+/** Read project-local status for startup without mutating project or home state. */
 export async function readInteractiveStatus(
 	cwd: string = process.cwd(),
 ): Promise<InteractiveStatus> {
@@ -147,13 +144,12 @@ export async function readInteractiveStatus(
 			auditPresent: setup.configured.auditPresent,
 		},
 		availableFlows: [
-			"package",
 			"install",
 			"uninstall",
-			"report",
-			"safety",
-			"setup",
+			"doctor",
 			"status",
+			"report",
+			"help",
 		],
 		blockedFlows: [
 			"global Pi writes",
@@ -163,6 +159,7 @@ export async function readInteractiveStatus(
 	};
 }
 
+/** Format the interactive status report for terminal output. */
 export function formatInteractiveStatus(status: InteractiveStatus): string {
 	const lines = [
 		"Olympi status",
@@ -184,20 +181,21 @@ function createProcessSession():
 	| InteractiveSession
 	| Promise<InteractiveSession> {
 	if (!process.stdin.isTTY) return createPipedProcessSession();
-	const readline = createInterface({
-		input: process.stdin,
-		output: process.stdout,
-	});
 	return {
 		cwd: process.cwd(),
 		ask(question: string) {
-			return readline.question(question);
+			return inputPrompt({
+				message: question.replace(PROMPT_TRAILING_COLON_PATTERN, ""),
+			});
+		},
+		confirm(question: string, defaultValue: boolean) {
+			return confirmPrompt({
+				message: question.replace(PROMPT_CONFIRM_SUFFIX_PATTERN, ""),
+				default: defaultValue,
+			});
 		},
 		write(message: string) {
 			process.stdout.write(message);
-		},
-		close() {
-			readline.close();
 		},
 	};
 }
@@ -234,20 +232,17 @@ async function showStatus(
 }
 
 function interactiveStartupText(status: InteractiveStatus): string {
-	return `Olympi human-present harness
+	return `Olympi
 
 Project: ${status.cwd}
-State: ${status.projectLocalStatePath}
 Status: ${interactiveStateLine(status)}
 
 Commands:
-  package       Inspect or evaluate Pi package resources
-  install       Add project-local, policy-gated Pi resources
-  uninstall     Uninstall a manifest-owned package
-  report        Generate reports
-  safety        Show safety gates
-  setup         Show local harness readiness
-  status        Show project-local harness state
+  install       Run install dry-run, then optional apply confirmation
+  uninstall     Run uninstall dry-run, then optional apply confirmation
+  status        Show current project state
+  doctor        Check install, runtime, RTK, Pi, hooks, and state
+  report        Show status, handoff, or acceptance
   help          Show commands
   q|quit|exit   Exit interactive mode
 
@@ -256,19 +251,18 @@ Commands:
 
 function interactiveCommandsText(): string {
 	return `Commands:
-  package       Inspect or evaluate Pi package resources
-  install       Add project-local, policy-gated Pi resources
-  uninstall     Uninstall a manifest-owned package
-  report        Generate reports
-  safety        Show safety gates
-  setup         Show local harness readiness
-  status        Show project-local harness state
+  install       Run install dry-run, then optional apply confirmation
+  uninstall     Run uninstall dry-run, then optional apply confirmation
+  status        Show current project state
+  doctor        Check install, runtime, RTK, Pi, hooks, and state
+  report        Show status, handoff, or acceptance
   help          Show commands
   q|quit|exit   Exit interactive mode
 
-Subcommands:
-  package inspect|evaluate
-  report status|handoff|acceptance
+Pi workflow surface:
+  Use Pi slash commands after install: /olympi-goal, /olympi-plan,
+  /olympi-execute, /olympi-complete, /olympi-resume, /olympi-handoff,
+  /olympi-context, and /olympi-feedback.
 
 Controls:
   q, quit, exit
@@ -282,55 +276,6 @@ function interactiveStateLine(status: InteractiveStatus): string {
 		? "manifest present"
 		: "no manifest";
 	return `${lock}, ${manifest}`;
-}
-
-async function guidedInspect(
-	session: InteractiveSession,
-	mode: InteractiveMode,
-): Promise<void> {
-	const source = await promptRequired(
-		session,
-		"Local package path to inspect: ",
-	);
-	if (source === undefined) return;
-	const report = await inspectLocalPackage(
-		resolveInputPath(source, session.cwd),
-	);
-	writeFormatted(session, mode, report, formatInspection(report));
-}
-
-async function guidedEvaluate(
-	session: InteractiveSession,
-	mode: InteractiveMode,
-): Promise<void> {
-	const source = await promptRequired(
-		session,
-		"Local package path to evaluate: ",
-	);
-	if (source === undefined) return;
-	const report = await evaluateLocalPackage(
-		resolveInputPath(source, session.cwd),
-	);
-	writeFormatted(session, mode, report, formatEvaluation(report));
-}
-
-async function guidedPackage(
-	session: InteractiveSession,
-	mode: InteractiveMode,
-	subcommand: string | undefined,
-): Promise<void> {
-	const action =
-		subcommand ??
-		normalizeChoice(await session.ask("Package command (inspect|evaluate): "));
-	if (action === "inspect") {
-		await guidedInspect(session, mode);
-		return;
-	}
-	if (action === "evaluate") {
-		await guidedEvaluate(session, mode);
-		return;
-	}
-	session.write("Unknown package command. Use inspect or evaluate.\n");
 }
 
 async function guidedInstall(
@@ -407,21 +352,21 @@ async function guidedReport(
 		normalizeChoice(
 			await session.ask("Report command (status|handoff|acceptance): "),
 		);
-	if (action === "status") {
-		await guidedReportStatus(session, mode);
-		return;
+	switch (action) {
+		case "status":
+			await guidedReportStatus(session, mode);
+			return;
+		case "handoff":
+			await guidedHandoff(session, mode);
+			return;
+		case "acceptance":
+			await guidedAcceptance(session, mode);
+			return;
+		default:
+			session.write(
+				"Unknown report command. Use status, handoff, or acceptance.\n",
+			);
 	}
-	if (action === "handoff") {
-		await guidedHandoff(session, mode);
-		return;
-	}
-	if (action === "acceptance") {
-		await guidedAcceptance(session, mode);
-		return;
-	}
-	session.write(
-		"Unknown report command. Use status, handoff, or acceptance.\n",
-	);
 }
 
 async function guidedReportStatus(
@@ -448,33 +393,12 @@ async function guidedAcceptance(
 	writeFormatted(session, mode, report, formatAcceptanceReport(report));
 }
 
-function guidedSafety(
-	session: InteractiveSession,
-	mode: InteractiveMode,
-): void {
-	const safety = buildSafetyCheckReport();
-	const hooks = aegisPolicyStatus();
-	const runtime = aegisPiRuntimeStatus();
-	const policy = hookPolicyStatus();
-	const sandbox = runSandboxProbe();
-	const report = {
-		schemaVersion: 1 as const,
-		command: "interactive safety",
-		safety,
-		hooks,
-		runtime,
-		policy,
-		sandbox,
-	};
-	writeFormatted(session, mode, report, formatSafety(report));
-}
-
-async function guidedSetupStatus(
+async function guidedDoctor(
 	session: InteractiveSession,
 	mode: InteractiveMode,
 ): Promise<void> {
-	const report = await readSetupStatus(session.cwd);
-	writeFormatted(session, mode, report, formatSetupStatus(report));
+	const report = await buildDoctorReport(session.cwd);
+	writeFormatted(session, mode, report, formatDoctorReport(report));
 }
 
 async function promptRequired(
@@ -491,6 +415,7 @@ async function confirm(
 	session: InteractiveSession,
 	question: string,
 ): Promise<boolean> {
+	if (session.confirm !== undefined) return session.confirm(question, false);
 	const answer = normalizeChoice(await session.ask(question));
 	return answer === "y" || answer === "yes";
 }
@@ -516,10 +441,8 @@ function parseInteractiveInput(value: string): {
 	command: string;
 	args: string[];
 } {
-	const parts = normalizeChoice(value)
-		.split(WORD_SPLIT_PATTERN)
-		.filter(Boolean);
-	return { command: parts[0] ?? "", args: parts.slice(1) };
+	const parts = value.trim().split(WORD_SPLIT_PATTERN).filter(Boolean);
+	return { command: normalizeChoice(parts[0] ?? ""), args: parts.slice(1) };
 }
 
 function formatInteractiveError(error: unknown, json: boolean): string {
@@ -529,9 +452,24 @@ function formatInteractiveError(error: unknown, json: boolean): string {
 			: "unknown error";
 	const exitCode = error instanceof OlympiError ? error.exitCode : 5;
 	if (json) {
-		return `${JSON.stringify({ schemaVersion: 1, ok: false, error: { message, exitCode } })}\n`;
+		return `${JSON.stringify({ schemaVersion: 1, ok: false, error: { code: errorCode(exitCode), message, exitCode }, written: [] })}\n`;
 	}
-	return `olympi interactive: ${message}\n`;
+	return `olympi interactive: ${message}\nwritten: none\n`;
+}
+
+function errorCode(exitCode: number): string {
+	switch (exitCode) {
+		case 1:
+			return "VALIDATION_OR_RISK_FINDINGS";
+		case 2:
+			return "MALFORMED_USAGE_OR_INPUT";
+		case 3:
+			return "SAFETY_BLOCK";
+		case 4:
+			return "UNAVAILABLE_PLATFORM_OR_BACKEND";
+		default:
+			return "INTERNAL_ERROR";
+	}
 }
 
 function interactiveHelpText(): string {
@@ -580,31 +518,5 @@ function formatUninstall(
 	for (const preservedPath of report.preserved) {
 		lines.push(`preserved: ${preservedPath}`);
 	}
-	return `${lines.join("\n")}\n`;
-}
-
-function formatSafety(report: {
-	safety: ReturnType<typeof buildSafetyCheckReport>;
-	hooks: ReturnType<typeof aegisPolicyStatus>;
-	runtime: ReturnType<typeof aegisPiRuntimeStatus>;
-	policy: ReturnType<typeof hookPolicyStatus>;
-	sandbox: ReturnType<typeof runSandboxProbe>;
-}): string {
-	const lines = [
-		`Olympi safety check: ${report.safety.ok ? "ok" : "failed"}`,
-		`Aegis hooks: ${report.hooks.status}`,
-		`Aegis runtime entrypoint: ${report.runtime.extensionEntrypoint}`,
-		`Hook policy: ${report.policy.status}`,
-		`Sandbox: ${report.sandbox.status}`,
-	];
-	for (const check of report.safety.checks) {
-		lines.push(
-			`${check.ok ? "ok" : "fail"}: ${check.name} (${check.decision})`,
-		);
-	}
-	for (const warning of report.hooks.warnings)
-		lines.push(`warning: ${warning}`);
-	for (const warning of report.sandbox.warnings)
-		lines.push(`warning: ${warning}`);
 	return `${lines.join("\n")}\n`;
 }

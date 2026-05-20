@@ -1,3 +1,4 @@
+import { installAegisPiExtension } from "extensions";
 import {
 	applyPassiveInstall,
 	type ExitCode,
@@ -15,15 +16,12 @@ export async function runInstall(
 ): Promise<ExitCode> {
 	const source = args.find((arg) => !arg.startsWith("--"));
 	if (source === undefined) {
-		throw new OlympiError(
-			"usage: olympi install <source> --project [--dry-run|--apply] [--executable --signature-digest <sha256>] [--json]",
-			2,
-		);
+		return runExtensionInstall(args, json);
 	}
-	if (!args.includes("--project")) {
+	if (args.includes("--global")) {
 		throw new OlympiError(
-			"install requires --project; global writes are forbidden",
-			3,
+			"package/resource install does not support --global; omit the source to register the Olympi Pi extension globally",
+			2,
 		);
 	}
 	const apply = args.includes("--apply");
@@ -52,9 +50,37 @@ export async function runInstall(
 	return report.blocked ? 3 : 0;
 }
 
+async function runExtensionInstall(
+	args: string[],
+	json: boolean,
+): Promise<ExitCode> {
+	if (args.includes("--project") && args.includes("--global")) {
+		throw new OlympiError(
+			"install cannot combine --project and --global; default is project-local or use --global explicitly",
+			2,
+		);
+	}
+	const apply = args.includes("--apply");
+	const dryRun = args.includes("--dry-run") || !apply;
+	if (apply && dryRun && args.includes("--dry-run")) {
+		throw new OlympiError("install cannot combine --apply and --dry-run", 2);
+	}
+	const provenance = readFlagValue(args, "--provenance");
+	const report = await installAegisPiExtension({
+		scope: args.includes("--global") ? "global" : "project-local",
+		apply,
+		confirmed: args.includes("--confirm-global"),
+		...(provenance === undefined ? {} : { provenance }),
+	});
+	process.stdout.write(json ? asJson(report) : formatExtensionInstall(report));
+	return report.blocked ? 3 : 0;
+}
+
 function formatInstall(report: InstallReport): string {
 	const lines = [
 		`Olympi install ${report.apply ? "apply" : "dry-run"}`,
+		`Scope: ${report.scope}`,
+		`Target state: ${report.targetStatePath}`,
 		`Package: ${report.packageId}`,
 		`Source: ${report.source}`,
 		`Blocked: ${report.blocked ? "yes" : "no"}`,
@@ -64,10 +90,40 @@ function formatInstall(report: InstallReport): string {
 	for (const writePath of report.wouldWrite) {
 		lines.push(`would write: ${writePath}`);
 	}
+	for (const settingsPath of report.settingsTouched) {
+		lines.push(`settings touched: ${settingsPath}`);
+	}
 	for (const writtenPath of report.written) lines.push(`wrote: ${writtenPath}`);
 	if (report.signatureSubjectDigest !== undefined) {
 		lines.push(`Signature subject digest: ${report.signatureSubjectDigest}`);
 	}
+	return `${lines.join("\n")}\n`;
+}
+
+function formatExtensionInstall(
+	report: Awaited<ReturnType<typeof installAegisPiExtension>>,
+): string {
+	const lines = [
+		`Olympi install ${report.apply ? "apply" : "dry-run"}`,
+		`Scope: ${report.scope}`,
+		`Target state: ${report.targetStatePath}`,
+		`Entrypoint: ${report.entrypoint}`,
+		`Blocked: ${report.blocked ? "yes" : "no"}`,
+		`Written: ${report.written.length > 0 ? "yes" : "no"}`,
+		`Reason: ${report.reason}`,
+	];
+	for (const warning of report.warnings) lines.push(`warning: ${warning}`);
+	lines.push(`Slash commands: ${report.slashCommands.join(", ")}`);
+	lines.push(`Skills: ${report.skills.join(", ")}`);
+	lines.push(`Prompts: ${report.prompts.join(", ")}`);
+	lines.push(`Hooks: ${report.hooks.join(", ")}`);
+	lines.push(`Tool shims: ${report.toolShims.join(", ")}`);
+	for (const settingsPath of report.settingsTouched)
+		lines.push(`settings touched: ${settingsPath}`);
+	for (const writePath of report.wouldWrite) {
+		lines.push(`would write: ${writePath}`);
+	}
+	for (const writtenPath of report.written) lines.push(`wrote: ${writtenPath}`);
 	return `${lines.join("\n")}\n`;
 }
 

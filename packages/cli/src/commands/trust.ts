@@ -6,47 +6,50 @@ export async function runTrust(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	if (args[0] === "executable-load") {
-		const packageId = readFlagValue(args, "--package-id") ?? args[1];
-		if (packageId === undefined) {
+	switch (args[0]) {
+		case "executable-load": {
+			const packageId = readFlagValue(args, "--package-id") ?? args[1];
+			if (packageId === undefined) {
+				throw new OlympiError(
+					"usage: olympi safety trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]",
+					2,
+				);
+			}
+			const signatureDigest = readFlagValue(args, "--signature-digest");
+			const report = await loadExecutablePackage({
+				packageId,
+				apply: args.includes("--apply"),
+				...(signatureDigest === undefined ? {} : { signatureDigest }),
+			});
+			process.stdout.write(json ? asJson(report) : formatLoad(report));
+			return report.blocked ? 3 : 0;
+		}
+		case "executable-proof": {
+			const packageId = readFlagValue(args, "--package-id") ?? args[1];
+			if (packageId === undefined) {
+				throw new OlympiError(
+					"usage: olympi safety trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]",
+					2,
+				);
+			}
+			const signatureDigest = readFlagValue(args, "--signature-digest");
+			const report = await buildExecutableTrustProof(packageId, {
+				...(signatureDigest === undefined ? {} : { signatureDigest }),
+			});
+			process.stdout.write(json ? asJson(report) : formatProof(report));
+			return report.executableLoadAllowed ? 0 : 1;
+		}
+		case "status": {
+			const report = await readTrustStatus();
+			process.stdout.write(json ? asJson(report) : formatTrust(report));
+			return 0;
+		}
+		default:
 			throw new OlympiError(
-				"usage: olympi safety trust executable-load --package-id <id> [--signature-digest <sha256>] [--apply] [--json]",
+				"usage: olympi safety trust <status|executable-proof|executable-load> [--json]",
 				2,
 			);
-		}
-		const signatureDigest = readFlagValue(args, "--signature-digest");
-		const report = await loadExecutablePackage({
-			packageId,
-			apply: args.includes("--apply"),
-			...(signatureDigest === undefined ? {} : { signatureDigest }),
-		});
-		process.stdout.write(json ? asJson(report) : formatLoad(report));
-		return report.blocked ? 3 : 0;
 	}
-	if (args[0] === "executable-proof") {
-		const packageId = readFlagValue(args, "--package-id") ?? args[1];
-		if (packageId === undefined) {
-			throw new OlympiError(
-				"usage: olympi safety trust executable-proof --package-id <id> [--signature-digest <sha256>] [--json]",
-				2,
-			);
-		}
-		const signatureDigest = readFlagValue(args, "--signature-digest");
-		const report = await buildExecutableTrustProof(packageId, {
-			...(signatureDigest === undefined ? {} : { signatureDigest }),
-		});
-		process.stdout.write(json ? asJson(report) : formatProof(report));
-		return report.executableLoadAllowed ? 0 : 1;
-	}
-	if (args[0] !== "status") {
-		throw new OlympiError(
-			"usage: olympi safety trust <status|executable-proof|executable-load> [--json]",
-			2,
-		);
-	}
-	const report = await readTrustStatus();
-	process.stdout.write(json ? asJson(report) : formatTrust(report));
-	return 0;
 }
 
 function formatLoad(

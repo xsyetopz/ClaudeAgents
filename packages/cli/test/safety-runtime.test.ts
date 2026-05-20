@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+	chmod,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -11,11 +18,17 @@ import {
 import {
 	appendHestiaAudit,
 	auditRecordFromDecision,
+	cavemanOutputHook,
+	classifyRtkCommandKind,
 	classifyWorkspaceCommand,
 	commandClassPolicy,
 	decidePolicy,
+	executeViaRtk,
 	loadQuotaStatus,
 	normalizeCommandExecution,
+	planRtkRoute,
+	rtkAntiBypassHook,
+	runHookPipeline,
 	runSandboxProbe,
 	validateBrokerRequest,
 	workspaceOwnershipHook,
@@ -27,7 +40,7 @@ import {
 
 const CLI = path.join(import.meta.dir, "..", "src", "cli.ts");
 
-describe("Track A Themis policy decisions", () => {
+describe("Safety runtime Themis policy decisions", () => {
 	test("unsafe tool_call is blocked", () => {
 		const decision = decidePolicy({
 			schemaVersion: 1,
@@ -188,6 +201,148 @@ describe("Track A Themis policy decisions", () => {
 		expect(classifyWorkspaceCommand("bun run biome:format").primaryClass).toBe(
 			"formatting-write",
 		);
+	});
+
+	test("RTK command kind mapping routes supported and unsupported commands", () => {
+		expect(classifyRtkCommandKind(["git", "status"])).toBe("git");
+		expect(classifyRtkCommandKind(["custom-tool", "status"])).toBe(
+			"unsupported",
+		);
+		const supported = planRtkRoute("git status --short", {
+			PATH: "/not-real",
+		});
+		expect(supported.routeKind).toBe("native-equivalent");
+		expect(supported.rtkCommandText).toContain("rtk git status --short");
+		const unsupported = planRtkRoute("custom-tool inspect .", {
+			PATH: "/not-real",
+		});
+		expect(unsupported.routeKind).toBe("proxy-pass-through");
+		expect(unsupported.rtkCommandText).toContain(
+			"rtk proxy -- custom-tool inspect .",
+		);
+	});
+
+	test("RTK executable missing blocks without direct execution fallback", async () => {
+		const result = await executeViaRtk({
+			originalCommand: "echo should-not-run",
+			cwd: process.cwd(),
+			env: { PATH: "" },
+		});
+		expect(result.blocked).toBe(true);
+		expect(result.failureReason).toBe("RTK executable not found: rtk");
+		expect(result.stdout).toBe("");
+		expect(result.blocker).toMatchObject({
+			code: "RTK_EXECUTABLE_NOT_FOUND",
+			originalCommand: "echo should-not-run",
+			written: [],
+		});
+	});
+
+	test("RTK proxy execution reports structured failures", async () => {
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-rtk-fail-"));
+		try {
+			const rtk = path.join(tempRoot, "rtk");
+			await writeFile(
+				rtk,
+				"#!/bin/sh\necho routed:$*\necho failed >&2\nexit 7\n",
+			);
+			await chmod(rtk, 0o755);
+			const result = await executeViaRtk({
+				originalCommand: "custom unsupported",
+				cwd: tempRoot,
+				env: { PATH: tempRoot },
+			});
+			expect(result.blocked).toBe(false);
+			expect(result.exitCode).toBe(7);
+			expect(result.failureReason).toBe("RTK proxy failed: exit code 7");
+			expect(result.route.rtkCommandText).toContain(
+				"rtk proxy -- custom unsupported",
+			);
+			expect(result.stdout).toContain("routed:");
+			expect(result.stderr).toContain("failed");
+			expect(result.blocker).toMatchObject({
+				code: "RTK_PROXY_FAILED",
+				originalCommand: "custom unsupported",
+				written: [],
+			});
+		} finally {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("RTK anti-bypass hook blocks direct and manual-emulation attempts", () => {
+		const route = planRtkRoute("custom unsupported", { PATH: "/fake" });
+		const direct = runHookPipeline(
+			{
+				schemaVersion: 1,
+				phase: "pre-action",
+				operation: "execute",
+				rtkRoute: {
+					originalCommand: route.originalCommand,
+					requiredRtkRoute: route.rtkCommandText,
+					attemptedCommand: "custom unsupported",
+					directExecution: true,
+				},
+			},
+			[rtkAntiBypassHook()],
+		);
+		expect(direct.decision).toBe("veto");
+		expect(direct.decisions[0]?.blocker).toMatchObject({
+			code: "RTK_BYPASS_BLOCKED",
+			originalCommand: "custom unsupported",
+			attemptedBypassCommand: "custom unsupported",
+			requiredRtkRoute: route.rtkCommandText,
+			written: [],
+		});
+
+		const emulated = runHookPipeline(
+			{
+				schemaVersion: 1,
+				phase: "pre-action",
+				operation: "execute",
+				rtkRoute: {
+					originalCommand: route.originalCommand,
+					requiredRtkRoute: route.rtkCommandText,
+					attemptedCommand: "node scripts/filter-output.js custom unsupported",
+					emulatesRtk: true,
+				},
+			},
+			[rtkAntiBypassHook()],
+		);
+		expect(emulated.decision).toBe("veto");
+		expect(emulated.decisions[0]?.blocker?.attemptedAction).toContain(
+			"emulation",
+		);
+	});
+
+	test("Caveman stop hook enforces compact-output contract", () => {
+		const inactive = runHookPipeline(
+			{ schemaVersion: 1, phase: "stop", cavemanMode: "off" },
+			[cavemanOutputHook()],
+		);
+		expect(inactive.decision).toBe("allow");
+
+		const warning = runHookPipeline(
+			{ schemaVersion: 1, phase: "stop", cavemanModeActive: true },
+			[cavemanOutputHook()],
+		);
+		expect(warning.decision).toBe("warn");
+		expect(warning.reasons).toContain(
+			"Caveman mode active; include structured compliance signal",
+		);
+
+		const veto = runHookPipeline(
+			{
+				schemaVersion: 1,
+				phase: "stop",
+				cavemanModeActive: true,
+				cavemanCompliant: false,
+				contractViolations: ["filler prose added"],
+			},
+			[cavemanOutputHook()],
+		);
+		expect(veto.vetoed).toBe(true);
+		expect(veto.reasons).toContain("filler prose added");
 	});
 
 	test("complex shell forms require review instead of silent allow", () => {
@@ -385,7 +540,7 @@ describe("Track A Themis policy decisions", () => {
 	});
 });
 
-describe("Track A sandbox, broker, quota, and Aegis", () => {
+describe("Safety runtime sandbox, broker, quota, and Aegis", () => {
 	test("sandbox fake-home secret probes are denied", () => {
 		const report = runSandboxProbe({ PATH: "" });
 		expect(report.executableLoadAllowed).toBe(false);
@@ -453,6 +608,7 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 			string,
 			(event: unknown, ctx: unknown) => unknown
 		>();
+		const commands: string[] = [];
 		createAegisPiExtension({
 			on(event, handler) {
 				handlers.set(
@@ -461,15 +617,27 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 				);
 			},
 			registerCommand(name) {
-				expect(name).toBe("olympi-aegis-status");
+				commands.push(name);
 			},
 		});
+		expect(commands).toContain("olympi-goal");
+		expect(commands).toContain("olympi-aegis-status");
 		expect(handlers.has("tool_call")).toBe(true);
 		const result = handlers.get("tool_call")?.(
 			{ toolName: "bash", input: { command: "rm -rf ~/.pi" } },
 			{ hasUI: false },
 		);
 		expect(result).toEqual(expect.objectContaining({ block: true }));
+		const directShell = handlers.get("tool_call")?.(
+			{ toolName: "bash", input: { command: "git status --short" } },
+			{ hasUI: false },
+		);
+		expect(directShell).toEqual(
+			expect.objectContaining({
+				block: true,
+				reason: expect.stringContaining("direct process execution"),
+			}),
+		);
 	});
 
 	test("provider metadata fallback blocks unsafe events with missing metadata", async () => {
@@ -582,10 +750,10 @@ describe("Track A sandbox, broker, quota, and Aegis", () => {
 	});
 });
 
-describe("Track A CLI smoke and no global Pi writes", () => {
+describe("Safety runtime CLI smoke and no global Pi writes", () => {
 	test("low-level CLI safety commands emit JSON", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-a-cli-"),
+			path.join(os.tmpdir(), "olympi-safety-runtime-cli-"),
 		);
 		try {
 			const goodBroker = path.join(tempRoot, "broker.json");
@@ -616,7 +784,7 @@ describe("Track A CLI smoke and no global Pi writes", () => {
 
 	test("safety commands do not write to HOME ~/.pi by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-a-home-"),
+			path.join(os.tmpdir(), "olympi-safety-runtime-home-"),
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");

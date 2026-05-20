@@ -55,8 +55,8 @@ describe("Olympi interactive wrapper", () => {
 			expect(exitCode).toBe(0);
 			expect(session.text().split(LINE_SPLIT_PATTERN).length).toBeLessThan(20);
 			expect(session.text()).toContain("Project:");
-			expect(session.text()).toContain(".pi/olympi");
-			expect(session.text()).toContain("package");
+			expect(session.text()).not.toContain("goal");
+			expect(session.text()).not.toContain("Package:");
 			expect(session.text()).toContain("q|quit|exit");
 			expect(session.text()).not.toMatch(INTERNAL_SAFETY_DETAIL_PATTERN);
 			expect(session.text()).not.toMatch(PROVIDER_DEPLOYMENT_PATTERN);
@@ -69,7 +69,22 @@ describe("Olympi interactive wrapper", () => {
 		}
 	});
 
-	test("routes package evaluation through shared read-only service code", async () => {
+	test("unknown interactive commands report stable usage", async () => {
+		const tempRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-interactive-unknown-"),
+		);
+		try {
+			const session = new ScriptedSession(["nope", "quit"], tempRoot);
+			const exitCode = await runInteractiveSession(session);
+			expect(exitCode).toBe(0);
+			expect(session.text()).toContain("Unknown command: nope");
+			expect(session.text()).toContain("expected status, doctor, install");
+		} finally {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("does not expose package evaluation in interactive mode", async () => {
 		const tempRoot = await mkdtemp(
 			path.join(os.tmpdir(), "olympi-interactive-evaluate-"),
 		);
@@ -80,7 +95,8 @@ describe("Olympi interactive wrapper", () => {
 			);
 			const exitCode = await runInteractiveSession(session);
 			expect(exitCode).toBe(0);
-			expect(session.text()).toContain('"decision": "trust-passive"');
+			expect(session.text()).toContain("Unknown command: package");
+			expect(session.text()).not.toContain('"decision": "trust-passive"');
 			await expect(
 				readFile(path.join(tempRoot, ".pi", "settings.json"), "utf8"),
 			).rejects.toThrow();
@@ -89,7 +105,7 @@ describe("Olympi interactive wrapper", () => {
 		}
 	});
 
-	test("shows safety diagnostics only after the safety flow is requested", async () => {
+	test("does not expose safety diagnostics in interactive mode", async () => {
 		const tempRoot = await mkdtemp(
 			path.join(os.tmpdir(), "olympi-interactive-safety-"),
 		);
@@ -97,11 +113,9 @@ describe("Olympi interactive wrapper", () => {
 			const session = new ScriptedSession(["safety", "quit"], tempRoot);
 			const exitCode = await runInteractiveSession(session);
 			expect(exitCode).toBe(0);
-			expect(session.text()).toContain("Aegis hooks:");
-			expect(session.text()).toContain("Sandbox:");
-			await expect(
-				readFile(path.join(tempRoot, ".pi", "settings.json"), "utf8"),
-			).rejects.toThrow();
+			expect(session.text()).toContain("Unknown command: safety");
+			expect(session.text()).not.toContain("Aegis hooks:");
+			expect(session.text()).not.toContain("Sandbox:");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
 		}
@@ -131,16 +145,12 @@ describe("Olympi interactive wrapper", () => {
 			path.join(os.tmpdir(), "olympi-interactive-reject-"),
 		);
 		try {
-			const session = new ScriptedSession(
-				["extension create", "inspect", "evaluate", "verify", "quit"],
-				tempRoot,
-			);
+			const session = new ScriptedSession(["unknown-admin", "quit"], tempRoot);
 			const exitCode = await runInteractiveSession(session);
 			expect(exitCode).toBe(0);
-			expect(
-				session.text().match(/Unknown command\. Run help\./g) ?? [],
-			).toHaveLength(4);
-			expect(session.text()).not.toContain("Olympi extension create");
+			expect(session.text()).toContain("Unknown command: unknown-admin");
+			expect(session.text()).toContain("expected status, doctor, install");
+			expect(session.text()).toContain("written: none");
 			await expect(
 				readFile(path.join(tempRoot, ".pi", "settings.json"), "utf8"),
 			).rejects.toThrow();
@@ -156,9 +166,10 @@ describe("Olympi interactive wrapper", () => {
 		try {
 			const status = await readInteractiveStatus(tempRoot);
 			expect(status.schemaVersion).toBe(1);
+			expect(status.availableFlows).toContain("status");
 			expect(status.availableFlows).toContain("install");
-			expect(status.availableFlows).toContain("package");
 			expect(status.availableFlows).not.toContain("extension");
+			expect(status.availableFlows).not.toContain("package");
 			expect(status.blockedFlows).toContain("global Pi writes");
 			await expect(
 				readFile(path.join(tempRoot, ".pi", "settings.json"), "utf8"),

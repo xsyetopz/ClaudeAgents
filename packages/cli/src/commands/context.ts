@@ -8,36 +8,39 @@ import {
 export function runContext(args: string[], json: boolean): ExitCode {
 	const subcommand = args[0];
 	const statusline = readFlagValue(args, "--statusline");
-	if (subcommand === "statusline") {
-		if (statusline === undefined) {
+	switch (subcommand) {
+		case "statusline": {
+			if (statusline === undefined) {
+				throw new OlympiError(
+					"usage: olympi debug context statusline --statusline <pi-statusline> [--json]",
+					2,
+				);
+			}
+			const report = parsePiStatusline(statusline);
+			process.stdout.write(json ? asJson(report) : formatStatusline(report));
+			return report.parseWarnings.length > 0 ? 1 : 0;
+		}
+		case "compact-advice": {
+			if (statusline === undefined) {
+				throw new OlympiError(
+					"usage: olympi debug context compact-advice --statusline <pi-statusline> [--after-handoff] [--threshold-percent <n>] [--json]",
+					2,
+				);
+			}
+			const report = buildContextCompactionAdvice({
+				statusline,
+				afterHandoff: args.includes("--after-handoff"),
+				...optionalThreshold(readNumberFlag(args, "--threshold-percent")),
+			});
+			process.stdout.write(json ? asJson(report) : formatAdvice(report));
+			return 0;
+		}
+		default:
 			throw new OlympiError(
-				"usage: olympi context statusline --statusline <pi-statusline> [--json]",
+				"usage: olympi debug context <statusline|compact-advice> --statusline <pi-statusline> [--json]",
 				2,
 			);
-		}
-		const report = parsePiStatusline(statusline);
-		process.stdout.write(json ? asJson(report) : formatStatusline(report));
-		return report.parseWarnings.length > 0 ? 1 : 0;
 	}
-	if (subcommand === "compact-advice") {
-		if (statusline === undefined) {
-			throw new OlympiError(
-				"usage: olympi context compact-advice --statusline <pi-statusline> [--after-handoff] [--threshold-percent <n>] [--json]",
-				2,
-			);
-		}
-		const report = buildContextCompactionAdvice({
-			statusline,
-			afterHandoff: args.includes("--after-handoff"),
-			...optionalThreshold(readNumberFlag(args, "--threshold-percent")),
-		});
-		process.stdout.write(json ? asJson(report) : formatAdvice(report));
-		return 0;
-	}
-	throw new OlympiError(
-		"usage: olympi context <statusline|compact-advice> --statusline <pi-statusline> [--json]",
-		2,
-	);
 }
 
 function optionalThreshold(thresholdPercent: number | undefined): {

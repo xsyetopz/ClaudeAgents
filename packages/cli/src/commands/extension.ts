@@ -11,12 +11,17 @@ export function runExtension(
 	json: boolean,
 ): ExitCode | Promise<ExitCode> {
 	const subcommand = args[0];
-	if (subcommand === "inspect") return runExtensionInspect(args.slice(1), json);
-	if (subcommand === "create") return runExtensionCreate(args.slice(1), json);
-	throw new OlympiError(
-		"usage: olympi debug extension <inspect|create> ...",
-		2,
-	);
+	switch (subcommand) {
+		case "inspect":
+			return runExtensionInspect(args.slice(1), json);
+		case "create":
+			return runExtensionCreate(args.slice(1), json);
+		default:
+			throw new OlympiError(
+				"usage: olympi debug extension <inspect|create> ...",
+				2,
+			);
+	}
 }
 
 async function runExtensionInspect(

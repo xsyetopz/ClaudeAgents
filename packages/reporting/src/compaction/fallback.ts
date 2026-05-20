@@ -40,34 +40,40 @@ export interface FallbackSummary {
 }
 
 export function inferCompactionKind(text: string): CompactionKind {
-	if (GIT_DIFF_PATTERN.test(text) || GIT_DELETED_PATTERN.test(text)) {
-		return "git";
+	switch (true) {
+		case GIT_DIFF_PATTERN.test(text) || GIT_DELETED_PATTERN.test(text):
+			return "git";
+		case TEST_STATUS_PATTERN.test(text) || TEST_WORD_PATTERN.test(text):
+			return "test";
+		case SEARCH_MATCH_PATTERN.test(text) || SEARCH_TOOL_PATTERN.test(text):
+			return "search";
+		case PACKAGE_MANAGER_PATTERN.test(text):
+			return "package-manager";
+		case STACK_TRACE_PATTERN.test(text):
+			return "stack-trace";
+		default:
+			return "generic";
 	}
-	if (TEST_STATUS_PATTERN.test(text) || TEST_WORD_PATTERN.test(text)) {
-		return "test";
-	}
-	if (SEARCH_MATCH_PATTERN.test(text) || SEARCH_TOOL_PATTERN.test(text)) {
-		return "search";
-	}
-	if (PACKAGE_MANAGER_PATTERN.test(text)) {
-		return "package-manager";
-	}
-	if (STACK_TRACE_PATTERN.test(text)) {
-		return "stack-trace";
-	}
-	return "generic";
 }
 
 export function fallbackCompact(
 	kind: CompactionKind,
 	text: string,
 ): FallbackSummary {
-	if (kind === "git") return summarizeGit(text);
-	if (kind === "test") return summarizeTest(text);
-	if (kind === "search") return summarizeSearch(text);
-	if (kind === "package-manager") return summarizePackageManager(text);
-	if (kind === "stack-trace") return summarizeStackTrace(text);
-	return summarizeGeneric(text);
+	switch (kind) {
+		case "git":
+			return summarizeGit(text);
+		case "test":
+			return summarizeTest(text);
+		case "search":
+			return summarizeSearch(text);
+		case "package-manager":
+			return summarizePackageManager(text);
+		case "stack-trace":
+			return summarizeStackTrace(text);
+		default:
+			return summarizeGeneric(text);
+	}
 }
 
 function summarizeGit(text: string): FallbackSummary {

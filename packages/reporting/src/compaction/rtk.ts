@@ -18,12 +18,15 @@ const CATEGORIES: RtkCommandCategory[] = [
 ];
 
 const GIT_COMMAND_PATTERN = /^git\s+(diff|status|log|show)\b/;
+const GIT_EXECUTABLE_PATTERN = /^git\b/;
 const SEARCH_COMMAND_PATTERN = /\b(rg|grep|find)\b/;
+const SEARCH_EXECUTABLE_PATTERN = /^(rg|grep|find)\b/;
 const TEST_COMMAND_PATTERN =
 	/\b(test|vitest|jest|bun\s+test|npm\s+test|pnpm\s+test)\b/;
 const PACKAGE_MANAGER_COMMAND_PATTERN =
 	/\b(npm|pnpm|yarn|bun)\s+(install|add|remove|update)\b/;
 const READ_COMMAND_PATTERN = /\b(cat|sed|awk|less|tail|head)\b/;
+const READ_EXECUTABLE_PATTERN = /^(cat|less)\b/;
 
 export interface RtkCommandPlanReport {
 	schemaVersion: 1;
@@ -49,7 +52,7 @@ export function detectRtk(
 		path: rtkPath,
 		degradedReason:
 			rtkPath === null
-				? "RTK executable was not found on PATH; Olympi will use explicit in-house fallback compactors."
+				? "RTK executable was not found on PATH; governed command execution blocks instead of using direct shell fallback."
 				: null,
 		recommendations: buildRtkRecommendations(rtkPath !== null),
 	};
@@ -63,8 +66,8 @@ export function buildRtkRecommendations(
 		supported: true,
 		preferredWhenAvailable: true,
 		recommendation: available
-			? `Prefer an RTK-backed ${category} path before in-house fallback compaction.`
-			: `RTK-backed ${category} path is supported but unavailable until rtk is on PATH.`,
+			? `Route ${category} command execution through RTK automatically.`
+			: `RTK ${category} routing blocks until rtk is on PATH.`,
 	}));
 }
 
@@ -74,8 +77,8 @@ export function recommendationForKind(
 ): string {
 	const category = categoryForKind(kind);
 	return available
-		? `RTK-backed ${category} is preferred for this output; fallback compactors remain available for unsupported or insufficient RTK output.`
-		: `RTK-backed ${category} is unavailable because rtk is not on PATH; using degraded fallback compaction.`;
+		? `RTK-backed ${category} routing is required for governed command execution.`
+		: `RTK-backed ${category} routing is unavailable because rtk is not on PATH; governed execution must block rather than run directly.`;
 }
 
 export function planRtkCommand(
@@ -96,52 +99,74 @@ export function planRtkCommand(
 		fallbackForm: fallbackForm(category, inputCommand),
 		reasons: [
 			status.status === "available"
-				? "RTK is available on PATH; prefer RTK-shaped bounded output before fallback compaction."
-				: (status.degradedReason ?? "RTK unavailable; use fallback form."),
-			"Command plan is advisory only; Olympi does not execute RTK or the input command.",
+				? "RTK is available on PATH; governed execution must use the RTK route."
+				: (status.degradedReason ??
+					"RTK unavailable; command execution blocks."),
+			"Unsupported commands are proxied through RTK; direct shell workaround paths are not fallback behavior.",
 		],
 	};
 }
 
 function categoryForKind(kind: string): RtkCommandCategory {
-	if (kind === "git") return "git-diff-status-log";
-	if (kind === "test") return "test-output";
-	if (kind === "search") return "grep-find-rg";
-	if (kind === "package-manager") return "package-manager-logs";
-	return "shell-output";
+	switch (kind) {
+		case "git":
+			return "git-diff-status-log";
+		case "test":
+			return "test-output";
+		case "search":
+			return "grep-find-rg";
+		case "package-manager":
+			return "package-manager-logs";
+		default:
+			return "shell-output";
+	}
 }
 
 function categoryForCommand(command: string): RtkCommandCategory {
 	const normalized = command.trim();
-	if (GIT_COMMAND_PATTERN.test(normalized)) return "git-diff-status-log";
-	if (SEARCH_COMMAND_PATTERN.test(normalized)) return "grep-find-rg";
-	if (TEST_COMMAND_PATTERN.test(normalized)) return "test-output";
-	if (PACKAGE_MANAGER_COMMAND_PATTERN.test(normalized))
-		return "package-manager-logs";
-	if (READ_COMMAND_PATTERN.test(normalized)) return "read";
-	return "shell-output";
+	switch (true) {
+		case GIT_COMMAND_PATTERN.test(normalized):
+			return "git-diff-status-log";
+		case SEARCH_COMMAND_PATTERN.test(normalized):
+			return "grep-find-rg";
+		case TEST_COMMAND_PATTERN.test(normalized):
+			return "test-output";
+		case PACKAGE_MANAGER_COMMAND_PATTERN.test(normalized):
+			return "package-manager-logs";
+		case READ_COMMAND_PATTERN.test(normalized):
+			return "read";
+		default:
+			return "shell-output";
+	}
 }
 
 function recommendedForm(
 	category: RtkCommandCategory,
 	inputCommand: string,
 ): string {
-	return `rtk capture --category ${category} -- ${inputCommand}`;
+	switch (category) {
+		case "git-diff-status-log":
+			return inputCommand.replace(GIT_EXECUTABLE_PATTERN, "rtk git");
+		case "grep-find-rg":
+			return inputCommand.replace(SEARCH_EXECUTABLE_PATTERN, (match) =>
+				match === "find" ? "rtk find" : "rtk grep",
+			);
+		case "test-output":
+			return `rtk test ${inputCommand}`;
+		case "package-manager-logs":
+			return `rtk proxy -- ${inputCommand}`;
+		case "read":
+			return inputCommand.replace(READ_EXECUTABLE_PATTERN, "rtk read");
+		default:
+			return `rtk proxy -- ${inputCommand}`;
+	}
 }
 
 function fallbackForm(
 	category: RtkCommandCategory,
 	inputCommand: string,
 ): string {
-	return `${inputCommand} 2>&1 | olympi debug compact --kind ${kindForCategory(category)}`;
-}
-
-function kindForCategory(category: RtkCommandCategory): string {
-	if (category === "git-diff-status-log") return "git";
-	if (category === "grep-find-rg") return "search";
-	if (category === "test-output") return "test";
-	if (category === "package-manager-logs") return "package-manager";
-	return "generic";
+	return `no direct shell fallback; required route is ${recommendedForm(category, inputCommand)}`;
 }
 
 function findRtkOnPath(pathValue: string): string | null {

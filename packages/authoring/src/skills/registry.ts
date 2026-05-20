@@ -89,6 +89,15 @@ export const FIRST_PARTY_SKILL_INDEX: SkillIndexMetadata[] = [
 		["bun run biome:check", "git diff --check"],
 	),
 	skill(
+		"caveman-output",
+		"Caveman Output",
+		"Compress prose only when requested while preserving exact technical tokens and validation evidence.",
+		["caveman", "compact", "output"],
+		["caveman", "compact", "terse", "wenyan"],
+		"cheap-worker",
+		["stop hook cavemanCompliant signal"],
+	),
+	skill(
 		"systemic-debugging",
 		"Systemic Debugging",
 		"Diagnose concrete blockers by reproducing symptoms and changing one variable at a time.",

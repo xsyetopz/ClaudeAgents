@@ -167,6 +167,7 @@ describe("Olympi CLI", () => {
 		const proc = Bun.spawn([
 			"bun",
 			path.join(import.meta.dir, "..", "src", "cli.ts"),
+			"dev",
 			"verify",
 			"--json",
 		]);

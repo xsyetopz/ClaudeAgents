@@ -119,10 +119,10 @@ async function inferResourceCapabilities(
 
 function recommendation(hasExecutable: boolean, conflicts: string[]): string {
 	if (hasExecutable) {
-		return "Executable resources are present. Keep this package inspect-only until explicit trust and sandbox gates exist.";
+		return "Executable resources are present. Default passive install remains blocked; use explicit executable staging and trust/sandbox gates only when intended.";
 	}
 	if (conflicts.length > 0) {
 		return "Conflicts or sprawl were found. Review the evaluation report before any passive install plan.";
 	}
-	return "Only passive resources were discovered. A later phase may create a manifest-backed passive install plan.";
+	return "Only passive resources were discovered. A manifest-backed passive install plan is available through install --project --dry-run.";
 }

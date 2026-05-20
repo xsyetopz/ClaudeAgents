@@ -8,6 +8,7 @@ const EXECUTABLE_NAMES = {
 	pi: ["pi", "pi-coding-agent"],
 };
 
+/** Availability and version details for a local tool used by Olympi. */
 export interface ToolStatus {
 	name: "bun" | "pi" | "rtk";
 	available: boolean;
@@ -16,6 +17,7 @@ export interface ToolStatus {
 	detection: string;
 }
 
+/** Read-only local setup status report for project and tool readiness. */
 export interface SetupStatusReport {
 	schemaVersion: 1;
 	command: "setup status";
@@ -52,6 +54,7 @@ export interface SetupStatusReport {
 	nextActions: string[];
 }
 
+/** Read local setup status without mutating project or user home state. */
 export async function readSetupStatus(
 	projectRoot: string = process.cwd(),
 	env: NodeJS.ProcessEnv = process.env,
@@ -99,6 +102,7 @@ export async function readSetupStatus(
 	};
 }
 
+/** Format setup status for terminal output. */
 export function formatSetupStatus(report: SetupStatusReport): string {
 	const lines = [
 		"Olympi setup status",
@@ -236,14 +240,16 @@ function buildNextActions(
 	const actions: string[] = [];
 	if (!configured.projectPiPresent) {
 		actions.push(
-			"Run package inspect/evaluate first; use install --project --dry-run before any project-local apply.",
+			"Run olympi install --dry-run, then olympi install --apply, to register the Pi extension project-locally by default; use --global only for explicit global Pi registration.",
 		);
 	}
 	if (status.warnings.length > 0) {
 		actions.push("Review status drift before trust-sensitive operations.");
 	}
 	if (rtk.status === "unavailable") {
-		actions.push("Expose RTK on PATH for preferred output-heavy compaction.");
+		actions.push(
+			"Expose RTK on PATH; governed command execution blocks rather than bypassing RTK.",
+		);
 	}
 	if (actions.length === 0) {
 		actions.push(

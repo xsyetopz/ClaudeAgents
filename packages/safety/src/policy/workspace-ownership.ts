@@ -347,41 +347,54 @@ export function classifyWorkspaceCommand(
 		);
 	}
 
-	if (tokens[0] === "git") {
-		const gitSubcommand = tokens[1];
-		if (gitSubcommand === "stash") {
-			operation = "revert";
-			classes.push("revert-like");
-			reasons.push("git stash is a revert-like workspace operation");
-		} else if (
-			gitSubcommand !== undefined &&
-			REVISION_COMMANDS.has(gitSubcommand)
-		) {
-			operation = gitSubcommand === "clean" ? "delete" : "revert";
-			classes.push(
-				gitSubcommand === "clean" ? "destructive-workspace" : "revert-like",
-			);
-			reasons.push(`git ${gitSubcommand} is a revert-like workspace operation`);
+	switch (tokens[0]) {
+		case "git": {
+			const gitSubcommand = tokens[1];
+			switch (gitSubcommand) {
+				case "stash":
+					operation = "revert";
+					classes.push("revert-like");
+					reasons.push("git stash is a revert-like workspace operation");
+					break;
+				case "add":
+					operation = "stage";
+					classes.push("staging");
+					reasons.push(
+						"git add stages workspace changes and requires ownership proof",
+					);
+					break;
+				case "commit":
+					operation = "commit";
+					classes.push("commit");
+					reasons.push("git commit requires staged-change ownership proof");
+					break;
+				default:
+					if (
+						gitSubcommand !== undefined &&
+						REVISION_COMMANDS.has(gitSubcommand)
+					) {
+						operation = gitSubcommand === "clean" ? "delete" : "revert";
+						classes.push(
+							gitSubcommand === "clean"
+								? "destructive-workspace"
+								: "revert-like",
+						);
+						reasons.push(
+							`git ${gitSubcommand} is a revert-like workspace operation`,
+						);
+					}
+			}
+			if (
+				gitSubcommand !== undefined &&
+				READ_ONLY_GIT_COMMANDS.has(gitSubcommand) &&
+				classes.length === 0
+			) {
+				classes.push("read-only-inspection");
+			}
+			break;
 		}
-		if (gitSubcommand === "add") {
-			operation = "stage";
-			classes.push("staging");
-			reasons.push(
-				"git add stages workspace changes and requires ownership proof",
-			);
-		}
-		if (gitSubcommand === "commit") {
-			operation = "commit";
-			classes.push("commit");
-			reasons.push("git commit requires staged-change ownership proof");
-		}
-		if (
-			gitSubcommand !== undefined &&
-			READ_ONLY_GIT_COMMANDS.has(gitSubcommand) &&
-			classes.length === 0
-		) {
-			classes.push("read-only-inspection");
-		}
+		default:
+			break;
 	}
 
 	if (tokens.includes("rm")) {

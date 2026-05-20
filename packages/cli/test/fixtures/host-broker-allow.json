@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "resourceId": "fixture-read-only-resource",
+  "mode": "dry-run",
+  "capabilities": ["filesystem"],
+  "filesystem": {
+    "read": ["src/index.ts"],
+    "write": []
+  },
+  "network": {
+    "allow": false
+  },
+  "process": {
+    "allow": false
+  }
+}

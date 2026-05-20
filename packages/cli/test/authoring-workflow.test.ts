@@ -26,7 +26,7 @@ function hashText(text: string): string {
 	return `sha256:${createHash("sha256").update(text).digest("hex")}`;
 }
 
-describe("Track B first-party resources", () => {
+describe("Authoring workflow first-party resources", () => {
 	test("skill and prompt metadata validates", async () => {
 		const report = await validateResources();
 		expect(report.valid).toBe(true);
@@ -99,7 +99,7 @@ describe("Track B first-party resources", () => {
 	});
 });
 
-describe("Track B prompt/review artifacts", () => {
+describe("Authoring workflow prompt/review artifacts", () => {
 	test("prompt contract preserves user paths and constraints", async () => {
 		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-contract-"));
 		try {
@@ -287,7 +287,7 @@ describe("Track B prompt/review artifacts", () => {
 	});
 });
 
-describe("Track B module shells and Hermes", () => {
+describe("Authoring workflow module shells and Hermes", () => {
 	test("bounded modules enforce authorities", () => {
 		expect(runModuleDry("athena", true, { write: true }).reasons).toContain(
 			"Athena cannot write or apply plans",
@@ -331,17 +331,17 @@ describe("Track B module shells and Hermes", () => {
 			expect(status.status).toBe("available");
 			expect(
 				status.recommendations.map((entry) => entry.recommendation).join("\n"),
-			).toContain("RTK-backed");
+			).toContain("through RTK automatically");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
 		}
 	});
 });
 
-describe("Track B CLI smoke and no global Pi writes", () => {
+describe("Authoring workflow CLI smoke and no global Pi writes", () => {
 	test("low-level CLI workflow commands emit JSON", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-b-cli-"),
+			path.join(os.tmpdir(), "olympi-authoring-workflow-cli-"),
 		);
 		try {
 			const promptFile = path.join(tempRoot, "prompt.md");
@@ -380,7 +380,7 @@ describe("Track B CLI smoke and no global Pi writes", () => {
 
 	test("module commands do not write to HOME ~/.pi by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-b-home-"),
+			path.join(os.tmpdir(), "olympi-authoring-workflow-home-"),
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");

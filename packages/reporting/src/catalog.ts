@@ -67,11 +67,138 @@ const RESOURCE_CONTRACTS: CatalogResourceContract[] = [
 			"extensions/*/index.ts",
 		],
 		initialPolicy:
-			"inspect and hash only until explicit trust and sandbox gates exist",
+			"inspect and hash; default passive install does not load executable code",
 	},
 ];
 
 const COMMAND_CONTRACTS: CatalogCommandContract[] = [
+	{
+		command: "/olympi-goal",
+		purpose:
+			"Prepare or save a project-local goal-loop state with planned steps, verification commands, and stop conditions.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/goals/<goal-id>.json"],
+		blocked: [
+			"implicit autonomy",
+			"source mutation",
+			"unverified completion",
+			"silent blocker bypass",
+		],
+	},
+	{
+		command: "/olympi-plan",
+		purpose:
+			"Append a bounded, reviewable planned step to saved project-local goal state.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/goals/<goal-id>.json"],
+		blocked: [
+			"source mutation",
+			"missing saved goal state",
+			"planning through active blocker",
+		],
+	},
+	{
+		command: "/olympi-plan decomposition",
+		purpose:
+			"Record bounded team assignments for independent saved goal steps with explicit non-overlapping paths and parent integration.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/goals/<goal-id>.json"],
+		blocked: [
+			"active blocker bypass",
+			"overlapping assignment paths",
+			"unknown or non-pending step",
+			"unbounded worker count",
+			"missing allowed paths",
+		],
+	},
+	{
+		command: "/olympi-resume",
+		purpose:
+			"Rebuild continuation context from saved project-local goal state without executing an agent.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/goals/<goal-id>.json"],
+		blocked: [
+			"source mutation",
+			"missing saved goal state",
+			"path traversal outside project-local goal state",
+			"resuming through active blockers",
+		],
+	},
+	{
+		command: "/olympi-execute",
+		purpose:
+			"Execute one saved goal step through command policy, hook vetoes, relevant skill loading, provenance audit, and blocker state transitions.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [
+			".pi/olympi/goals/<goal-id>.json with --save",
+			".pi/olympi/policy/decisions.jsonl with --save",
+			".pi/olympi/audit.jsonl with --save",
+		],
+		blocked: [
+			"implicit autonomy",
+			"unconfirmed mutation",
+			"policy veto",
+			"hook veto",
+			"active blocker bypass",
+			"unloaded relevant skills",
+		],
+	},
+	{
+		command: "/olympi-complete",
+		purpose:
+			"Request saved goal completion only after required verification records and completion audit evidence pass the gate.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/goals/<goal-id>.json with --save"],
+		blocked: [
+			"missing verification records",
+			"incomplete audit",
+			"unresolved blockers",
+			"unintended changed files",
+		],
+	},
+	{
+		command: "dev package inspect",
+		purpose:
+			"Developer-facing package inspection without executing package code.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["package-manager invocation", "lifecycle script execution"],
+	},
+	{
+		command: "dev skills",
+		purpose: "List first-party skill metadata for progressive disclosure.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["loading unselected skill bodies", "global skill writes"],
+	},
+	{
+		command: "dev provenance",
+		purpose:
+			"Inspect manifest, lock, audit, and drift state behind project-local provenance.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["implicit repair", "path-name ownership inference"],
+	},
+	{
+		command: "dev intelligence",
+		purpose:
+			"Inspect, refresh, and emit concise project-local repo-map context from Tree-sitter availability and TypeScript AST fallback analysis.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/code-intelligence/repo-map.json with refresh"],
+		blocked: [
+			"global .pi writes",
+			"fabricated LSP diagnostics",
+			"regex-only parsing",
+		],
+	},
+	{
+		command: "dev feedback",
+		purpose:
+			"Record and list classified product feedback with implemented, rejected, or concrete blocked status.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/feedback/items.json with record"],
+		blocked: ["vague backlog entries", "unclassified roadmap dumping grounds"],
+	},
 	{
 		command: "package inspect",
 		purpose:
@@ -91,7 +218,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "report package-risk",
 		purpose:
-			"Emit deterministic package risk, conflict, warning, and recommendation details for CLI and interactive parity.",
+			"Emit deterministic package risk, conflict, warning, and recommendation details for CLI and interactive surfaces.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["package code execution", "trust writes", "global installs"],
@@ -99,9 +226,11 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "install",
 		purpose:
-			"Mirror approved passive resources, or stage trusted executable resources without enabling load until trust/load gates pass.",
+			"Register the Olympi Pi extension project-locally by default, register it globally only with explicit --global confirmation/provenance, or mirror approved passive package resources when a source is provided.",
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
+			".pi/extensions/olympi-aegis.ts by default extension install",
+			"~/.pi/agent/extensions/olympi-aegis.ts only with --global --confirm-global --provenance explicit-user-approval",
 			".pi/settings.json packages entry",
 			".pi/olympi/olympi-manifest.json",
 			".pi/olympi/olympi.lock for executable stage",
@@ -109,7 +238,8 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 			".pi/olympi/packages/<package-id>/package/**",
 		],
 		blocked: [
-			"~/.pi writes",
+			"implicit ~/.pi writes without --global",
+			"global install without --confirm-global and explicit provenance",
 			"executable settings load during stage",
 			"executable stage without matching signature digest",
 			"direct .pi/skills writes",
@@ -144,9 +274,17 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
+		command: "doctor",
+		purpose:
+			"Check install readiness, Pi host availability, RTK routing, hook policy, catalog validity, and project-local state without mutating anything.",
+		mutationPolicy: "read-only",
+		writes: [],
+		blocked: ["implicit repair", "global Pi writes", "direct RTK operation"],
+	},
+	{
 		command: "verify",
 		purpose:
-			"Run deterministic fixture acceptance checks in temp roots and fake homes.",
+			"Developer/CI deterministic fixture acceptance checks in temp roots and fake homes.",
 		mutationPolicy: "temp-roots-only",
 		writes: ["temporary project roots", "temporary fake homes"],
 		blocked: [
@@ -156,16 +294,12 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
-		command: "setup status",
+		command: "dev catalog",
 		purpose:
-			"Detect Bun, Pi, RTK, and project-local Olympi state without mutating setup or global homes.",
+			"Developer/CI command and safety contract emission for drift checks.",
 		mutationPolicy: "read-only",
 		writes: [],
-		blocked: [
-			"package-manager execution",
-			"global executable install",
-			"~/.pi writes",
-		],
+		blocked: ["ambiguous command shortcuts", "provider-renderer assumptions"],
 	},
 	{
 		command: "status",
@@ -233,7 +367,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "debug compact",
 		purpose:
-			"Compact output-heavy fixture or file text with RTK-first status and explicit fallback reasons.",
+			"Compact output-heavy fixture or file text for reports; governed command execution itself routes through RTK automatically.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: [
@@ -241,25 +375,6 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 			"hidden failing tests",
 			"hidden deleted files",
 		],
-	},
-	{
-		command: "debug rtk status",
-		purpose:
-			"Detect RTK on PATH and recommend RTK-backed paths for output-heavy workflows.",
-		mutationPolicy: "read-only",
-		writes: [],
-		blocked: [
-			"silent RTK bypass",
-			"third-party command execution during detection",
-		],
-	},
-	{
-		command: "debug rtk plan",
-		purpose:
-			"Classify output-heavy commands and emit RTK-preferred plus fallback command forms without executing either command.",
-		mutationPolicy: "read-only",
-		writes: [],
-		blocked: ["command execution", "silent RTK bypass"],
 	},
 	{
 		command: "debug quota status",
@@ -295,7 +410,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "safety hooks aegis-runtime",
 		purpose:
-			"Report the first-party Pi Aegis runtime extension entrypoint and fail-closed subscribed event contract.",
+			"Report the first-party Pi Aegis runtime extension entrypoint, Pi invocation model, and fail-closed subscribed event contract.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: [
@@ -307,10 +422,17 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "safety hooks aegis-install",
 		purpose:
-			"Plan or explicitly write the first-party Aegis extension entrypoint to project-local .pi/extensions only.",
+			"Plan or explicitly write the first-party Aegis extension entrypoint to project-local .pi/extensions by default, or global ~/.pi/agent/extensions only with --global confirmation/provenance.",
 		mutationPolicy: "dry-run-first-project-local",
-		writes: [".pi/extensions/olympi-aegis.ts"],
-		blocked: ["global ~/.pi extension writes", "third-party code execution"],
+		writes: [
+			".pi/extensions/olympi-aegis.ts by default",
+			"~/.pi/agent/extensions/olympi-aegis.ts only with explicit --global gates",
+		],
+		blocked: [
+			"implicit global ~/.pi extension writes",
+			"global install without confirmation/provenance",
+			"third-party code execution",
+		],
 	},
 	{
 		command: "safety sandbox check",
@@ -478,7 +600,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "debug profile status",
 		purpose:
-			"Read the optional Olympi-owned project-local profile without legacy provider-renderer semantics.",
+			"Read the optional Olympi-owned project-local profile without provider-renderer semantics.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["provider-renderer profiles", "global Pi profile writes"],
@@ -486,25 +608,18 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "debug profile set",
 		purpose:
-			"Plan or explicitly write a bounded project-local Olympi profile distinct from legacy provider profiles.",
+			"Plan or explicitly write a bounded project-local Olympi profile distinct from provider profiles.",
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [".pi/olympi/profile.json"],
-		blocked: ["provider-renderer compatibility", "global Pi profile writes"],
+		blocked: ["provider-renderer profile writes", "global Pi profile writes"],
 	},
 	{
 		command: "debug lock queue",
 		purpose:
-			"Build a deterministic file-level mutation queue plan before future parallel writes touch manifest, lock, settings, audit, or source files.",
+			"Build a deterministic file-level mutation queue plan for manifest, lock, settings, audit, or source-file write coordination.",
 		mutationPolicy: "read-only",
 		writes: [],
 		blocked: ["parallel write execution", "unqueued manifest mutation"],
-	},
-	{
-		command: "catalog",
-		purpose: "Emit implemented command and safety contracts.",
-		mutationPolicy: "read-only",
-		writes: [],
-		blocked: ["old command aliases", "legacy renderer assumptions"],
 	},
 ];
 
@@ -539,15 +654,33 @@ const ACCEPTANCE_CONTRACTS: CatalogAcceptanceContract[] = [
 		fixtureScope: "read-only",
 	},
 	{
+		name: "goal-state-resume",
+		proves:
+			"saved goal state can be resumed from durable objective context without source mutation or blocker bypass",
+		fixtureScope: "temp-project",
+	},
+	{
+		name: "governed-goal-execution",
+		proves:
+			"saved goal execution invokes policy, hooks, skill loading, provenance audit, blocker transitions, and verification-gated completion",
+		fixtureScope: "temp-project",
+	},
+	{
+		name: "bounded-team-orchestration",
+		proves:
+			"saved goal team planning records independent path-bounded assignments and blocks overlap before any provider-agent claim",
+		fixtureScope: "temp-project",
+	},
+	{
 		name: "reporting-efficiency",
 		proves:
-			"RTK status, fallback compaction, handoff, acceptance, and quota reports are deterministic",
+			"RTK status, automatic route evidence, handoff, acceptance, and quota reports are deterministic",
 		fixtureScope: "read-only",
 	},
 	{
 		name: "safety-runtime-policy",
 		proves:
-			"Themis decisions, Aegis skeleton, sandbox probes, trust signage, and broker schemas are fail-closed and read-only",
+			"Themis decisions, Aegis skeleton, sandbox probes, trust signage, schemas are fail-closed and read-only",
 		fixtureScope: "fake-home",
 	},
 	{
@@ -559,22 +692,24 @@ const ACCEPTANCE_CONTRACTS: CatalogAcceptanceContract[] = [
 ];
 
 const SAFETY_INVARIANTS = [
+	"Olympi is invoked by Pi as an extension/harness; default install is project-local and global Pi registration requires explicit --global confirmation/provenance.",
 	"Local package inspection never executes package code or lifecycle scripts.",
 	"Executable resources are inspected and hashed, not installed as trusted code by default.",
 	"Mutating project commands plan before apply and write only project-local Olympi-owned paths.",
-	"Global ~/.pi writes are outside the default Olympi safety boundary.",
+	"Global ~/.pi writes are outside the default Olympi safety boundary and occur only through explicit --global registration gates.",
 	"Uninstall authority comes from the Olympi manifest, not path names.",
 	"Hash mismatches preserve user-modified files for manual review.",
-	"Status and catalog output is generated from active contracts, not legacy names.",
-	"RTK availability is explicit for output-heavy workflows; fallback compaction records degraded reasons.",
-	"RTK command planning is advisory and does not execute RTK or shell commands.",
+	"Status and catalog output is generated from active Olympi contracts.",
+	"Doctor is the user-facing health check; verify and catalog are developer/CI contracts under dev.",
+	"Olympi routes governed command execution through RTK automatically; unsupported commands are proxied through RTK.",
+	"RTK bypass, direct shell workaround, manual emulation, and disabled routing attempts are hook-blocked.",
 	"Quota reports label unknown quota as unknown and do not fabricate opaque provider limits.",
 	"Safety policy fails closed for dangerous commands, protected paths, executable package loads, unapproved generated writes, and unsafe global Pi paths.",
 	"Broker APIs validate typed read-only requests and deny arbitrary shell strings.",
 	"Olympi module names are bounded codenames, not personas, and do not grant write authority by prompt instruction.",
 	"Hephaestus remains blocked unless approved plan digest, path allowlist, manifest ownership, and Themis approval are proven.",
-	"Project-local profiles are Olympi UX hints only and never restore legacy provider-renderer profiles.",
-	"File-level mutation queue plans are deterministic prerequisites before future parallel writes.",
+	"Project-local profiles are Olympi UX hints only and never write provider-renderer profiles.",
+	"File-level mutation queue plans are deterministic coordination records for write-sensitive paths.",
 ];
 
 export function getOlympiCatalog(): OlympiCatalog {
@@ -582,12 +717,15 @@ export function getOlympiCatalog(): OlympiCatalog {
 		schemaVersion: 1,
 		product: "Olympi",
 		contract:
-			"Local Pi package inspection, risk evaluation, project-local install, verification, and manifest-backed uninstall.",
+			"First-party Pi extension/harness for goal-driven agentic coding workflows with project-local Pi/Olympi state, governed execution, provenance, bounded team planning, verification, and reporting; Pi invokes Olympi as an extension, default install is project-local Pi registration, explicit --global registers global Pi use with stricter confirmation/provenance gates, and package-manager global CLI installation is separate from Pi extension registration.",
 		sourceOfTruth: [
 			"packages/reporting/src/catalog.ts",
 			"packages/lifecycle/src/inspection.ts",
 			"packages/lifecycle/src/evaluation.ts",
 			"packages/lifecycle/src/install-flow.ts",
+			"packages/lifecycle/src/goal-store.ts",
+			"packages/lifecycle/src/goal-loop.ts",
+			"packages/cli/src/commands/doctor.ts",
 			"packages/cli/src/commands/verify.ts",
 			"packages/reporting/src/reports/status.ts",
 			"packages/reporting/src/artifacts.ts",
@@ -596,6 +734,7 @@ export function getOlympiCatalog(): OlympiCatalog {
 			"packages/cli/src/setup-status.ts",
 			"packages/reporting/src/compaction/index.ts",
 			"packages/reporting/src/compaction/rtk.ts",
+			"packages/safety/src/rtk-routing.ts",
 			"packages/safety/src/quota/profile.ts",
 			"packages/lifecycle/src/profile.ts",
 			"packages/safety/src/policy/themis.ts",
@@ -624,13 +763,25 @@ export function validateOlympiCatalog(
 		catalog.commands.map((command) => command.command),
 	);
 	for (const required of [
+		"/olympi-goal",
+		"/olympi-plan",
+		"/olympi-plan decomposition",
+		"/olympi-resume",
+		"/olympi-execute",
+		"/olympi-complete",
+		"dev package inspect",
+		"dev intelligence",
+		"dev feedback",
+		"dev skills",
+		"dev provenance",
 		"package inspect",
 		"package evaluate",
 		"report package-risk",
 		"install",
 		"uninstall",
+		"doctor",
 		"verify",
-		"setup status",
+		"dev catalog",
 		"status",
 		"report status",
 		"report handoff",
@@ -639,8 +790,6 @@ export function validateOlympiCatalog(
 		"debug audit append",
 		"debug context compact-advice",
 		"debug compact",
-		"debug rtk status",
-		"debug rtk plan",
 		"debug quota status",
 		"safety check",
 		"safety hooks policy",
@@ -663,7 +812,6 @@ export function validateOlympiCatalog(
 		"debug profile status",
 		"debug profile set",
 		"debug lock queue",
-		"catalog",
 	]) {
 		if (!commandNames.has(required))
 			errors.push(`missing command contract: ${required}`);
@@ -674,19 +822,14 @@ export function validateOlympiCatalog(
 	if (install?.mutationPolicy !== "dry-run-first-project-local") {
 		errors.push("install must remain dry-run-first and project-local");
 	}
-	if (!install?.blocked.includes("~/.pi writes")) {
-		errors.push("install contract must block global Pi writes");
+	if (!install?.blocked.includes("implicit ~/.pi writes without --global")) {
+		errors.push("install contract must block implicit global Pi writes");
 	}
 	const uninstall = catalog.commands.find(
 		(command) => command.command === "uninstall",
 	);
 	if (!uninstall?.blocked.includes("hash-mismatched file deletion")) {
 		errors.push("uninstall contract must preserve hash mismatches");
-	}
-	const serialized = JSON.stringify(catalog).toLowerCase();
-	for (const legacyTerm of ["openagentlayer", "active oal", "oal vnext"]) {
-		if (serialized.includes(legacyTerm))
-			errors.push(`legacy framing leaked into catalog: ${legacyTerm}`);
 	}
 	return errors;
 }

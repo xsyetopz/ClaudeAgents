@@ -21,9 +21,20 @@ import {
 const SUBSCRIBED_EVENTS: PolicyEventType[] = [
 	"tool_call",
 	"tool_result",
+	"tool_execution_start",
+	"tool_execution_end",
 	"before_provider_request",
+	"after_provider_response",
 	"input",
+	"before_agent_start",
+	"agent_end",
+	"turn_end",
+	"message_end",
+	"user_bash",
+	"context",
 	"session_start",
+	"session_before_compact",
+	"session_compact",
 	"session_shutdown",
 	"resources_discover",
 	"model_select",
@@ -41,79 +52,91 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 	let commandClassification: CommandClassificationAudit | undefined;
 	let blocker: PolicyBlockerReport | undefined;
 
-	if (event.eventType === "tool_call") {
-		commandClassification = classifyPolicyEventCommand(event).audit;
-		const metadataBlocker = providerMetadataBlocker(
-			event,
-			commandClassification,
-		);
-		if (metadataBlocker !== undefined) {
-			blocker = metadataBlocker;
-			reasons.push(
-				`provider metadata missing ${metadataBlocker.missingFields.join(", ")} for ${metadataBlocker.preventedOperation}; explicit safe wrapper or richer tool event required`,
+	switch (event.eventType) {
+		case "tool_call": {
+			commandClassification = classifyPolicyEventCommand(event).audit;
+			const metadataBlocker = providerMetadataBlocker(
+				event,
+				commandClassification,
 			);
-		}
-		reasons.push(...dangerousCommandReasons(event.command, event.argv));
-		reasons.push(...workspaceOwnershipReasons(event));
-		for (const filePath of event.paths ?? [event.path].filter(isString)) {
-			reasons.push(...protectedPathReasons(filePath, event.manifestOwned));
-		}
-		reasons.push(
-			...generatedArtifactReasons(event.generatedArtifact, event.manifestOwned),
-		);
-		if (event.packageExecutable === true) {
-			reasons.push(
-				"package executable install/load attempt blocked until trust, lock, and sandbox gates pass",
-			);
-		}
-		if (event.requiresPlanApproval === true && event.planApproved !== true) {
-			reasons.push("missing plan approval for trust-sensitive operation");
-		}
-	}
-
-	if (event.eventType === "tool_result" && event.text !== undefined) {
-		const redacted = redactPolicySecrets(event.text);
-		redactedText = redacted.text;
-		redactions.push(...redacted.redactions);
-		if (redacted.hasSecrets)
-			reasons.push("secret-looking tool output redacted");
-	}
-
-	if (event.eventType === "before_provider_request") {
-		if ((event.payloadBytes ?? 0) > 120_000) {
-			reasons.push(
-				"provider payload size warning: expensive workflow pressure",
-			);
-		}
-		if (event.quotaPressure === true) {
-			reasons.push(
-				"quota pressure warning emitted without inventing provider limits",
-			);
-		}
-		if (event.text !== undefined) {
-			const redacted = redactPolicySecrets(event.text);
-			redactedText = redacted.text;
-			redactions.push(...redacted.redactions);
-			if (redacted.hasSecrets)
+			if (metadataBlocker !== undefined) {
+				blocker = metadataBlocker;
 				reasons.push(
-					"provider payload secret-looking value redacted from audit evidence",
+					`provider metadata missing ${metadataBlocker.missingFields.join(", ")} for ${metadataBlocker.preventedOperation}; explicit safe wrapper or richer tool event required`,
 				);
+			}
+			reasons.push(...dangerousCommandReasons(event.command, event.argv));
+			reasons.push(...workspaceOwnershipReasons(event));
+			for (const filePath of event.paths ?? [event.path].filter(isString)) {
+				reasons.push(...protectedPathReasons(filePath, event.manifestOwned));
+			}
+			reasons.push(
+				...generatedArtifactReasons(
+					event.generatedArtifact,
+					event.manifestOwned,
+				),
+			);
+			if (event.packageExecutable === true) {
+				reasons.push(
+					"package executable install/load attempt blocked until trust, lock, and sandbox gates pass",
+				);
+			}
+			if (event.requiresPlanApproval === true && event.planApproved !== true) {
+				reasons.push("missing plan approval for trust-sensitive operation");
+			}
+			break;
 		}
-	}
-
-	if (event.eventType === "resources_discover" && event.olympiOwned !== true) {
-		reasons.push(
-			"non-Olympi-owned resource discovery blocked from runtime exposure",
-		);
-	}
-
-	if (
-		(event.eventType === "input" ||
-			event.eventType === "model_select" ||
-			event.eventType === "thinking_level_select") &&
-		event.quotaPressure === true
-	) {
-		reasons.push("quota pressure warning emitted without fabricated limits");
+		case "tool_result":
+			if (event.text !== undefined) {
+				const redacted = redactPolicySecrets(event.text);
+				redactedText = redacted.text;
+				redactions.push(...redacted.redactions);
+				if (redacted.hasSecrets)
+					reasons.push("secret-looking tool output redacted");
+			}
+			break;
+		case "before_provider_request":
+			if ((event.payloadBytes ?? 0) > 120_000) {
+				reasons.push(
+					"provider payload size warning: expensive workflow pressure",
+				);
+			}
+			if (event.quotaPressure === true) {
+				reasons.push(
+					"quota pressure warning emitted without inventing provider limits",
+				);
+			}
+			if (event.text !== undefined) {
+				const redacted = redactPolicySecrets(event.text);
+				redactedText = redacted.text;
+				redactions.push(...redacted.redactions);
+				if (redacted.hasSecrets)
+					reasons.push(
+						"provider payload secret-looking value redacted from audit evidence",
+					);
+			}
+			break;
+		case "resources_discover":
+			if (event.olympiOwned !== true) {
+				reasons.push(
+					"non-Olympi-owned resource discovery blocked from runtime exposure",
+				);
+			}
+			break;
+		case "input":
+		case "model_select":
+		case "thinking_level_select":
+			if (event.quotaPressure === true) {
+				reasons.push(
+					"quota pressure warning emitted without fabricated limits",
+				);
+			}
+			break;
+		case "session_start":
+		case "session_shutdown":
+			break;
+		default:
+			break;
 	}
 
 	appendTrustReasons(event, reasons);
@@ -218,10 +241,16 @@ function decideKind(
 	reasons: string[],
 	redactions: string[],
 ): PolicyDecision["decision"] {
-	if (reasons.some(isBlockReason)) return "block";
-	if (redactions.length > 0 && eventType === "tool_result") return "redact";
-	if (reasons.length > 0) return "warn";
-	return "allow";
+	switch (true) {
+		case reasons.some(isBlockReason):
+			return "block";
+		case redactions.length > 0 && eventType === "tool_result":
+			return "redact";
+		case reasons.length > 0:
+			return "warn";
+		default:
+			return "allow";
+	}
 }
 
 function isBlockReason(reason: string): boolean {

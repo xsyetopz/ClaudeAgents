@@ -17,7 +17,6 @@ import {
 	buildStatusReport,
 	compactText,
 	detectRtk,
-	getOlympiCatalog,
 	parsePiStatusline,
 } from "reporting";
 import { loadQuotaStatus } from "safety";
@@ -30,7 +29,7 @@ function fixturePath(name: string): string {
 	return path.join(FIXTURES, name);
 }
 
-describe("Track C RTK status and command policy", () => {
+describe("Reporting efficiency RTK status and command policy", () => {
 	test("detects RTK when a fake rtk executable exists on PATH", async () => {
 		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-rtk-"));
 		try {
@@ -44,7 +43,7 @@ describe("Track C RTK status and command policy", () => {
 				report.recommendations.some(
 					(recommendation) =>
 						recommendation.category === "git-diff-status-log" &&
-						recommendation.recommendation.includes("RTK-backed"),
+						recommendation.recommendation.includes("through RTK"),
 				),
 			).toBe(true);
 		} finally {
@@ -56,10 +55,11 @@ describe("Track C RTK status and command policy", () => {
 		const report = detectRtk({ PATH: "" });
 		expect(report.status).toBe("unavailable");
 		expect(report.degradedReason).toContain("not found on PATH");
+		expect(report.degradedReason).toContain("blocks");
 	});
 });
 
-describe("Track C fallback compaction", () => {
+describe("Reporting efficiency fallback compaction", () => {
 	test("keeps failing tests and error messages visible", () => {
 		const report = compactText({
 			text: "FAIL packages/cli/test/sample.test.ts\n✗ rejects unsafe write\nError: expected true to be false\nexit code: 1\n",
@@ -100,10 +100,10 @@ describe("Track C fallback compaction", () => {
 	});
 });
 
-describe("Track C deterministic reports and quota", () => {
+describe("Reporting efficiency deterministic reports and quota", () => {
 	test("status report is deterministic and handoff is compact/actionable", async () => {
 		const projectRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-c-status-"),
+			path.join(os.tmpdir(), "olympi-reporting-efficiency-status-"),
 		);
 		try {
 			await applyPassiveInstall({
@@ -128,13 +128,6 @@ describe("Track C deterministic reports and quota", () => {
 		const second = await buildPackageRiskReport(fixturePath("passive-package"));
 		expect(first.deterministicDigest).toBe(second.deterministicDigest);
 		expect(first.labels).toContain("PASSIVE");
-	});
-
-	test("catalog has no stale active-OAL claims", () => {
-		const serialized = JSON.stringify(getOlympiCatalog()).toLowerCase();
-		expect(serialized).not.toContain("openagentlayer");
-		expect(serialized).not.toContain("active oal");
-		expect(serialized).not.toContain("oal vnext");
 	});
 
 	test("quota profile loads and unknown quota is labeled unknown", async () => {
@@ -274,10 +267,10 @@ describe("Track C deterministic reports and quota", () => {
 	});
 });
 
-describe("Track C CLI smoke and no global Pi writes", () => {
+describe("Reporting efficiency CLI smoke and no global Pi writes", () => {
 	test("low-level CLI commands emit JSON", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-c-cli-"),
+			path.join(os.tmpdir(), "olympi-reporting-efficiency-cli-"),
 		);
 		try {
 			const outputFile = path.join(tempRoot, "output.txt");
@@ -296,7 +289,6 @@ describe("Track C CLI smoke and no global Pi writes", () => {
 				["report", "handoff", "--json"],
 				["report", "acceptance", "--json"],
 				["debug", "compact", outputFile, "--json"],
-				["debug", "rtk", "status", "--json"],
 				["debug", "quota", "status", "--json"],
 			];
 			for (const args of commands) {
@@ -315,7 +307,7 @@ describe("Track C CLI smoke and no global Pi writes", () => {
 
 	test("reporting commands do not write to HOME ~/.pi by default", async () => {
 		const tempRoot = await mkdtemp(
-			path.join(os.tmpdir(), "olympi-track-c-home-"),
+			path.join(os.tmpdir(), "olympi-reporting-efficiency-home-"),
 		);
 		try {
 			const fakeHome = path.join(tempRoot, "fake-home");

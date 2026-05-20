@@ -16,13 +16,16 @@ Pre-release identifiers:
 
 ## Meaning of 0.1.0
 
+Version numbers do not define or shrink the product contract.
+
 0.1.0 means:
 
 - local Pi package inspection exists;
 - project-local passive install/uninstall exists;
 - conservative safety boundaries are implemented and tested;
-- goal-loop, hook, and skill foundations exist as package APIs;
+- goal-loop, bounded team planning, hook, and skill foundations exist as
+  package APIs;
 - docs and specs describe the active behavior.
 
-0.1.0 does not mean API freeze, v1 compatibility, completed roadmap parity,
-release artifacts, or stable extension ABI.
+0.1.0 does not mean API freeze, v1 API guarantees, release artifacts, stable
+extension ABI, or implementation of out-of-contract execution surfaces.

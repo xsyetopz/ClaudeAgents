@@ -1,3 +1,4 @@
+import { uninstallAegisPiExtension } from "extensions";
 import {
 	applyManifestUninstall,
 	type ExitCode,
@@ -12,14 +13,11 @@ export async function runUninstall(
 ): Promise<ExitCode> {
 	const packageId = args.find((arg) => !arg.startsWith("--"));
 	if (packageId === undefined) {
-		throw new OlympiError(
-			"usage: olympi uninstall <package-id> --project [--dry-run|--apply] [--json]",
-			2,
-		);
+		return runCoreUninstall(args, json);
 	}
 	if (!args.includes("--project")) {
 		throw new OlympiError(
-			"uninstall requires --project; global writes are forbidden",
+			"package/resource uninstall requires --project; global Pi extension unregister is not handled by this command",
 			3,
 		);
 	}
@@ -34,6 +32,45 @@ export async function runUninstall(
 	process.stdout.write(json ? asJson(report) : formatUninstall(report));
 	if (report.blocked) return 3;
 	return report.preserved.length > 0 ? 1 : 0;
+}
+
+async function runCoreUninstall(
+	args: string[],
+	json: boolean,
+): Promise<ExitCode> {
+	const apply = args.includes("--apply");
+	const dryRun = args.includes("--dry-run") || !apply;
+	if (apply && dryRun && args.includes("--dry-run")) {
+		throw new OlympiError("uninstall cannot combine --apply and --dry-run", 2);
+	}
+	const report = await uninstallAegisPiExtension({
+		scope: args.includes("--global") ? "global" : "project-local",
+		apply,
+	});
+	process.stdout.write(json ? asJson(report) : formatCoreUninstall(report));
+	if (report.blocked) return 3;
+	return report.preserved.length > 0 ? 1 : 0;
+}
+
+function formatCoreUninstall(
+	report: Awaited<ReturnType<typeof uninstallAegisPiExtension>>,
+): string {
+	const lines = [
+		`Olympi uninstall ${report.apply ? "apply" : "dry-run"}`,
+		`Scope: ${report.scope}`,
+		`Blocked: ${report.blocked ? "yes" : "no"}`,
+		`Reason: ${report.reason}`,
+	];
+	for (const warning of report.warnings) lines.push(`warning: ${warning}`);
+	for (const readPath of report.wouldRead)
+		lines.push(`would read: ${readPath}`);
+	for (const removePath of report.wouldRemove)
+		lines.push(`would remove: ${removePath}`);
+	for (const removedPath of report.removed)
+		lines.push(`removed: ${removedPath}`);
+	for (const preservedPath of report.preserved)
+		lines.push(`preserved: ${preservedPath}`);
+	return `${lines.join("\n")}\n`;
 }
 
 function formatUninstall(

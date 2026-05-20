@@ -6,11 +6,15 @@ export async function runPrompt(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	if (args[0] !== "contract")
-		throw new OlympiError(
-			"usage: olympi debug prompt contract <input-or-file> [--json]",
-			2,
-		);
+	switch (args[0]) {
+		case "contract":
+			break;
+		default:
+			throw new OlympiError(
+				"usage: olympi debug prompt contract <input-or-file> [--json]",
+				2,
+			);
+	}
 	const input = args.slice(1).find((arg) => !arg.startsWith("--"));
 	if (input === undefined)
 		throw new OlympiError(

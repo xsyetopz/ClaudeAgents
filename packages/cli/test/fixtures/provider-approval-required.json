@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "adapterId": "olympi-fixture-stub",
+  "eventId": "fixture-approval-1",
+  "kind": "approval-required",
+  "payload": {
+    "reason": "workspace mutation requires confirmation",
+    "paths": ["src/index.ts"]
+  }
+}

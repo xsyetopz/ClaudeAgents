@@ -6,11 +6,15 @@ export async function runHandoff(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	if (args[0] !== "current")
-		throw new OlympiError(
-			"usage: olympi debug handoff current [--write] [--statusline <pi-statusline>] [--json]",
-			2,
-		);
+	switch (args[0]) {
+		case "current":
+			break;
+		default:
+			throw new OlympiError(
+				"usage: olympi debug handoff current [--write] [--statusline <pi-statusline>] [--json]",
+				2,
+			);
+	}
 	if (args.includes("--write")) {
 		const artifact = await writeCurrentHandoffArtifact(
 			writeOptionsFromArgs(args),

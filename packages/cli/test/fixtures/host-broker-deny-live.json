@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "resourceId": "fixture-third-party-bin",
+  "mode": "live",
+  "capabilities": ["process"],
+  "process": {
+    "allow": true,
+    "commands": ["./vendor/tool.bin"]
+  },
+  "network": {
+    "allow": true,
+    "hosts": ["example.com"]
+  }
+}

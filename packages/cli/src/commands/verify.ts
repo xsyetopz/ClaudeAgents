@@ -5,24 +5,32 @@ import type { ExitCode } from "lifecycle";
 import {
 	applyManifestUninstall,
 	applyPassiveInstall,
+	completeSavedGoal,
 	hasLockDigestMismatch,
 	inspectLocalPackage,
 	planManifestUninstall,
 	planPassiveInstall,
+	readGoalState,
 	readLock,
 	readManifest,
 	readPiSettings,
 	readProjectStatus,
+	recordGoalExecution,
+	resumeSavedGoal,
+	startGoalWorkflow,
 	writeLock,
+	writeSavedGoalState,
 } from "lifecycle";
 import { asJson, getOlympiCatalog, validateOlympiCatalog } from "reporting";
 
+/** Single deterministic verification check result. */
 export interface VerifyCheck {
 	name: string;
 	ok: boolean;
 	detail: string;
 }
 
+/** Aggregate report emitted by `olympi dev verify`. */
 export interface VerifyReport {
 	schemaVersion: 1;
 	command: "verify";
@@ -30,12 +38,14 @@ export interface VerifyReport {
 	ok: boolean;
 }
 
+/** Execute verification and write either JSON or terminal output. */
 export async function runVerify(json: boolean): Promise<ExitCode> {
 	const report = await buildVerifyReport();
 	process.stdout.write(json ? asJson(report) : formatVerifyReport(report));
 	return report.ok ? 0 : 1;
 }
 
+/** Build the deterministic verification report in temporary roots. */
 export async function buildVerifyReport(): Promise<VerifyReport> {
 	const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-verify-"));
 	try {
@@ -116,6 +126,65 @@ export async function buildVerifyReport(): Promise<VerifyReport> {
 				inspection.package.contentDigest,
 			),
 			detail: "mismatched content digest detected in temp project lock",
+		});
+		const savedGoal = await startGoalWorkflow({
+			projectRoot,
+			objective: "Repair docs and run bun run typecheck",
+			verificationCommands: ["bun run typecheck"],
+			save: true,
+			createdAt: "1970-01-01T00:00:00.000Z",
+		});
+		const resumedGoal = await resumeSavedGoal({
+			projectRoot,
+			goalId: savedGoal.goalId,
+			compactionSummary: "verify fixture resumes durable goal state",
+			save: true,
+		});
+		const resumedGoalState = await readGoalState(projectRoot, savedGoal.goalId);
+		checks.push({
+			name: "goal resume preserves durable objective and writes only project-local goal state",
+			ok:
+				resumedGoal.saved &&
+				resumedGoal.written.length === 1 &&
+				resumedGoal.written[0] === savedGoal.statePath &&
+				resumedGoalState.continuation.objectivePreserved &&
+				resumedGoalState.continuation.lastCompactionSummary ===
+					"verify fixture resumes durable goal state",
+			detail: `${resumedGoal.written.length} goal-state path written; source mutation not requested`,
+		});
+		const executedGoalState = recordGoalExecution(resumedGoalState, {
+			stepId: "step-1",
+			command: "bun run typecheck",
+			mode: "human-present",
+			startedAt: "1970-01-01T00:00:00.000Z",
+			finishedAt: "1970-01-01T00:00:01.000Z",
+			exitCode: 0,
+			stdout: "typecheck passed",
+			stderr: "",
+			policyAuditId: "verify-fixture-policy",
+			hookDecision: "allow",
+			selectedSkills: ["goal-loop-orchestration"],
+			loadedSkillDigests: ["verify-fixture-skill"],
+			provenanceProof: "unknown",
+			mutationConfirmed: false,
+		});
+		await writeSavedGoalState(projectRoot, savedGoal.goalId, executedGoalState);
+		const completedGoal = await completeSavedGoal({
+			projectRoot,
+			goalId: savedGoal.goalId,
+			completionAuditComplete: true,
+			save: true,
+		});
+		checks.push({
+			name: "goal completion is verification-gated from saved execution records",
+			ok:
+				completedGoal.completed &&
+				completedGoal.state.status === "completed" &&
+				completedGoal.evidence.verification.some(
+					(record) =>
+						record.command === "bun run typecheck" && record.exitCode === 0,
+				),
+			detail: completedGoal.reason,
 		});
 		const uninstallPlan = await planManifestUninstall({
 			packageId: installApply.packageId,

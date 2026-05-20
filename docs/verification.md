@@ -3,6 +3,10 @@
 Verification is part of the product contract. Local checks must prove both
 behavior and boundaries.
 
+Default user surfaces and developer/power surfaces are verified separately:
+default help and startup stay short and goal-oriented, while `help all`, `dev`,
+`safety`, and `report` keep advanced inspection discoverable.
+
 ## Required gates
 
 ```sh
@@ -15,7 +19,8 @@ bun run olympi:catalog -- --json
 ```
 
 CI adds `bun run olympi:smoke` for source, help, local link, and source-global
-install checks in temporary directories.
+CLI install checks in temporary directories. The source-global smoke installs a
+package-manager binary only; it does not imply Pi global registration.
 
 ## What tests must prove
 
@@ -25,7 +30,9 @@ install checks in temporary directories.
 - passive install writes only project-local manifest-owned paths;
 - uninstall removes only owned files with matching hashes;
 - hash mismatches preserve changed files;
-- fake-home checks protect user-global Pi state;
+- fake-home checks protect user-global Pi state by default, prove package-manager
+  global CLI smoke does not imply Pi registration, and prove explicit --global
+  dry-runs do not write;
 - hook veto decisions stop unsafe actions;
 - ambiguous workspace paths cannot be restored, deleted, moved, broadly formatted, staged, or committed without ownership proof;
 - command classification reports class preconditions, provenance requirements,
@@ -34,6 +41,11 @@ install checks in temporary directories.
 - goal completion rejects missing intended files, unintended diff files, and
   unresolved blockers;
 - continuation recovery preserves objective and audit requirements;
+- saved goal resume writes only project-local goal state and preserves active blockers;
+- governed goal execution invokes policy decisions, hook vetoes, topical skill
+  loading, project-local provenance audit, and blocker transitions;
+- goal completion is impossible until required verification records and
+  completion audit evidence pass;
 - skill selection is topical and lazy.
 
 Operational failure reports must include `Failure`, `Impact`, `Change`,

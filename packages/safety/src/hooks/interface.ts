@@ -2,6 +2,7 @@ import { deterministicDigest, sortStrings } from "reporting";
 import { decidePolicy } from "../policy/themis.js";
 import type { PolicyEvent, PolicyEventType } from "../policy/types.js";
 import { workspaceOwnershipReasons } from "../policy/workspace-ownership.js";
+import { type RtkRouteBlocker, rtkBypassBlocker } from "../rtk-routing.js";
 
 export type OlympiHookPhase =
 	| "pre-action"
@@ -28,10 +29,31 @@ export interface OlympiHookContext {
 	status?: string;
 	validationPassed?: boolean;
 	blockedReason?: string;
+	cavemanMode?:
+		| "off"
+		| "lite"
+		| "full"
+		| "ultra"
+		| "wenyan-lite"
+		| "wenyan"
+		| "wenyan-ultra"
+		| "caveman";
+	cavemanModeActive?: boolean;
+	cavemanCompliant?: boolean;
+	contractViolations?: string[];
 	manifestOwned?: boolean;
 	requiresPlanApproval?: boolean;
 	planApproved?: boolean;
 	workspace?: PolicyEvent["workspace"];
+	rtkRoute?: {
+		originalCommand: string;
+		requiredRtkRoute: string;
+		attemptedCommand: string;
+		attemptedAction?: string;
+		directExecution?: boolean;
+		emulatesRtk?: boolean;
+		disablesRtk?: boolean;
+	};
 }
 
 export interface OlympiHookDecision {
@@ -41,6 +63,7 @@ export interface OlympiHookDecision {
 	decision: OlympiHookDecisionKind;
 	reasons: string[];
 	requiredNextAction: string | null;
+	blocker?: RtkRouteBlocker | undefined;
 	digest: string;
 }
 
@@ -169,6 +192,58 @@ export function blockedStateHook(id = "hestia-blocked-state"): OlympiHook {
 	};
 }
 
+export function cavemanOutputHook(id = "calliope-caveman-output"): OlympiHook {
+	return {
+		id,
+		phase: "stop",
+		description:
+			"Warn or veto compact-output contract drift when Caveman output mode is active",
+		run(context) {
+			const mode = context.cavemanMode ?? "off";
+			const active = context.cavemanModeActive === true || mode === "caveman";
+			if (!active) {
+				return hookDecision({
+					hookId: id,
+					phase: context.phase,
+					decision: "allow",
+					reasons: ["Caveman mode inactive; standard output allowed"],
+					requiredNextAction: null,
+				});
+			}
+			if (context.cavemanCompliant === false) {
+				return hookDecision({
+					hookId: id,
+					phase: context.phase,
+					decision: "veto",
+					reasons: [
+						"Caveman contract violation reported by structured signal",
+						...(context.contractViolations ?? []),
+					],
+					requiredNextAction:
+						"compress assistant prose while preserving code, commands, paths, URLs, exact errors, versions, commit messages, review findings, and file contents",
+				});
+			}
+			if (context.cavemanCompliant === true) {
+				return hookDecision({
+					hookId: id,
+					phase: context.phase,
+					decision: "allow",
+					reasons: ["Caveman contract satisfied"],
+					requiredNextAction: null,
+				});
+			}
+			return hookDecision({
+				hookId: id,
+				phase: context.phase,
+				decision: "warn",
+				reasons: ["Caveman mode active; include structured compliance signal"],
+				requiredNextAction:
+					"include cavemanCompliant=true or report exact compact-output violations before stopping",
+			});
+		},
+	};
+}
+
 export function workspaceOwnershipHook(
 	id = "hestia-workspace-ownership",
 ): OlympiHook {
@@ -189,6 +264,52 @@ export function workspaceOwnershipHook(
 					reasons.length === 0
 						? null
 						: "prove ownership by manifest hash, provenance record, same-run agent provenance, or explicit user approval",
+			});
+		},
+	};
+}
+
+export function rtkAntiBypassHook(id = "aegis-rtk-anti-bypass"): OlympiHook {
+	return {
+		id,
+		phase: "pre-action",
+		description:
+			"Veto direct shell, workaround, emulation, or disabled RTK routing attempts",
+		run(context) {
+			const route = context.rtkRoute;
+			if (route === undefined) {
+				return hookDecision({
+					hookId: id,
+					phase: context.phase,
+					decision: "allow",
+					reasons: [],
+					requiredNextAction: null,
+				});
+			}
+			const bypassReason = rtkBypassReason(route);
+			if (bypassReason === null) {
+				return hookDecision({
+					hookId: id,
+					phase: context.phase,
+					decision: "allow",
+					reasons: [],
+					requiredNextAction: null,
+				});
+			}
+			const blocker = rtkBypassBlocker({
+				originalCommand: route.originalCommand,
+				attemptedBypassCommand: route.attemptedCommand,
+				attemptedAction: bypassReason,
+				requiredRtkRoute: route.requiredRtkRoute,
+			});
+			return hookDecision({
+				hookId: id,
+				phase: context.phase,
+				decision: "veto",
+				reasons: [bypassReason],
+				requiredNextAction:
+					"route command execution through the required RTK route; do not bypass, emulate, or disable RTK",
+				blocker,
 			});
 		},
 	};
@@ -259,6 +380,7 @@ function hookDecision(options: {
 	decision: OlympiHookDecisionKind;
 	reasons: string[];
 	requiredNextAction: string | null;
+	blocker?: RtkRouteBlocker;
 }): OlympiHookDecision {
 	const reasons = sortStrings(options.reasons);
 	const withoutDigest = {
@@ -268,6 +390,22 @@ function hookDecision(options: {
 		decision: options.decision,
 		reasons,
 		requiredNextAction: options.requiredNextAction,
+		...(options.blocker === undefined ? {} : { blocker: options.blocker }),
 	};
 	return { ...withoutDigest, digest: deterministicDigest(withoutDigest) };
+}
+
+function rtkBypassReason(
+	route: NonNullable<OlympiHookContext["rtkRoute"]>,
+): string | null {
+	if (route.disablesRtk === true) return "RTK routing cannot be disabled";
+	if (route.emulatesRtk === true)
+		return "manual RTK behavior emulation is blocked";
+	if (route.directExecution === true) {
+		return "direct process execution is blocked where RTK proxy is required";
+	}
+	if (route.attemptedCommand !== route.requiredRtkRoute) {
+		return "attempted command does not match the required RTK route";
+	}
+	return null;
 }

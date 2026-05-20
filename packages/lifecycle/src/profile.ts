@@ -79,7 +79,7 @@ export async function setProjectProfile(options: {
 		written: options.apply ? [writePath] : [],
 		profile,
 		reason: options.apply
-			? "wrote project-local Olympi profile without provider-renderer compatibility"
+			? "wrote project-local Olympi profile without provider-renderer profile writes"
 			: "dry-run profile plan; rerun with --apply to write project-local Olympi profile",
 	};
 }

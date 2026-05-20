@@ -8,7 +8,6 @@ source-tree boundary.
 - Domain packages live under `packages/`.
 - The CLI script is `bun run olympi -- <command>`.
 - Project-local state uses `.pi/olympi/**`.
-- `oal_legacy/` is reference material only.
 - `third_party/` is retained reference material.
 
 ## Current gates

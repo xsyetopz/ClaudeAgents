@@ -21,4 +21,4 @@ Not included:
 - global install;
 - untrusted executable package loading;
 - registry publishing or release artifacts;
-- compatibility mode for legacy OAL provider-renderer layouts.
+- provider-renderer profile layout support.

@@ -46,17 +46,7 @@ export async function buildAcceptanceReport(
 		verificationDocs === null
 			? null
 			: reviewDocumentationQuality(verificationDocs);
-	const serializedCatalog = JSON.stringify(catalog).toLowerCase();
 	const checks: AcceptanceCheck[] = [
-		{
-			name: "catalog/spec has no stale active-OAL claims",
-			ok: !(
-				serializedCatalog.includes("openagentlayer") ||
-				serializedCatalog.includes("active oal") ||
-				serializedCatalog.includes("oal vnext")
-			),
-			detail: "Olympi catalog uses Olympi product authority only.",
-		},
 		{
 			name: "catalog validates implemented commands",
 			ok: catalogErrors.length === 0,

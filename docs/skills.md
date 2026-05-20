@@ -37,6 +37,10 @@ Model tier metadata is routing guidance, not a provider contract.
 - `standard-worker`: moderate task execution.
 - `strong-reviewer`: planning, review, blocker diagnosis, and skill refinement.
 
+Legacy Caveman behavior is represented as the `caveman-output` skill plus the
+`cavemanOutputHook` stop-phase contract. It is selected lazily for explicit
+compact/Caveman requests and is not a standalone CLI command.
+
 The default workflow keeps expensive planning/review separate from repeatable
 worker execution.
 

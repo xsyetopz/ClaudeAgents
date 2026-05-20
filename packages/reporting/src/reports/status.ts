@@ -1,9 +1,15 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import {
+	type OlympiExtensionRuntime,
+	olympiExtensionRuntime,
+} from "extensions";
 import type { OlympiProjectStatus } from "lifecycle";
 import {
+	codeIntelligenceStatus,
 	formatProjectStatus,
 	olympiDirectory,
+	readFeedbackReport,
 	readProjectStatus,
 } from "lifecycle";
 import type { HookPolicyStatus } from "safety";
@@ -15,6 +21,8 @@ import {
 import { detectRtk, type RtkStatusReport } from "../compaction/index.js";
 import { deterministicDigest, sortStrings } from "./schema.js";
 
+const JSON_EXTENSION_PATTERN = /\.json$/;
+
 export interface DriftSummary {
 	changedFiles: string[];
 	deletedFiles: string[];
@@ -23,12 +31,19 @@ export interface DriftSummary {
 }
 
 export interface OlympiStatusReport extends OlympiProjectStatus {
+	runtimeModel: OlympiExtensionRuntime;
 	rtk: RtkStatusReport;
 	quota: QuotaStatusReport;
 	safety: {
 		hooks: HookPolicyStatus;
 		policyDecisionEvents: number;
 		failClosed: boolean;
+	};
+	codeIntelligence: Awaited<ReturnType<typeof codeIntelligenceStatus>>;
+	feedback: {
+		items: number;
+		openConcreteBlockers: number;
+		statePath: string;
 	};
 	reportPaths: {
 		status: string;
@@ -53,9 +68,22 @@ export interface OlympiHandoffReport {
 	quotaProfile: QuotaStatusReport["profile"];
 	safetyPolicyDecisionEvents: number;
 	safetyFailClosed: boolean;
+	codeIntelligence: { present: boolean; parser: string; lsp: string };
+	feedbackStatus: string;
+	goals: GoalHandoffSummary[];
 	warnings: string[];
 	markdown: string;
 	deterministicDigest: string;
+}
+
+export interface GoalHandoffSummary {
+	goalId: string;
+	objective: string;
+	status: string;
+	steps: number;
+	executions: number;
+	teamPlans: number;
+	activeBlocker: string | null;
 }
 
 export async function buildStatusReport(
@@ -69,12 +97,23 @@ export async function buildStatusReport(
 		policyDecisionEvents: await countPolicyDecisionEvents(projectRoot),
 		failClosed: true,
 	};
+	const codeIntelligence = await codeIntelligenceStatus(projectRoot);
+	const feedbackReport = await readFeedbackReport(projectRoot);
+	const feedback = {
+		items: feedbackReport.items.length,
+		openConcreteBlockers: feedbackReport.openConcreteBlockers.length,
+		statePath: feedbackReport.statePath,
+	};
+	const runtimeModel = olympiExtensionRuntime();
 	const driftSummary = buildDriftSummary(base);
 	const withoutDigest = {
 		...base,
+		runtimeModel,
 		rtk,
 		quota,
 		safety,
+		codeIntelligence,
+		feedback,
 		reportPaths: reportPaths(),
 		driftSummary,
 	};
@@ -88,6 +127,7 @@ export async function buildHandoffReport(
 	projectRoot: string = process.cwd(),
 ): Promise<OlympiHandoffReport> {
 	const status = await buildStatusReport(projectRoot);
+	const goals = await readGoalHandoffSummaries(projectRoot);
 	const actionItems = buildActionItems(status);
 	const summary =
 		status.warnings.length === 0
@@ -105,6 +145,13 @@ export async function buildHandoffReport(
 		quotaProfile: status.quota.profile,
 		safetyPolicyDecisionEvents: status.safety.policyDecisionEvents,
 		safetyFailClosed: status.safety.failClosed,
+		codeIntelligence: {
+			present: status.codeIntelligence.present,
+			parser: status.codeIntelligence.engine.parser,
+			lsp: status.codeIntelligence.engine.lsp,
+		},
+		feedbackStatus: `${status.feedback.items} items; ${status.feedback.openConcreteBlockers} concrete blockers`,
+		goals,
 		warnings: status.warnings,
 		markdown: "",
 	};
@@ -123,10 +170,14 @@ export async function buildHandoffReport(
 export function formatStatusReport(report: OlympiStatusReport): string {
 	const lines = [
 		formatProjectStatus(report).trimEnd(),
+		"Runtime model: Pi invokes Olympi as an extension; default install is project-local; --global is explicit global Pi registration; package-manager global CLI is separate",
+		`Install model: project=${report.runtimeModel.projectInstall}; global Pi=${report.runtimeModel.globalPiInstall}; global binary=${report.runtimeModel.globalBinaryInstall}`,
 		`RTK: ${report.rtk.status}${report.rtk.path === null ? "" : ` (${report.rtk.path})`}`,
 		`Quota profile: ${report.quota.profile}`,
 		`Safety policy: ${report.safety.failClosed ? "fail-closed" : "unknown"}`,
 		`Policy decision events: ${report.safety.policyDecisionEvents}`,
+		`Code intelligence: ${report.codeIntelligence.present ? "present" : "absent"}; parser=${report.codeIntelligence.engine.parser}; lsp=${report.codeIntelligence.engine.lsp}`,
+		`Feedback: ${report.feedback.items} items; blockers=${report.feedback.openConcreteBlockers}`,
 		`Changed files: ${report.driftSummary.changedFiles.length}`,
 		`Deleted files: ${report.driftSummary.deletedFiles.length}`,
 	];
@@ -158,7 +209,72 @@ export function formatHandoffMarkdown(report: OlympiHandoffReport): string {
 		`- Policy: ${report.safetyFailClosed ? "fail-closed" : "unknown"}`,
 	);
 	lines.push(`- Policy decision events: ${report.safetyPolicyDecisionEvents}`);
+	lines.push("", "## Code intelligence");
+	lines.push(
+		`- Repo map: ${report.codeIntelligence.present ? "present" : "absent"}; parser=${report.codeIntelligence.parser}; LSP=${report.codeIntelligence.lsp}`,
+	);
+	lines.push("", "## Feedback");
+	lines.push(`- ${report.feedbackStatus}`);
+	lines.push("", "## Goal state");
+	if (report.goals.length === 0) {
+		lines.push("- none");
+	} else {
+		for (const goal of report.goals) {
+			lines.push(
+				`- ${goal.goalId}: ${goal.status}; steps=${goal.steps}; executions=${goal.executions}; teamPlans=${goal.teamPlans}; blocker=${goal.activeBlocker ?? "none"}`,
+			);
+		}
+	}
 	return `${lines.join("\n")}\n`;
+}
+
+async function readGoalHandoffSummaries(
+	projectRoot: string,
+): Promise<GoalHandoffSummary[]> {
+	const goalsDirectory = path.join(olympiDirectory(projectRoot), "goals");
+	try {
+		const files = (await readdir(goalsDirectory))
+			.filter((file) => file.endsWith(".json"))
+			.sort();
+		const summaries: GoalHandoffSummary[] = [];
+		for (const file of files) {
+			const parsed = JSON.parse(
+				await readFile(path.join(goalsDirectory, file), "utf8"),
+			) as Record<string, unknown>;
+			const objective = asRecord(parsed["objective"]);
+			const execution = asRecord(parsed["execution"]);
+			const orchestration = asRecord(parsed["orchestration"]);
+			const activeBlocker = asRecord(parsed["activeBlocker"]);
+			summaries.push({
+				goalId: String(
+					objective["id"] ?? file.replace(JSON_EXTENSION_PATTERN, ""),
+				),
+				objective: String(objective["objective"] ?? "unknown objective"),
+				status: String(parsed["status"] ?? "unknown"),
+				steps: Array.isArray(parsed["steps"]) ? parsed["steps"].length : 0,
+				executions: Array.isArray(execution["records"])
+					? execution["records"].length
+					: 0,
+				teamPlans: Array.isArray(orchestration["teamPlans"])
+					? orchestration["teamPlans"].length
+					: 0,
+				activeBlocker:
+					activeBlocker["detail"] === undefined
+						? null
+						: String(activeBlocker["detail"]),
+			});
+		}
+		return summaries;
+	} catch (error) {
+		if (isNotFound(error)) return [];
+		throw error;
+	}
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+	return typeof value === "object" && value !== null
+		? (value as Record<string, unknown>)
+		: {};
 }
 
 function buildDriftSummary(status: OlympiProjectStatus): DriftSummary {

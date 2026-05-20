@@ -45,6 +45,8 @@ export interface InstallReport {
 	command: "install";
 	packageId: string;
 	source: string;
+	scope: "project-local";
+	targetStatePath: string;
 	projectRoot: string;
 	project: true;
 	apply: boolean;
@@ -52,6 +54,7 @@ export interface InstallReport {
 	decision: EvaluationReport["decision"];
 	wouldWrite: string[];
 	written: string[];
+	settingsTouched: string[];
 	settingsEntry: PiPackageSettingsEntry;
 	reason: string;
 	warnings: string[];
@@ -85,6 +88,7 @@ export interface ExecutableLoadReport {
 	blocked: boolean;
 	wouldWrite: string[];
 	written: string[];
+	settingsTouched: string[];
 	settingsEntry: PiPackageSettingsEntry | null;
 	reason: string;
 	warnings: string[];
@@ -325,6 +329,7 @@ export async function loadExecutablePackage(
 			blocked: true,
 			wouldWrite,
 			written: [],
+			settingsTouched: [".pi/settings.json packages entry"],
 			settingsEntry,
 			reason:
 				record === undefined
@@ -352,6 +357,7 @@ export async function loadExecutablePackage(
 			blocked: false,
 			wouldWrite,
 			written: [],
+			settingsTouched: [".pi/settings.json packages entry"],
 			settingsEntry,
 			reason:
 				"dry-run executable load plan; rerun with --apply after reviewing proof",
@@ -401,6 +407,7 @@ export async function loadExecutablePackage(
 		blocked: false,
 		wouldWrite: [],
 		written: wouldWrite,
+		settingsTouched: [".pi/settings.json packages entry"],
 		settingsEntry,
 		reason:
 			"enabled executable package load in project-local Pi settings after all gates passed",
@@ -533,6 +540,8 @@ async function buildInstallPlan(options: InstallOptions): Promise<InstallPlan> {
 			command: "install",
 			packageId,
 			source: options.source,
+			scope: "project-local",
+			targetStatePath: path.join(projectRoot, ".pi", "olympi"),
 			projectRoot,
 			project: true,
 			apply: options.apply,
@@ -540,6 +549,7 @@ async function buildInstallPlan(options: InstallOptions): Promise<InstallPlan> {
 			decision: evaluation.decision,
 			wouldWrite: wouldWrite.sort(),
 			written: [],
+			settingsTouched: [".pi/settings.json packages entry"],
 			settingsEntry,
 			reason:
 				blockReason ??
@@ -608,6 +618,8 @@ async function buildExecutableInstallPlan(
 			command: "install",
 			packageId,
 			source: options.source,
+			scope: "project-local",
+			targetStatePath: path.join(projectRoot, ".pi", "olympi"),
 			projectRoot,
 			project: true,
 			apply: options.apply,
@@ -615,6 +627,7 @@ async function buildExecutableInstallPlan(
 			decision: evaluation.decision,
 			wouldWrite: wouldWrite.sort(),
 			written: [],
+			settingsTouched: [],
 			settingsEntry,
 			reason:
 				blockReason ??
@@ -657,7 +670,7 @@ async function settingsEntryOwnershipBlock(
 
 function installBlockReason(evaluation: EvaluationReport): string | undefined {
 	if (evaluation.inspection.executables.length > 0) {
-		return "install blocked: executable resources require future trust and sandbox gates";
+		return "install blocked: executable resources require explicit executable staging and trust/sandbox gates";
 	}
 	if (evaluation.decision !== "trust-passive") {
 		return "install blocked: package evaluation did not reach trust-passive";

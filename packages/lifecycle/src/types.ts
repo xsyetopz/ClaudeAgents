@@ -90,10 +90,27 @@ export interface EvaluationReport {
 
 export class OlympiError extends Error {
 	readonly exitCode: ExitCode;
+	readonly code?: string;
+	readonly input?: string;
+	readonly expected?: string;
+	readonly written?: string[];
 
-	constructor(message: string, exitCode: ExitCode) {
+	constructor(
+		message: string,
+		exitCode: ExitCode,
+		details: {
+			code?: string;
+			input?: string;
+			expected?: string;
+			written?: string[];
+		} = {},
+	) {
 		super(message);
 		this.name = "OlympiError";
 		this.exitCode = exitCode;
+		if (details.code !== undefined) this.code = details.code;
+		if (details.input !== undefined) this.input = details.input;
+		if (details.expected !== undefined) this.expected = details.expected;
+		if (details.written !== undefined) this.written = details.written;
 	}
 }

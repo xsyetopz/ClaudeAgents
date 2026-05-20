@@ -65,6 +65,80 @@ export interface GoalVerificationRecord {
 	output?: string;
 }
 
+export interface GoalExecutionRecord {
+	sequence: number;
+	stepId: string;
+	command: string;
+	mode: "human-present" | "autonomous";
+	startedAt: string;
+	finishedAt: string;
+	exitCode: number;
+	stdout: string;
+	stderr: string;
+	policyAuditId: string;
+	hookDecision: "allow" | "warn" | "veto";
+	selectedSkills: string[];
+	loadedSkillDigests: string[];
+	codeContext?: string;
+	providerPolicy?: string;
+	brokerPolicy?: string;
+	rtkRoute?: string;
+	rtkRouteKind?: string;
+	rtkCommandKind?: string;
+	provenanceProof: string;
+	mutationConfirmed: boolean;
+}
+
+export interface GoalExecutionState {
+	records: GoalExecutionRecord[];
+	verification: GoalVerificationRecord[];
+}
+
+export interface GoalTeamAssignmentInput {
+	stepId: string;
+	allowedPaths: string[];
+}
+
+export interface GoalTeamAssignment {
+	workerId: string;
+	stepId: string;
+	objective: string;
+	allowedPaths: string[];
+	codeContextHints?: string[];
+	evidenceRequired: string[];
+	status: "planned";
+}
+
+export interface GoalTeamPlan {
+	id: string;
+	createdAt: string;
+	status: "planned" | "blocked";
+	maxWorkers: number;
+	assignments: GoalTeamAssignment[];
+	integrationStepId: string | null;
+	blockers: string[];
+}
+
+export interface GoalOrchestrationState {
+	teamPlans: GoalTeamPlan[];
+}
+
+export interface GoalTeamPlanOptions {
+	id?: string;
+	createdAt?: string;
+	maxWorkers?: number;
+	assignments: GoalTeamAssignmentInput[];
+	integrationStepDescription?: string;
+	codeContextByStep?: Record<string, string[]>;
+}
+
+export interface GoalTeamPlanResult {
+	state: GoalLoopState;
+	plan: GoalTeamPlan;
+	blocked: boolean;
+	reasons: string[];
+}
+
 export interface GoalCompletionEvidence {
 	completedRequirements: string[];
 	verification: GoalVerificationRecord[];
@@ -106,6 +180,8 @@ export interface GoalLoopState {
 	ledger: GoalLedgerEntry[];
 	activeBlocker: GoalBlocker | null;
 	verificationGate: GoalVerificationGate;
+	execution: GoalExecutionState;
+	orchestration: GoalOrchestrationState;
 	retryPolicy: GoalRetryPolicy;
 	continuation: GoalContinuationState;
 }
@@ -164,6 +240,8 @@ const FAILING_ENVIRONMENT_BLOCKER_PATTERN =
 	/environment|sandbox|network unavailable|rate limit|quota/;
 const IMPOSSIBLE_CONSTRAINT_BLOCKER_PATTERN =
 	/impossible|cannot satisfy|contradiction|mutually exclusive/;
+const LEADING_DOT_SLASH_PATTERN = /^\.\//;
+const TRAILING_SLASH_PATTERN = /\/$/;
 
 export function createGoalLoopState(
 	options: GoalLoopCreateOptions,
@@ -193,6 +271,8 @@ export function createGoalLoopState(
 			objective,
 			emptyCompletionEvidence(),
 		),
+		execution: { records: [], verification: [] },
+		orchestration: { teamPlans: [] },
 		retryPolicy: {
 			maxAttemptsPerStep: options.maxAttemptsPerStep ?? 2,
 			pauseOnBlocker: true,
@@ -205,6 +285,135 @@ export function createGoalLoopState(
 			completionAuditPreserved: true,
 		},
 	};
+}
+
+export function planGoalTeam(
+	state: GoalLoopState,
+	options: GoalTeamPlanOptions,
+): GoalTeamPlanResult {
+	const maxWorkers = options.maxWorkers ?? 3;
+	const blockers = teamPlanBlockers(state, options.assignments, maxWorkers);
+	const planId =
+		options.id ?? `team-${normalizedOrchestration(state).teamPlans.length + 1}`;
+	const assignments =
+		blockers.length === 0
+			? options.assignments.map((assignment, index) => {
+					const step = state.steps.find(
+						(candidate) => candidate.id === assignment.stepId,
+					);
+					return {
+						workerId: `worker-${index + 1}`,
+						stepId: assignment.stepId,
+						objective: step?.description ?? assignment.stepId,
+						allowedPaths: sortUnique(assignment.allowedPaths),
+						...(options.codeContextByStep?.[assignment.stepId] === undefined
+							? {}
+							: {
+									codeContextHints: options.codeContextByStep[
+										assignment.stepId
+									].slice(0, 5),
+								}),
+						evidenceRequired: [
+							"summarize completed work and blockers",
+							"list touched paths and provenance proof",
+							"record verification command output for this assignment",
+						],
+						status: "planned" as const,
+					};
+				})
+			: [];
+	const integrationStepId =
+		blockers.length === 0 ? `${planId}-integrate` : null;
+	const plan: GoalTeamPlan = {
+		id: planId,
+		createdAt: options.createdAt ?? new Date().toISOString(),
+		status: blockers.length === 0 ? "planned" : "blocked",
+		maxWorkers,
+		assignments,
+		integrationStepId,
+		blockers,
+	};
+	const orchestration = normalizedOrchestration(state);
+	const withPlan = {
+		...state,
+		orchestration: {
+			teamPlans: [...orchestration.teamPlans, plan],
+		},
+	};
+	if (blockers.length > 0) {
+		return {
+			state: appendLedger(
+				withPlan,
+				"blocked",
+				`team orchestration blocked: ${blockers.join("; ")}`,
+				undefined,
+			),
+			plan,
+			blocked: true,
+			reasons: blockers,
+		};
+	}
+	const integrationStep: GoalStep = {
+		id: integrationStepId ?? `${planId}-integrate`,
+		description:
+			options.integrationStepDescription ??
+			`Parent integration and verification for ${planId}`,
+		status: "pending",
+		attempts: 0,
+		maxAttempts: state.retryPolicy.maxAttemptsPerStep,
+		evidence: [],
+	};
+	return {
+		state: appendLedger(
+			{ ...withPlan, steps: [...withPlan.steps, integrationStep] },
+			"planned",
+			`bounded team plan ${planId}: ${assignments.length} assignments; parent integration owns merge/review`,
+			integrationStep.id,
+		),
+		plan,
+		blocked: false,
+		reasons: [
+			"bounded team plan recorded; parent integration step owns merge and verification",
+		],
+	};
+}
+
+export function recordGoalExecution(
+	state: GoalLoopState,
+	record: Omit<GoalExecutionRecord, "sequence">,
+): GoalLoopState {
+	const existing = normalizedExecution(state);
+	const fullRecord: GoalExecutionRecord = {
+		sequence: existing.records.length,
+		...record,
+	};
+	const verification = state.objective.verificationCommands.includes(
+		record.command,
+	)
+		? sortVerificationRecords([
+				...existing.verification,
+				{
+					command: record.command,
+					exitCode: record.exitCode,
+					output: record.stdout || record.stderr,
+				},
+			])
+		: existing.verification;
+	return {
+		...state,
+		execution: {
+			records: [...existing.records, fullRecord],
+			verification,
+		},
+	};
+}
+
+export function pauseGoalWithBlocker(
+	state: GoalLoopState,
+	blockerValue: GoalBlocker,
+	stepId?: string,
+): GoalTransition {
+	return pauseWithBlocker(state, blockerValue, stepId);
 }
 
 export function planGoalStep(
@@ -331,10 +540,49 @@ export function requestGoalCompletion(
 	};
 }
 
+export function completionEvidenceFromState(
+	state: GoalLoopState,
+	options: {
+		completedRequirements?: string[];
+		completionAuditComplete: boolean;
+		verification?: GoalVerificationRecord[];
+		intendedChangedFiles?: string[];
+		observedChangedFiles?: string[];
+	},
+): GoalCompletionEvidence {
+	const execution = normalizedExecution(state);
+	const unresolvedBlockers = state.activeBlocker
+		? [state.activeBlocker.detail]
+		: [];
+	return {
+		completedRequirements: options.completedRequirements ?? [],
+		verification: sortVerificationRecords([
+			...execution.verification,
+			...(options.verification ?? []),
+		]),
+		completionAuditComplete: options.completionAuditComplete,
+		...(options.intendedChangedFiles === undefined
+			? {}
+			: { intendedChangedFiles: options.intendedChangedFiles }),
+		...(options.observedChangedFiles === undefined
+			? {}
+			: { observedChangedFiles: options.observedChangedFiles }),
+		...(unresolvedBlockers.length === 0 ? {} : { unresolvedBlockers }),
+	};
+}
+
 export function recoverGoalContinuation(
 	state: GoalLoopState,
 	compactionSummary: string,
 ): GoalLoopState {
+	const blockerLines =
+		state.activeBlocker === null
+			? []
+			: [
+					"Active blocker:",
+					`- ${state.activeBlocker.kind}: ${state.activeBlocker.detail}`,
+					`- Required action: ${state.activeBlocker.requiredAction}`,
+				];
 	const recoveredPrompt = [
 		"Continue working toward the active Olympi goal.",
 		`Objective: ${state.objective.objective}`,
@@ -342,12 +590,19 @@ export function recoverGoalContinuation(
 		...state.objective.completionAuditRequirements.map(
 			(requirement) => `- ${requirement}`,
 		),
+		...blockerLines,
 		"Stop or pause instead of continuing if a concrete blocker is present.",
 	].join("\n");
+	const recoveredStatus =
+		state.status === "completed"
+			? "completed"
+			: state.activeBlocker === null
+				? "active"
+				: "blocked";
 	return appendLedger(
 		{
 			...state,
-			status: state.status === "completed" ? "completed" : "active",
+			status: recoveredStatus,
 			continuation: {
 				lastCompactionSummary: compactionSummary,
 				recoveredPrompt,
@@ -528,6 +783,121 @@ function pauseWithBlocker(
 		reasons: [blockerValue.requiredAction],
 		blocker: blockerValue,
 	};
+}
+
+function normalizedExecution(state: GoalLoopState): GoalExecutionState {
+	return state.execution ?? { records: [], verification: [] };
+}
+
+function normalizedOrchestration(state: GoalLoopState): GoalOrchestrationState {
+	return state.orchestration ?? { teamPlans: [] };
+}
+
+function teamPlanBlockers(
+	state: GoalLoopState,
+	assignments: GoalTeamAssignmentInput[],
+	maxWorkers: number,
+): string[] {
+	const blockers: string[] = [];
+	if (state.status === "blocked" && state.activeBlocker !== null) {
+		blockers.push(
+			`active blocker must be resolved before delegation: ${state.activeBlocker.requiredAction}`,
+		);
+	}
+	if (!Number.isInteger(maxWorkers) || maxWorkers < 2 || maxWorkers > 4) {
+		blockers.push("team orchestration supports 2 to 4 bounded workers");
+	}
+	if (assignments.length < 2) {
+		blockers.push(
+			"team orchestration requires at least two independent assignments; use normal goal execution for one step",
+		);
+	}
+	if (assignments.length > maxWorkers) {
+		blockers.push("assignment count exceeds maxWorkers");
+	}
+	const seenSteps = new Set<string>();
+	for (const assignment of assignments) {
+		if (seenSteps.has(assignment.stepId)) {
+			blockers.push(`duplicate team assignment for step ${assignment.stepId}`);
+		}
+		seenSteps.add(assignment.stepId);
+		const step = state.steps.find(
+			(candidate) => candidate.id === assignment.stepId,
+		);
+		if (step === undefined) {
+			blockers.push(`unknown team assignment step: ${assignment.stepId}`);
+		} else if (step.status !== "pending" && step.status !== "failed") {
+			blockers.push(
+				`step ${assignment.stepId} is ${step.status}, not pending or failed`,
+			);
+		}
+		if (assignment.allowedPaths.length === 0) {
+			blockers.push(
+				`team assignment ${assignment.stepId} needs explicit allowed paths`,
+			);
+		}
+		for (const allowedPath of assignment.allowedPaths.map(normalizeTeamPath)) {
+			if (
+				allowedPath === ".pi" ||
+				allowedPath.startsWith(".pi/") ||
+				allowedPath === ".git" ||
+				allowedPath.startsWith(".git/") ||
+				allowedPath === "node_modules" ||
+				allowedPath.startsWith("node_modules/")
+			) {
+				blockers.push(
+					`team assignment ${assignment.stepId} uses unsafe ownership path: ${allowedPath}`,
+				);
+			}
+		}
+	}
+	for (let left = 0; left < assignments.length; left += 1) {
+		for (let right = left + 1; right < assignments.length; right += 1) {
+			const overlap = overlappingPaths(
+				assignments[left]?.allowedPaths ?? [],
+				assignments[right]?.allowedPaths ?? [],
+			);
+			if (overlap.length > 0) {
+				blockers.push(
+					`team assignments ${assignments[left]?.stepId} and ${assignments[right]?.stepId} overlap on ${overlap.join(", ")}`,
+				);
+			}
+		}
+	}
+	return sortUnique(blockers);
+}
+
+function overlappingPaths(leftPaths: string[], rightPaths: string[]): string[] {
+	const overlaps: string[] = [];
+	for (const left of leftPaths.map(normalizeTeamPath)) {
+		for (const right of rightPaths.map(normalizeTeamPath)) {
+			if (
+				left === right ||
+				left.startsWith(`${right}/`) ||
+				right.startsWith(`${left}/`)
+			) {
+				overlaps.push(left.length <= right.length ? left : right);
+			}
+		}
+	}
+	return sortUnique(overlaps);
+}
+
+function normalizeTeamPath(value: string): string {
+	return value
+		.replaceAll("\\", "/")
+		.replace(LEADING_DOT_SLASH_PATTERN, "")
+		.replace(TRAILING_SLASH_PATTERN, "");
+}
+
+function sortVerificationRecords(
+	records: GoalVerificationRecord[],
+): GoalVerificationRecord[] {
+	return [...records].sort((left, right) =>
+		left.command === right.command
+			? left.exitCode - right.exitCode
+			: left.command.localeCompare(right.command),
+	);
 }
 
 function updateStep(

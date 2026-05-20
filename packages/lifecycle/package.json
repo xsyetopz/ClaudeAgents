@@ -9,6 +9,7 @@
 	"types": "./src/index.ts",
 	"dependencies": {
 		"extensions": "workspace:*",
-		"trust": "workspace:*"
+		"trust": "workspace:*",
+		"typescript": "6.0.3"
 	}
 }

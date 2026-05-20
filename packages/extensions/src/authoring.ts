@@ -425,7 +425,7 @@ function generatedIndex(name: string): string {
 }
 
 function generatedReadme(name: string): string {
-	return `# ${name}\n\nOlympi-generated first-party Pi extension skeleton.\n\n## Purpose\n\nDescribe the extension purpose before enabling it.\n\n## Safety\n\n- Does not execute third-party package code by default.\n- Must not bypass Olympi trust, manifest, or sandbox policy.\n- Update \`olympi-extension.json\` when adding commands, tools, events, or side effects.\n\n## Verification\n\nRun the verification command declared in \`olympi-extension.json\`.\n\n## Disable/uninstall\n\nRemove this directory and any future manifest-owned settings entry.\n`;
+	return `# ${name}\n\nOlympi-generated first-party Pi extension skeleton.\n\n## Purpose\n\nDescribe the extension purpose before enabling it.\n\n## Safety\n\n- Does not execute third-party package code by default.\n- Must not bypass Olympi trust, manifest, or sandbox policy.\n- Update \`olympi-extension.json\` when adding commands, tools, events, or side effects.\n\n## Verification\n\nRun the verification command declared in \`olympi-extension.json\`.\n\n## Disable/uninstall\n\nRemove this directory and any manifest-owned settings entry that references it.\n`;
 }
 
 function uniqueMatches(sourceText: string, ...patterns: RegExp[]): string[] {

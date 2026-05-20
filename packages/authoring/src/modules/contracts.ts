@@ -98,39 +98,50 @@ export function runModuleDry(
 	const module = parseModule(moduleName);
 	const reasons: string[] = [];
 	if (!dryRun) reasons.push("module run requires --dry-run in this phase");
-	if (module === "athena" && options["write"] === true)
-		reasons.push("Athena cannot write or apply plans");
-	if (module === "themis") {
-		const decision = decidePolicy({
-			schemaVersion: 1,
-			eventType: "tool_call",
-			command: String(options["command"] ?? "rm -rf ~/.pi"),
-		});
-		if (decision.blocked) reasons.push("Themis blocks unsafe action");
-	}
-	if (
-		module === "apollo" &&
-		!["verify", "typecheck", "biome", "test"].includes(
-			String(options["verifyCommand"] ?? "verify"),
-		)
-	)
-		reasons.push("Apollo rejects commands outside allowlist");
-	if (
-		module === "hestia" &&
-		!String(options["path"] ?? ".pi/olympi/state.json").startsWith(".pi/olympi")
-	)
-		reasons.push("Hestia refuses writes outside .pi/olympi");
-	if (module === "hephaestus") {
-		if (
-			typeof options["approvedDigest"] !== "string" ||
-			typeof options["planDigest"] !== "string"
-		)
-			reasons.push("Hephaestus rejects missing plan digest");
-		if (options["approvedDigest"] !== options["planDigest"])
-			reasons.push("Hephaestus rejects changed plan digest");
-		reasons.push(
-			"Hephaestus apply remains blocked until safety gates are proven",
-		);
+	switch (module) {
+		case "athena":
+			if (options["write"] === true)
+				reasons.push("Athena cannot write or apply plans");
+			break;
+		case "themis": {
+			const decision = decidePolicy({
+				schemaVersion: 1,
+				eventType: "tool_call",
+				command: String(options["command"] ?? "rm -rf ~/.pi"),
+			});
+			if (decision.blocked) reasons.push("Themis blocks unsafe action");
+			break;
+		}
+		case "apollo":
+			if (
+				!["verify", "typecheck", "biome", "test"].includes(
+					String(options["verifyCommand"] ?? "verify"),
+				)
+			)
+				reasons.push("Apollo rejects commands outside allowlist");
+			break;
+		case "hestia":
+			if (
+				!String(options["path"] ?? ".pi/olympi/state.json").startsWith(
+					".pi/olympi",
+				)
+			)
+				reasons.push("Hestia refuses writes outside .pi/olympi");
+			break;
+		case "hephaestus":
+			if (
+				typeof options["approvedDigest"] !== "string" ||
+				typeof options["planDigest"] !== "string"
+			)
+				reasons.push("Hephaestus rejects missing plan digest");
+			if (options["approvedDigest"] !== options["planDigest"])
+				reasons.push("Hephaestus rejects changed plan digest");
+			reasons.push(
+				"Hephaestus apply remains blocked until safety gates are proven",
+			);
+			break;
+		default:
+			break;
 	}
 	const dependencyGraph = module === "moirai" ? dependencyGraphOnly() : [];
 	const sortedReasons = sortStrings(reasons);

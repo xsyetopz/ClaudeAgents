@@ -23,10 +23,15 @@ export interface SafetyCheckReport {
 }
 
 export function runSafety(args: string[], json: boolean): ExitCode {
-	if (args[0] !== "check") return usage();
-	const report = buildSafetyCheckReport();
-	process.stdout.write(json ? asJson(report) : formatSafety(report));
-	return report.ok ? 0 : 1;
+	switch (args[0]) {
+		case "check": {
+			const report = buildSafetyCheckReport();
+			process.stdout.write(json ? asJson(report) : formatSafety(report));
+			return report.ok ? 0 : 1;
+		}
+		default:
+			return usage();
+	}
 }
 
 export function buildSafetyCheckReport(): SafetyCheckReport {

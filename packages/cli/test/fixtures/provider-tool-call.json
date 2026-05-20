@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "adapterId": "olympi-fixture-stub",
+  "eventId": "fixture-tool-call-1",
+  "kind": "tool-call",
+  "payload": {
+    "toolName": "shell",
+    "command": "git status --short",
+    "paths": ["packages/lifecycle/src/code-intelligence.ts"]
+  }
+}

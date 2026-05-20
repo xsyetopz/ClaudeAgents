@@ -46,23 +46,28 @@ function readKind(args: string[]): CompactionKind | "auto" {
 	const index = args.indexOf("--kind");
 	if (index === -1) return "auto";
 	const value = args[index + 1];
-	if (
-		value === "generic" ||
-		value === "git" ||
-		value === "test" ||
-		value === "search" ||
-		value === "package-manager" ||
-		value === "stack-trace"
-	) {
-		return value;
+	switch (value) {
+		case "generic":
+		case "git":
+		case "test":
+		case "search":
+		case "package-manager":
+		case "stack-trace":
+			return value;
+		default:
+			throw new OlympiError("invalid --kind for olympi debug compact", 2);
 	}
-	throw new OlympiError("invalid --kind for olympi debug compact", 2);
 }
 
 function readMode(args: string[]): CompactionMode {
-	if (args.includes("--raw")) return "raw";
-	if (args.includes("--verbose")) return "verbose";
-	return "compact";
+	switch (true) {
+		case args.includes("--raw"):
+			return "raw";
+		case args.includes("--verbose"):
+			return "verbose";
+		default:
+			return "compact";
+	}
 }
 
 function formatCompact(

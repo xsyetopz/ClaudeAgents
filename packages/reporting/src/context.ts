@@ -157,9 +157,14 @@ function tokensFromMatch(
 	const base = numberFromMatch(match, valueIndex);
 	if (base === null) return null;
 	const unit = match?.[unitIndex]?.toLowerCase() ?? "";
-	if (unit === "m") return Math.round(base * 1_000_000);
-	if (unit === "k") return Math.round(base * 1_000);
-	return Math.round(base);
+	switch (unit) {
+		case "m":
+			return Math.round(base * 1_000_000);
+		case "k":
+			return Math.round(base * 1_000);
+		default:
+			return Math.round(base);
+	}
 }
 
 function modeFromStatusline(statusline: string): string | null {

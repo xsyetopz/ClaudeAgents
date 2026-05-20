@@ -5,17 +5,20 @@ export async function runAudit(
 	args: string[],
 	json: boolean,
 ): Promise<ExitCode> {
-	if (args[0] !== "append") {
-		throw new OlympiError(
-			"usage: olympi audit append <event> --detail <detail> --apply [--json]",
-			2,
-		);
+	switch (args[0]) {
+		case "append":
+			break;
+		default:
+			throw new OlympiError(
+				"usage: olympi debug audit append <event> --detail <detail> --apply [--json]",
+				2,
+			);
 	}
 	const event = args.slice(1).find((arg) => !arg.startsWith("--"));
 	const detail = readFlagValue(args, "--detail");
 	if (event === undefined || detail === undefined) {
 		throw new OlympiError(
-			"usage: olympi audit append <event> --detail <detail> --apply [--json]",
+			"usage: olympi debug audit append <event> --detail <detail> --apply [--json]",
 			2,
 		);
 	}

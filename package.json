@@ -17,13 +17,15 @@
 		"olympi": "bun packages/cli/src/cli.ts",
 		"olympi:test": "bun test packages/cli/test/*.test.ts",
 		"olympi:smoke": "bash scripts/ci-smoke.sh",
-		"olympi:verify": "bun packages/cli/src/cli.ts verify",
-		"olympi:catalog": "bun packages/cli/src/cli.ts catalog",
+		"olympi:doctor": "bun packages/cli/src/cli.ts doctor",
+		"olympi:verify": "bun packages/cli/src/cli.ts dev verify",
+		"olympi:catalog": "bun packages/cli/src/cli.ts dev catalog",
 		"build": "bun run typecheck"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",
-		"bun-types": "1.3.14"
+		"bun-types": "1.3.14",
+		"typescript": "6.0.3"
 	},
 	"engines": {
 		"node": ">=24.14.1"

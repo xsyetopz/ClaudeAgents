@@ -18,54 +18,65 @@ export async function runReport(
 	json: boolean,
 ): Promise<ExitCode> {
 	const subcommand = args[0];
-	if (subcommand === "status") {
-		if (args.includes("--write")) {
-			const artifact = await writeStatusArtifact();
-			process.stdout.write(json ? asJson(artifact) : formatArtifact(artifact));
-			return 0;
+	switch (subcommand) {
+		case "status": {
+			if (args.includes("--write")) {
+				const artifact = await writeStatusArtifact();
+				process.stdout.write(
+					json ? asJson(artifact) : formatArtifact(artifact),
+				);
+				return 0;
+			}
+			const report = await buildStatusReport();
+			process.stdout.write(json ? asJson(report) : formatStatusReport(report));
+			return report.warnings.length > 0 ? 1 : 0;
 		}
-		const report = await buildStatusReport();
-		process.stdout.write(json ? asJson(report) : formatStatusReport(report));
-		return report.warnings.length > 0 ? 1 : 0;
-	}
-	if (subcommand === "handoff") {
-		if (args.includes("--write")) {
-			const artifact = await writeHandoffArtifact(writeOptionsFromArgs(args));
-			process.stdout.write(json ? asJson(artifact) : formatArtifact(artifact));
-			return 0;
+		case "handoff": {
+			if (args.includes("--write")) {
+				const artifact = await writeHandoffArtifact(writeOptionsFromArgs(args));
+				process.stdout.write(
+					json ? asJson(artifact) : formatArtifact(artifact),
+				);
+				return 0;
+			}
+			const report = await buildHandoffReport();
+			process.stdout.write(
+				json ? asJson(report) : formatHandoffMarkdown(report),
+			);
+			return report.warnings.length > 0 ? 1 : 0;
 		}
-		const report = await buildHandoffReport();
-		process.stdout.write(json ? asJson(report) : formatHandoffMarkdown(report));
-		return report.warnings.length > 0 ? 1 : 0;
-	}
-	if (subcommand === "acceptance") {
-		if (args.includes("--write")) {
-			const artifact = await writeAcceptanceArtifact();
-			process.stdout.write(json ? asJson(artifact) : formatArtifact(artifact));
-			return 0;
+		case "acceptance": {
+			if (args.includes("--write")) {
+				const artifact = await writeAcceptanceArtifact();
+				process.stdout.write(
+					json ? asJson(artifact) : formatArtifact(artifact),
+				);
+				return 0;
+			}
+			const report = await buildAcceptanceReport();
+			process.stdout.write(
+				json ? asJson(report) : formatAcceptanceReport(report),
+			);
+			return report.ok ? 0 : 1;
 		}
-		const report = await buildAcceptanceReport();
-		process.stdout.write(
-			json ? asJson(report) : formatAcceptanceReport(report),
-		);
-		return report.ok ? 0 : 1;
-	}
-	if (subcommand === "package-risk") {
-		const source = args[1];
-		if (source === undefined) {
+		case "package-risk": {
+			const source = args[1];
+			if (source === undefined) {
+				throw new OlympiError(
+					"usage: olympi report package-risk <source> [--json]",
+					2,
+				);
+			}
+			const report = await buildPackageRiskReport(source);
+			process.stdout.write(json ? asJson(report) : formatPackageRisk(report));
+			return report.decision === "trust-passive" ? 0 : 1;
+		}
+		default:
 			throw new OlympiError(
-				"usage: olympi report package-risk <source> [--json]",
+				"usage: olympi report <status|handoff|acceptance|package-risk> [--json]",
 				2,
 			);
-		}
-		const report = await buildPackageRiskReport(source);
-		process.stdout.write(json ? asJson(report) : formatPackageRisk(report));
-		return report.decision === "trust-passive" ? 0 : 1;
 	}
-	throw new OlympiError(
-		"usage: olympi report <status|handoff|acceptance|package-risk> [--json]",
-		2,
-	);
 }
 
 function writeOptionsFromArgs(args: string[]): {

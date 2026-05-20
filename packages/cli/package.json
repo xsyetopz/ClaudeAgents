@@ -11,7 +11,9 @@
 		"olympi": "./src/cli.ts"
 	},
 	"dependencies": {
+		"@inquirer/prompts": "^8.4.3",
 		"authoring": "workspace:*",
+		"commander": "^14.0.3",
 		"extensions": "workspace:*",
 		"lifecycle": "workspace:*",
 		"reporting": "workspace:*",

@@ -119,11 +119,22 @@ export function policyEventFromNormalizedCommand(options: {
 function operationForClass(
 	className: AgentCommandClass,
 ): WorkspaceOperation | null {
-	if (className === "formatting-write" || className === "generated-artifact")
-		return "write";
-	if (className === "destructive-workspace") return "delete";
-	if (className === "revert-like") return "revert";
-	if (className === "staging") return "stage";
-	if (className === "commit") return "commit";
-	return null;
+	switch (className) {
+		case "formatting-write":
+		case "generated-artifact":
+			return "write";
+		case "destructive-workspace":
+			return "delete";
+		case "revert-like":
+			return "revert";
+		case "staging":
+			return "stage";
+		case "commit":
+			return "commit";
+		case "read-only-inspection":
+		case "unknown":
+			return null;
+		default:
+			return null;
+	}
 }

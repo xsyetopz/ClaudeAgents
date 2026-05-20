@@ -1,7 +1,8 @@
 # Specs
 
-These specs define the 0.1.0 product contract. The executable source of truth is
-`packages/` plus explicit `olympi catalog` output.
+These specs define Olympi's intended product contract and implemented command
+boundaries. The executable source of truth for supported behavior is `packages/`
+plus explicit `olympi dev catalog` output.
 
 - [`product.md`](product.md)
 - [`versioning.md`](versioning.md)
@@ -11,4 +12,3 @@ These specs define the 0.1.0 product contract. The executable source of truth is
 - [`extension-authoring.md`](extension-authoring.md)
 - [`security.md`](security.md)
 - [`verification.md`](verification.md)
-- [`roadmap-parity.md`](roadmap-parity.md)

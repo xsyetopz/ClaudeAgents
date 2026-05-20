@@ -31,8 +31,7 @@ git diff --check
 ## Protected material
 
 - `third_party/` is reference material until a separate policy replaces it.
-- `oal_legacy/` is historical reference material and must not be imported by
-  active code.
+- Archived reference material must not be imported by active code.
 
 ## Pull request checklist
 

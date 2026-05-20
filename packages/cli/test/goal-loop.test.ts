@@ -10,6 +10,7 @@ import {
 	applyWorkerResult,
 	createGoalLoopState,
 	planGoalStep,
+	planGoalTeam,
 	recoverGoalContinuation,
 	requestGoalCompletion,
 } from "lifecycle";
@@ -128,7 +129,7 @@ describe("Olympi goal-loop engine", () => {
 
 	test("continuation recovery preserves objective and completion audit", () => {
 		const state = createGoalLoopState({
-			objective: "Port useful OAL legacy hooks into Olympi packages",
+			objective: "Preserve guarded hook behavior in Olympi packages",
 			completionAuditRequirements: ["verify every required test passes"],
 		});
 		const recovered = recoverGoalContinuation(
@@ -137,12 +138,78 @@ describe("Olympi goal-loop engine", () => {
 		);
 
 		expect(recovered.objective.objective).toBe(
-			"Port useful OAL legacy hooks into Olympi packages",
+			"Preserve guarded hook behavior in Olympi packages",
 		);
 		expect(recovered.continuation.objectivePreserved).toBe(true);
 		expect(recovered.continuation.completionAuditPreserved).toBe(true);
 		expect(recovered.continuation.recoveredPrompt).toContain(
 			"verify every required test passes",
+		);
+	});
+
+	test("continuation recovery preserves blocked state", () => {
+		const state = planGoalStep(
+			createGoalLoopState({
+				objective: "Repair project config safely",
+			}),
+			"Inspect config ownership",
+			{ id: "ownership" },
+		);
+		const blocked = applyWorkerResult(state, {
+			stepId: "ownership",
+			summary:
+				"Ambiguous ownership for .pi/settings.json; ownership proof is missing",
+			evidence: ["git status --short showed a pre-existing change"],
+		});
+		const recovered = recoverGoalContinuation(
+			blocked.state,
+			"compacted while blocked",
+		);
+
+		expect(recovered.status).toBe("blocked");
+		expect(recovered.activeBlocker?.kind).toBe("ambiguous-ownership");
+		expect(recovered.continuation.recoveredPrompt).toContain("Active blocker");
+		expect(recovered.continuation.recoveredPrompt).toContain(
+			"provenance ownership",
+		);
+	});
+
+	test("bounded team orchestration requires independent path assignments", () => {
+		const state = planGoalStep(
+			planGoalStep(
+				createGoalLoopState({
+					objective: "Update docs and package exports",
+				}),
+				"Update documentation",
+				{ id: "docs" },
+			),
+			"Update package exports",
+			{ id: "exports" },
+		);
+
+		const blocked = planGoalTeam(state, {
+			assignments: [
+				{ stepId: "docs", allowedPaths: ["docs"] },
+				{ stepId: "exports", allowedPaths: ["docs/product.md"] },
+			],
+		});
+		expect(blocked.blocked).toBe(true);
+		expect(blocked.plan.status).toBe("blocked");
+		expect(blocked.reasons.join("\n")).toContain("overlap");
+
+		const planned = planGoalTeam(state, {
+			assignments: [
+				{ stepId: "docs", allowedPaths: ["docs"] },
+				{ stepId: "exports", allowedPaths: ["packages/lifecycle/src"] },
+			],
+			maxWorkers: 2,
+		});
+		expect(planned.blocked).toBe(false);
+		expect(planned.plan.assignments).toHaveLength(2);
+		expect(planned.state.orchestration.teamPlans[0]?.id).toBe("team-1");
+		expect(planned.state.steps.at(-1)?.id).toBe("team-1-integrate");
+		expect(planned.state.ledger.at(-1)?.detail).toContain(
+			"parent integration owns merge/review",
 		);
 	});
 });

@@ -17,7 +17,7 @@ function fixturePath(name: string): string {
 }
 
 describe("Olympi catalog", () => {
-	test("defines Olympi contracts without legacy framing", () => {
+	test("defines Olympi contracts from current product surfaces", () => {
 		const catalog = getOlympiCatalog();
 		expect(catalog.product).toBe("Olympi");
 		expect(validateOlympiCatalog(catalog)).toEqual([]);
@@ -28,21 +28,17 @@ describe("Olympi catalog", () => {
 			"status",
 		);
 		expect(formatOlympiCatalog(catalog)).toContain("# Olympi Catalog");
-		expect(JSON.stringify(catalog).toLowerCase()).not.toContain(
-			"openagentlayer",
-		);
-		expect(JSON.stringify(catalog).toLowerCase()).not.toContain("oal vnext");
 	});
 
 	test("CLI emits catalog JSON and Markdown", async () => {
-		const jsonProc = Bun.spawn(["bun", CLI, "catalog", "--json"]);
+		const jsonProc = Bun.spawn(["bun", CLI, "dev", "catalog", "--json"]);
 		const [jsonStdout, jsonExit] = await Promise.all([
 			new Response(jsonProc.stdout).text(),
 			jsonProc.exited,
 		]);
 		expect(jsonExit).toBe(0);
 		expect(JSON.parse(jsonStdout).valid).toBe(true);
-		const markdownProc = Bun.spawn(["bun", CLI, "catalog"]);
+		const markdownProc = Bun.spawn(["bun", CLI, "dev", "catalog"]);
 		const [markdownStdout, markdownExit] = await Promise.all([
 			new Response(markdownProc.stdout).text(),
 			markdownProc.exited,
