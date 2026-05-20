@@ -27,7 +27,7 @@ source-tree behavior. Start with the product/use docs before architecture docs.
 - [`cli-ux-evidence.md`](cli-ux-evidence.md) — evidence behind the CLI and onboarding shape.
 - [`security.md`](security.md) — threat model and current non-guarantees.
 - [`extensions.md`](extensions.md) — first-party extension skeletons and inspection.
-- [`roadmap.md`](roadmap.md) — product contract status and concrete blockers.
+- [`product-status.md`](product-status.md) — product contract status and enforced boundaries.
 
 ## Normative specs
 

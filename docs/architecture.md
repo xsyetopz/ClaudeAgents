@@ -53,15 +53,15 @@ must live in the package that owns the state or decision it changes.
 
 ## Domain packages
 
-| Package      | Owns                                                                                                                        | Does not own                                                                                 |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `lifecycle`  | Local package inspection, evaluation, install/uninstall plans, manifest/lock/audit state, project status, goal-loop state.  | CLI parsing, policy definitions, trust signatures, report formatting.                        |
+| Package      | Owns                                                                                                                                                 | Does not own                                                                                 |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `lifecycle`  | Local package inspection, evaluation, install/uninstall plans, manifest/lock/audit state, project status, goal-loop state.                           | CLI parsing, policy definitions, trust signatures, report formatting.                        |
 | `safety`     | Policy decisions, hook interfaces, RTK proxy routing, anti-bypass guardrails, sandbox probes, broker validation, quota labels, safety audit records. | Package install state, executable trust proof, CLI output.                                   |
-| `trust`      | Executable package load proof and trust status.                                                                             | Package inspection, sandbox implementation, CLI commands.                                    |
-| `reporting`  | Catalogs, status reports, handoffs, acceptance reports, compaction context, RTK route evidence.                             | Mutating project state except explicit artifact writes routed through lifecycle-owned paths. |
-| `authoring`  | First-party resource metadata, prompt contracts, plan/diff review artifacts, mutation queues, module gates, skill registry. | Package evaluation, runtime safety policy, executable trust decisions.                       |
-| `extensions` | First-party extension skeletons and Aegis runtime entrypoint.                                                               | Third-party extension execution or trust decisions.                                          |
-| `cli`        | Command routing and process I/O.                                                                                            | Domain behavior.                                                                             |
+| `trust`      | Executable package load proof and trust status.                                                                                                      | Package inspection, sandbox implementation, CLI commands.                                    |
+| `reporting`  | Catalogs, status reports, handoffs, acceptance reports, compaction context, RTK route evidence.                                                      | Mutating project state except explicit artifact writes routed through lifecycle-owned paths. |
+| `authoring`  | First-party resource metadata, prompt contracts, plan/diff review artifacts, mutation queues, module gates, skill registry.                          | Package evaluation, runtime safety policy, executable trust decisions.                       |
+| `extensions` | First-party extension skeletons and Aegis runtime entrypoint.                                                                                        | Third-party extension execution or trust decisions.                                          |
+| `cli`        | Command routing and process I/O.                                                                                                                     | Domain behavior.                                                                             |
 
 ## State locations
 

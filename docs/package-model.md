@@ -6,11 +6,11 @@ status, catalog, spec, or verification.
 
 ## Resource classes
 
-| Class | Resources | Default action |
-| --- | --- | --- |
-| Passive untrusted | skills, prompts | inspect, hash, allow project-local mirror after approval |
-| Passive static | themes | inspect, parse when useful, allow project-local mirror after approval |
-| Executable | extensions, tools, providers, hooks, lifecycle scripts, package scripts, support scripts | inspect and hash only; block default passive install |
+| Class             | Resources                                                                                | Default action                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Passive untrusted | skills, prompts                                                                          | inspect, hash, allow project-local mirror after approval              |
+| Passive static    | themes                                                                                   | inspect, parse when useful, allow project-local mirror after approval |
+| Executable        | extensions, tools, providers, hooks, lifecycle scripts, package scripts, support scripts | inspect and hash only; block default passive install                  |
 
 ## Install path
 

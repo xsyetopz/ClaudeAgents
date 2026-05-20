@@ -15,20 +15,20 @@ I/O decisions separate enough to test.
 
 ## Ownership guide
 
-| Change type | Package |
-| --- | --- |
-| Pi package inventory, resource hashing, install plans | `lifecycle` |
-| Project manifest, lock, audit, status | `lifecycle` |
-| Goal objective, ledger, retry, blocker, completion state | `lifecycle` |
-| Dangerous command/path/secret/generated-artifact policy | `safety` |
-| Hook phase, veto, validation guardrail | `safety` |
-| Sandbox probe, quota label, read-only broker schema | `safety` |
-| Executable package trust proof | `trust` |
-| Reports, catalog, handoff, compaction, RTK planning | `reporting` |
-| First-party resources, prompt contracts, plan/diff review | `authoring` |
-| Skill metadata, topical loading, refinement proposals | `authoring` |
-| First-party extension skeletons and Aegis runtime | `extensions` |
-| CLI flags, usage text, exit codes, stdout/stderr | `cli` |
+| Change type                                               | Package      |
+| --------------------------------------------------------- | ------------ |
+| Pi package inventory, resource hashing, install plans     | `lifecycle`  |
+| Project manifest, lock, audit, status                     | `lifecycle`  |
+| Goal objective, ledger, retry, blocker, completion state  | `lifecycle`  |
+| Dangerous command/path/secret/generated-artifact policy   | `safety`     |
+| Hook phase, veto, validation guardrail                    | `safety`     |
+| Sandbox probe, quota label, read-only broker schema       | `safety`     |
+| Executable package trust proof                            | `trust`      |
+| Reports, catalog, handoff, compaction, RTK planning       | `reporting`  |
+| First-party resources, prompt contracts, plan/diff review | `authoring`  |
+| Skill metadata, topical loading, refinement proposals     | `authoring`  |
+| First-party extension skeletons and Aegis runtime         | `extensions` |
+| CLI flags, usage text, exit codes, stdout/stderr          | `cli`        |
 
 ## Dependency discipline
 

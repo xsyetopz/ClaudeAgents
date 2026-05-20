@@ -8,8 +8,8 @@ control. Pi invokes Olympi as an extension; the CLI is a development/admin
 entrypoint for install, doctor, status, developer verification, and project-local state, not a
 standalone replacement for Pi.
 
-This document is not a backlog. It records product decisions and implementation
-status for concrete capabilities.
+This document is not a backlog. It records current product decisions,
+implemented behavior, and enforced exclusions.
 
 ## Implemented contract
 
@@ -43,8 +43,8 @@ status for concrete capabilities.
 
 ## Product exclusions
 
-- Provider runtime launch is not planned as an Olympi product surface. Any
+- Provider runtime launch is outside the Olympi product surface. Any
   provider-shaped fixtures remain internal policy/conformance tests.
-- Live third-party executable-resource brokering is not planned as an Olympi
+- Live third-party executable-resource brokering is outside the Olympi
   product surface. Executable resources remain package intake material unless
   trusted by manifest/lock/signature/sandbox gates.
