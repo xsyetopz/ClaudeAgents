@@ -157,6 +157,14 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		],
 	},
 	{
+		command: "memory",
+		purpose:
+			"Initialize, inspect, enable, or disable project-local memory entries supplied by the user.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [".pi/olympi/memory/memory.sqlite with --apply"],
+		blocked: ["global memory writes", "implicit mutation without --apply"],
+	},
+	{
 		command: "dev package inspect",
 		purpose:
 			"Developer-facing package inspection without executing package code.",
@@ -777,6 +785,7 @@ export function validateOlympiCatalog(
 		"package inspect",
 		"package evaluate",
 		"report package-risk",
+		"memory",
 		"install",
 		"uninstall",
 		"doctor",

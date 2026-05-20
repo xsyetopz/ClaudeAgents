@@ -1,3 +1,4 @@
+import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
@@ -9,7 +10,14 @@ import {
 	installAegisProjectExtension,
 	uninstallAegisPiExtension,
 } from "extensions";
-import { readProfileStatus, setProjectProfile } from "lifecycle";
+import {
+	initializeMemoryStore,
+	readEnabledMemoryText,
+	readMemoryStatus,
+	readProfileStatus,
+	setMemoryEnabled,
+	setProjectProfile,
+} from "lifecycle";
 import { planRtkCommand } from "reporting";
 
 const CLI = path.join(import.meta.dir, "..", "src", "cli.ts");
@@ -168,6 +176,25 @@ describe("Olympi product workflows", () => {
 		expect(sent.join("\n")).toContain("Resume the saved goal");
 		expect(sent.join("\n")).toContain("/skill:olympi-code-intelligence");
 		expect(sent.join("\n")).toContain("route tool execution through RTK");
+
+		const projectRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-memory-prompt-"),
+		);
+		const previousCwd = process.cwd();
+		try {
+			process.chdir(projectRoot);
+			await initializeMemoryStore({ projectRoot, apply: true });
+			await registered.get("olympi-goal")?.("use memory", context);
+			expect(sent.at(-1)).toContain("Project memory:");
+			expect(sent.at(-1)).toContain("Keep user constraints binding");
+
+			await setMemoryEnabled({ projectRoot, apply: true, enabled: false });
+			await registered.get("olympi-goal")?.("memory disabled", context);
+			expect(sent.at(-1)).not.toContain("Project memory:");
+		} finally {
+			process.chdir(previousCwd);
+			await rm(projectRoot, { recursive: true, force: true });
+		}
 	});
 
 	test("Aegis global install is explicit, gated, and dry-run safe", async () => {
@@ -222,6 +249,71 @@ describe("Olympi product workflows", () => {
 			).toContain("createAegisPiExtension");
 		} finally {
 			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("project-local memory store is explicit and toggleable", async () => {
+		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-memory-"));
+		try {
+			const initial = await readMemoryStatus(projectRoot);
+			expect(initial.initialized).toBe(false);
+			expect(initial.enabled).toBe(false);
+
+			const dryRun = await initializeMemoryStore({
+				projectRoot,
+				apply: false,
+			});
+			expect(dryRun.wouldWrite).toEqual([".pi/olympi/memory/memory.sqlite"]);
+			await expect(
+				readFile(
+					path.join(projectRoot, ".pi", "olympi", "memory", "memory.sqlite"),
+				),
+			).rejects.toThrow();
+
+			const applied = await initializeMemoryStore({
+				projectRoot,
+				apply: true,
+			});
+			expect(applied.written).toEqual([".pi/olympi/memory/memory.sqlite"]);
+			const enabled = await readMemoryStatus(projectRoot);
+			expect(enabled.enabled).toBe(true);
+			expect(enabled.entries).toHaveLength(11);
+			expect(await readEnabledMemoryText(projectRoot)).toContain(
+				"Keep user constraints binding across all topics. Do not overgeneralize from familiar external models into the user’s project, wording, goals, or context.",
+			);
+
+			const db = new Database(
+				path.join(projectRoot, ".pi", "olympi", "memory", "memory.sqlite"),
+				{ readonly: true },
+			);
+			try {
+				expect(
+					db
+						.prepare(
+							"SELECT COUNT(*) AS count FROM memory_entries WHERE source = 'user-provided'",
+						)
+						.get(),
+				).toEqual({ count: 11 });
+			} finally {
+				db.close();
+			}
+
+			await setMemoryEnabled({ projectRoot, apply: true, enabled: false });
+			expect((await readMemoryStatus(projectRoot)).enabled).toBe(false);
+			expect(await readEnabledMemoryText(projectRoot)).toEqual([]);
+
+			const cli = Bun.spawn(
+				["bun", CLI, "memory", "enable", "--apply", "--json"],
+				{ cwd: projectRoot },
+			);
+			const [stdout, exitCode] = await Promise.all([
+				new Response(cli.stdout).text(),
+				cli.exited,
+			]);
+			expect(exitCode).toBe(0);
+			expect(JSON.parse(stdout).enabled).toBe(true);
+		} finally {
+			await rm(projectRoot, { recursive: true, force: true });
 		}
 	});
 

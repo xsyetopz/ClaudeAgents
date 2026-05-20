@@ -22,6 +22,7 @@ import { runInspect } from "./commands/inspect.js";
 import { runInstall } from "./commands/install.js";
 import { runIntelligence } from "./commands/intelligence.js";
 import { runLock } from "./commands/lock.js";
+import { runMemory } from "./commands/memory.js";
 import { runModule } from "./commands/module.js";
 import { runPackageEvaluate } from "./commands/package-evaluate.js";
 import { runProfile } from "./commands/profile.js";
@@ -46,6 +47,7 @@ const PUBLIC_TOP_LEVEL_COMMANDS = [
 	"status",
 	"doctor",
 	"report",
+	"memory",
 	"help",
 ] as const;
 const TOP_LEVEL_COMMANDS = [
@@ -194,6 +196,9 @@ export function createCliProgram(argv: string[] = []): Command {
 	);
 	forwardCommand(program, "report", "Show reports", (args) =>
 		runReport(args, json),
+	);
+	forwardCommand(program, "memory", "Manage project-local memory", (args) =>
+		runMemory(args, json),
 	);
 	forwardCommand(program, "safety", "Inspect safety stops", (args) =>
 		runSafetySurface(args, json),
@@ -473,6 +478,7 @@ Usage:
   olympi install --apply
   olympi doctor
   olympi status
+  olympi memory status
 
 Commands:
   install       Register Olympi resources into Pi project-local state
@@ -480,6 +486,7 @@ Commands:
   doctor        Check install, runtime, RTK, Pi, hooks, slash resources, and state
   status        Inspect project-local state
   report        Emit admin/CI status or handoff reports
+  memory        Manage project-local memory
   help all      Show admin/developer reference
 
 Pi workflow surface:
@@ -529,6 +536,7 @@ CLI bootstrap/admin workflow:
   olympi doctor [--json]
   olympi report status [--json]
   olympi report handoff [--statusline <pi-statusline>] [--json]
+  olympi memory status|init|enable|disable [--apply] [--json]
   Olympi routes command execution through RTK automatically. Unsupported commands are proxied through RTK; agents must not bypass this path.
 
 Developer/CI/admin workflow (not normal user workflow):

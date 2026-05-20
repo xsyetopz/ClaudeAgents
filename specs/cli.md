@@ -72,6 +72,9 @@ The CLI default surface is bootstrap/admin only: `install`, `uninstall`,
 - `report status [--json]`
 - `report handoff [--statusline <pi-statusline>] [--json]`
 - `report acceptance [--json]`
+- `memory status|init|enable|disable [--apply] [--disabled] [--json]`
+
+Memory writes use `.pi/olympi/memory/memory.sqlite` and require `--apply`; `status` is read-only.
 
 Default help MUST stay short and MUST NOT expose debug commands, provider
 deployment terms, Aegis, broker, sandbox, package-manifest internals, or package

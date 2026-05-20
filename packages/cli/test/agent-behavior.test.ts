@@ -69,25 +69,12 @@ Remaining blocker: none. If you want, I can fix it later.`);
 		expect(technical.valid).toBe(true);
 	});
 
-	test("stale or conflicting agent instructions are detected semantically", () => {
-		const conflicting =
-			reviewAgentInstructions(`Complete work without verification.
-If blocked, continue with unrelated cleanup.
-Use path names as ownership evidence.`);
+	test("agent instruction review avoids language-dependent semantic checks", () => {
+		const nonEnglish =
+			reviewAgentInstructions(`Los cambios sin explicación pertenecen al usuario.
+La finalización requiere verificación.`);
 
-		expect(conflicting.valid).toBe(false);
-		expect(conflicting.findings.join("\n")).toContain(
-			"conflicts with verification-backed completion",
-		);
-		expect(conflicting.findings.join("\n")).toContain(
-			"conflicts with blocker stop rule",
-		);
-
-		const scoped = reviewAgentInstructions(`Unexplained changes are user-owned.
-Ownership requires manifest hash, provenance, or explicit user approval.
-Completion requires verification commands.
-When blocked, stop the affected path and do not continue unrelated work.`);
-
-		expect(scoped.valid).toBe(true);
+		expect(nonEnglish.valid).toBe(true);
+		expect(nonEnglish.criteria).toEqual([]);
 	});
 });

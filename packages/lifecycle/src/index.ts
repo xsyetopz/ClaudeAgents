@@ -144,6 +144,23 @@ export {
 	relativeToProject,
 	writeManifest,
 } from "./manifest.js";
+/** Project-local memory store contracts. */
+export type {
+	MemoryEntry,
+	MemoryInitReport,
+	MemorySetEnabledReport,
+	MemorySplit,
+	MemorySplitId,
+	MemoryStatusReport,
+} from "./memory.js";
+/** Initialize, read, and toggle the optional project-local memory store. */
+export {
+	DEFAULT_MEMORY_SPLITS,
+	initializeMemoryStore,
+	readEnabledMemoryText,
+	readMemoryStatus,
+	setMemoryEnabled,
+} from "./memory.js";
 /** Optional project-local profile contracts. */
 export type {
 	OlympiProfile,

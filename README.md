@@ -5,7 +5,7 @@ environment; Olympi wraps Pi workflows with goal state, planning, execution
 governance, hooks, skills, code intelligence, provenance, blockers,
 verification, and reporting. Pi invokes Olympi as an extension. The `olympi`
 CLI is a bootstrap/admin entrypoint for install, uninstall, doctor, status,
-reports, and scoped developer verification; it is not a standalone replacement
+reports, project-local memory, and scoped developer verification; it is not a standalone replacement
 for Pi.
 
 ## Runtime model
@@ -72,6 +72,7 @@ pi
 /olympi-execute run the approved verification command
 /olympi-complete record verified completion
 olympi status
+olympi memory status
 ```
 
 The default workflow:

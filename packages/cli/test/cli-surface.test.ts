@@ -102,6 +102,7 @@ describe("Olympi CLI and interactive command surface", () => {
 			"status",
 			"doctor",
 			"report",
+			"memory",
 			"help",
 		]);
 		expect(forwarded).toEqual([
@@ -112,6 +113,7 @@ describe("Olympi CLI and interactive command surface", () => {
 			"status",
 			"doctor",
 			"report",
+			"memory",
 			"safety",
 			"debug",
 			"interactive",
@@ -156,6 +158,7 @@ describe("Olympi CLI and interactive command surface", () => {
 			"doctor",
 			"status",
 			"report",
+			"memory",
 		]);
 		expect(result.stdout).toContain("/olympi-goal");
 		expect(result.stdout).not.toContain("olympi dev");
@@ -334,7 +337,7 @@ describe("Olympi CLI and interactive command surface", () => {
 				message: "Unknown command: nope",
 				exitCode: 2,
 				input: "nope",
-				expected: "install, uninstall, status, doctor, report, help",
+				expected: "install, uninstall, status, doctor, report, memory, help",
 			},
 			written: [],
 		});

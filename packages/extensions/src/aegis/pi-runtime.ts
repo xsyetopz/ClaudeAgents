@@ -8,6 +8,7 @@ import {
 	hashJson,
 	type ManifestFileRecord,
 	type PiPackageSettingsEntry,
+	readEnabledMemoryText,
 	readManifest,
 	readPiSettings,
 	relativeToProject,
@@ -647,11 +648,28 @@ function stableJson(value: unknown): string {
 
 function skillMarkdown(skill: string): string {
 	const description = skillDescription(skill);
-	return `---\nname: ${skill}\ndescription: ${JSON.stringify(description)}\n---\n# ${skill}\n\n${description}\n\nLoad this skill only for the matching Olympi slash workflow. Do not treat Olympi as a standalone CLI product. Preserve project-local provenance, RTK routing, hook blockers, and verification evidence.\n`;
+	return `---
+name: ${skill}
+description: ${JSON.stringify(description)}
+---
+# ${skill}
+
+${description}
+
+Load this skill only for the matching Olympi slash workflow. Preserve project-local provenance, RTK routing, hook blockers, and verification evidence.
+`;
 }
 
 function promptMarkdown(prompt: string): string {
-	return `---\ndescription: ${JSON.stringify(promptDescription(prompt))}\n---\n# ${prompt}\n\nUse this prompt template inside Pi after Olympi is installed. Route normal work through Olympi slash commands, scoped skills, hooks, and automatic RTK tool routing. Keep CLI use to install, uninstall, doctor, status, report, and CI/admin inspection.\n\nArguments: $ARGUMENTS\n`;
+	return `---
+description: ${JSON.stringify(promptDescription(prompt))}
+---
+# ${prompt}
+
+Use this prompt template inside Pi after Olympi is installed. Route normal work through Olympi slash commands, scoped skills, hooks, and automatic RTK tool routing.
+
+Arguments: $ARGUMENTS
+`;
 }
 
 function promptDescription(prompt: string): string {
@@ -746,7 +764,7 @@ export function createAegisPiExtension(pi: PiExtensionApiLike): void {
 		pi.registerCommand?.(command, {
 			description: slashCommandDescription(command),
 			handler: async (args, ctx) => {
-				const prompt = slashCommandPrompt(command, args);
+				const prompt = await slashCommandPrompt(command, args);
 				if (ctx.sendUserMessage !== undefined) {
 					await ctx.sendUserMessage(prompt, { deliverAs: "steer" });
 					return;
@@ -798,35 +816,49 @@ function slashCommandDescription(command: string): string {
 	}
 }
 
-function slashCommandPrompt(command: string, args: string): string {
+async function slashCommandPrompt(
+	command: string,
+	args: string,
+): Promise<string> {
 	const trimmedArgs = args.trim();
+	const memory = await memoryPromptSuffix();
 	switch (command) {
 		case "olympi-goal":
-			return `Use /skill:olympi-goal-loop. Create a governed Olympi goal from: ${trimmedArgs || "<ask for goal>"}. Keep state project-local, identify verification commands, stop on blockers, and route tool execution through RTK.`;
+			return `Use /skill:olympi-goal-loop. Create a governed Olympi goal from: ${trimmedArgs || "<ask for goal>"}. Keep state project-local, identify verification commands, stop on blockers, and route tool execution through RTK.${memory}`;
 		case "olympi-plan":
-			return `Use /skill:olympi-goal-loop and /skill:olympi-code-intelligence. Plan the next bounded Olympi step from: ${trimmedArgs || "<current goal>"}. Require explicit paths and parent review.`;
+			return `Use /skill:olympi-goal-loop and /skill:olympi-code-intelligence. Plan the next bounded Olympi step from: ${trimmedArgs || "<current goal>"}. Require explicit paths and parent review.${memory}`;
 		case "olympi-execute":
-			return `Use /skill:olympi-goal-loop. Execute only the requested bounded step after policy, provenance, hook, and RTK checks: ${trimmedArgs || "<step and command required>"}. Stop on missing RTK or ownership proof.`;
+			return `Use /skill:olympi-goal-loop. Execute only the requested bounded step after policy, provenance, hook, and RTK checks: ${trimmedArgs || "<step and command required>"}. Stop on missing RTK or ownership proof.${memory}`;
 		case "olympi-complete":
-			return `Use /skill:olympi-verification. Check completion evidence for: ${trimmedArgs || "<goal>"}. Require passing verification, no unresolved blockers, and explicit audit evidence.`;
+			return `Use /skill:olympi-verification. Check completion evidence for: ${trimmedArgs || "<goal>"}. Require passing verification, no unresolved blockers, and explicit audit evidence.${memory}`;
 		case "olympi-resume":
-			return `Use /skill:olympi-goal-loop and /skill:olympi-handoff. Resume the saved goal from project-local state without clearing blockers: ${trimmedArgs || "<goal-id>"}.`;
+			return `Use /skill:olympi-goal-loop and /skill:olympi-handoff. Resume the saved goal from project-local state without clearing blockers: ${trimmedArgs || "<goal-id>"}.${memory}`;
 		case "olympi-handoff":
-			return `Use /skill:olympi-handoff. Produce a compact continuation record with objective, done, next Pi slash command, validation evidence, and blockers. ${trimmedArgs}`;
+			return `Use /skill:olympi-handoff. Produce a compact continuation record with objective, done, next Pi slash command, validation evidence, and blockers. ${trimmedArgs}${memory}`;
 		case "olympi-doctor":
-			return "Run the Olympi doctor health path through the installed extension context: report Pi registration, RTK availability, hook status, slash resources, skills, prompts, and project-local state.";
+			return `Run the Olympi doctor health path through the installed extension context: report Pi registration, RTK availability, hook status, slash resources, skills, prompts, and project-local state.${memory}`;
 		case "olympi-status":
-			return "Summarize Olympi project-local state, manifest/lock/audit drift, active blockers, installed slash resources, hooks, skills, prompts, and RTK status.";
+			return `Summarize Olympi project-local state, manifest/lock/audit drift, active blockers, installed slash resources, hooks, skills, prompts, and RTK status.${memory}`;
 		case "olympi-feedback":
-			return `Capture concrete Olympi dogfood feedback with source, problem, evidence, affected path, and classification: ${trimmedArgs || "<feedback>"}.`;
+			return `Capture concrete Olympi dogfood feedback with source, problem, evidence, affected path, and classification: ${trimmedArgs || "<feedback>"}.${memory}`;
 		case "olympi-context":
-			return `Use /skill:olympi-code-intelligence. Build bounded code context for: ${trimmedArgs || "current task"}. Prefer narrow files and repo-map hints.`;
+			return `Use /skill:olympi-code-intelligence. Build bounded code context for: ${trimmedArgs || "current task"}. Prefer narrow files and repo-map hints.${memory}`;
 		case "olympi-hooks":
-			return "Explain active Olympi runtime hooks: pre-tool, post-tool, write, commit-adjacent, stop/blocker, validation, provenance, RTK anti-bypass, and Caveman output.";
+			return `Explain active Olympi runtime hooks: pre-tool, post-tool, write, commit-adjacent, stop/blocker, validation, provenance, RTK anti-bypass, and Caveman output.${memory}`;
 		case "olympi-skills":
-			return "List scoped Olympi skills and when to load them lazily for the current Pi workflow.";
+			return `List scoped Olympi skills and when to load them lazily for the current Pi workflow.${memory}`;
 		default:
-			return trimmedArgs;
+			return `${trimmedArgs}${memory}`.trim();
+	}
+}
+
+async function memoryPromptSuffix(): Promise<string> {
+	try {
+		const memory = await readEnabledMemoryText();
+		if (memory.length === 0) return "";
+		return `\n\nProject memory:\n${memory.map((entry) => `- ${entry}`).join("\n")}`;
+	} catch {
+		return "";
 	}
 }
 
