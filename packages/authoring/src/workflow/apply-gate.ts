@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { appendAuditEvent } from "lifecycle";
-import { deterministicDigest, sortStrings } from "reporting";
+import { deterministicDigest, sortStrings } from "reporting/schema";
 import { decidePolicy } from "safety";
 import {
 	buildMutationQueuePlan,

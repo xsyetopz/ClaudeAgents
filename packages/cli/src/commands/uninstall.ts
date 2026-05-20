@@ -43,13 +43,27 @@ async function runCoreUninstall(
 	if (apply && dryRun && args.includes("--dry-run")) {
 		throw new OlympiError("uninstall cannot combine --apply and --dry-run", 2);
 	}
+	const provenance =
+		readFlagValue(args, "--provenance") ??
+		(args.includes("--global") && apply ? "explicit-user-approval" : undefined);
 	const report = await uninstallAegisPiExtension({
 		scope: args.includes("--global") ? "global" : "project-local",
 		apply,
+		confirmed:
+			args.includes("--confirm-global") || (args.includes("--global") && apply),
+		...(provenance === undefined ? {} : { provenance }),
 	});
 	process.stdout.write(json ? asJson(report) : formatCoreUninstall(report));
 	if (report.blocked) return 3;
 	return report.preserved.length > 0 ? 1 : 0;
+}
+
+function readFlagValue(args: string[], flag: string): string | undefined {
+	const index = args.indexOf(flag);
+	if (index === -1) return undefined;
+	const value = args[index + 1];
+	if (value === undefined || value.startsWith("--")) return undefined;
+	return value;
 }
 
 function formatCoreUninstall(

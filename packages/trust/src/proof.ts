@@ -1,5 +1,5 @@
 import { readLock, readManifest } from "lifecycle";
-import { deterministicDigest, sortStrings } from "reporting";
+import { deterministicDigest, sortStrings } from "reporting/schema";
 import { runSandboxProbe } from "safety";
 
 export interface ExecutableTrustProofOptions {

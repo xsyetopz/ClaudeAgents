@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { olympiDirectory } from "lifecycle";
-import { deterministicDigest, stableJson } from "reporting";
+import { deterministicDigest, stableJson } from "reporting/schema";
 import type { PolicyDecision } from "../policy/types.js";
 
 export interface HestiaAuditRecord {

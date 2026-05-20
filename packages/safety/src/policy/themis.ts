@@ -1,4 +1,4 @@
-import { deterministicDigest, sortStrings } from "reporting";
+import { deterministicDigest, sortStrings } from "reporting/schema";
 import { dangerousCommandReasons } from "./dangerous-command.js";
 import {
 	generatedArtifactReasons,

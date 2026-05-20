@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { fileExists } from "lifecycle";
-import { deterministicDigest, redactSecrets, sortStrings } from "reporting";
+import {
+	deterministicDigest,
+	redactSecrets,
+	sortStrings,
+} from "reporting/schema";
 
 export interface PromptContractArtifact {
 	schemaVersion: 1;

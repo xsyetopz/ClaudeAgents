@@ -4,7 +4,7 @@ import {
 	redactSecrets,
 	sortStrings,
 	stableJson,
-} from "reporting";
+} from "reporting/schema";
 
 export type ReviewDecision = "approve" | "deny" | "needs-edit" | "blocked";
 

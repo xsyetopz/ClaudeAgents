@@ -1,5 +1,5 @@
 import path from "node:path";
-import { deterministicDigest } from "reporting";
+import { deterministicDigest } from "reporting/schema";
 
 export interface MutationQueuePlan {
 	schemaVersion: 1;

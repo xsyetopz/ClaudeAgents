@@ -1,4 +1,4 @@
-import { deterministicDigest, sortStrings } from "reporting";
+import { deterministicDigest, sortStrings } from "reporting/schema";
 import { decidePolicy } from "safety";
 
 export type OlympiModuleName =

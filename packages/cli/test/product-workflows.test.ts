@@ -252,6 +252,60 @@ describe("Olympi product workflows", () => {
 		}
 	});
 
+	test("Aegis global uninstall is explicit and hash guarded", async () => {
+		const tempRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-aegis-global-uninstall-"),
+		);
+		const homeDir = path.join(tempRoot, "home");
+		try {
+			await installAegisPiExtension({
+				scope: "global",
+				homeDir,
+				apply: true,
+				confirmed: true,
+				provenance: "explicit-user-approval",
+			});
+
+			const dryRun = await uninstallAegisPiExtension({
+				scope: "global",
+				homeDir,
+				apply: false,
+			});
+			expect(dryRun.blocked).toBe(false);
+			expect(dryRun.wouldRemove).toEqual([
+				"~/.pi/agent/extensions/olympi-aegis.ts",
+			]);
+
+			const blocked = await uninstallAegisPiExtension({
+				scope: "global",
+				homeDir,
+				apply: true,
+			});
+			expect(blocked.blocked).toBe(true);
+			expect(blocked.removed).toEqual([]);
+
+			const applied = await uninstallAegisPiExtension({
+				scope: "global",
+				homeDir,
+				apply: true,
+				confirmed: true,
+				provenance: "explicit-user-approval",
+			});
+			expect(applied.blocked).toBe(false);
+			expect(applied.removed).toEqual([
+				"~/.pi/agent/extensions/olympi-aegis.ts",
+			]);
+			await expect(
+				readFile(
+					path.join(homeDir, ".pi", "agent", "extensions", "olympi-aegis.ts"),
+					"utf8",
+				),
+			).rejects.toThrow();
+		} finally {
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
 	test("project-local memory store is explicit and toggleable", async () => {
 		const projectRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-memory-"));
 		try {

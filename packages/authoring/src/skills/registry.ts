@@ -1,4 +1,4 @@
-import { deterministicDigest, sortStrings } from "reporting";
+import { deterministicDigest, sortStrings } from "reporting/schema";
 
 export type SkillModelTier =
 	| "cheap-worker"

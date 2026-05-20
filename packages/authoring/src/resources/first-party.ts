@@ -17,7 +17,7 @@ import {
 	writeManifest,
 	writePiSettings,
 } from "lifecycle";
-import { stablePrettyJson } from "reporting";
+import { stablePrettyJson } from "reporting/schema";
 import { FIRST_PARTY_RESOURCE_METADATA } from "./schema.js";
 
 export interface FirstPartyPackagePlan {

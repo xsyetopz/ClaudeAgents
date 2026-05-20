@@ -1,4 +1,4 @@
-import { redactSecrets } from "reporting";
+import { redactSecrets } from "reporting/schema";
 
 export interface SecretSafetyResult {
 	text: string;

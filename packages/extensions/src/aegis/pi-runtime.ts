@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -332,24 +333,115 @@ export function installAegisProjectExtension(options: {
 export async function uninstallAegisPiExtension(options: {
 	scope?: AegisInstallScope;
 	projectRoot?: string;
+	homeDir?: string;
 	apply: boolean;
+	confirmed?: boolean;
+	provenance?: string;
 }): Promise<AegisUninstallReport> {
 	const scope = options.scope ?? "project-local";
 	if (scope === "global") {
+		const homeDir = path.resolve(
+			options.homeDir ?? process.env["HOME"] ?? os.homedir(),
+		);
+		const target = path.join(
+			homeDir,
+			".pi",
+			"agent",
+			"extensions",
+			"olympi-aegis.ts",
+		);
+		const entrypoint = "~/.pi/agent/extensions/olympi-aegis.ts";
+		if (!options.apply) {
+			return {
+				schemaVersion: 1,
+				command: "hooks aegis-uninstall",
+				scope,
+				projectRoot: null,
+				apply: false,
+				blocked: false,
+				wouldRead: [entrypoint],
+				wouldRemove: [entrypoint],
+				removed: [],
+				preserved: [],
+				reason:
+					"dry-run plan for explicit global Aegis extension unregister; rerun with --global --apply to remove matching ~/.pi/agent/extensions entrypoint",
+				warnings: [
+					"global ~/.pi removal is limited to the Olympi Aegis entrypoint",
+				],
+			};
+		}
+		const confirmed = options.confirmed === true;
+		const provenance = options.provenance ?? null;
+		if (!confirmed || provenance !== "explicit-user-approval") {
+			return {
+				schemaVersion: 1,
+				command: "hooks aegis-uninstall",
+				scope,
+				projectRoot: null,
+				apply: true,
+				blocked: true,
+				wouldRead: [entrypoint],
+				wouldRemove: [entrypoint],
+				removed: [],
+				preserved: [],
+				reason:
+					"global Pi uninstall blocked: removal requires explicit confirmation provenance",
+				warnings: [
+					"global Pi registration affects all Pi projects for this user",
+				],
+			};
+		}
+		const currentHash = await safeHash(target);
+		if (currentHash === null) {
+			return {
+				schemaVersion: 1,
+				command: "hooks aegis-uninstall",
+				scope,
+				projectRoot: null,
+				apply: true,
+				blocked: false,
+				wouldRead: [entrypoint],
+				wouldRemove: [],
+				removed: [],
+				preserved: [],
+				reason: "global Aegis extension entrypoint is already absent",
+				warnings: [],
+			};
+		}
+		const expectedHash = hashText(aegisProjectExtensionSource());
+		if (currentHash !== expectedHash) {
+			return {
+				schemaVersion: 1,
+				command: "hooks aegis-uninstall",
+				scope,
+				projectRoot: null,
+				apply: true,
+				blocked: false,
+				wouldRead: [entrypoint],
+				wouldRemove: [],
+				removed: [],
+				preserved: [entrypoint],
+				reason:
+					"partial uninstall; preserved changed global Aegis entrypoint for manual review",
+				warnings: [
+					"global entrypoint hash does not match this Olympi checkout",
+				],
+			};
+		}
+		await rm(target, { force: true });
 		return {
 			schemaVersion: 1,
 			command: "hooks aegis-uninstall",
 			scope,
 			projectRoot: null,
 			apply: options.apply,
-			blocked: true,
-			wouldRead: [],
+			blocked: false,
+			wouldRead: [entrypoint],
 			wouldRemove: [],
-			removed: [],
+			removed: [entrypoint],
 			preserved: [],
-			reason:
-				"global Olympi uninstall requires a dedicated explicit global provenance gate; project-local uninstall is the default",
-			warnings: ["global ~/.pi removals are not implicit"],
+			reason: "removed explicit global Aegis extension entrypoint",
+			warnings: [],
 		};
 	}
 	const projectRoot = path.resolve(options.projectRoot ?? process.cwd());
@@ -452,6 +544,10 @@ async function safeHash(filePath: string): Promise<string | null> {
 	} catch {
 		return null;
 	}
+}
+
+function hashText(value: string): string {
+	return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
 interface CoreResourcePlan {

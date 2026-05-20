@@ -1,4 +1,4 @@
-import { deterministicDigest, sortStrings } from "reporting";
+import { deterministicDigest, sortStrings } from "reporting/schema";
 import { decidePolicy } from "../policy/themis.js";
 import type { PolicyEvent, PolicyEventType } from "../policy/types.js";
 import { workspaceOwnershipReasons } from "../policy/workspace-ownership.js";
