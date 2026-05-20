@@ -975,7 +975,10 @@ export function handleAegisEvent(
 	}
 	const policyEvent = policyEventFromPi(eventName, event);
 	const decision = decidePolicy(policyEvent);
-	const rtkDecision = rtkDecisionFromPolicyEvent(policyEvent);
+	const rtkDecision =
+		routed?.rtkEnforced === true
+			? null
+			: rtkDecisionFromPolicyEvent(policyEvent);
 	recordDecision(decision, ctx);
 	if (rtkDecision?.vetoed) {
 		recordDecision(
@@ -1014,7 +1017,10 @@ export function handleAegisEvent(
 function routePiToolCommand(
 	eventName: PolicyEventType,
 	event: unknown,
-): { blocked: true; reason: string } | { blocked: false } | null {
+):
+	| { blocked: true; reason: string }
+	| { blocked: false; rtkEnforced: true }
+	| null {
 	if (eventName !== "tool_call" && eventName !== "user_bash") return null;
 	const record = asRecord(event);
 	const input = asRecord(record["input"]);
@@ -1036,13 +1042,14 @@ function routePiToolCommand(
 			reason: `RTK route required but executable is unavailable; required route: ${missing.requiredRtkRoute}`,
 		};
 	}
-	if (command === route.rtkCommandText) return { blocked: false };
+	if (command === route.rtkCommandText)
+		return { blocked: false, rtkEnforced: true };
 	if (record["input"] && typeof record["input"] === "object") {
 		(input as { command?: string }).command = route.rtkCommandText;
 	} else {
 		(record as { command?: string }).command = route.rtkCommandText;
 	}
-	return { blocked: false };
+	return { blocked: false, rtkEnforced: true };
 }
 
 function rtkDecisionFromPolicyEvent(
@@ -1143,7 +1150,6 @@ export function policyEventFromPi(
 				schemaVersion: 1,
 				eventType: "before_provider_request",
 				payloadBytes: Buffer.byteLength(text),
-				text,
 			};
 		}
 		case "input": {
@@ -1194,11 +1200,25 @@ function eventShape(record: Record<string, unknown>): string[] {
 
 function recordDecision(decision: PolicyDecision, ctx: PiContextLike): void {
 	if (decision.decision === "allow") return;
+	if (isQuietEfficiencyDecision(decision)) return;
 	ctx.ui?.setStatus?.("olympi-aegis", `Aegis ${decision.decision}`);
 	if (ctx.hasUI === false) return;
 	ctx.ui?.notify?.(
 		`Olympi Aegis ${decision.decision}: ${decision.reasons[0] ?? decision.redactions[0] ?? "policy event"}`,
 		decision.blocked ? "error" : "warning",
+	);
+}
+
+function isQuietEfficiencyDecision(decision: PolicyDecision): boolean {
+	return (
+		decision.eventType === "before_provider_request" &&
+		decision.decision === "warn" &&
+		decision.reasons.length > 0 &&
+		decision.reasons.every(
+			(reason) =>
+				reason.startsWith("provider payload size warning") ||
+				reason.startsWith("quota pressure warning"),
+		)
 	);
 }
 

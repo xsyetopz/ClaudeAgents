@@ -628,16 +628,87 @@ describe("Safety runtime sandbox, broker, quota, and Aegis", () => {
 			{ hasUI: false },
 		);
 		expect(result).toEqual(expect.objectContaining({ block: true }));
-		const directShell = handlers.get("tool_call")?.(
-			{ toolName: "bash", input: { command: "git status --short" } },
-			{ hasUI: false },
+		const originalPath = process.env["PATH"];
+		try {
+			process.env["PATH"] = path.join(os.tmpdir(), "olympi-no-rtk-on-path");
+			const directShell = handlers.get("tool_call")?.(
+				{ toolName: "bash", input: { command: "git status --short" } },
+				{ hasUI: false },
+			);
+			expect(directShell).toEqual(
+				expect.objectContaining({
+					block: true,
+					reason: expect.stringContaining("direct process execution"),
+				}),
+			);
+		} finally {
+			process.env["PATH"] = originalPath;
+		}
+	});
+
+	test("Aegis rewrites bash execution to RTK when RTK is available", async () => {
+		const tempRoot = await mkdtemp(path.join(os.tmpdir(), "olympi-rtk-route-"));
+		const originalPath = process.env["PATH"];
+		try {
+			const fakeRtk = path.join(tempRoot, "rtk");
+			await writeFile(fakeRtk, "#!/bin/sh\necho fake rtk\n");
+			await chmod(fakeRtk, 0o755);
+			process.env["PATH"] = `${tempRoot}${path.delimiter}${originalPath ?? ""}`;
+			const handlers = new Map<
+				string,
+				(event: unknown, ctx: unknown) => unknown
+			>();
+			createAegisPiExtension({
+				on(event, handler) {
+					handlers.set(
+						event,
+						handler as (event: unknown, ctx: unknown) => unknown,
+					);
+				},
+			});
+			const event = {
+				toolName: "bash",
+				input: { command: "git status --short" },
+			};
+			const result = handlers.get("tool_call")?.(event, { hasUI: false });
+			expect(result).toBeUndefined();
+			expect(event.input.command).toBe(`${fakeRtk} git status --short`);
+		} finally {
+			process.env["PATH"] = originalPath;
+			await rm(tempRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("Aegis keeps provider payload efficiency warnings quiet in the UI", () => {
+		const handlers = new Map<
+			string,
+			(event: unknown, ctx: unknown) => unknown
+		>();
+		createAegisPiExtension({
+			on(event, handler) {
+				handlers.set(
+					event,
+					handler as (event: unknown, ctx: unknown) => unknown,
+				);
+			},
+		});
+		const notifications: string[] = [];
+		const statuses: string[] = [];
+		handlers.get("before_provider_request")?.(
+			{ payload: { messages: ["x".repeat(130_000)] } },
+			{
+				ui: {
+					notify(message: string) {
+						notifications.push(message);
+					},
+					setStatus(_key: string, text: string) {
+						statuses.push(text);
+					},
+				},
+			},
 		);
-		expect(directShell).toEqual(
-			expect.objectContaining({
-				block: true,
-				reason: expect.stringContaining("direct process execution"),
-			}),
-		);
+		expect(notifications).toEqual([]);
+		expect(statuses).toEqual([]);
 	});
 
 	test("provider metadata fallback blocks unsafe events with missing metadata", async () => {
@@ -677,6 +748,23 @@ describe("Safety runtime sandbox, broker, quota, and Aegis", () => {
 		);
 		expect(fixture.eventShape).toContain("input.content");
 		expect(fixture.expectedBlocker.missingFields).toContain("path");
+	});
+
+	test("resources discovery startup events do not fail closed without exposed resources", () => {
+		const startupDiscovery = policyEventFromPi("resources_discover", {
+			reason: "startup",
+		});
+		expect(decidePolicy(startupDiscovery).blocked).toBe(false);
+
+		const nonOlympiDiscovery = decidePolicy({
+			schemaVersion: 1,
+			eventType: "resources_discover",
+			olympiOwned: false,
+		});
+		expect(nonOlympiDiscovery.blocked).toBe(true);
+		expect(nonOlympiDiscovery.reasons.join("\n")).toContain(
+			"non-Olympi-owned resource discovery blocked",
+		);
 	});
 
 	test("executable trust proof requires manifest, lock, signature, and sandbox gates", async () => {

@@ -146,6 +146,7 @@ function readFlagValue(args: string[], flagName: string): string | undefined {
 
 const KNOWN_INSTALL_FLAGS = new Set([
 	"--apply",
+	"--confirm-global",
 	"--dry-run",
 	"--executable",
 	"--global",
@@ -156,8 +157,10 @@ const KNOWN_INSTALL_FLAGS = new Set([
 ]);
 
 function assertKnownInstallFlags(args: string[]): void {
-	for (let index = 0; index < args.length; index += 1) {
+	let index = 0;
+	while (index < args.length) {
 		const arg = args[index];
+		index += 1;
 		if (arg === undefined || !arg.startsWith("-")) continue;
 		if (!KNOWN_INSTALL_FLAGS.has(arg)) {
 			throw new OlympiError(`Unknown install option: ${arg}`, 2, {
@@ -175,11 +178,15 @@ function positionalArgs(
 	valuedFlags: readonly string[],
 ): string[] {
 	const positionals: string[] = [];
-	for (let index = 0; index < args.length; index += 1) {
-		const arg = args[index];
+	let skipNext = false;
+	for (const arg of args) {
+		if (skipNext) {
+			skipNext = false;
+			continue;
+		}
 		if (arg === undefined) continue;
 		if (valuedFlags.includes(arg)) {
-			index += 1;
+			skipNext = true;
 			continue;
 		}
 		if (arg.startsWith("--")) continue;

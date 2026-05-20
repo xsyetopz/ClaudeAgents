@@ -13,6 +13,9 @@ node_modules/
 !.env.example
 .mcp.json
 
+# Project-local Pi/Olympi runtime state
+.pi/
+
 # IDE
 !.vscode/settings.json
 .vscode/

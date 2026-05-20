@@ -117,7 +117,7 @@ export function decidePolicy(event: PolicyEvent): PolicyDecision {
 			}
 			break;
 		case "resources_discover":
-			if (event.olympiOwned !== true) {
+			if (event.olympiOwned === false) {
 				reasons.push(
 					"non-Olympi-owned resource discovery blocked from runtime exposure",
 				);
