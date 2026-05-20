@@ -19,7 +19,7 @@ import { runFeedback } from "./commands/feedback.js";
 import { runHandoff } from "./commands/handoff.js";
 import { runHooks } from "./commands/hooks.js";
 import { runInspect } from "./commands/inspect.js";
-import { runInstall } from "./commands/install.js";
+import { runInstall, runRepair } from "./commands/install.js";
 import { runIntelligence } from "./commands/intelligence.js";
 import { runLock } from "./commands/lock.js";
 import { runMemory } from "./commands/memory.js";
@@ -46,6 +46,7 @@ const PUBLIC_TOP_LEVEL_COMMANDS = [
 	"uninstall",
 	"status",
 	"doctor",
+	"repair",
 	"report",
 	"memory",
 	"help",
@@ -193,6 +194,12 @@ export function createCliProgram(argv: string[] = []): Command {
 		"doctor",
 		"Check install, runtime, RTK, Pi, and state",
 		() => runDoctor(json),
+	);
+	forwardCommand(
+		program,
+		"repair",
+		"Repair Olympi project setup and RTK hook defaults",
+		(args) => runRepair(args, json),
 	);
 	forwardCommand(program, "report", "Show reports", (args) =>
 		runReport(args, json),
@@ -477,6 +484,7 @@ Usage:
   olympi install --dry-run
   olympi install --apply
   olympi doctor
+  olympi repair
   olympi status
   olympi memory status
 
@@ -484,6 +492,7 @@ Commands:
   install       Register Olympi resources into Pi project-local state
   uninstall     Remove manifest-owned Olympi resources
   doctor        Check install, runtime, RTK, Pi, hooks, slash resources, and state
+  repair        Repair project-local Olympi setup and RTK hook defaults
   status        Inspect project-local state
   report        Emit admin/CI status or handoff reports
   memory        Manage project-local memory
@@ -534,6 +543,7 @@ CLI bootstrap/admin workflow:
   olympi uninstall [--dry-run|--apply] [--json]
   olympi status [--json]
   olympi doctor [--json]
+  olympi repair [--dry-run|--apply] [--json]
   olympi report status [--json]
   olympi report handoff [--statusline <pi-statusline>] [--json]
   olympi memory status|init|enable|disable [--apply] [--json]

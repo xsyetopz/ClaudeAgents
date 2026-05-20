@@ -33,8 +33,9 @@ that Olympi does not own.
 - Default package install is passive-resource install only. Executable resources
   are classified and hashed during intake and are not installed as trusted code
   by passive install.
-- `olympi install --apply` without `--global` writes only project-local Pi
-  extension/state paths documented by the install plan.
+- `olympi install --apply` without `--global` writes the project-local Pi
+  extension/state paths documented by the install plan and initializes RTK's
+  global provider hook through RTK's own `init` command.
 - Global Pi extension registration requires `--global --apply
   --confirm-global --provenance explicit-user-approval`.
 - Uninstall authority comes from the Olympi manifest and matching file hashes;

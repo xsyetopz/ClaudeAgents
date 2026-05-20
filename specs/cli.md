@@ -148,12 +148,17 @@ forms of `install` and `uninstall`.
 
 Mutating behavior is explicit and scoped:
 
-- `install --apply` writes only the default project-local Pi extension
-  registration at `.pi/extensions/olympi-aegis.ts`.
+- `install --apply` writes the default project-local Pi extension registration
+  at `.pi/extensions/olympi-aegis.ts` and initializes the global RTK hook with
+  `rtk init --global --hook-only --auto-patch` so users do not have to repair
+  token-waste warnings manually.
+- `repair` applies the default project-local install and RTK hook initialization
+  in one command; `repair --dry-run` previews the same self-healing path.
 - `install --global --dry-run` previews global Pi registration without writing.
 - `install --global --apply` is blocked unless paired with `--confirm-global`
   and `--provenance explicit-user-approval`; when allowed, it writes only
-  `~/.pi/agent/extensions/olympi-aegis.ts`.
+  `~/.pi/agent/extensions/olympi-aegis.ts` and initializes the global RTK hook
+  with `rtk init --global --hook-only --auto-patch`.
 - `install <source> [--project] --apply` writes only Olympi-owned project-local
   mirror, lock, manifest, audit, and settings package entries.
 - `install <source> [--project] --executable --signature-digest <sha256> --apply`

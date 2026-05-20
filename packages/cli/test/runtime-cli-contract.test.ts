@@ -144,7 +144,7 @@ describe("runtime model and CLI foundations", () => {
 		expect(text.exitCode).toBe(2);
 		expect(text.stderr).toContain("Unknown command: foo");
 		expect(text.stderr).toContain(
-			"expected: install, uninstall, status, doctor, report, memory, help",
+			"expected: install, uninstall, status, doctor, repair, report, memory, help",
 		);
 		expect(text.stderr).toContain("written: none");
 

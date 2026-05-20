@@ -8,18 +8,21 @@ registration is supported only with explicit `--global` confirmation/provenance.
 ## Pi extension entrypoint install
 
 `install --dry-run` previews the default project-local first-party Olympi Aegis
-extension entrypoint. `install --apply` writes only:
+extension entrypoint and RTK hook initialization. `install --apply` writes:
 
 ```text
 .pi/extensions/olympi-aegis.ts
+~/.claude/settings.json via rtk init --global --hook-only --auto-patch
 ```
 
 Pi invokes Olympi by auto-discovering that project extension, or by an explicit
 `pi -e <olympi-runtime-path>` one-off invocation. `install --global --dry-run`
 previews global registration at `~/.pi/agent/extensions/olympi-aegis.ts`; global
 apply requires `--global --apply --confirm-global --provenance
-explicit-user-approval`. The `olympi` CLI remains a development/admin entrypoint
-and is not the primary runtime.
+explicit-user-approval` and runs `rtk init --global --hook-only --auto-patch`
+so RTK provider hooks are installed during explicit global registration. The
+`olympi` CLI remains a development/admin entrypoint and is not the primary
+runtime.
 
 ## Package/resource install
 

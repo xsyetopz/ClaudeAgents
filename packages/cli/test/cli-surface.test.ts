@@ -101,6 +101,7 @@ describe("Olympi CLI and interactive command surface", () => {
 			"uninstall",
 			"status",
 			"doctor",
+			"repair",
 			"report",
 			"memory",
 			"help",
@@ -112,6 +113,7 @@ describe("Olympi CLI and interactive command surface", () => {
 			"uninstall",
 			"status",
 			"doctor",
+			"repair",
 			"report",
 			"memory",
 			"safety",
@@ -156,6 +158,7 @@ describe("Olympi CLI and interactive command surface", () => {
 			"install",
 			"uninstall",
 			"doctor",
+			"repair",
 			"status",
 			"report",
 			"memory",
@@ -337,7 +340,8 @@ describe("Olympi CLI and interactive command surface", () => {
 				message: "Unknown command: nope",
 				exitCode: 2,
 				input: "nope",
-				expected: "install, uninstall, status, doctor, report, memory, help",
+				expected:
+					"install, uninstall, status, doctor, repair, report, memory, help",
 			},
 			written: [],
 		});

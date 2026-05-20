@@ -1,6 +1,7 @@
 export type CatalogMutationPolicy =
 	| "read-only"
 	| "dry-run-first-project-local"
+	| "explicit-project-local"
 	| "explicit-output-only"
 	| "temp-roots-only";
 
@@ -75,8 +76,8 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "/olympi-goal",
 		purpose:
-			"Prepare or save a project-local goal-loop state with planned steps, verification commands, and stop conditions.",
-		mutationPolicy: "dry-run-first-project-local",
+			"Save a project-local goal-loop state with planned steps, verification commands, and stop conditions, then queue a non-blocking continuation prompt.",
+		mutationPolicy: "explicit-project-local",
 		writes: [".pi/olympi/goals/<goal-id>.json"],
 		blocked: [
 			"implicit autonomy",
@@ -88,8 +89,8 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "/olympi-plan",
 		purpose:
-			"Append a bounded, reviewable planned step to saved project-local goal state.",
-		mutationPolicy: "dry-run-first-project-local",
+			"Append a bounded, reviewable planned step to saved project-local goal state, then queue a non-blocking continuation prompt.",
+		mutationPolicy: "explicit-project-local",
 		writes: [".pi/olympi/goals/<goal-id>.json"],
 		blocked: [
 			"source mutation",
@@ -115,7 +116,7 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 		command: "/olympi-resume",
 		purpose:
 			"Rebuild continuation context from saved project-local goal state without executing an agent.",
-		mutationPolicy: "dry-run-first-project-local",
+		mutationPolicy: "explicit-project-local",
 		writes: [".pi/olympi/goals/<goal-id>.json"],
 		blocked: [
 			"source mutation",
@@ -127,13 +128,9 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "/olympi-execute",
 		purpose:
-			"Execute one saved goal step through command policy, hook vetoes, relevant skill loading, provenance audit, and blocker state transitions.",
-		mutationPolicy: "dry-run-first-project-local",
-		writes: [
-			".pi/olympi/goals/<goal-id>.json with --save",
-			".pi/olympi/policy/decisions.jsonl with --save",
-			".pi/olympi/audit.jsonl with --save",
-		],
+			"Execute one saved goal step through command policy, RTK routing, provenance recording, and blocker state transitions.",
+		mutationPolicy: "explicit-project-local",
+		writes: [".pi/olympi/goals/<goal-id>.json"],
 		blocked: [
 			"implicit autonomy",
 			"unconfirmed mutation",
@@ -234,11 +231,12 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 	{
 		command: "install",
 		purpose:
-			"Register the Olympi Pi extension project-locally by default, register it globally only with explicit --global --apply, or mirror approved passive package resources when a source is provided.",
+			"Register the Olympi Pi extension project-locally by default, register it globally only with explicit --global --apply, initialize the global RTK hook during global registration, or mirror approved passive package resources when a source is provided.",
 		mutationPolicy: "dry-run-first-project-local",
 		writes: [
 			".pi/extensions/olympi-aegis.ts by default extension install",
 			"~/.pi/agent/extensions/olympi-aegis.ts only with olympi install --global --apply",
+			"~/.claude/settings.json RTK hook with extension install --apply",
 			".pi/settings.json packages entry",
 			".pi/olympi/olympi-manifest.json",
 			".pi/olympi/olympi.lock for executable stage",
@@ -252,6 +250,24 @@ const COMMAND_CONTRACTS: CatalogCommandContract[] = [
 			"executable stage without matching signature digest",
 			"direct .pi/skills writes",
 			"direct .pi/prompts writes",
+		],
+	},
+	{
+		command: "repair",
+		purpose:
+			"Repair the default Olympi setup in one command by applying project-local Pi extension registration and initializing the RTK provider hook.",
+		mutationPolicy: "dry-run-first-project-local",
+		writes: [
+			".pi/extensions/olympi-aegis.ts",
+			".pi/settings.json packages entry",
+			".pi/olympi/olympi-manifest.json",
+			".pi/olympi/audit.jsonl",
+			"~/.claude/settings.json via RTK hook init",
+		],
+		blocked: [
+			"missing RTK executable",
+			"project-local extension install safety block",
+			"RTK hook initialization failure",
 		],
 	},
 	{

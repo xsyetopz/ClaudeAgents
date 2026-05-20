@@ -35,15 +35,22 @@ bun run olympi -- install --dry-run
 bun run olympi -- install --apply
 ```
 
-The default project install writes only `.pi/extensions/olympi-aegis.ts`. Pi
-invokes Olympi by auto-discovering that project extension or by an explicit
-one-off `pi -e /path/to/OpenAgentLayer/packages/extensions/src/aegis/pi-runtime.ts`.
+The default project install writes `.pi/extensions/olympi-aegis.ts` and
+initializes the RTK provider hook with
+`rtk init --global --hook-only --auto-patch`. Pi invokes Olympi by
+auto-discovering that project extension or by an explicit one-off
+`pi -e /path/to/OpenAgentLayer/packages/extensions/src/aegis/pi-runtime.ts`.
 Global Pi registration is explicit only:
 
 ```sh
 bun run olympi -- install --global --dry-run
 bun run olympi -- install --global --apply --confirm-global --provenance explicit-user-approval
 ```
+
+The global apply path also initializes RTK's global provider hook with
+`rtk init --global --hook-only --auto-patch`, so RTK can automatically rewrite
+shell-heavy provider commands for token savings. Project-local install does not
+write global RTK/Claude settings.
 
 Package-manager global `olympi` binaries are CLI-only and are not Pi extension
 registration.

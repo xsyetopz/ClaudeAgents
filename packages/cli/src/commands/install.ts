@@ -1,3 +1,5 @@
+import { mkdir } from "node:fs/promises";
+import os from "node:os";
 import { installAegisPiExtension } from "extensions";
 import {
 	applyPassiveInstall,
@@ -9,6 +11,21 @@ import {
 	stageExecutableInstall,
 } from "lifecycle";
 import { asJson } from "reporting";
+
+export interface RtkInitializationReport {
+	schemaVersion: 1;
+	command: "rtk init";
+	requested: boolean;
+	apply: boolean;
+	global: boolean;
+	blocked: boolean;
+	exitCode: number | null;
+	args: string[];
+	stdout: string;
+	stderr: string;
+	written: string[];
+	reason: string;
+}
 
 export async function runInstall(
 	args: string[],
@@ -54,6 +71,12 @@ export async function runInstall(
 	return report.blocked ? 3 : 0;
 }
 
+export function runRepair(args: string[], json: boolean): Promise<ExitCode> {
+	assertKnownRepairFlags(args);
+	const apply = !args.includes("--dry-run");
+	return runExtensionInstall([apply ? "--apply" : "--dry-run"], json);
+}
+
 async function runExtensionInstall(
 	args: string[],
 	json: boolean,
@@ -69,7 +92,8 @@ async function runExtensionInstall(
 	if (apply && dryRun && args.includes("--dry-run")) {
 		throw new OlympiError("install cannot combine --apply and --dry-run", 2);
 	}
-	const globalApply = args.includes("--global") && apply;
+	const globalRequested = args.includes("--global");
+	const globalApply = globalRequested && apply;
 	const provenance =
 		readFlagValue(args, "--provenance") ??
 		(globalApply ? "explicit-user-approval" : undefined);
@@ -79,8 +103,106 @@ async function runExtensionInstall(
 		confirmed: args.includes("--confirm-global") || globalApply,
 		...(provenance === undefined ? {} : { provenance }),
 	});
-	process.stdout.write(json ? asJson(report) : formatExtensionInstall(report));
-	return report.blocked ? 3 : 0;
+	const rtkInitialization = await initializeRtkForInstall({
+		apply,
+		extensionInstallRequested: true,
+		installBlocked: report.blocked,
+	});
+	const combinedReport = { ...report, rtkInitialization };
+	process.stdout.write(
+		json ? asJson(combinedReport) : formatExtensionInstall(combinedReport),
+	);
+	return report.blocked || rtkInitialization.blocked ? 3 : 0;
+}
+
+async function initializeRtkForInstall(options: {
+	apply: boolean;
+	extensionInstallRequested: boolean;
+	installBlocked: boolean;
+}): Promise<RtkInitializationReport> {
+	const args = [
+		"init",
+		"--global",
+		"--hook-only",
+		"--auto-patch",
+		...(options.apply ? [] : ["--dry-run"]),
+	];
+	if (!options.extensionInstallRequested || options.installBlocked) {
+		return {
+			schemaVersion: 1,
+			command: "rtk init",
+			requested: false,
+			apply: false,
+			global: true,
+			blocked: false,
+			exitCode: null,
+			args,
+			stdout: "",
+			stderr: "",
+			written: [],
+			reason: options.extensionInstallRequested
+				? "RTK hook initialization skipped because install is blocked"
+				: "RTK global hook initialization requires an Olympi extension install",
+		};
+	}
+	if (options.apply) await mkdir(pathForClaudeHome(), { recursive: true });
+	let proc: {
+		stdout: ReadableStream<Uint8Array>;
+		stderr: ReadableStream<Uint8Array>;
+		exited: Promise<number>;
+	};
+	try {
+		proc = Bun.spawn(["rtk", ...args], {
+			stdout: "pipe",
+			stderr: "pipe",
+			env: process.env,
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		return {
+			schemaVersion: 1,
+			command: "rtk init",
+			requested: true,
+			apply: options.apply,
+			global: true,
+			blocked: true,
+			exitCode: null,
+			args: ["rtk", ...args],
+			stdout: "",
+			stderr: message,
+			written: [],
+			reason:
+				"RTK executable is unavailable; install RTK, then rerun olympi install --global --apply",
+		};
+	}
+	const [stdout, stderr, exitCode] = await Promise.all([
+		new Response(proc.stdout).text(),
+		new Response(proc.stderr).text(),
+		proc.exited,
+	]);
+	const blocked = exitCode !== 0;
+	return {
+		schemaVersion: 1,
+		command: "rtk init",
+		requested: true,
+		apply: options.apply,
+		global: true,
+		blocked,
+		exitCode,
+		args: ["rtk", ...args],
+		stdout,
+		stderr,
+		written: options.apply && !blocked ? ["~/.claude/settings.json"] : [],
+		reason: blocked
+			? "RTK global hook initialization failed; run rtk init -g manually and inspect stderr"
+			: options.apply
+				? "RTK global hook initialized through rtk init --global --hook-only --auto-patch"
+				: "RTK global hook initialization dry-run completed",
+	};
+}
+
+function pathForClaudeHome(): string {
+	return `${process.env["HOME"] ?? os.homedir()}/.claude`;
 }
 
 function formatInstall(report: InstallReport): string {
@@ -108,7 +230,9 @@ function formatInstall(report: InstallReport): string {
 }
 
 function formatExtensionInstall(
-	report: Awaited<ReturnType<typeof installAegisPiExtension>>,
+	report: Awaited<ReturnType<typeof installAegisPiExtension>> & {
+		rtkInitialization?: RtkInitializationReport;
+	},
 ): string {
 	const lines = [
 		`Olympi install ${report.apply ? "apply" : "dry-run"}`,
@@ -125,6 +249,12 @@ function formatExtensionInstall(
 	lines.push(`Prompts: ${report.prompts.join(", ")}`);
 	lines.push(`Hooks: ${report.hooks.join(", ")}`);
 	lines.push(`Tool shims: ${report.toolShims.join(", ")}`);
+	if (report.rtkInitialization !== undefined) {
+		lines.push(`RTK init: ${report.rtkInitialization.reason}`);
+		for (const writtenPath of report.rtkInitialization.written) {
+			lines.push(`rtk wrote: ${writtenPath}`);
+		}
+	}
 	for (const settingsPath of report.settingsTouched)
 		lines.push(`settings touched: ${settingsPath}`);
 	for (const writePath of report.wouldWrite) {
@@ -156,6 +286,8 @@ const KNOWN_INSTALL_FLAGS = new Set([
 	"--signature-digest",
 ]);
 
+const KNOWN_REPAIR_FLAGS = new Set(["--apply", "--dry-run", "--json"]);
+
 function assertKnownInstallFlags(args: string[]): void {
 	let index = 0;
 	while (index < args.length) {
@@ -170,6 +302,19 @@ function assertKnownInstallFlags(args: string[]): void {
 			});
 		}
 		if (arg === "--provenance" || arg === "--signature-digest") index += 1;
+	}
+}
+
+function assertKnownRepairFlags(args: string[]): void {
+	for (const arg of args) {
+		if (arg === undefined || !arg.startsWith("-")) continue;
+		if (!KNOWN_REPAIR_FLAGS.has(arg)) {
+			throw new OlympiError(`Unknown repair option: ${arg}`, 2, {
+				input: arg,
+				expected: Array.from(KNOWN_REPAIR_FLAGS).sort().join(", "),
+				written: [],
+			});
+		}
 	}
 }
 

@@ -5,18 +5,25 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
 	appendAuditEvent,
+	applyWorkerResult,
 	hashFile,
 	hashJson,
 	type ManifestFileRecord,
 	type PiPackageSettingsEntry,
+	planSavedGoal,
 	readEnabledMemoryText,
+	readGoalState,
 	readManifest,
 	readPiSettings,
+	recordGoalExecution,
 	relativeToProject,
 	removePackageEntry,
+	resumeSavedGoal,
+	startGoalWorkflow,
 	upsertPackageEntry,
 	writeManifest,
 	writePiSettings,
+	writeSavedGoalState,
 } from "lifecycle";
 import type {
 	OlympiHookPipelineResult,
@@ -27,6 +34,8 @@ import type {
 import {
 	classifyWorkspaceCommand,
 	decidePolicy,
+	executeViaRtk,
+	normalizeCommandExecution,
 	planRtkRoute,
 	rtkAntiBypassHook,
 	rtkMissingExecutableBlocker,
@@ -91,6 +100,9 @@ export const OLYMPI_PI_PROMPTS = [
 
 const OLYMPI_CORE_PACKAGE_ID = "olympi-core";
 const OLYMPI_CORE_SETTINGS_SOURCE = "./olympi/core/package";
+const WHITESPACE_PATTERN = /\s+/;
+const EXECUTE_ARGUMENT_NAMES = new Set(["--step", "--command"]);
+const MAX_EXECUTION_OUTPUT_CHARS = 4000;
 
 export interface PiExtensionApiLike {
 	on(
@@ -752,7 +764,14 @@ description: ${JSON.stringify(description)}
 
 ${description}
 
-Load this skill only for the matching Olympi slash workflow. Preserve project-local provenance, RTK routing, hook blockers, and verification evidence.
+Outcome: finish the requested engineering work with durable project-local state, explicit evidence, and no prompt-only claims. Start tool-heavy work with a one- or two-sentence preamble so Pi does not look frozen, then use the smallest sufficient context path.
+
+Rules:
+- Load this skill only for the matching Olympi slash workflow.
+- Prefer narrow repo-map/code-intelligence context before broad grep/read sweeps.
+- Preserve project-local provenance, RTK routing, hook blockers, and verification evidence.
+- Keep the setup light: add skills/extensions only for a concrete problem; avoid duplicate extension stacks and generic Claude-clone bloat.
+- Use scoped side-agent/team decomposition only for independent path-bounded work, then collapse results into parent review and verification.
 `;
 }
 
@@ -762,7 +781,7 @@ description: ${JSON.stringify(promptDescription(prompt))}
 ---
 # ${prompt}
 
-Use this prompt template inside Pi after Olympi is installed. Route normal work through Olympi slash commands, scoped skills, hooks, and automatic RTK tool routing.
+Use this prompt template inside Pi after Olympi is installed. State the outcome first, then route normal work through Olympi slash commands, scoped skills, hooks, and automatic RTK tool routing. For tool-heavy work, emit a short preamble before execution so the session remains visibly responsive.
 
 Arguments: $ARGUMENTS
 `;
@@ -860,12 +879,7 @@ export function createAegisPiExtension(pi: PiExtensionApiLike): void {
 		pi.registerCommand?.(command, {
 			description: slashCommandDescription(command),
 			handler: async (args, ctx) => {
-				const prompt = await slashCommandPrompt(command, args);
-				if (ctx.sendUserMessage !== undefined) {
-					await ctx.sendUserMessage(prompt, { deliverAs: "steer" });
-					return;
-				}
-				ctx.ui?.notify?.(prompt, "info");
+				await handleSlashCommand(command, args, ctx);
 			},
 		});
 	}
@@ -879,6 +893,206 @@ export function createAegisPiExtension(pi: PiExtensionApiLike): void {
 			);
 		},
 	});
+}
+
+async function handleSlashCommand(
+	command: string,
+	args: string,
+	ctx: PiContextLike,
+): Promise<void> {
+	try {
+		const prompt = await materializeSlashCommand(command, args, ctx);
+		queueUserPrompt(prompt, ctx);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		ctx.ui?.notify?.(`Olympi ${command} failed: ${message}`, "error");
+	}
+}
+
+async function materializeSlashCommand(
+	command: string,
+	args: string,
+	ctx: PiContextLike,
+): Promise<string> {
+	const trimmedArgs = args.trim();
+	const projectRoot = ctx.cwd ?? process.cwd();
+	switch (command) {
+		case "olympi-goal": {
+			if (trimmedArgs.length === 0) {
+				return slashCommandPrompt(command, args);
+			}
+			const report = await startGoalWorkflow({
+				projectRoot,
+				objective: trimmedArgs,
+				verificationCommands: defaultGoalVerificationCommands(),
+				stopConditions: defaultGoalStopConditions(),
+				save: true,
+			});
+			ctx.ui?.notify?.(
+				`Olympi goal saved: ${report.goalId} (${report.statePath})`,
+				"info",
+			);
+			return `${await slashCommandPrompt(command, args)}\n\nSaved goal state: ${report.statePath}\nGoal id: ${report.goalId}\nNext: inspect the repository, plan one bounded step with /olympi-plan ${report.goalId} <step>, then execute only governed RTK-routed commands.`;
+		}
+		case "olympi-plan": {
+			const parsed = parseGoalIdAndRemainder(trimmedArgs);
+			if (parsed === null) return slashCommandPrompt(command, args);
+			const report = await planSavedGoal({
+				projectRoot,
+				goalId: parsed.goalId,
+				step: parsed.remainder,
+				save: true,
+			});
+			ctx.ui?.notify?.(
+				`Olympi plan ${report.saved ? "saved" : "prepared"}: ${report.goalId}`,
+				report.blocked ? "warning" : "info",
+			);
+			return `${await slashCommandPrompt(command, args)}\n\nPlan state: ${report.statePath}\nSaved: ${report.saved}\nBlocked: ${report.blocked}\nReason: ${report.reason}`;
+		}
+		case "olympi-resume": {
+			if (trimmedArgs.length === 0) return slashCommandPrompt(command, args);
+			const [goalId] = trimmedArgs.split(WHITESPACE_PATTERN, 1);
+			const report = await resumeSavedGoal({
+				projectRoot,
+				goalId,
+				compactionSummary: "Pi slash /olympi-resume requested continuation",
+				save: true,
+			});
+			ctx.ui?.notify?.(
+				`Olympi resume ${report.saved ? "saved" : "prepared"}: ${report.goalId}`,
+				report.blocked ? "warning" : "info",
+			);
+			return `${report.resumePrompt}\n\nState path: ${report.statePath}\nBlocked: ${report.blocked}\nReason: ${report.reason}`;
+		}
+		case "olympi-execute": {
+			const parsed = parseExecuteArgs(trimmedArgs);
+			if (parsed === null) return slashCommandPrompt(command, args);
+			const state = await readGoalState(projectRoot, parsed.goalId);
+			if (state.activeBlocker !== null) {
+				return `${await slashCommandPrompt(command, args)}\n\nBlocked: active blocker remains on ${parsed.goalId}\nRequired action: ${state.activeBlocker.requiredAction}`;
+			}
+			const normalized = normalizeCommandExecution({
+				rawCommand: parsed.command,
+				cwd: projectRoot,
+			});
+			if (normalized.policyDecision.blocked) {
+				return `${await slashCommandPrompt(command, args)}\n\nBlocked by Themis policy before RTK execution.\nReason: ${normalized.blockerReason ?? normalized.policyDecision.reasons.join("; ")}`;
+			}
+			const startedAt = new Date().toISOString();
+			const execution = await executeViaRtk({
+				originalCommand: parsed.command,
+				cwd: projectRoot,
+			});
+			const finishedAt = new Date().toISOString();
+			const stdout = boundedExecutionText(execution.stdout);
+			const stderr = boundedExecutionText(execution.stderr);
+			const exitCode = execution.exitCode ?? 1;
+			const recorded = recordGoalExecution(state, {
+				stepId: parsed.stepId,
+				command: parsed.command,
+				mode: "human-present",
+				startedAt,
+				finishedAt,
+				exitCode,
+				stdout,
+				stderr,
+				policyAuditId: normalized.policyDecision.auditId,
+				hookDecision: execution.blocked ? "veto" : "allow",
+				selectedSkills: ["goal-loop-orchestration"],
+				loadedSkillDigests: ["olympi-runtime-slash-execute"],
+				provenanceProof: "unknown",
+				mutationConfirmed: false,
+			});
+			const transition = applyWorkerResult(recorded, {
+				stepId: parsed.stepId,
+				summary: execution.blocked
+					? `RTK execution blocked: ${execution.failureReason ?? "unknown RTK blocker"}`
+					: `RTK execution finished with exit code ${exitCode}: ${execution.route.rtkCommandText}`,
+				exitCode,
+				failed: execution.blocked || exitCode !== 0,
+				evidence: [
+					`route: ${execution.route.rtkCommandText}`,
+					...(stdout.length === 0 ? [] : [`stdout: ${stdout}`]),
+					...(stderr.length === 0 ? [] : [`stderr: ${stderr}`]),
+				],
+			});
+			await writeSavedGoalState(projectRoot, parsed.goalId, transition.state);
+			ctx.ui?.notify?.(
+				`Olympi execute recorded: ${parsed.goalId}/${parsed.stepId} exit ${exitCode}`,
+				exitCode === 0 ? "info" : "warning",
+			);
+			return `${await slashCommandPrompt(command, args)}\n\nExecuted through RTK: ${execution.route.rtkCommandText}\nGoal state: .pi/olympi/goals/${parsed.goalId}.json\nExit code: ${exitCode}\nBlocked: ${execution.blocked}\nResult: ${transition.reasons.join("; ")}`;
+		}
+		default:
+			return slashCommandPrompt(command, args);
+	}
+}
+
+function queueUserPrompt(prompt: string, ctx: PiContextLike): void {
+	if (ctx.sendUserMessage === undefined) {
+		ctx.ui?.notify?.(prompt, "info");
+		return;
+	}
+	const options = { deliverAs: "steer", triggerTurn: true };
+	const dispatch = Promise.resolve(ctx.sendUserMessage(prompt, options));
+	dispatch.catch((error) => {
+		const message = error instanceof Error ? error.message : String(error);
+		ctx.ui?.notify?.(`Olympi prompt dispatch failed: ${message}`, "error");
+	});
+}
+
+function parseGoalIdAndRemainder(
+	input: string,
+): { goalId: string; remainder: string } | null {
+	const [goalId, ...rest] = input.split(WHITESPACE_PATTERN);
+	const remainder = rest.join(" ").trim();
+	if (goalId === undefined || goalId.length === 0 || remainder.length === 0) {
+		return null;
+	}
+	return { goalId, remainder };
+}
+
+function parseExecuteArgs(
+	input: string,
+): { goalId: string; stepId: string; command: string } | null {
+	const tokens = input
+		.split(WHITESPACE_PATTERN)
+		.filter((token) => token.length > 0);
+	const goalId = tokens[0];
+	if (goalId === undefined) return null;
+	const stepFlagIndex = tokens.indexOf("--step");
+	const commandFlagIndex = tokens.indexOf("--command");
+	if (stepFlagIndex < 0 || commandFlagIndex < 0) return null;
+	const stepId = tokens[stepFlagIndex + 1];
+	if (stepId === undefined || EXECUTE_ARGUMENT_NAMES.has(stepId)) return null;
+	const commandTokens = tokens.slice(commandFlagIndex + 1);
+	if (commandTokens.length === 0) return null;
+	return { goalId, stepId, command: commandTokens.join(" ") };
+}
+
+function boundedExecutionText(text: string): string {
+	if (text.length <= MAX_EXECUTION_OUTPUT_CHARS) return text;
+	return `${text.slice(0, MAX_EXECUTION_OUTPUT_CHARS)}\n[truncated ${text.length - MAX_EXECUTION_OUTPUT_CHARS} chars]`;
+}
+
+function defaultGoalVerificationCommands(): string[] {
+	return [
+		"bun run olympi:doctor -- --json",
+		"bun run olympi:verify -- --json",
+		"bun run olympi:catalog -- --json",
+		"bun run typecheck",
+		"bun run olympi:test",
+	];
+}
+
+function defaultGoalStopConditions(): string[] {
+	return [
+		"RTK executable is missing or command execution cannot be routed through RTK",
+		"Pi host/runtime behavior required to reproduce a prompt freeze is unavailable",
+		"Workspace ownership, provenance, or destructive/revert-like authority is ambiguous",
+		"Required credentials, network access, files, or external services are unavailable",
+		"Verification fails for reasons outside the current bounded change",
+	];
 }
 
 function slashCommandDescription(command: string): string {
@@ -920,11 +1134,11 @@ async function slashCommandPrompt(
 	const memory = await memoryPromptSuffix();
 	switch (command) {
 		case "olympi-goal":
-			return `Use /skill:olympi-goal-loop. Create a governed Olympi goal from: ${trimmedArgs || "<ask for goal>"}. Keep state project-local, identify verification commands, stop on blockers, and route tool execution through RTK.${memory}`;
+			return `Use /skill:olympi-goal-loop. Start with a one- or two-sentence preamble, then create a governed Olympi goal from: ${trimmedArgs || "<ask for goal>"}. Outcome: durable project-local state, verification commands, blocker stop rules, and RTK-routed execution evidence.${memory}`;
 		case "olympi-plan":
-			return `Use /skill:olympi-goal-loop and /skill:olympi-code-intelligence. Plan the next bounded Olympi step from: ${trimmedArgs || "<current goal>"}. Require explicit paths and parent review.${memory}`;
+			return `Use /skill:olympi-goal-loop and /skill:olympi-code-intelligence. Start with a short preamble, then plan the next bounded Olympi step from: ${trimmedArgs || "<current goal>"}. Prefer repo-map/code-intelligence context before broad reads; require explicit paths and parent review.${memory}`;
 		case "olympi-execute":
-			return `Use /skill:olympi-goal-loop. Execute only the requested bounded step after policy, provenance, hook, and RTK checks: ${trimmedArgs || "<step and command required>"}. Stop on missing RTK or ownership proof.${memory}`;
+			return `Use /skill:olympi-goal-loop. Start with a short preamble, then execute only the requested bounded step after policy, provenance, hook, and RTK checks: ${trimmedArgs || "<step and command required>"}. Stop on missing RTK or ownership proof.${memory}`;
 		case "olympi-complete":
 			return `Use /skill:olympi-verification. Check completion evidence for: ${trimmedArgs || "<goal>"}. Require passing verification, no unresolved blockers, and explicit audit evidence.${memory}`;
 		case "olympi-resume":

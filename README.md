@@ -18,8 +18,10 @@ for Pi.
 - State: project-local Pi/Olympi state lives under `.pi/olympi/**` with
   controlled project `.pi/settings.json` entries; the explicit Aegis runtime
   entrypoint lives at `.pi/extensions/olympi-aegis.ts`.
-- Writes: project-local state changes require explicit mutating commands such as
-  `--save`, `--apply`, or `--write`.
+- Writes: project-local state changes require explicit mutating entrypoints: Pi
+  workflow slash commands such as `/olympi-goal` write their own `.pi/olympi/**`
+  records, while CLI/admin forms require flags such as `--save`, `--apply`, or
+  `--write`.
 - Global state: global `~/.pi` writes happen only with explicit `--global`,
   confirmation, and provenance gates.
 - Outside the product surface: treating Olympi as a standalone replacement for
@@ -34,9 +36,12 @@ supported only when the user explicitly passes `--global` and the stricter
 confirmation/provenance gates. Pi owns `~/.pi/agent/**` user settings, sessions,
 auth, global extensions, and package caches; Olympi writes global Pi extension
 state only through `olympi install --global --apply --confirm-global
---provenance explicit-user-approval`. Olympi owns project-local `.pi/olympi/**`,
-its manifest-owned project `.pi/settings.json` entries, and
-`.pi/extensions/olympi-aegis.ts` by default project install.
+--provenance explicit-user-approval`. That global install also runs RTK hook
+initialization through `rtk init --global --hook-only --auto-patch` so provider
+shell output can be rewritten/summarized before it reaches the model. Olympi
+owns project-local `.pi/olympi/**`, its manifest-owned project
+`.pi/settings.json` entries, and `.pi/extensions/olympi-aegis.ts` by default
+project install.
 
 The intended path is:
 
@@ -67,6 +72,7 @@ olympi install --global --apply --confirm-global --provenance explicit-user-appr
 ```sh
 olympi install --dry-run
 olympi install --apply
+olympi repair
 pi
 /olympi-goal fix the failing install smoke and verify it
 /olympi-execute run the approved verification command
@@ -80,7 +86,8 @@ The default workflow:
 1. captures the user's goal;
 2. keeps the session human-present;
 3. creates no source changes;
-4. writes goal state only with explicit `--save`;
+4. writes goal state only through the explicit Pi workflow command or CLI
+   `--save` path;
 5. records stop conditions and verification commands;
 6. reconstructs continuation context from saved goal state;
 7. executes explicit goal-step commands through policy, hooks, skill loading,
@@ -107,6 +114,12 @@ Under the hood, Olympi keeps project state, policy gates, provenance, hooks,
 skills, blocker handling, and verification evidence close to the repository
 where agents work. Those mechanisms are progressively disclosed; they are not
 the first-run experience.
+
+Dogfood notes from `docs/reddit/` are treated as product evidence, not backlog
+decoration: Pi works best when extensions solve concrete workflow gaps, context
+is narrowed before broad repo reads, pre-tool preambles keep long actions from
+looking frozen, and global RTK hooks are installed during explicit global setup
+instead of relying on users to discover `rtk init -g` after token waste appears.
 
 The default operating model is **human-present**: a user is available for
 decisions, confirmations, blockers, and review. Pi slash-command goal handling does
@@ -221,10 +234,12 @@ olympi status
 pi
 ```
 
-Project apply commands write only project-local `.pi/settings.json`,
-manifest-owned `.pi/olympi/**` paths, and the explicit
-`.pi/extensions/olympi-aegis.ts` extension entrypoint when requested through the
-safety hook install command.
+Project apply commands write project-local `.pi/settings.json`, manifest-owned
+`.pi/olympi/**` paths, and the explicit `.pi/extensions/olympi-aegis.ts`
+extension entrypoint. Extension install also initializes RTK's global provider
+hook through `rtk init --global --hook-only --auto-patch` so users do not have
+to diagnose token-waste warnings after setup. `olympi repair` applies the same
+self-healing setup path by default; `--dry-run` previews it.
 
 ### Interaction surface
 

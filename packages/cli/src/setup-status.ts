@@ -1,4 +1,4 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { type OlympiProjectStatus, readProjectStatus } from "lifecycle";
 import { detectRtk, type RtkStatusReport } from "reporting";
@@ -41,6 +41,7 @@ export interface SetupStatusReport {
 		lockPresent: boolean;
 		auditPresent: boolean;
 		quotaProfilePresent: boolean;
+		rtkGlobalHookPresent: boolean;
 	};
 	state: {
 		manifestPackages: number;
@@ -71,6 +72,7 @@ export async function readSetupStatus(
 		lockPresent: exists(paths.lock),
 		auditPresent: exists(paths.audit),
 		quotaProfilePresent: exists(paths.quota),
+		rtkGlobalHookPresent: hasRtkGlobalHook(env),
 	};
 	const warnings = buildWarnings(configured, status, rtk);
 	return {
@@ -135,6 +137,9 @@ export function formatSetupStatus(report: SetupStatusReport): string {
 	);
 	lines.push(
 		`- quota profile: ${report.configured.quotaProfilePresent ? "present" : "absent"}`,
+	);
+	lines.push(
+		`- RTK global hook: ${report.configured.rtkGlobalHookPresent ? "present" : "absent"}`,
 	);
 	for (const warning of report.warnings) lines.push(`warning: ${warning}`);
 	lines.push("Next actions:");
@@ -228,6 +233,11 @@ function buildWarnings(
 		...(rtk.status === "unavailable" && rtk.degradedReason !== null
 			? [rtk.degradedReason]
 			: []),
+		...(rtk.status === "available" && !configured.rtkGlobalHookPresent
+			? [
+					"RTK is available but the global provider hook was not detected; global Olympi install can initialize it",
+				]
+			: []),
 		...status.warnings,
 	];
 }
@@ -251,10 +261,26 @@ function buildNextActions(
 			"Expose RTK on PATH; governed command execution blocks rather than bypassing RTK.",
 		);
 	}
+	if (rtk.status === "available" && !configured.rtkGlobalHookPresent) {
+		actions.push(
+			"Olympi can repair this itself: run olympi repair (or olympi install --apply) to install project resources and initialize the RTK provider hook.",
+		);
+	}
 	if (actions.length === 0) {
 		actions.push(
 			"No setup action required; continue with project-local Olympi commands.",
 		);
 	}
 	return actions.sort((left, right) => left.localeCompare(right));
+}
+
+function hasRtkGlobalHook(env: NodeJS.ProcessEnv): boolean {
+	const home = env["HOME"];
+	if (home === undefined || home.length === 0) return false;
+	const settingsPath = path.join(home, ".claude", "settings.json");
+	try {
+		return readFileSync(settingsPath, "utf8").includes("rtk hook");
+	} catch {
+		return false;
+	}
 }

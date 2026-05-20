@@ -21,6 +21,7 @@ import {
 import { planRtkCommand } from "reporting";
 
 const CLI = path.join(import.meta.dir, "..", "src", "cli.ts");
+const GOAL_ID_LINE_PATTERN = /Goal id: (goal-[A-Za-z0-9]+)/;
 
 describe("Olympi product workflows", () => {
 	test("RTK command planning is advisory and command-form aware", () => {
@@ -148,7 +149,10 @@ describe("Olympi product workflows", () => {
 			string,
 			(
 				args: string,
-				ctx: { sendUserMessage: (message: string) => Promise<void> },
+				ctx: {
+					cwd?: string;
+					sendUserMessage: (message: string) => Promise<void>;
+				},
 			) => unknown
 		>();
 		createAegisPiExtension({
@@ -163,25 +167,51 @@ describe("Olympi product workflows", () => {
 		expect(registered.has("olympi-resume")).toBe(true);
 		expect(registered.has("olympi-context")).toBe(true);
 		expect(registered.has("olympi-feedback")).toBe(true);
-		const context = {
-			sendUserMessage: (message: string) => {
-				sent.push(message);
-				return Promise.resolve();
-			},
-		};
-		await registered.get("olympi-goal")?.("fix docs", context);
-		await registered.get("olympi-resume")?.("goal-123", context);
-		await registered.get("olympi-context")?.("packages/cli/src", context);
-		expect(sent.join("\n")).toContain("/skill:olympi-goal-loop");
-		expect(sent.join("\n")).toContain("Resume the saved goal");
-		expect(sent.join("\n")).toContain("/skill:olympi-code-intelligence");
-		expect(sent.join("\n")).toContain("route tool execution through RTK");
-
 		const projectRoot = await mkdtemp(
 			path.join(os.tmpdir(), "olympi-memory-prompt-"),
 		);
 		const previousCwd = process.cwd();
 		try {
+			const context = {
+				cwd: projectRoot,
+				sendUserMessage: (message: string) => {
+					sent.push(message);
+					return Promise.resolve();
+				},
+			};
+			await registered.get("olympi-goal")?.("fix docs", context);
+			const savedGoal = sent.at(-1) ?? "";
+			expect(savedGoal).toContain("/skill:olympi-goal-loop");
+			expect(savedGoal).toContain("Saved goal state: .pi/olympi/goals/");
+			expect(savedGoal).toContain("RTK-routed execution evidence");
+			const goalId = savedGoal.match(GOAL_ID_LINE_PATTERN)?.[1];
+			expect(goalId).toBeTruthy();
+			await expect(
+				readFile(
+					path.join(projectRoot, ".pi", "olympi", "goals", `${goalId}.json`),
+					"utf8",
+				),
+			).resolves.toContain("fix docs");
+
+			await registered.get("olympi-resume")?.(
+				goalId ?? "goal-missing",
+				context,
+			);
+			await registered.get("olympi-context")?.("packages/cli/src", context);
+			expect(sent.join("\n")).toContain("Continue working toward");
+			expect(sent.join("\n")).toContain("/skill:olympi-code-intelligence");
+			await registered.get("olympi-execute")?.(
+				`${goalId ?? "goal-missing"} --step step-1 --command pwd`,
+				context,
+			);
+			expect(sent.at(-1)).toContain("Executed through RTK");
+			await expect(
+				readFile(
+					path.join(projectRoot, ".pi", "olympi", "goals", `${goalId}.json`),
+					"utf8",
+				),
+			).resolves.toContain('"command": "pwd"');
+
 			process.chdir(projectRoot);
 			await initializeMemoryStore({ projectRoot, apply: true });
 			await registered.get("olympi-goal")?.("use memory", context);
@@ -193,6 +223,43 @@ describe("Olympi product workflows", () => {
 			expect(sent.at(-1)).not.toContain("Project memory:");
 		} finally {
 			process.chdir(previousCwd);
+			await rm(projectRoot, { recursive: true, force: true });
+		}
+	});
+
+	test("Pi goal slash command returns after queuing a non-resolving prompt", async () => {
+		const projectRoot = await mkdtemp(
+			path.join(os.tmpdir(), "olympi-goal-nonblocking-"),
+		);
+		const registered = new Map<
+			string,
+			(args: string, ctx: unknown) => unknown
+		>();
+		try {
+			createAegisPiExtension({
+				on() {
+					// Event registration is not under test here.
+				},
+				registerCommand(name, options) {
+					registered.set(
+						name,
+						options.handler as (args: string, ctx: unknown) => unknown,
+					);
+				},
+			});
+			const handler = registered.get("olympi-goal");
+			expect(handler).toBeTruthy();
+			const result = await Promise.race([
+				Promise.resolve(
+					handler?.("repair prompt freeze", {
+						cwd: projectRoot,
+						sendUserMessage: () => new Promise(() => undefined),
+					}),
+				).then(() => "returned"),
+				new Promise((resolve) => setTimeout(() => resolve("timed-out"), 50)),
+			]);
+			expect(result).toBe("returned");
+		} finally {
 			await rm(projectRoot, { recursive: true, force: true });
 		}
 	});
@@ -464,12 +531,36 @@ describe("Olympi product workflows", () => {
 				path.join("project", ".pi"),
 			);
 			expect(projectReport.written).toEqual([]);
+			expect(projectReport.rtkInitialization.requested).toBe(true);
+			expect(projectReport.rtkInitialization.apply).toBe(false);
 			await expect(
 				readFile(
 					path.join(homeDir, ".pi", "agent", "extensions", "olympi-aegis.ts"),
 					"utf8",
 				),
 			).rejects.toThrow();
+
+			const projectApply = Bun.spawn(
+				["bun", CLI, "install", "--apply", "--json"],
+				{ cwd: projectRoot, env: { ...process.env, HOME: homeDir } },
+			);
+			const [projectApplyStdout, projectApplyExit] = await Promise.all([
+				new Response(projectApply.stdout).text(),
+				projectApply.exited,
+			]);
+			expect(projectApplyExit).toBe(0);
+			const projectApplyReport = JSON.parse(projectApplyStdout);
+			expect(projectApplyReport.scope).toBe("project-local");
+			expect(projectApplyReport.written).toContain(
+				".pi/extensions/olympi-aegis.ts",
+			);
+			expect(projectApplyReport.rtkInitialization.written).toContain(
+				"~/.claude/settings.json",
+			);
+			expect(
+				await readFile(path.join(homeDir, ".claude", "settings.json"), "utf8"),
+			).toContain("rtk hook claude");
+			await rm(path.join(homeDir, ".claude"), { recursive: true, force: true });
 
 			const globalDryRun = Bun.spawn(
 				["bun", CLI, "install", "--global", "--dry-run", "--json"],
@@ -486,6 +577,9 @@ describe("Olympi product workflows", () => {
 				path.join("home", ".pi", "agent"),
 			);
 			expect(globalReport.written).toEqual([]);
+			expect(globalReport.rtkInitialization.requested).toBe(true);
+			expect(globalReport.rtkInitialization.apply).toBe(false);
+			expect(globalReport.rtkInitialization.blocked).toBe(false);
 
 			const globalApply = Bun.spawn(
 				["bun", CLI, "install", "--global", "--apply", "--json"],
@@ -501,14 +595,22 @@ describe("Olympi product workflows", () => {
 			expect(applyReport.written).toEqual([
 				"~/.pi/agent/extensions/olympi-aegis.ts",
 			]);
+			expect(applyReport.rtkInitialization.requested).toBe(true);
+			expect(applyReport.rtkInitialization.written).toContain(
+				"~/.claude/settings.json",
+			);
 			expect(
 				await readFile(
 					path.join(homeDir, ".pi", "agent", "extensions", "olympi-aegis.ts"),
 					"utf8",
 				),
 			).toContain("createAegisPiExtension");
+			expect(
+				await readFile(path.join(homeDir, ".claude", "settings.json"), "utf8"),
+			).toContain("rtk hook claude");
 
 			await rm(path.join(homeDir, ".pi"), { recursive: true, force: true });
+			await rm(path.join(homeDir, ".claude"), { recursive: true, force: true });
 
 			const confirmedGlobalApply = Bun.spawn(
 				[
@@ -534,6 +636,9 @@ describe("Olympi product workflows", () => {
 			expect(confirmedReport.written).toEqual([
 				"~/.pi/agent/extensions/olympi-aegis.ts",
 			]);
+			expect(confirmedReport.rtkInitialization.written).toContain(
+				"~/.claude/settings.json",
+			);
 			expect(
 				await readFile(
 					path.join(homeDir, ".pi", "agent", "extensions", "olympi-aegis.ts"),
